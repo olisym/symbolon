@@ -13351,3 +13351,60 @@ nicht in den Antrag: sie ist für die Bewertung ohne Belang.
 **Verworfen: minimale Offenlegung.** Eine knappe Angabe hätte dasselbe Feld gefüllt, aber
 die Prüfdisziplin ungenannt gelassen — also genau das weggelassen, was den Unterschied
 zwischen dieser Arbeit und generiertem Text belegt.
+
+---
+
+### D348 — Programmierbare Kryptographie geprüft, als Gegenposition verortet, nicht aufgenommen
+
+**Anlass.** Prüfung von 0xPARC, „Programmable Cryptography (Part 1)" (gubsheep, Juli 2024),
+auf Verwendbarkeit für Symbolon. Der Text beschreibt eine zweite Generation von Primitiven
+(FHE, MPC, zkSNARKs, Witness Encryption, Obfuscation), die beliebige Programme innerhalb
+kryptographischer Objekte ausführen lassen, und drei darauf aufbauende Systementwürfe:
+Universal Protocol, Hallucinated Servers, Cryptomata.
+
+**Befund 1 — entgegengesetzte Richtung zu `08 §2.2`.** Der Ansatz macht eine Aussage
+unbestreitbar, indem das Objekt seinen Beweis mitführt. `08 §2.2` gründet Überprüfbarkeit
+darauf, dass Aussagen kollidieren können, ausdrücklich nicht darauf, dass sie signiert sind.
+Ein Beweis erzeugt keine Kollidierbarkeit; er entzieht ihr den Gegenstand. Das ist kein
+Reifegrad- oder Aufwandsproblem, sondern eine Richtungsentscheidung.
+
+**Befund 2 — „Hallucinated Servers" ist die Gegenthese zu D312 und hält nicht.** Der Entwurf
+verspricht Anwendungen, die einen Zustand führen, den kein Teilnehmer kennt: der Verwahrer
+verschwindet, weil die Nutzerschaft ihn gemeinsam simuliert (Ahnenlinie im Text benannt:
+Szabo, „The God Protocols"). D312 sagt, ein gemeinsamer Topf brauche einen benannten
+Verwahrer. Der Widerspruch löst sich nicht zugunsten des Entwurfs: MPC und FHE setzen
+Interaktion und kollektive Verfügbarkeit voraus. Der Text räumt selbst ein, dass erst
+Obfuscation die Liveness-Anforderungen solcher Netze senken würde und dass Witness Encryption
+und Obfuscation praktisch noch zu ineffizient sind. Der Verwahrer verschwindet also nicht, er
+wird auf ein Quorum mit Verfügbarkeitsanforderung verteilt. Unter Partition ist die nicht
+gegeben — D336–D342.
+
+**Befund 3 — die Unvermeidbarkeit des Forks wird von der Gegenseite bestätigt.** Der Text
+hält fest, dass eine Cryptomata mit den beschriebenen Technologien nicht verhindern kann,
+unendlich kopiert und geforkt zu werden. Die Vergleichsanalyse (D326) hatte den Fork als
+einzige Familie identifiziert, die alle Randbedingungen wahrt und die Blockade löst. Hier
+erscheint dieselbe Eigenschaft als eingestandene Grenze der stärksten denkbaren
+Konstruktion. Stützt D234–D236 aus fremder Richtung.
+
+**Befund 4 — kein offener Blocker wird adressiert.** Beweise richten sich gegen Zweifel an
+der Gültigkeit einer Aussage. Die offenen Befunde betreffen Unterdrückung und Zustellung:
+D346 (die nie herausgegebene Ja-Stimme — der Beweis ihrer Wohlgeformtheit ändert nichts),
+D345 (ein Beobachter hängt ohne Vermerk auf einer früheren Epoche — rekursive Beweise
+komprimieren Historie, sie stellen sie nicht zu), D234–D236 (Autorität, nicht Verifikation).
+Deckungsgleich mit dem Vouchsafe-Befund aus D326: Zurückhalten bleibt der einzige wirksame
+Angriff, und Kryptographie greift ihn nicht an.
+
+**Verworfen: POD/POD2 als Transportformat für claim-atoms.** Content-Adressierung und
+Signaturen sind vorhanden; was zusätzlich käme, sind Vertraulichkeit und komprimierte
+Historie. Beide lösen keinen im Register offenen Punkt. Technologie vor Frage.
+
+**Verworfen: ZK-Beweise über Beträge.** Ein Beweis, der eine Aussage über einen Betrag
+protokollseitig verwertbar macht, umgeht die Preisblindheit aus `03 §3.1` nicht, sondern
+unterläuft sie. Jede Arithmetik bleibt Szenarioaussage; eine solche Stelle wäre ein Befund,
+kein Feature.
+
+**Einordnung.** Verwendbar als Vergleichspunkt aus der Gegenrichtung: alle bisherigen
+Vergleichspunkte (BFT, Stellar, Gesellschaftsrecht, Moloch) sind Koordinationssysteme,
+dieser ist ein Programm, Vertrauen durch Beweisbarkeit zu ersetzen. Symbolons Beitrag
+dagegen: die Ersetzung gelingt an einer Stelle nicht (D312) und ist an anderer nicht nötig
+(D333).

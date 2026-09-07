@@ -13194,3 +13194,39 @@ Werkzeugdisziplin — ergänzt Prüfregel 42 (Assert prüft das Ergebnis, nicht 
 eingesetzten Text) um die Idempotenz-Richtung: nicht nur *was* geprüft wird,
 sondern *ob die Prüfung nach der Anwendung noch dieselbe Antwort gibt*. Als
 Prüfregel 65 aufgenommen.
+
+---
+
+### D344 — Gekürzte Ausgabe an einem Gate macht das Gate blind (Prüfregel 66)
+
+**Anlass.** In `00ax` stand vor Merge und Push der Block
+`make check 2>&1 | tail -8`, eingebunden in eine `and`-Kette. In einer Pipe
+entscheidet der Rückgabewert des **letzten** Glieds; `tail` gelingt praktisch
+immer. `make check` brach mit `Fehler 1` ab (`check-specs`: drei bare
+Paragraphenverweise in `tools/sim/szenario_f.py`), die Kette lief trotzdem
+weiter — Merge nach `main`, Push nach Gitea und Branch-Löschung erfolgten auf
+einem roten Zustand. Reparatur in `204f535`.
+
+**Zweiter Fund bei derselben Gelegenheit.** Der anschließende, ungekürzte Lauf
+zeigte einen zweiten roten Punkt, der **nicht** aus dieser Sitzung stammte:
+`ruff` beanstandete einen ungenutzten Import (`T_EXP`) in
+`tools/sim/szenario_d.py`, eingeführt in `2351ee2` (`00aw`). Derselbe
+Pipe-Mechanismus hatte ihn eine Sitzung lang verdeckt. Ein blindes Gate
+verdeckt nicht nur den eigenen Fehler, sondern konserviert alle früheren.
+
+**Befund und Auflösung eines Konflikts.** `arbeitsweise.md` verlangt, lange
+Diagnoseausgabe per Pipe zu kürzen; Prüfregel 39 verlangt, dass in einer
+`and`-Kette der Rückgabewert entscheidet, nicht der gedruckte Text. Beide
+Regeln bestanden bereits, aber keine sagte, welche gewinnt, wenn ein
+**Tier-1-Schritt** (Merge, Push, Löschung) von dem gekürzten Lauf abhängt. Sie
+tut es jetzt: an einem Gate wird nicht gekürzt. Entweder läuft der Befehl
+ungekürzt, oder der Status wird explizit geprüft (`$pipestatus[1]` in fish),
+oder das Gate steht in einem eigenen Block, dessen Ergebnis vor dem Tier-1-Zug
+gelesen wird. Als Prüfregel 66 aufgenommen.
+
+**Einordnung.** Kein Fund über MaR. Ein Fund über die Stelle, an der die
+Token-Ökonomie (kürzen, bündeln) die Prüfdisziplin untergräbt — und die
+Bündelungsregel aus `arbeitsweise.md` („Ein Shell-Block pro Zug") ist genau
+deshalb an dieser Stelle einzuschränken: ein Gate und der davon abhängige
+Tier-1-Zug gehören nicht in dieselbe Kette, weil sonst niemand das Ergebnis
+zwischen beiden liest.

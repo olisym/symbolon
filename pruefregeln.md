@@ -471,6 +471,17 @@ prüft deshalb zusätzlich auf das Zielmuster, das erst nach dem ersten Lauf exi
 neue Überschrift), oder verbraucht den Anker selbst. In `00ax` beim Schreiben von D342 gerissen
 (D343).
 
+**66. An einem Gate wird die Ausgabe nicht gekürzt.**
+Vor jedem Tier-1-Zug (Merge, `git push`, Branch- oder Dateilöschung) steht ein prüfender
+Lauf — `make check`, ein Testlauf, ein Linter. Wird dessen Ausgabe in derselben `and`-Kette
+durch eine Pipe gekürzt (`| tail`, `| head`, `| grep`), entscheidet der Status des letzten
+Pipeglieds, nicht der des Prüflaufs; `tail` gelingt praktisch immer, und das Gate ist blind.
+Entweder läuft der Prüfbefehl an dieser Stelle ungekürzt, oder sein Status wird ausdrücklich
+geprüft (`$pipestatus[1]`), oder er steht in einem eigenen Block, dessen Ergebnis vor dem
+Tier-1-Zug gelesen wird. Die Kürzungsdisziplin aus `arbeitsweise.md` gilt für Diagnose, nicht
+für Gates. In `00ax` gerissen: ein roter `make check` wurde gemergt und gepusht, und derselbe
+Mechanismus hatte seit `00aw` einen Lint-Fehler verdeckt (D344).
+
 ## Bei der Abnahme und beim Merge
 
 **56. Ein Bericht ohne den Diff ist keine Lieferung.**
@@ -509,7 +520,8 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 30 aus D192, 31 aus D196, 32 aus D200, 33 und 34 aus D201, 35 aus D203, 36 aus D205,
 37 aus D208, 38 aus D209, 39 aus D211, 40 aus D214, 41 aus D217, 42 aus D223, 43 aus D224,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
-52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315, 65 aus D343.
+52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
+65 aus D343, 66 aus D344.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

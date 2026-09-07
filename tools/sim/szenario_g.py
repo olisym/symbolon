@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Szenario G: zweistufige Epochenkette unter Teilwissen (04 §3.2, 04 §4.1, 04 §4.4, 04 §4.5, D174, D178, D179, D342).
 
-Wegwerf-Treiber. Zwei unabhängige Läufe, kein geteilter Kontext.
+Wegwerf-Treiber. Drei unabhängige Läufe, kein geteilter Kontext.
 Stimmen und ratify@1 über Welt.zustellen; Verfassungs- und Vorschlagsobjekte
 über pro Beobachter geführte Dicts. Keine neuen Primitive.
 """
@@ -330,6 +330,88 @@ def _lauf2(pfad: str) -> dict[str, Any]:
     }
 
 
+def _ja_signieren(
+    welt: Welt, ex: dict[str, Any], autor: str, proposal: Proposal, t: int
+) -> Claim:
+    n = ex["N"]
+    return welt.teilnehmer[autor].claim_signieren(
+        p=_nuc(n, "vote"),
+        J=(3, proposal.proposal_hash),
+        t=t,
+        v=cbor_canon.encode({0: 1}),
+        N=n,
+    )
+
+
+def _lauf3_fall(
+    pfad: str,
+    *,
+    titel: str,
+    rivale: str | None,
+    objekt_bekannt: bool,
+) -> dict[str, dict[str, Any]]:
+    """Eine Welt, höchstens eine Konfliktstimme per claim_signieren (04 §4.4, 04 §4.5)."""
+    print(f"--- {titel} ---")
+    welt = _welt(pfad)
+    ex = _aufbau(welt, konflikte=False)
+    for name in NAMEN:
+        _kette_bekannt(ex, name)
+    if rivale == "b":
+        _ja_signieren(welt, ex, C, ex["proposal_b"], 5)
+        if objekt_bekannt:
+            for name in NAMEN:
+                _kennt_vorschlag(ex, name, ex["proposal_b"])
+    elif rivale == "d":
+        _ja_signieren(welt, ex, C, ex["proposal_d"], 5)
+        if objekt_bekannt:
+            for name in NAMEN:
+                _kennt_vorschlag(ex, name, ex["proposal_d"])
+    elif rivale == "x":
+        _ja_signieren(welt, ex, C, ex["proposal_x"], 5)
+        if objekt_bekannt:
+            for name in NAMEN:
+                _kennt_vorschlag(ex, name, ex["proposal_x"])
+    welt.zustellen(A, "alle")
+    welt.zustellen(B, "alle")
+    welt.zustellen(C, "alle")
+    rows = {name: _beobachte(welt, ex, name) for name in NAMEN}
+    for name in NAMEN:
+        _drucke_beobachter(rows[name])
+    return rows
+
+
+def _lauf3(pfad: str) -> dict[str, dict[str, dict[str, Any]]]:
+    print("=== Lauf 3 — ohne Gabelung, Vollzustellung ===")
+    print()
+    root = Path(pfad)
+    return {
+        "l3_0": _lauf3_fall(
+            str(root / "l3-0"),
+            titel="L3-0 — keine Konfliktstimme",
+            rivale=None,
+            objekt_bekannt=False,
+        ),
+        "l3_1": _lauf3_fall(
+            str(root / "l3-1"),
+            titel="L3-1 — Rivale epoch_1, Objekt bekannt",
+            rivale="b",
+            objekt_bekannt=True,
+        ),
+        "l3_2": _lauf3_fall(
+            str(root / "l3-2"),
+            titel="L3-2 — Rivale epoch_2, Objekt bekannt",
+            rivale="d",
+            objekt_bekannt=True,
+        ),
+        "l3_3": _lauf3_fall(
+            str(root / "l3-3"),
+            titel="L3-3 — Rivale epoch_2, Objekt unbekannt",
+            rivale="x",
+            objekt_bekannt=False,
+        ),
+    }
+
+
 def _hat(rows: list[str], kind: str) -> bool:
     return any(line.startswith(kind + " ") for line in rows)
 
@@ -338,11 +420,25 @@ def _arten(rows: list[str]) -> list[str]:
     return [line.split(" ", 1)[0] for line in rows]
 
 
+def _arten_menge(row: dict[str, Any]) -> frozenset[str]:
+    return frozenset(_arten(row["chain_findings"]))
+
+
+def _identisch_beobachter(rows: dict[str, dict[str, Any]]) -> bool:
+    indices = {rows[name]["index"] for name in NAMEN}
+    karten = {_arten_menge(rows[name]) for name in NAMEN}
+    return len(indices) == 1 and len(karten) == 1
+
+
 def _hat_subjekt(findings: tuple[Finding, ...], subject: bytes) -> bool:
     return any(f.subject == subject for f in findings)
 
 
-def _befunde(lauf1: dict[str, Any], lauf2: dict[str, Any]) -> None:
+def _befunde(
+    lauf1: dict[str, Any],
+    lauf2: dict[str, Any],
+    lauf3: dict[str, dict[str, dict[str, Any]]],
+) -> None:
     print("=== Befunde ===")
     print()
 
@@ -509,6 +605,148 @@ def _befunde(lauf1: dict[str, Any], lauf2: dict[str, Any]) -> None:
             f"CONFLICTING_APPROVAL={g3p_conflict}, "
             f"Vermerke={g3p['chain_findings']}."
         )
+    print()
+
+    l30 = lauf3["l3_0"]
+    l30_epochen = {name: l30[name]["index"] for name in NAMEN}
+    l30_karten = {name: sorted(_arten_menge(l30[name])) for name in NAMEN}
+    l30_leer = all(not l30[name]["chain_findings"] for name in NAMEN)
+    l30_ep3 = all(l30[name]["index"] == 3 for name in NAMEN)
+    print(f"(L3-0) Epochen={l30_epochen} Vermerkarten={l30_karten}")
+    if l30_ep3 and l30_leer:
+        print("(L3-0) bestätigt — alle vier Epoche 3, Vermerkliste leer.")
+    else:
+        print(
+            f"(L3-0) widerlegt — Epochen={l30_epochen}, "
+            f"Vermerkarten={l30_karten}."
+        )
+    print()
+    print(
+        f"(L3-0 Identität) identisch={_identisch_beobachter(l30)} "
+        f"Epochen={l30_epochen} Vermerkarten={l30_karten}"
+    )
+    if _identisch_beobachter(l30):
+        print(
+            "(L3-0 Identität) bestätigt — alle vier Beobachter gleicher "
+            "Index und gleiche Vermerkarten."
+        )
+    else:
+        print(
+            "(L3-0 Identität) widerlegt — ein Beobachter weicht ab: "
+            f"Epochen={l30_epochen}, Vermerkarten={l30_karten}."
+        )
+    print()
+
+    l31 = lauf3["l3_1"]
+    l31_epochen = {name: l31[name]["index"] for name in NAMEN}
+    l31_karten = {name: sorted(_arten_menge(l31[name])) for name in NAMEN}
+    l31_ok = all(
+        l31[name]["index"] == 1
+        and _hat(l31[name]["chain_findings"], "CONFLICTING_APPROVAL")
+        and _hat(l31[name]["chain_findings"], "UNSUPPORTED_RATIFICATION")
+        for name in NAMEN
+    )
+    print(f"(L3-1) Epochen={l31_epochen} Vermerkarten={l31_karten}")
+    if l31_ok:
+        print(
+            "(L3-1) bestätigt — alle vier Epoche 1, CONFLICTING_APPROVAL "
+            "und UNSUPPORTED_RATIFICATION."
+        )
+    else:
+        print(
+            f"(L3-1) widerlegt — Epochen={l31_epochen}, "
+            f"Vermerkarten={l31_karten}."
+        )
+    print()
+    print(
+        f"(L3-1 Identität) identisch={_identisch_beobachter(l31)} "
+        f"Epochen={l31_epochen} Vermerkarten={l31_karten}"
+    )
+    if _identisch_beobachter(l31):
+        print(
+            "(L3-1 Identität) bestätigt — alle vier Beobachter gleicher "
+            "Index und gleiche Vermerkarten."
+        )
+    else:
+        print(
+            "(L3-1 Identität) widerlegt — ein Beobachter weicht ab: "
+            f"Epochen={l31_epochen}, Vermerkarten={l31_karten}."
+        )
+    print()
+
+    l32 = lauf3["l3_2"]
+    l32_epochen = {name: l32[name]["index"] for name in NAMEN}
+    l32_karten = {name: sorted(_arten_menge(l32[name])) for name in NAMEN}
+    l32_ok = all(
+        l32[name]["index"] == 2
+        and _hat(l32[name]["chain_findings"], "CONFLICTING_APPROVAL")
+        and _hat(l32[name]["chain_findings"], "UNSUPPORTED_RATIFICATION")
+        for name in NAMEN
+    )
+    print(f"(L3-2) Epochen={l32_epochen} Vermerkarten={l32_karten}")
+    if l32_ok:
+        print(
+            "(L3-2) bestätigt — alle vier Epoche 2, CONFLICTING_APPROVAL "
+            "und UNSUPPORTED_RATIFICATION."
+        )
+    else:
+        print(
+            f"(L3-2) widerlegt — Epochen={l32_epochen}, "
+            f"Vermerkarten={l32_karten}."
+        )
+    print()
+    print(
+        f"(L3-2 Identität) identisch={_identisch_beobachter(l32)} "
+        f"Epochen={l32_epochen} Vermerkarten={l32_karten}"
+    )
+    if _identisch_beobachter(l32):
+        print(
+            "(L3-2 Identität) bestätigt — alle vier Beobachter gleicher "
+            "Index und gleiche Vermerkarten."
+        )
+    else:
+        print(
+            "(L3-2 Identität) widerlegt — ein Beobachter weicht ab: "
+            f"Epochen={l32_epochen}, Vermerkarten={l32_karten}."
+        )
+    print()
+
+    l33 = lauf3["l3_3"]
+    l33_epochen = {name: l33[name]["index"] for name in NAMEN}
+    l33_karten = {name: sorted(_arten_menge(l33[name])) for name in NAMEN}
+    l33_ok = all(
+        l33[name]["index"] == 1
+        and _hat(l33[name]["chain_findings"], "UNKNOWN_PROPOSAL")
+        and _hat(l33[name]["chain_findings"], "UNSUPPORTED_RATIFICATION")
+        and not _hat(l33[name]["chain_findings"], "EPOCH_PROPOSAL_UNAVAILABLE")
+        for name in NAMEN
+    )
+    print(f"(L3-3) Epochen={l33_epochen} Vermerkarten={l33_karten}")
+    if l33_ok:
+        print(
+            "(L3-3) bestätigt — alle vier Epoche 1, UNKNOWN_PROPOSAL und "
+            "UNSUPPORTED_RATIFICATION, kein EPOCH_PROPOSAL_UNAVAILABLE."
+        )
+    else:
+        print(
+            f"(L3-3) widerlegt — Epochen={l33_epochen}, "
+            f"Vermerkarten={l33_karten}."
+        )
+    print()
+    print(
+        f"(L3-3 Identität) identisch={_identisch_beobachter(l33)} "
+        f"Epochen={l33_epochen} Vermerkarten={l33_karten}"
+    )
+    if _identisch_beobachter(l33):
+        print(
+            "(L3-3 Identität) bestätigt — alle vier Beobachter gleicher "
+            "Index und gleiche Vermerkarten."
+        )
+    else:
+        print(
+            "(L3-3 Identität) widerlegt — ein Beobachter weicht ab: "
+            f"Epochen={l33_epochen}, Vermerkarten={l33_karten}."
+        )
 
 
 def main() -> None:
@@ -518,7 +756,8 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         lauf1 = _lauf1(str(Path(tmp) / "lauf1"))
         lauf2 = _lauf2(str(Path(tmp) / "lauf2"))
-    _befunde(lauf1, lauf2)
+        lauf3 = _lauf3(str(Path(tmp) / "lauf3"))
+    _befunde(lauf1, lauf2, lauf3)
 
 
 if __name__ == "__main__":

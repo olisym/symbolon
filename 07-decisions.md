@@ -13303,3 +13303,51 @@ dafür nicht einmal blockieren, sondern nur schweigen.
 **Keine Spec-Änderung vorgeschlagen.** Die Richtung von `04 §4.4` ist erzwungen: die
 Gegenannahme (unbekannt heißt möglicherweise fremd) erzeugt zwei Nachfolger derselben
 Epoche und damit Über-Ratifizierung. Eine Frist auf unaufgelöste Stimmen wäre eine Uhr.
+
+---
+
+### D347 — Budgetrahmen und AI-Offenlegung für den Restack-Antrag
+
+**Anlass.** O57 blockierte auf zwei Punkten, die nur der Operator entscheiden kann: der
+Budgetzahl (abhängig von der Hinzuverdienstgrenze der Rente) und der Offenlegung der
+KI-Nutzung im Formularfeld. Beide sind hier entschieden; die Faktensammlung bleibt
+Rohmaterial, die Formularsätze schreibt der Operator selbst.
+
+**Entscheidung Budget.** Beantragt werden 15.000 €: 12.000 € Arbeitsanteil (200 Stunden zu
+60 €/h) und 3.000 € Sachkosten in getrennten Zeilen (vServer, API-Nutzung, Hardware für
+die LoRa/Reticulum-Phase, externer Review). Ausgezahlt wird gegen Meilensteine; die
+Aufgabenblöcke werden entlang natürlicher Abnahmepunkte geschnitten.
+
+**Begründung.** Die Summe ist nicht durch den Bedarf nach oben begrenzt, sondern durch zwei
+Randbedingungen. Erstens die Hinzuverdienstgrenze der vollen Erwerbsminderungsrente, zu der
+die Arbeitsmarktrente zählt: 20.763,75 € im Kalenderjahr 2026. 15.000 € liegen auch dann
+darunter, wenn der volle Zufluss ohne Abzug der Sachkosten angerechnet würde, und ein
+Projektlauf über einen Jahreswechsel verteilt ihn zusätzlich. Zweitens der im Antrag selbst
+dokumentierte Zeitaufwand: das Formularfeld verlangt Stunden, und der Antrag wird bei
+Bewilligung veröffentlicht. 200 Stunden über zwölf Monate sind rund vier Stunden pro Woche
+und damit mit dem Leistungsbild der vollen Erwerbsminderung vereinbar. Der Satz von 60 €/h
+folgt daraus: ein niedrigerer Satz übersetzt dieselbe Summe in eine höhere, schriftlich
+fixierte Stundenzahl, ein höherer provoziert bei einem Erstantrag ohne Referenzförderung
+Rückfragen zum Satz selbst.
+
+**Entscheidung Offenlegung.** Die KI-Nutzung wird im Feld „AI disclosure" vollständig
+offengelegt, einschließlich der Rollenteilung (Spec-Supervisor und Prompt-Autor gegenüber
+ausführendem Werkzeug) und der Prüfdisziplin.
+
+**Begründung.** `08 §2.2` verlangt, dass Nachweisbarkeit nie an einer stillen Auslassung
+hängt. Ein Antrag über dieses Protokoll, der die eigene Entstehungsweise verschweigt,
+widerlegt die Prämisse, für die er wirbt. Hinzu kommt, dass die Arbeitsweise der Beleg
+gegen den naheliegenden Einwand ist: dokumentierte Negativbefunde entstehen nur, wo
+gemessen und nicht nur erzeugt wird — D234–D236 (die zentrale Frage hat keine bekannte
+Lösung), D312 (die eigene Bauform erzwingt einen Verwahrer), D311 (aus 2511 Einzel- und
+16958 Paarmutanten kam kein einziger Befund; alle kamen aus Lesen und Rücknahmeproben).
+
+**Verworfen: schriftliche Vorabklärung beim Rentenversicherungsträger.** Die Betragsfrage
+ist ohne Anfrage entscheidbar, und eine schriftliche Anfrage klärt mehr, als die
+Entscheidung verlangt. Die Zeitfrage wird stattdessen als Gestaltungsauflage an das
+Budgetfeld geführt (Satz hoch, Stundenzahl niedrig). Die Rentensituation selbst gehört
+nicht in den Antrag: sie ist für die Bewertung ohne Belang.
+
+**Verworfen: minimale Offenlegung.** Eine knappe Angabe hätte dasselbe Feld gefüllt, aber
+die Prüfdisziplin ungenannt gelassen — also genau das weggelassen, was den Unterschied
+zwischen dieser Arbeit und generiertem Text belegt.

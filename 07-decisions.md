@@ -13230,3 +13230,76 @@ Bündelungsregel aus `arbeitsweise.md` („Ein Shell-Block pro Zug") ist genau
 deshalb an dieser Stelle einzuschränken: ein Gate und der davon abhängige
 Tier-1-Zug gehören nicht in dieselbe Kette, weil sonst niemand das Ergebnis
 zwischen beiden liest.
+
+---
+
+### D345 — Szenario G: wie weit die Kette zurückfällt und was davon sichtbar bleibt
+
+**Anlass.** D342 zeigte den Rückfall auf einer einstufigen Kette (1→2). Offen blieb,
+wie weit eine zweistufige Kette zurückfällt und ob eine Abweichung zwischen zwei
+Beobachtern irgendwo vermerkt wird. `tools/sim/szenario_g.py` (`00ay`), drei Läufe:
+Kette 1→2→3, vier Teilnehmer, Schwelle `1/2`, also drei Ja von vier.
+
+**Befund 1 — der Rückfall endet am Bruchpunkt, nicht an der Wurzel.** Eine
+rivalisierende Ja-Stimme auf einen Vorschlag mit `predecessor == epoch_1` wirft den
+Beobachter auf Epoche 1; dieselbe Stimme auf einen Vorschlag mit
+`predecessor == epoch_2` lässt ihn auf Epoche 2 stehen. `resolve_epoch` baut ab Epoche 1
+neu auf und endet an der ersten Sprosse, die nicht mehr trägt (`04 §4.5`). Nicht „die
+Kette kollabiert", sondern „die Kette endet dort, wo sie zuerst nicht mehr getragen
+wird".
+
+**Befund 2 — der Rückfall braucht weder Partition noch Gabelung.** Lauf 3: gerade
+Autorenkette, eine einzige Konfliktstimme, Vollzustellung an alle vier. Alle vier
+Beobachter landen auf demselben Index mit denselben Vermerkarten. Ein Mitglied, das ein
+zweites Ja abgibt, wirft das ganze Netz gemeinsam zurück; Teilwissen verschiebt nur, wer
+es wann sieht. Die erste Fassung des Szenarios hängte drei Konfliktstimmen per
+`claim_gabeln` an eine Spitze und band den Befund damit an eine Equivokation, die er
+nicht braucht (Prüfregel 67).
+
+**Befund 3 — die überholte obere Sprosse hinterlässt keinen Vermerk.** Beim Rückfall auf
+Epoche 1 trägt kein Vermerk die `claim_id` der Ratifizierung der zweiten Sprosse oder den
+Hash ihres Vorschlags: `chain.py` überspringt Ratifizierungen mit fremdem `predecessor`
+stumm, und die Vermerkliste entsteht in jedem Schleifenschritt neu (`04 §4.5`). Der
+Beobachter erfährt, warum die Kette bei 1 endet, nicht, dass sie einmal bei 3 stand.
+
+**Befund 4 — selektives Zurückhalten hält einen Beobachter dauerhaft zurück, ohne
+Vermerk bei irgendwem.** Wird einem Beobachter das `ratify@1` der zweiten Sprosse
+vorenthalten, steht er auf Epoche 2 mit leerer Vermerkliste, während die übrigen auf
+Epoche 3 stehen — ebenfalls mit leerer Liste. Kein lokaler Vermerk unterscheidet „noch
+nicht ratifiziert" von „mir vorenthalten". Sichtbar wird die Divergenz allein im
+Quervergleich zweier Beobachter. Das ist die Governance-Entsprechung zu D340/D341.
+
+**Verworfen: ein Vermerk „du hängst zurück".** Er setzte voraus, dass ein Beobachter die
+Epoche der anderen kennt, also globalen Zustand. `04 §4.5` legt die Gegenrichtung fest:
+die Kette beantwortet, welche Epoche gilt, nicht, was in einer überholten Epoche geschah.
+Kein Implementierungsfehler — dieselbe Eigenschaft wie in D342.
+
+---
+
+### D346 — Die zurückgehaltene Ja-Stimme setzt ihren Autor dauerhaft aus
+
+**Anlass.** Fall L3-3 aus Szenario G (`00ay`): ein Mitglied stimmt mit Ja auf einen
+Vorschlag, dessen Objekt es nie herausgibt. Alle vier Beobachter fallen auf Epoche 1,
+Vermerk `UNKNOWN_PROPOSAL`.
+
+**Befund.** Nach `04 §4.4` gilt eine aktive Ja-Stimme auf einen unbekannten Vorschlag als
+möglicherweise epochengleich und blockiert die andere Ja-Stimme desselben Autors — in
+jeder Auszählung, die eine Kettenauflösung noch braucht (D178). Ist das Objekt nirgends
+vorhanden, gilt das bei allen Beobachtern gleichzeitig und unbefristet: heilen kann nur
+der Autor selbst, weil das Objekt content-adressiert ist und niemand sonst es liefern
+kann.
+
+**Einordnung.** Das ist keine Sperrminorität über die Schwelle, sondern die dauerhafte
+Stilllegung genau einer Ja-Stimme, zum Preis von null. `k` Mitglieder legen so `k`
+Stimmen still; beschlussfähig bleibt die Verfassung, solange `n − k` die Schwelle über
+`n` noch erreicht — im Szenario (`n = 4`, `1/2`) fehlte damit die dritte Ja-Stimme.
+Nicht-Teilnahme wirkt in MaR ohnehin wie Ablehnung; diese Stimme ist mehr: aktiv, gültig,
+in jeder künftigen Epoche wirksam und von einer legitim schwebenden Stimme von außen
+nicht zu unterscheiden. Wo eine Verfassung `vote@1` nicht in `irrevocable_predicates`
+führt, kann der Autor zurücknehmen; die Wirkung hält, solange er es nicht tut. Anschluss
+an D234–D236: dort kann ein feindlicher Eintrag nicht entfernt werden — hier muss er
+dafür nicht einmal blockieren, sondern nur schweigen.
+
+**Keine Spec-Änderung vorgeschlagen.** Die Richtung von `04 §4.4` ist erzwungen: die
+Gegenannahme (unbekannt heißt möglicherweise fremd) erzeugt zwei Nachfolger derselben
+Epoche und damit Über-Ratifizierung. Eine Frist auf unaufgelöste Stimmen wäre eine Uhr.

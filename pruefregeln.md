@@ -426,6 +426,16 @@ für die Bytes — weil es die signierten Bytes suchte, der Anhang aber nach dem
 Core und die Signatur getrennt führt. Ein Probelauf gegen TV1 hätte das im ersten Zug gezeigt und
 einen Umlauf gespart. Ergänzt Prüfregel 49: eine Probe sichert die Richtung, nicht den Maßstab.
 
+**67. Eine Szenariokonstruktion trägt keine Bedingung, die die Frage nicht verlangt.**
+Gabelung, Partition und Teilwissen sind bequeme Aufbauhilfen; sie erlauben mehrere Fälle in
+einer Welt. Wer sie aus Bequemlichkeit einbaut, bindet den Befund an sie, und wer ihn in
+einem Jahr liest, hält die Bedingung für notwendig. Vor der Abnahme wird die bequeme
+Bedingung gestrichen und der Fall ohne sie nachgebaut; hält der Befund auch dann, ist er
+stärker und gehört in dieser Fassung ins Register. In `00ay` gerissen: drei
+Konfliktstimmen hingen per `claim_gabeln` an einer Spitze, weil sonst die Vorgänger
+fehlten, und der Rückfall las sich als Folge einer Equivokation. Ohne Gabelung und mit
+Vollzustellung an alle trat er unverändert ein (D345).
+
 ## Beim Fahren von Blöcken und Splices
 
 **39. Eine Ausgabe ist keine Bedingung.**
@@ -521,7 +531,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 37 aus D208, 38 aus D209, 39 aus D211, 40 aus D214, 41 aus D217, 42 aus D223, 43 aus D224,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
-65 aus D343, 66 aus D344.
+65 aus D343, 66 aus D344, 67 aus D345.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

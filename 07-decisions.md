@@ -13503,3 +13503,48 @@ beiden Sätze oben eine Voraussetzung.
 
 **Keine Spec-Änderung mit diesem Eintrag.** Szenario H misst zuerst den Ist-Zustand der beiden
 Zeitregime, bevor an einem von ihnen etwas geändert wird.
+
+---
+
+### D351 — `UNSUPPORTED_RATIFICATION` benennt die Stimmen statt der Ratifizierung
+
+**Anlass.** Szenario H, Lauf 2 (`00ba`): eine gerade Epochenkette, deren drei Stimmen ein `t_exp`
+tragen. Erwartet war die Vermerkmenge, die aus dem Code folgt — ein
+`UNSUPPORTED_RATIFICATION` mit dem Subjekt der Ratifizierung, dazu drei `VOTE_WITH_EXPIRY` mit
+den Subjekten der drei Stimmen, zusammen vier Vermerke. Gemessen wurden **sechs**: drei je Art,
+und beide Arten tragen dieselben drei Subjekte, naemlich die der Stimmen. Die `claim_id` der
+Ratifizierung (`5a05e8f9...`) kommt in keinem Vermerk vor, obwohl sie sich von den Stimmen
+unterscheidet und beide Praedikate verschieden sind (`.../vote@1` gegen `.../ratify@1`).
+
+**Befund.** Der Vermerk zeigt auf das falsche Subjekt, und er zeigt dreimal statt einmal. Aus den
+drei beteiligten Bausteinen folgt das nicht: `resolve_epoch` filtert die Kandidaten ueber
+`is_nuc_name(claim, "ratify")` und reicht genau die eine Ratifizierung weiter, `_unsupported`
+setzt ein einziges Finding mit `claim_id(ratify)`, und `dedupe_sort` ist
+`tuple(sorted(set(...)))` ohne Kreuzprodukt. Die Ursache liegt zwischen `decide` und
+`verify_ratification` und wurde durch Lesen dieser drei Stellen nicht auffindbar; sie wird
+gesondert ermittelt.
+
+**Einordnung.** Ein Vermerk ist in MaR keine Fehlermeldung, sondern die Zurechnung eines Mangels
+auf einen benannten Claim. Ein Subjekt, das auf einen anderen Claim zeigt als den beanstandeten,
+beschuldigt die Falschen — hier die Stimmenden statt der Ratifizierenden. Das trifft `08 §2.2` im
+Kern: eine Aussage, die kollidieren koennen soll, muss zuerst sagen, wovon sie handelt.
+Gleichzeitig verschwindet der tatsaechlich beanstandete Claim vollstaendig aus der Vermerkliste,
+also die einzige Stelle, an der die gescheiterte Ratifizierung ueberhaupt benannt wuerde.
+
+**Warum es bisher unentdeckt blieb.** Kein bestehender Lauf und kein Test erzeugt beide
+Vermerkarten gleichzeitig. Szenario G kennt `UNSUPPORTED_RATIFICATION` nur ohne begleitende
+Tally-Vermerke, die Golden Anchors `GV-26` und `GV-33` pruefen je eine Art fuer sich. Der Defekt
+war erst sichtbar, als eine Lage beide Arten zugleich hervorbrachte — das war keine Absicht des
+Szenarios, sondern ein Nebenprodukt von Lauf 2.
+
+**Entscheidung: das ist ein Defekt, kein Verhalten.** Repariert wird das Subjekt, nicht die
+Erwartung. Verworfen wurde, die gemessene Vermerkmenge als Ist-Stand in einen Golden Anchor zu
+schreiben; das haette den Fehler normativ gemacht. Szenario H bleibt unveraendert — es ist der
+Zeuge, nicht der Patient, und seine Ausgabe muss sich durch die Reparatur aendern.
+
+**Methodischer Nebenbefund.** Der Fund kam nicht aus dem Werkzeugbericht, der ihn als
+`zusaetzlicher Ist-Wert (nicht widersprochen)` fuehrte, sondern aus dem Abgleich der berichteten
+Vermerkmenge gegen den gelesenen Code. Zwischenzeitlich stand der Verdacht im Raum, die berichtete
+Ausgabe sei nachgebaut statt gemessen; er wurde durch einen eigenen Lauf widerlegt, bevor daraus
+eine Folgerung wurde. Beide Schritte gehoeren zusammen: der Bericht ist nicht die Wahrheit, und
+der Verdacht gegen den Bericht ist es auch nicht.

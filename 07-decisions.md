@@ -13445,3 +13445,61 @@ Wiederholung des zweiten Verfahrens gewesen, kein neuer Fehlermodus. Die verblei
 Fundstellen wurden stattdessen durch eine präzisere Kopfzeile aufgefangen, die die ausgelassenen
 Kategorien benennt und die Zahl der ausgelassenen Nachrichten je Stelle ausweist — eine benannte
 Auslassung statt einer stillen, nach `08 §2.2`.
+
+---
+
+### D350 — `now` bekommt keine Quelle; zeitliche Rechenschaft läuft über `t`
+
+**Anlass.** Die Übertragung auf unterbrochene Zustellung (LoRa/Reticulum) warf die Vorfrage auf,
+was „Zeit" in MaR überhaupt heisst. Drei Grössen, bisher nie nebeneinander benannt: `t` (Feld 6,
+vom Autor behaupteter Zeitstempel, signiert, nach `01 §2` ausdrücklich **kein** Ordnungsprimitiv
+und nirgends im Code gegen eine Uhr geprüft), `t_exp` (signiert, die einzige Stelle, an der Zeit
+Wirkung entfaltet) und `now` (je Beobachter, in keinem Claim, in keinem Vermerk, nicht signiert).
+
+**Befund 1 — `now` ist die einzige Grösse, die das Ergebnis ändert und nicht kollidieren kann.**
+`08 §2.2` gründet Überprüfbarkeit darauf, dass Aussagen kollidieren können. `now` ist keine
+Aussage, sondern eine private Lesart, aus der ein öffentlich wirksamer Zustand folgt (`EXPIRED`,
+`trust_usable=False`). Ein Beobachter mit verstellter Uhr lügt nicht — er hat eine andere
+Wahrheit, und nichts an ihr ist überführbar. Das steht systematisch ausserhalb des
+Rechenschaftsmodells und fällt nur deshalb nicht auf, weil Uhren in der Praxis grob
+übereinstimmen.
+
+**Befund 2 — zwei Zeitregime.** Der Governance-Pfad ist uhrenfrei, und zwar begründet:
+`04 §3.1` Bedingung 4 wirft jede Stimme mit gesetztem `t_exp` als `VOTE_WITH_EXPIRY` aus der
+Zählung, `epoch.py` ebenso jede Ratifizierung (`RATIFY_WITH_EXPIRY`), und im Ausschlusszweig aus
+D346 blockiert eine ablaufende Stimme nicht einmal. Begründung ist D97: eine Stimme, die durch
+Zeitablauf aus der Menge verschwindet, darf es nicht geben. Der Trust-Pfad ist umgekehrt
+konstitutiv uhrgebunden — `02a §2.6` verlangt den Budget-Austritt über `t_exp`. Unter
+zuverlässiger Zustellung fällt die Asymmetrie nicht auf; unter Partition wird sie zur Bruchlinie:
+dieselben Beobachter können sich über die Verfassung einig sein und über die Kreditwürdigkeit
+nicht.
+
+**Entscheidung: kein Mechanismus zur Bestimmung von `now`.** `now` bleibt lokal, unzuverlässig
+und ohne Autorität. Verworfen wurden Netzabfrage nach Roughtime-Art, Uhrenabgleich unter
+Anwesenden (Marzullo, Berkeley, NTP) und jede Form von Zeitautorität. Alle drei setzen
+wechselseitige Erreichbarkeit voraus, die unter Partition nicht gegeben ist — dieselbe Gegenthese,
+an der in D348 die kollektiv rechnenden Konstruktionen gescheitert sind. Eine Zeitautorität wäre
+zudem genau die zentrale Instanz, gegen die das Protokoll gebaut ist. Eine bessere Uhr ist nicht
+das Ziel; eine Uhr, deren Wirkung rechenschaftsfähig ist, ist es.
+
+**Richtung stattdessen, zwei Sätze.**
+
+1. *Wo `now` das Ergebnis ändert, ist das ein Befund, kein Betriebszustand.* Der Verifier kennt
+   den dritten Ausgang bereits: `temporal is None` führt auf `LINKED`, nicht auf eine Vermutung.
+   „Ich kann die Zeit nicht beurteilen" ist damit schon sagbar. Der Kandidat für die Erweiterung
+   ist ein Intervall statt eines Punktes, mit Überlappung zu `t_exp` als `LINKED` — konservativ,
+   kostet Entscheidbarkeit, kauft Ehrlichkeit, verlangt keine fremde Annahme.
+2. *Zeitliche Rechenschaft läuft über `t`, nicht über `now`.* `t` ist signiert und damit
+   kollidierbar, wird heute aber nirgends ausgewertet. Ein Beobachter, der auf Grundlage von
+   Ablauf handelt, gibt dabei ohnehin einen Claim mit eigenem `t` ab — seine Ablaufbewertung ist
+   implizit bereits signiert. Überführbar wäre nicht die falsche Uhr, sondern die
+   Unvereinbarkeit der eigenen Behauptungen. Das ist die Bauform der Equivocation: niemand muss
+   wissen, welche der beiden Aussagen die wahre ist; es genügt, dass beide vom selben Autor
+   stammen. Zeit käme so in das Rechenschaftsmodell hinein, statt daran vorbeigeführt zu werden.
+
+**Verworfen: `t_exp` ersetzen.** Der Bedarf aus `02a §2.6` ist real, und ein zählbares statt
+zeitliches Austrittskriterium ist nicht trivial. Die Frage bleibt offen, ist aber für keinen der
+beiden Sätze oben eine Voraussetzung.
+
+**Keine Spec-Änderung mit diesem Eintrag.** Szenario H misst zuerst den Ist-Zustand der beiden
+Zeitregime, bevor an einem von ihnen etwas geändert wird.

@@ -13408,3 +13408,40 @@ Vergleichspunkte (BFT, Stellar, Gesellschaftsrecht, Moloch) sind Koordinationssy
 dieser ist ein Programm, Vertrauen durch Beweisbarkeit zu ersetzen. Symbolons Beitrag
 dagegen: die Ersetzung gelingt an einer Stelle nicht (D312) und ist an anderer nicht nötig
 (D333).
+
+---
+
+### D349 — O57 eingereicht; zwei Prüfläufe mit verschiedenen Werkzeugen finden Verschiedenes
+
+**Anlass.** Der Restack-Antrag wurde am 10. September 2026 eingereicht, Code `2026-11-0c4`,
+beantragt sind 15.000 € nach dem Rahmen aus D347. Beigefügt ist ein kuratiertes
+Prompt-Provenance-Log gemäß der Offenlegungsentscheidung. Damit ist O57 geschlossen; die
+Bewertung erfolgt erst nach der Frist am 3. November 2026, und bis dahin zählt die zuletzt
+vollständige Fassung, eine Nachbesserung bleibt also möglich.
+
+**Befund (Methodik).** Das beigefügte Log musste von Passagen befreit werden, die nicht in den
+Antrag gehören. Geprüft wurde zweimal, mit verschiedenen Werkzeugen, und jeder Lauf fand, was
+der andere übersah. Der erste Lauf war eine Mustersuche über Schlagwörter; er fand die Stellen,
+die diese Wörter enthielten, und ordnete dabei zunächst eine Fundstelle dem falschen Kanal zu,
+weil die Filterung den Kontext verlor. Der zweite Lauf war ein vollständiges Lesen durch ein
+zweites Werkzeug; er fand einen zusammenhängenden Abschnitt, der keines der gesuchten Wörter
+enthielt und deshalb für die Mustersuche unsichtbar war.
+
+**Einordnung.** Das ist derselbe Mechanismus wie Prüfregel 67, in einer anderen Domäne: eine
+Prüfung findet nur, was ihre Konstruktion zu finden erlaubt. Eine Suche über benannte Begriffe
+kann nichts finden, was ohne diese Begriffe auskommt — sie ist gegenüber Umschreibungen blind,
+und ihr Ausbleiben von Treffern ist kein Beleg für Abwesenheit. Ergänzend: Ein Ausschnitt als
+Prüfgrundlage erbt die Grenzen seines Zuschnitts. Der erste Lauf arbeitete auf einer auf 110
+Zeichen gekürzten Übersicht; eine Fundstelle lag jenseits dieser Grenze und blieb unsichtbar,
+bis dieselbe Suche auf dem vollen Text lief.
+
+**Konsequenz.** Wo eine Prüfung Abwesenheit feststellen soll und nicht bloß Anwesenheit, braucht
+sie einen zweiten Lauf mit anderem Fehlermodus. Zwei Läufe desselben Verfahrens sind keine
+zweite Prüfung. Ob daraus eine eigene Prüfregel wird, ist offen; der Fall stammt aus Arbeit
+ausserhalb des Codes und ist der erste dieser Art im Register.
+
+**Verworfen: ein dritter Prüflauf.** Nach zwei Läufen mit je eigenem Fund wäre ein dritter eine
+Wiederholung des zweiten Verfahrens gewesen, kein neuer Fehlermodus. Die verbleibenden
+Fundstellen wurden stattdessen durch eine präzisere Kopfzeile aufgefangen, die die ausgelassenen
+Kategorien benennt und die Zahl der ausgelassenen Nachrichten je Stelle ausweist — eine benannte
+Auslassung statt einer stillen, nach `08 §2.2`.

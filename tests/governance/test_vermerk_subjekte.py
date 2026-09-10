@@ -127,7 +127,7 @@ def test_participants_undeclared_addresses_epoch_constitution() -> None:
 
 
 def test_cited_non_claim_id_and_non_yes_are_unsupported_ratification() -> None:
-    """Ein Nicht-claim_id-Eintrag und eine Nein-Stimme: zwei UNSUPPORTED_RATIFICATION (04 §4.1, D207)."""
+    """Nicht-claim_id und Nein-Stimme: UNSUPPORTED_RATIFICATION auf den ratify (04 §4.1, D207)."""
     alice, bob, _c, _d = fresh_p1()
     ja = vote(alice, PROPOSAL_1, choice=1, t=1)
     nein = vote(bob, PROPOSAL_1, choice=0, t=1)
@@ -149,9 +149,45 @@ def test_cited_non_claim_id_and_non_yes_are_unsupported_ratification() -> None:
     assert tally.findings == ()
     assert claim_id(nein) not in tally.yes
     assert result.next_epoch is None
-    assert result.findings == dedupe_sort(
+    assert result.findings == (
+        Finding(GovernanceFinding.UNSUPPORTED_RATIFICATION, claim_id(ratify)),
+    )
+
+
+def test_vote_with_expiry_unsupported_ratification_names_the_ratify() -> None:
+    """Ratifizierung scheitert bei Tally-Vermerken: Subjekt ist der ratify (04 §4.1, D94, D203)."""
+    alice, bob, carol, _dave = fresh_p1()
+    votes = [
+        vote(alice, PROPOSAL_1, choice=1, t=1, t_exp=5000),
+        vote(bob, PROPOSAL_1, choice=1, t=1, t_exp=5000),
+        vote(carol, PROPOSAL_1, choice=1, t=1, t_exp=5000),
+    ]
+    store = store_with(*votes)
+    tally = _tally(store)
+    ratify = ratify_claim(
+        alice, PROPOSAL_1, witnesses=[claim_id(v) for v in votes], t=10
+    )
+    store.add(ratify)
+    result = verify_ratification(
+        store,
+        ratify=ratify,
+        epoch=EPOCH_1,
+        proposal=PROPOSAL_1,
+        tally=tally,
+        target_constitution_obj=C2,
+        now=NOW,
+        policy=policy_of(C1),
+    )
+    expected = dedupe_sort(
         [
-            Finding(GovernanceFinding.UNSUPPORTED_RATIFICATION, claim_id(nein)),
-            Finding(GovernanceFinding.UNSUPPORTED_RATIFICATION, claim_id(ratify)),
+            Finding(
+                GovernanceFinding.UNSUPPORTED_RATIFICATION, claim_id(ratify)
+            ),
+            *[
+                Finding(GovernanceFinding.VOTE_WITH_EXPIRY, claim_id(v))
+                for v in votes
+            ],
         ]
     )
+    assert result.next_epoch is None
+    assert result.findings == expected

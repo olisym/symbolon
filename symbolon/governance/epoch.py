@@ -162,7 +162,7 @@ def verify_ratification(
             )
         elif cid not in tally.yes:
             witness_findings.append(
-                Finding(kind=GovernanceFinding.UNSUPPORTED_RATIFICATION, subject=cid)
+                Finding(kind=GovernanceFinding.UNSUPPORTED_RATIFICATION, subject=rid)
             )
         else:
             authors.append(present.I)

@@ -161,12 +161,12 @@ def test_chain_missing_proposal_2() -> None:
         Finding(
             GovernanceFinding.EPOCH_PROPOSAL_UNAVAILABLE,
             PROPOSAL_2.proposal_hash,
-        )
+        ),
+        Finding(
+            GovernanceFinding.UNSUPPORTED_RATIFICATION,
+            claim_id(world.r1),
+        ),
     ]
-    for cid in world.yes1[:3]:
-        expected.append(
-            Finding(GovernanceFinding.UNSUPPORTED_RATIFICATION, cid)
-        )
     unknown = [
         claim
         for claim in world.store.all_claims()

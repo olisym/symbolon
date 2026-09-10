@@ -436,6 +436,17 @@ Konfliktstimmen hingen per `claim_gabeln` an einer Spitze, weil sonst die Vorgä
 fehlten, und der Rückfall las sich als Folge einer Equivokation. Ohne Gabelung und mit
 Vollzustellung an alle trat er unverändert ein (D345).
 
+**68. Eine Prüfung auf Abwesenheit braucht einen zweiten Lauf mit anderem Fehlermodus.**
+Eine Prüfung auf Anwesenheit ist mit dem ersten Treffer fertig. Eine auf Abwesenheit ist
+es nie: bleibt sie ohne Treffer, belegt das nur, dass ihre eigene Konstruktion nichts
+gefunden hat. Eine Suche über benannte Begriffe ist blind gegenüber allem, was ohne diese
+Begriffe auskommt, und ein Ausschnitt als Grundlage erbt die Grenzen seines Zuschnitts.
+Wer Abwesenheit zusichert, lässt deshalb einen zweiten Lauf mit anderem Fehlermodus
+darüber — zweimal dasselbe Verfahren ist keine zweite Prüfung. In `00az` beim Kuratieren
+des Antrags-Logs gerissen: die Mustersuche fand die Stellen, die ihre Schlagwörter
+enthielten, und übersah einen Abschnitt, der keines davon trug; erst ein vollständiges
+Lesen durch ein zweites Werkzeug fand ihn (D349).
+
 ## Beim Fahren von Blöcken und Splices
 
 **39. Eine Ausgabe ist keine Bedingung.**
@@ -531,7 +542,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 37 aus D208, 38 aus D209, 39 aus D211, 40 aus D214, 41 aus D217, 42 aus D223, 43 aus D224,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
-65 aus D343, 66 aus D344, 67 aus D345.
+65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

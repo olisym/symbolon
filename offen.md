@@ -278,12 +278,9 @@ Verzeichnis, Paketname, Importe, Gitea-Name ausgeführt. `LAYER_FILES` war nie b
 Ein 0.1.0-Paket fremden Fachs. Weicher Blocker, erst relevant bei einer Veröffentlichung.
 Ausweichnamen: `symbolon-protocol`, `mar`.
 
-### O57 Förderantrag
+### O57 Förderantrag — erledigt (D349)
 
-Setzt O52 und O53 voraus. **Neu gemessen am 5. September 2026 (D323):** NGI Zero ist
-abgeschlossen, der Commons-Fonds bleibt zu. Nachfolger ist „Open Internet Stack", seit
-3. September 2026 wieder offen. `Restack` passt inhaltlich am ehesten. Nächste Frist:
-**3. November 2026**. Ohne O52 und O53 gibt es nichts, worauf ein Antrag verweisen könnte.
+Am 10. September 2026 bei Restack eingereicht, Code `2026-11-0c4`, 15.000 €.
 
 ### O58 Die Implementierungen liegen in zwei Repositorien — erledigt (D321, D330)
 

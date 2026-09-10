@@ -13548,3 +13548,51 @@ Vermerkmenge gegen den gelesenen Code. Zwischenzeitlich stand der Verdacht im Ra
 Ausgabe sei nachgebaut statt gemessen; er wurde durch einen eigenen Lauf widerlegt, bevor daraus
 eine Folgerung wurde. Beide Schritte gehoeren zusammen: der Bericht ist nicht die Wahrheit, und
 der Verdacht gegen den Bericht ist es auch nicht.
+
+---
+
+### D352 — Abnahme `00ba`/`00bb`: die Reparatur war seit D207 entschieden, die Abdeckung fehlte
+
+**Die Reparatur.** In `verify_ratification` trug der Zweig für eine zitierte Stimme, die nicht in
+`tally.yes` steht, `subject=cid` — die `claim_id` der **Stimme**. Richtig ist `subject=rid`, die
+`claim_id` der Ratifizierung; die beiden benachbarten Zweige setzten sie bereits so. Eine Zeile,
+Merge `a5a2748`, 798 Tests.
+
+**Sie war normativ längst entschieden.** `04 §4.1` sagt es wörtlich: `UNSUPPORTED_RATIFICATION`
+sagt, dass diese Ratifizierung nicht trägt. Und D207 hat genau diese Lage abgeräumt — die
+Zeugenliste eines `ratify@1` ist ein Feld, Felder haben keine eigene Adresse, das Subjekt benennt
+dasselbe Objekt nur gröber. Der Code widersprach also nicht einer Erwartung, sondern der eigenen
+Spec.
+
+**Der Befund, der schwerer wiegt als der Defekt.** D207 hat `epoch.py:140` namentlich als einen
+von drei Pfaden gemeldet, die sich beliebig umstellen lassen, ohne dass die Testreihe reagiert:
+„Was fehlt, ist nicht eine Regel, sondern Abdeckung." Der Lauf `00q` sollte für diese drei Pfade
+Prüffälle anlegen. Der Defekt saß danach in einem davon und hat bis `00ba` überlebt. Eine
+gemeldete Lücke ist nicht geschlossen, solange kein Test sie rot werden lässt — die Meldung selbst
+deckt nichts ab, und ein Eintrag im Register ersetzt keinen Prüffall.
+
+**Warum keine Vermerkart verloren geht.** Bei mehreren untauglichen Zitaten entsteht jetzt ein
+Vermerk statt mehrerer, und die einzelne untaugliche Stimme wird nicht mehr benannt. Das ist die
+normierte Lage: `04 §4.1` begründet sie mit der Adresse und trägt die Auskunft über die
+Weitergabe der Auszählungsvermerke (D203), nicht über das Subjekt der Ratifizierung. Der Fall
+einer zitierten Nein-Stimme ohne eigenen Tally-Vermerk bleibt damit gröber ausgewiesen als vorher;
+das ist der Preis der richtigen Adresse und in `04 §4.1` bereits gewählt.
+
+**Zwei Einschränkungen von Szenario H, für die Nachwelt festgehalten.** Erstens messen Lauf 1 und
+Lauf 2 `resolve_epoch(now=X)` mit durchgereichtem Wert; die Teilnehmeruhr in der Welt bleibt in
+allen Zeilen bei ihrem Anfangswert. Wirkungsgleich, weil nur `_beobachte` sie liest — gemessen ist
+aber die Funktion unter fremdem `now`, nicht ein Teilnehmer mit verstellter Uhr. Zweitens
+signiert Lauf 3 in einem Scope ohne Nukleus, ohne Genesis und ohne Verfassung. Er belegt damit,
+dass `_is_temporally_valid` uhrabhängig ist, und nicht, dass der Trust-Pfad aus `02a §2.6`
+divergiert. Der Befund der zwei Zeitregime (D350) steht, aber schmaler als die Formulierung des
+Werkzeugberichts nahelegt.
+
+**Verworfen: Szenario H nachbessern.** Beide Einschränkungen sind benannt, und die Frage, die H
+beantworten sollte, ist beantwortet. Ein zweiter Lauf für eine bereits beantwortete Frage kostet
+mehr, als die schärfere Fassung einbringt. Wenn der Trust-Pfad selbst geprüft werden soll, ist das
+ein eigener Lauf mit eigener Frage, nicht eine Korrektur an diesem.
+
+**Prüfregel-Kandidat, Nummer offen.** Ein als ungedeckt gemeldeter Pfad ist erst geschlossen, wenn
+ein Test ihn rot werden lässt. Die Meldung, der Registereintrag und der Vorsatz, Prüffälle
+anzulegen, decken nichts ab; nur der Test tut es. Wer eine Abdeckungslücke schliesst, nimmt die
+Reparatur zurück und sieht den Test fallen — sonst ist unbekannt, ob er die Lücke trifft.

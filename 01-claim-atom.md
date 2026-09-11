@@ -1651,6 +1651,36 @@ bytes    = 8a0158208a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801
 erwartet = Reject: MALFORMED_CBOR
 ```
 
+### C.16 NV32 — Zeitrückdatierung gegen den eigenen Vorgänger
+
+Alice kettet auf **TV6**, das Ende ihrer Kette, und trägt ein `t` eine Sekunde **vor** dem `t`
+ihres eigenen Vorgängers. Strukturell ist der Claim einwandfrei: Signatur gültig, Vorgänger
+bekannt und gültig, kein Feld verletzt einen der sieben Punkte aus §6. Der einzige Mangel ist
+die Zeitaussage gegen die eigene Kette — und weil die Prüfung den Vorgänger braucht, ist sie
+kein Reject, sondern ein Zustand (§6, Anhang B.1).
+
+Der Anker ist **TV6 und nicht TV1**. An TV1 trüge NV32 dasselbe `(I, h_prev)` wie TV2 und wäre
+dessen Equivocation-Geschwister; im vollständigen Vektorspeicher wäre NV32 dann
+`equivocation-flagged` statt `time-regression-flagged`, und TV2 wechselte mit ihm aus `active`
+heraus. Der Vektor belegte damit nichts und verschöbe zugleich die Aussage seines Nachbarn.
+Gemessen, behoben, als Regel festgehalten in D358: ein Vektor muss den Zustand, den er belegt,
+im vollständigen Speicher annehmen. TV6 ist kinderlos und deshalb der richtige Andockpunkt.
+
+Was der Vektor **nicht** belegt: nichts über `now` und nichts über `t_exp`. Die Monotonie
+vergleicht zwei signierte Felder derselben Kette und braucht keine Uhr; `now` bleibt lokal,
+subjektiv und außerhalb jeder Kollision (D350).
+
+```
+core = { 0:1, 1:ALICE, 2:[3, CONST], 3:"nuc:6530…5557/accept-rules@1",
+         5:N, 6:1700000409, 8:TV6.claim_id }   ; TV6 trägt t = 1700000410
+
+claim_id = 1555e8a53354051b92b58bb1febeab2a48752f75475e8b09b746e5e56c3d700c
+σ        = c53836a733d325eb44cc70c29c59037a79813b933f0be26a5f01ec3f90c97435
+           6fd03a2194b4bcb30dd81b7e876d07dac2e077a8e16022877c58bc621bf7b301
+erwartet = speichern; Claim als time-regression-flagged markieren; nicht
+           trust-nutzbar; TV6 und Downstream unberührt; kein Reject-Code
+```
+
 ## Änderungshistorie ggü. Vorentwurf (v1-Konsolidierung)
 
 - **Genesis-`h_prev` vereinheitlicht** auf `SHA-256(DOM_ID_GEN ‖ I)` (Feldtabelle, §4, §6);

@@ -70,9 +70,12 @@ def _classify_one(
     if _is_in_equivocation_pair(claim, store):
         return Classification(state=State.EQUIVOCATION_FLAGGED, trust_usable=False)
 
-    pred_ok, _ = _predecessor_known_and_valid(claim, store)
+    pred_ok, pred = _predecessor_known_and_valid(claim, store)
     if not pred_ok:
         return Classification(state=State.PENDING, trust_usable=False)
+
+    if pred is not None and claim.t < pred.t:
+        return Classification(state=State.TIME_REGRESSION_FLAGGED, trust_usable=False)
 
     temporal = _is_temporally_valid(claim, now)
 

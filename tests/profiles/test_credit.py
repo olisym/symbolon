@@ -221,3 +221,17 @@ def test_SE_13() -> None:
     assert result.findings == (
         Finding(ProfileFinding.EXPIRING_OBLIGATION, claim_id(O)),
     )
+
+
+def test_settlement_obligation_time_regression() -> None:
+    alice, bob = fresh_alice(), fresh_bob()
+    pred = alice.claim(p=nuc(N_A, "vouch"), J=(1, bob.pub), t=2, N=N_A)
+    O = alice.claim(p=nuc(N_A, "obligation"), J=(1, bob.pub), t=1, N=N_A)
+    result = settlement(
+        store_with(pred, O), obligation=O, scope=N_A, now=NOW, policy=_policy_a()
+    )
+    assert result.state == SettlementState.INDETERMINATE
+    assert result.receipt_claim_id is None
+    assert result.findings == (
+        Finding(ProfileFinding.OBLIGATION_TIME_REGRESSION, claim_id(O)),
+    )

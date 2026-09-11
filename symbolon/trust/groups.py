@@ -12,7 +12,14 @@ from symbolon.verifier import Classification, State
 from .findings import Finding, TrustFinding
 
 BUDGET_STATES = frozenset(
-    {State.ACTIVE, State.REVOKED, State.SUPERSEDED, State.PENDING, State.EQUIVOCATION_FLAGGED}
+    {
+        State.ACTIVE,
+        State.REVOKED,
+        State.SUPERSEDED,
+        State.PENDING,
+        State.EQUIVOCATION_FLAGGED,
+        State.TIME_REGRESSION_FLAGGED,
+    }
 )
 
 

@@ -211,6 +211,18 @@ def build_vectors() -> dict:
     )
     nv3 = _finalize(nv3_unsigned, alice_sk)
 
+    # NV32 — accept-rules Alice, verkettet auf TV1, t kleiner als Vorgänger (D353)
+    nv32_unsigned = Claim(
+        version=1,
+        I=ALICE_PUB,
+        J=(3, CONST),
+        p=P_ACCEPT,
+        N=N,
+        t=1_700_000_000 - 1,
+        h_prev=tv1_cid,
+    )
+    nv32 = _finalize(nv32_unsigned, alice_sk)
+
     # NV4 — version 2
     nv4_unsigned = Claim(
         version=2,
@@ -585,6 +597,7 @@ def build_vectors() -> dict:
                 "wire_bytes": nv31_wire.hex(),
                 "expect_reject": "MALFORMED_CBOR",
             },
+            _vec("NV32", nv32),
         ],
     }
 

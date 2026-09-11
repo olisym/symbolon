@@ -106,6 +106,16 @@ def settlement(
             findings=dedupe_sort(findings),
         )
 
+    if o_state == State.TIME_REGRESSION_FLAGGED:
+        findings.append(
+            Finding(kind=ProfileFinding.OBLIGATION_TIME_REGRESSION, subject=o_cid)
+        )
+        return SettlementResult(
+            state=SettlementState.INDETERMINATE,
+            receipt_claim_id=None,
+            findings=dedupe_sort(findings),
+        )
+
     assert o_state not in (
         State.REVOKED,
         State.SUPERSEDED,

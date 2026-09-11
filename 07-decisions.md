@@ -13825,3 +13825,79 @@ unvollständige Lage vor, und dafür gibt es die Zustände.
 **Nicht betroffen.** `verdict.py`, `membership.py`, `tally.py`, `chain.py` und `epoch.py` prüfen
 sämtlich gegen `State.ACTIVE` und verteilen nicht erschöpfend; `credit.py` ist die einzige Stelle
 mit `assert` auf die Restmenge und deshalb die einzige, die ohne diesen Eintrag gebrochen wäre.
+
+### D357 — `t` in den Szenarien war Dekoration; die Welt wird umgetaktet, nicht die Erwartung
+
+Der Lauf zu D353 hat `make check` an zwei bestehenden Szenarien rot gemacht: `s2` und `s3`. Das
+Werkzeug hat gemeldet statt angepasst — richtig — und die Frage ins Register gegeben.
+
+**Der Befund, unabhängig nachgerechnet.** Genau drei Stellen im gesamten Szenarienbestand
+verletzen die Monotonie, und alle drei sind dieselbe: Anna signiert `accept-rules` mit `t = 1`,
+dann `propose` mit `t = 2`, dann ihre `vote` wieder mit `t = 1`. In `s2` zweimal, weil das
+Szenario zwei Welten aufsetzt, in `s3` einmal. Bruno und Chris tragen durchgehend `t = 1`,
+liegen also im erlaubten Gleichstand und sind unberührt. Kein weiteres Szenario ist betroffen.
+Die erste Messung des Supervisors meldete vier Dateien und war falsch: sie zählte über
+`welt`-Schritte hinweg, und ein `welt`-Schritt setzt die Ketten zurück.
+
+**Beschluss: die Szenariodaten werden umgetaktet, die `erwarte`-Blöcke bleiben unverändert.**
+Annas Stimme bekommt ein `t` hinter ihrem eigenen Vorschlag. Gemessen: danach ist die Reihe
+grün, ohne dass eine einzige Erwartung angefasst wurde. Das ist der Beleg dafür, dass die
+Erwartungen richtig waren und die Welt falsch.
+
+**Warum das kein Nachziehen ist.** Eine Erwartung nachzuziehen hieße, das Sollergebnis an ein
+Istergebnis anzupassen. Hier wird eine **Eingabe** korrigiert, die eine Aussage trug, die vorher
+bedeutungslos war und seit D353 einen Selbstwiderspruch bedeutet. Die Szenarien waren die
+einzigen Stellen im Baum, an denen `t` frei gesetzt wurde — genau weil es folgenlos war. Dass
+drei von ihnen dabei eine rückdatierte Stimme erzeugt haben, ist kein Zufall, sondern der
+Normalfall bei einem Feld ohne Wirkung.
+
+**Der eigentliche Befund liegt darüber.** Ein Feld, das nichts trägt, wird beliebig gefüllt, und
+die beliebige Füllung wird erst sichtbar, wenn das Feld anfängt zu tragen. `08 §2.2` sagt, dass
+ein Claim erst überprüfbar wird, wenn er kollidieren kann; die Umkehrung ist hier gemessen
+worden. Jede künftige Verschärfung eines bisher wirkungslosen Feldes wird denselben Ausschlag
+erzeugen, und der Ausschlag ist die gute Nachricht, nicht der Schaden.
+
+**Verworfen — die Regel auf `vote@1` nicht anwenden.** Wäre eine Ausnahme genau für den Fall,
+den D353 treffen will: eine Stimme, deren Zeitangabe vor dem Vorschlag liegt, auf den sie sich
+bezieht. `04 §3.1` hält Governance uhrenfrei, und das bleibt so — die Monotonie braucht keine
+Uhr, sie vergleicht zwei signierte Felder derselben Kette.
+
+**Verworfen — die Szenarien als vor-D353-Artefakt einfrieren.** Ein Bestand, der die geltende
+Spec verletzt und deshalb von der Prüfung ausgenommen wird, ist genau die stille Drift, gegen
+die das Register gebaut ist.
+
+### D358 — Ein Vektor muss den Zustand, den er belegt, im geteilten Korpus annehmen
+
+Aus der Abnahme zu D353. NV32 sollte `time-regression-flagged` belegen und wurde nach Vorgabe
+des Prompts auf `TV1` verkettet, in Bauform parallel zu TV2. Damit hat NV32 dasselbe
+`(I, h_prev)` wie TV2 und ist dessen Equivocation-Geschwister. Gemessen im vollständigen
+Vektorspeicher: NV32 ist `equivocation_flagged`, nicht `time_regression_flagged`, und **TV2
+wechselt von `active` nach `equivocation_flagged`** — ein positiver Vektor, den niemand
+angefasst hat.
+
+Der Fehler stammt aus dem Prompt des Supervisors, nicht aus dem Lauf. Das Werkzeug hat die
+Ursache zutreffend beschrieben und als Randnotiz geführt; die Einordnung als Defekt fehlte.
+Dasselbe Muster wie in D352: der Bericht war inhaltlich richtig und in der Einordnung zu mild.
+
+**Beschluss, normativ für Anhang C.** Ein Vektor, der einen Zustand belegt, **muss diesen
+Zustand im vollständigen Vektorspeicher annehmen**, nicht nur in einem für ihn gebauten Store.
+Anhang C ist der geteilte Anker der ganzen Spec-Reihe; ein Vektor, dessen Aussage nur unter
+einer Teilmenge gilt, belegt nichts und verschiebt zugleich die Aussage seiner Nachbarn. Wo ein
+neuer Vektor an eine bestehende Kette andockt, ist der Anker deshalb ein **kinderloses**
+Kettenende, sofern nicht die Geschwisterschaft selbst der Gegenstand ist — wie bei NV3, der
+Equivocation gegen TV1 zeigen soll und genau deswegen dort hängt.
+
+**Reparatur, gemessen.** NV32 hängt an `TV6`, dem kinderlosen Ende von Alices Kette, mit
+`t = 1700000409` gegen TV6s `t = 1700000410`. Danach ist TV2 wieder `active`, NV32 ist
+`time_regression_flagged`, und es entsteht keine neue Geschwistergruppe.
+
+**Was daran Abdeckung ist.** Der Kopplungstest über den Vektorspeicher wurde von keiner der
+beiden Rücknahmeproben rot — weil `EQUIVOCATION_FLAGGED` vorher greift und NV32 dort nie in den
+neuen Zweig läuft. Der Vektor war also im geteilten Korpus ungedeckt, und die Rücknahmeprobe
+hat das sichtbar gemacht, ohne dass jemand danach gefragt hatte. Nach der Umhängung muss der
+Kopplungstest NV32 tatsächlich als `time_regression_flagged` sehen; das ist ein eigener
+Abnahmepunkt und kein Nebenprodukt.
+
+**Verworfen — NV32 an TV1 lassen und nur im Test einen eigenen Store bauen.** Genau das tut der
+Lauf heute, und genau deshalb ist der Defekt fast unsichtbar geblieben. Ein Vektor, der seinen
+Zustand nur in einer eigens gebauten Umgebung annimmt, ist ein Test mit Vektor-Kostüm.

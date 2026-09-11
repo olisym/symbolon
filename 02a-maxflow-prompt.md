@@ -133,7 +133,7 @@ cap(I → J) = (n_kante * C(d(I))) // D
 | Menge | Inhalt | Verwendung |
 |---|---|---|
 | **Aktiv-Set** | `classify(...).state == State.ACTIVE` **und** `p` ist `nuc:N/vouch@1` **und** `c.N == scope` | `n_kante`, Kantensatz |
-| **Budget-Set** | wie oben, aber `state ∈ {ACTIVE, REVOKED, SUPERSEDED, PENDING, EQUIVOCATION_FLAGGED}` (D135) | `n_budget`, Prüfung `Σ n_budget ≤ D` |
+| **Budget-Set** | wie oben, aber `state ∈ {ACTIVE, REVOKED, SUPERSEDED, PENDING, EQUIVOCATION_FLAGGED, TIME_REGRESSION_FLAGGED}` (D135, D356) | `n_budget`, Prüfung `Σ n_budget ≤ D` |
 
 **Ein Vouch verlässt das Budget-Set ausschließlich durch `t_exp`** (`state == EXPIRED`). Weder
 Widerruf noch Supersede geben Budget frei; eine Gruppe verlässt es erst, wenn **alle** ihre

@@ -13780,3 +13780,48 @@ nicht.
 Uhr. Der Preis ist eine normative Entscheidung über die Richtung in zwei Mengen, und die
 gehört erst getroffen, wenn O60 beantwortet ist. In der Reihenfolge umgekehrt wäre es eine
 Implementierung, die eine Spec-Frage nebenbei entscheidet.
+
+### D356 — `time-regression-flagged` in den abhängigen Schichten
+
+Aus D353. Ein neuer Zustand in `01` wirkt überall dort, wo eine Schicht Zustände aufzählt oder
+erschöpfend verteilt. Drei Stellen, drei verschiedene Antworten.
+
+**`02a §2.6` — in die Aufzählung.** Normativ folgt das bereits aus dem Satz darüber: ein Vouch
+verlässt das Budget-Set ausschließlich durch `t_exp`. Eine rückwärts laufende Uhr ist kein
+Lebenszyklus-Akt und gibt kein Budget frei — wörtlich die Begründung aus D135, dass der
+Über-Commitment-Beweis auf Signaturen beruht und nicht auf Aktivität. Die Aufzählung wird
+trotzdem nachgezogen, weil genau diese Differenz zwischen Satz und Aufzählung D135 gekostet hat
+und der Abschnitt sie seither selbst als Warnung führt.
+
+**`02-trust-flow.md` — bewusst unverändert.** Dort ist die Zugehörigkeit zum Budget-Set als
+**Prädikat** formuliert und nicht als Aufzählung („nicht abgelaufen ist ein Prädikat, kein
+Zustand"). Deshalb hat die Stelle D135 überstanden, und deshalb übersteht sie D353. Das steht
+hier, damit ein späterer Lauf sie nicht aus Symmetriegefühl „vervollständigt" und dabei genau
+den Fehler einbaut, gegen den die Formulierung gewählt wurde.
+
+**`include_flagged` (D39) — unberührt.** Das ist ein **Autor**-Flag. `time-regression-flagged`
+flaggt nach `01` Anhang B.1 den **Claim**; Vorgänger und Downstream bleiben unberührt. Die
+Wirkung wäre ohnehin null, weil das Aktiv-Set `state == ACTIVE` verlangt und ein geflaggter
+Claim dort nie ankommt.
+
+**`03 §3.3.2` — `INDETERMINATE` mit eigenem Vermerk `OBLIGATION_TIME_REGRESSION`.** Bei einer
+Zeitrückdatierung hat der Autor zwei unvereinbare Zeitbehauptungen signiert, und `obligation.t`
+ist eine davon. Die Lage ist die dritte Spielart des bereits benannten Musters: bei `pending`
+weiß der Verifizierer zu wenig, bei `equivocation_flagged` zu viel, hier widerspricht sich der
+Autor. In allen drei Fällen wäre eine Aussage über die Schuld eine Behauptung ohne Deckung —
+dieselbe Falschbeschuldigungsrichtung wie `02 §7`.
+
+**Verworfen — `EXPIRED`.** Löschte die Schuld auf Grundlage genau der Zeitangabe, die soeben als
+unzuverlässig erwiesen wurde. Der Schuldner profitierte von der eigenen kaputten Uhr; das ist
+die gefährliche Richtung.
+
+**Verworfen — weiter als `OPEN` führen.** Eine Schuldbehauptung auf ungedeckter Grundlage, und
+damit dasselbe, was `03 §3.3.2` für die Gabelung bereits ausschließt.
+
+**Verworfen — `ValueError`.** Der ist in `03 §3.3.2` für die falsche **Zuordnung** reserviert
+(falsches Prädikat, falsches `N`, gar kein Claim). Hier liegt eine richtig zugeordnete, aber
+unvollständige Lage vor, und dafür gibt es die Zustände.
+
+**Nicht betroffen.** `verdict.py`, `membership.py`, `tally.py`, `chain.py` und `epoch.py` prüfen
+sämtlich gegen `State.ACTIVE` und verteilen nicht erschöpfend; `credit.py` ist die einzige Stelle
+mit `assert` auf die Restmenge und deshalb die einzige, die ohne diesen Eintrag gebrochen wäre.

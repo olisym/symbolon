@@ -468,15 +468,22 @@ der Fall ist nicht selten, sondern der einzige, und er verlangt vom Gläubiger e
 `OPEN`.
 
 **`INDETERMINATE` ist mehr als Teilwissen.** Es deckt jeden Zustand ab, der weder Aktivität noch
-Ablauf ist, und davon gibt es zwei mit gegensätzlicher Ursache:
+Ablauf ist, und davon gibt es drei mit verschiedener Ursache:
 
 | Zustand der Obligation | Vermerk | warum keine Aussage |
 |---|---|---|
 | `pending` — Vorgänger unbekannt | `OBLIGATION_PENDING` | ich weiß zu **wenig** |
 | `equivocation_flagged` — der Autor hat gegabelt | `OBLIGATION_AUTHOR_FLAGGED` | ich weiß zu **viel** |
+| `time_regression_flagged` — der Autor hat die eigene Kette zurückdatiert | `OBLIGATION_TIME_REGRESSION` | der Autor **widerspricht sich** |
 
 Bei einer Gabelung existiert die Obligation womöglich in zwei Fassungen mit verschiedenen
-Konditionen; `OPEN` zu behaupten hieße, eine bestimmte davon zu behaupten. In beiden Fällen wäre
+Konditionen; `OPEN` zu behaupten hieße, eine bestimmte davon zu behaupten.
+
+Bei einer Zeitrückdatierung (`01 §6`) hat der Autor zwei unvereinbare Zeitbehauptungen signiert,
+und `obligation.t` ist eine davon. `OPEN` oder `EXPIRED` zu behaupten hieße, eine der beiden zu
+wählen — ohne Grund, eine vor der anderen zu nehmen.
+
+In allen drei Fällen wäre
 die Aussage eine Schuldbehauptung ohne Deckung — die Falschbeschuldigungsrichtung, dieselbe
 Linie wie Trust-Flow-Spec §7.
 
@@ -733,6 +740,7 @@ Auswahl, an der ein Zustand hängt, gehört nicht an eine Hashordnung.
 | `EXPIRING_OBLIGATION` | `obligation@1` mit `t_exp` (§3.3.1) |
 | `OBLIGATION_PENDING` | Obligation `pending` (§3.3.2) |
 | `OBLIGATION_AUTHOR_FLAGGED` | Autor der Obligation hat gegabelt (§3.3.2) |
+| `OBLIGATION_TIME_REGRESSION` | Obligation `time-regression-flagged` (§3.3.2) |
 | `PARTIAL_RECEIPT_UNSUPPORTED` | `receipt.v` trägt oder könnte Key `0` tragen (§3.3.2) |
 | `CONSTITUTION_VERSION_MISMATCH` | `accept-rules` auf einen anderen Hash (§4) |
 | `UNAUTHORIZED_GRANT_AUTHOR` | `grant-membership.I ∉ authorized_keys` (§4) |
@@ -762,6 +770,7 @@ Objekt — notfalls gröber, wenn das Objekt ein Feld ist und keine eigene Adres
 | `EXPIRING_OBLIGATION` | `claim_id` der Obligation |
 | `OBLIGATION_PENDING` | `claim_id` der Obligation |
 | `OBLIGATION_AUTHOR_FLAGGED` | `claim_id` der Obligation |
+| `OBLIGATION_TIME_REGRESSION` | `claim_id` der Obligation |
 | `PARTIAL_RECEIPT_UNSUPPORTED` | `claim_id` der Quittung |
 | `CONSTITUTION_VERSION_MISMATCH` | `claim_id` des `accept-rules` |
 | `UNAUTHORIZED_GRANT_AUTHOR` | `claim_id` des `grant-membership` |

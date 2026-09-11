@@ -211,18 +211,6 @@ def build_vectors() -> dict:
     )
     nv3 = _finalize(nv3_unsigned, alice_sk)
 
-    # NV32 — accept-rules Alice, verkettet auf TV1, t kleiner als Vorgänger (D353)
-    nv32_unsigned = Claim(
-        version=1,
-        I=ALICE_PUB,
-        J=(3, CONST),
-        p=P_ACCEPT,
-        N=N,
-        t=1_700_000_000 - 1,
-        h_prev=tv1_cid,
-    )
-    nv32 = _finalize(nv32_unsigned, alice_sk)
-
     # NV4 — version 2
     nv4_unsigned = Claim(
         version=2,
@@ -335,6 +323,18 @@ def build_vectors() -> dict:
         h_prev=tv5_cid,
     )
     tv6 = _finalize(tv6_unsigned, alice_sk)
+
+    # NV32 — accept-rules Alice, verkettet auf TV6, t kleiner als Vorgänger (D353)
+    nv32_unsigned = Claim(
+        version=1,
+        I=ALICE_PUB,
+        J=(3, CONST),
+        p=P_ACCEPT,
+        N=N,
+        t=1_700_000_409,
+        h_prev=claim_id(tv6),
+    )
+    nv32 = _finalize(nv32_unsigned, alice_sk)
 
     # NV12 — core/revoke@1 mit J.tag 1 statt claim-ref (01 §C.11, D263)
     nv12_unsigned = Claim(

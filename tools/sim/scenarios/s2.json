@@ -53,7 +53,7 @@
       "scope": "gov",
       "J": [3, "proposal_hash"],
       "choice": 1,
-      "t": 1,
+      "t": 3,
       "label": "vote_anna"
     },
     {
@@ -187,7 +187,7 @@
       "scope": "gov",
       "J": [3, "proposal_hash"],
       "choice": 1,
-      "t": 1
+      "t": 3
     },
     {
       "art": "claim",

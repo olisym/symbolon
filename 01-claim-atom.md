@@ -47,7 +47,7 @@ Nutzungskonventionen über genau diesem Atom. Ein Profil fügt **niemals** ein F
 | 3        | `p`      | text                     | ja      | Prädikat-ID, namensraum-qualifiziert + versioniert (§2.2, Anhang A). |
 | 4        | `v`      | bytes                    | nein    | Opaker, prädikat-definierter Wert. Protokoll parst ihn nie. |
 | 5        | `N`      | bytes[32]                | nein    | Scope = 32-Byte-Nukleus-Scope-ID. Strukturell erstklassig (§2.3). |
-| 6        | `t`      | uint (Unix-Sekunden)     | ja      | Vom Autor behaupteter Zeitstempel. **Kein** Ordnungsprimitiv. |
+| 6        | `t`      | uint (Unix-Sekunden)     | ja      | Vom Autor behaupteter Zeitstempel. **Kein** Ordnungsprimitiv; monoton entlang der Autorenkette (§6). |
 | 7        | `t_exp`  | uint (Unix-Sekunden)     | nein    | Lokale strukturelle Gültigkeitsdecke. Danach ist der Claim void (§5.3, §6). |
 | 8        | `h_prev` | bytes[32]                | ja      | Hash des vorherigen Claims desselben Autors; Genesis = `SHA-256(DOM_ID_GEN ‖ I)` (§4). |
 | 9        | `σ`      | bytes[64]                | ja*     | Ed25519-Signatur über das Preimage (§4). |
@@ -458,6 +458,46 @@ Gültigkeitsaussage**. Konsequenzen:
   Offline-Pooling, Vorberechnung, die online nur noch validiert werden muss) läuft davon
   unberührt weiter.
 
+**Zeit — `t` ist monoton entlang der Autorenkette (normativ).** Bis hierher wird `t` nur
+claim-intern geprüft (Punkt 7). Zusätzlich gilt für jeden Claim `C` mit **lokal bekanntem**
+Vorgänger `P`, also `C.h_prev == P.claim_id`:
+
+```
+C.t >= P.t
+```
+
+Ist die Bedingung verletzt, ist `C` **time-regression-flagged** (Anhang B.1): gehalten,
+gespeichert, nicht für trust-gewährende Zwecke heranzuziehen. **Kein Reject** — die Prüfung
+braucht den Vorgänger und läge damit außerhalb der selbstenthaltenen Gültigkeit oben, die genau
+einen vorgängerabhängigen Konjunkt kennt und ihn als die Ausnahme benennt. Das Vorbild ist
+`equivocation-flagged`: speicherabhängig, Zustand statt Fehler.
+
+Die Regel stiftet **keine** Ordnung aus `t`. Die Ordnung kommt weiterhin ausschließlich aus
+`h_prev` (§5.3); `t` wird gegen sie geprüft. Insbesondere entsteht keine Rangfolge zwischen zwei
+Autoren — verschiedene Autoren teilen keine Kette, und zwischen ihnen bleibt `t` wirkungslos.
+
+Anders als `now` ist `t` signiert. Damit ist die Zeitbehauptung eines Autors gegen seine eigenen
+früheren Behauptungen prüfbar, ohne dass ein Verifizierer eine Uhr, eine Zeitquelle oder
+Erreichbarkeit braucht, und eine rückwärts laufende oder rückdatierte Uhr belastet ausschließlich
+den Signierer. Das ist die Bauform aus `08 §2.2`: nicht verhindern, sondern unbestreitbar machen.
+
+Drei Abgrenzungen:
+
+- **Gilt auch für `core/*`.** Der Ausnahmegrund aus §5.3 ist die Monotonie des Lebenszyklus und
+  trägt hier nicht; ein Widerruf mit rückwärts laufendem `t` ist derselbe Selbstwiderspruch wie
+  jeder andere Claim.
+- **Gleichstand ist erlaubt** (`>=`, nicht `>`). `t` ist sekundenaufgelöst, und zwei Claims
+  desselben Autors in derselben Sekunde sind legitim. Strenge Monotonie bände die Claim-Rate an
+  die Uhrenauflösung.
+- **Ohne bekannten Vorgänger wird nicht geprüft.** Dann gilt `pending` (unten). Wissen verengt
+  das Urteil, es kehrt es nicht um.
+
+Stellung in der Zustandsmaschine: geprüft, **nachdem** der Vorgänger bekannt ist, und **bevor**
+Widerruf und Supersede ausgewertet werden. Die Wirkung ist dieselbe — beide führen aus `active`
+heraus —, die Diagnose ist besser: „der Autor widerspricht sich selbst" ist die stärkere Auskunft
+als „der Claim wurde zurückgenommen". Dieselbe Erwägung trägt in `04 §3.1` die Reihenfolge der
+Bedingungen 4 und 5.
+
 **Aktiv** (Default-Sicht) gdw. strukturell gültig, zeitlich gültig, **verlinkt** (Vorgänger
 bekannt & gültig) **und**:
 
@@ -662,10 +702,11 @@ Alle Zustände sind aus den gehaltenen Bytes + lokaler Zeit ohne Weltwissen best
 | `superseded` | linked, durch eigenen `core/supersede@1` ersetzt **und** `C.p` ist nicht irrevocable unter der Policy (§5.4) | gültig, **inaktiv** |
 | `expired` | linked, `t_exp` vorhanden und `now > t_exp` (lokal!) | lokal **inaktiv**; andernorts evtl. active |
 | `equivocation-flagged` | zweiter gültiger Claim mit gleichem `(I, h_prev)`, andere `claim_id` | **beide speichern**, Autor flaggen; Downstream nicht rückwirkend invalide |
+| `time-regression-flagged` | linked, Vorgänger `P` bekannt und `C.t < P.t` (§6) | **speichern**, Claim flaggen; `P` und Downstream unberührt |
 
-**`malformed` ist kein Klassifikationsergebnis** (D278). Die übrigen sieben Zeilen beschreiben
+**`malformed` ist kein Klassifikationsergebnis** (D278). Die übrigen acht Zeilen beschreiben
 einen gehaltenen Claim; `malformed` beschreibt die Verweigerung, ihn zu halten. Eine Fassung, die
-die Klassifikation als Aufzählung führt, führt darin sieben Werte und nicht acht — der achte kann
+die Klassifikation als Aufzählung führt, führt darin acht Werte und nicht neun — der neunte kann
 nie entstehen, weil der Claim, der ihn trüge, nicht gespeichert wird. Woran es lag, sagen die
 Reject-Codes aus `§6`, nicht ein Zustand.
 

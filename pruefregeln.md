@@ -273,6 +273,14 @@ gerechnet. In `00ao` hielt eine ungebundene Nachlaufdatei eine Abnahmedatei; die
 band 28 Dateien im ersten und 27 im zweiten Durchgang, und das Werkzeug schloss die Lücke von
 selbst (D315). Gegenstück zu Prüfregel 62: dort wird eine Menge zu leer, hier zu voll.
 
+**71. Vor einem Prompt wird der einschlägige Abschnitt der Prüfregeln gelesen.**
+Die Datei ist thematisch gegliedert, damit dieser Griff billig ist; er kostet einen Lesezug und
+spart einen Lauf. In `00bc` verlangte der Prompt einen Volltest, der nur `classify_all` prüfte.
+Prüfregel 57 stand seit D278 da, nennt `classify` und `classify_all` namentlich und hätte den
+Fehler vor dem Lauf verhindert; stattdessen meldete das Werkzeug den Widerspruch und der
+Supervisor leitete die Einsicht neu her. Eine Regel, die nicht gelesen wird, ist teurer als keine:
+sie kostet denselben Fehler und zusätzlich die Arbeit, die in sie geflossen ist (D359).
+
 ## Beim Bauen und Lesen von Tests
 
 **12. Zwei Läufe, eine Variable.** Um zu zeigen, dass ein Mechanismus erreicht wird oder
@@ -312,6 +320,24 @@ Ein Test, der zwei Erzeugerpfade gegeneinander hält, bindet die Übereinstimmun
 Wert. In `00ah` blieb der Kopplungstest zwischen `classify` und `classify_all` grün, während beide
 Pfade denselben falschen Zustand lieferten; er war die ganze Zeit da und hat `SUPERSEDED` nie
 gesichert. Neben die Kopplung gehört je Pfad ein Träger, der den Wert behauptet (D278).
+
+**69. Ein als ungedeckt gemeldeter Pfad ist erst geschlossen, wenn ein Test ihn rot werden
+lässt.**
+Die Meldung deckt nichts ab, der Registereintrag auch nicht, und der Vorsatz, Prüffälle
+anzulegen, am wenigsten. D207 hat `epoch.py:140` namentlich als ungedeckten Pfad gemeldet — „was
+fehlt, ist nicht eine Regel, sondern Abdeckung" —, der Lauf `00q` sollte dort Prüffälle anlegen,
+und der Defekt saß danach genau in diesem Pfad und überlebte bis `00ba`. Wer eine Abdeckungslücke
+schließt, nimmt die Reparatur zurück und sieht den Test fallen; sonst ist unbekannt, ob er die
+Lücke trifft (D352).
+
+**70. Ein Vektor muss den Zustand, den er belegt, im vollständigen Speicher annehmen.**
+Anhang C ist der geteilte Anker der ganzen Spec-Reihe, kein Vorrat einzeln gebauter Welten. NV32
+sollte `time-regression-flagged` zeigen und hing zunächst an TV1 — damit trug er dasselbe
+`(I, h_prev)` wie TV2, war im vollständigen Speicher `equivocation-flagged`, und TV2 wechselte
+mit ihm aus `active` heraus. Ein Vektor, der seinen Zustand nur in einer eigens gebauten Umgebung
+annimmt, ist ein Test mit Vektor-Kostüm. Der Andockpunkt ist deshalb ein kinderloses Kettenende,
+sofern nicht die Geschwisterschaft selbst der Gegenstand ist (NV3), und die Gegenprobe gehört in
+denselben Test: der Nachbar behält seinen Zustand (D358).
 
 ## Bei Rücknahmeproben und Mutanten
 
@@ -542,7 +568,8 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 37 aus D208, 38 aus D209, 39 aus D211, 40 aus D214, 41 aus D217, 42 aus D223, 43 aus D224,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
-65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349.
+65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
+69 aus D352, 70 aus D358, 71 aus D359.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

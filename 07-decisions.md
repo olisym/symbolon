@@ -13901,3 +13901,39 @@ Abnahmepunkt und kein Nebenprodukt.
 **Verworfen — NV32 an TV1 lassen und nur im Test einen eigenen Store bauen.** Genau das tut der
 Lauf heute, und genau deshalb ist der Defekt fast unsichtbar geblieben. Ein Vektor, der seinen
 Zustand nur in einer eigens gebauten Umgebung annimmt, ist ein Test mit Vektor-Kostüm.
+
+### D359 — Prüfregel 57 stand da und wurde nicht gelesen
+
+Der Prompt zu D353 verlangte einen Test über den vollständigen Vektorspeicher, der `classify_all`
+aufruft. Das Werkzeug hat gemeldet, dass die Rücknahmeprobe diesen Test nicht rot bekommen kann,
+weil sie am Einschub in `verifier.py` ansetzt und der Test den Pfad in `index.py` nimmt — und hat
+zu Recht nicht committet.
+
+**Prüfregel 57 beantwortet das seit D278** und nennt beide Funktionen namentlich: wo zwei Pfade
+gekoppelt geprüft werden, braucht jeder zusätzlich einen Träger, der den Wert behauptet. In
+`00ah` war der Kopplungstest zwischen `classify` und `classify_all` grün, während beide Pfade
+denselben falschen Zustand lieferten. Der Fall in `00bc` ist derselbe eine Ebene weiter: nicht
+der Kopplungstest ohne Träger, sondern ein Träger für nur einen der beiden Pfade.
+
+**Beschluss.** Der Volltest prüft beide Aufrufe auf demselben Store, und die Rücknahmeprobe wird
+für jeden Einschub getrennt gefahren. Das ist **keine neue Regel**, sondern 57 angewandt. Beide
+Proben treffen den Test jetzt; gemessen in `cbd61c7`.
+
+**Der Befund ist der Ablauf, nicht die Regel.** Der Supervisor hat den Prompt geschrieben, ohne
+`pruefregeln.md` zu öffnen, und die Einsicht anschließend neu hergeleitet — einschließlich der
+Behauptung, der Kopplungstest sei „der falsche Ort", was 57 seit D278 genauer sagt. Prüfregel 38
+verlangt, die Spec vor der Position zu lesen; Prüfregel 27 verlangt, jeden Verweis im Prompt zu
+öffnen. Für die Prüfregeln selbst gab es keine solche Regel. Sie wird als **71** nachgezogen.
+
+**Verworfen — eine neue Regel mit dem Inhalt von 57.** Zwei Nummern für dieselbe Aussage sind
+schlimmer als eine: die zweite verdeckt, dass die erste gerissen wurde, und in drei Jahren ist
+unklar, welche von beiden gilt. Genau der Zustand, gegen den das Register gebaut ist.
+
+**Verworfen — 57 umformulieren oder erweitern.** Sie ist richtig, vollständig und trifft den Fall
+wörtlich. Sie wurde nicht missverstanden, sondern nicht gelesen. Text zu ändern, der funktioniert
+hat, verschiebt die Ursache auf die Regel statt auf den Ablauf.
+
+**Was das über die Arbeitsteilung sagt.** Der Widerspruch kam vom Werkzeug, nicht vom Supervisor.
+Die Anweisung, Rückfragen als Liste ans Ende zu melden statt unterwegs zu entscheiden, hat hier
+zum zweiten Mal in dieser Sitzungsreihe einen Supervisor-Fehler gefangen — das erste Mal waren es
+die roten Szenarien (D357). Beide Male hat das Werkzeug nicht committet und gefragt.

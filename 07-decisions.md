@@ -13596,3 +13596,187 @@ ein eigener Lauf mit eigener Frage, nicht eine Korrektur an diesem.
 ein Test ihn rot werden lässt. Die Meldung, der Registereintrag und der Vorsatz, Prüffälle
 anzulegen, decken nichts ab; nur der Test tut es. Wer eine Abdeckungslücke schliesst, nimmt die
 Reparatur zurück und sieht den Test fallen — sonst ist unbekannt, ob er die Lücke trifft.
+
+### D353 — `t` wird monoton entlang der Autorenkette
+
+**Beschluss.** Für jeden Claim `C` mit lokal bekanntem Vorgänger gilt `C.t >= pred(C).t`.
+Die Verletzung ist **kein Reject**, sondern ein Zustand am `linked`-Übergang:
+`TIME_REGRESSION_FLAGGED`, `trust_usable=False`, Subjekt ist die `claim_id` von `C`.
+Der Zustand gehört **in** `BUDGET_STATES`.
+
+**Warum das `t` überhaupt erst verknüpft.** `t` ist Pflichtfeld, signiert und im Preimage —
+und wird heute an genau einer Stelle ausgewertet: `01 §6` Punkt 7, `t < t_exp`, claim-intern
+(`verifier.py:217`). Sonst liest nur die Serialisierung es. `t` ist also nicht unbenutzt,
+sondern **unverknüpft**, und `08 §2.2` sagt genau darüber: was auf nichts zeigt und worauf
+nichts zeigt, ist unwiderlegbar und folgenlos. Das gilt für ein Feld wie für einen Claim.
+
+Die Kette schließt die Lücke, weil sie der einzige **uhrenfreie Index** im Protokoll ist.
+`01 §5.3` sagt es in der Gegenrichtung: Ordnung kommt aus `h_prev`, nie aus Wall-Clock `t`.
+Genau deshalb kann `h_prev` leisten, was keine Uhr leisten kann — zwei Aussagen desselben
+Autors in eine unbestreitbare Reihenfolge bringen, ohne dass irgendwo eine Zeitquelle steht.
+Die Monotonieregel **stiftet keine Ordnung aus `t`**; sie prüft `t` gegen die Ordnung, die
+`h_prev` bereits hergibt. `t` bleibt kein Ordnungsprimitiv.
+
+**Abgrenzung zu D78.** Dort wurde `t` als Rangfolge verworfen, weil es die einzige Stelle
+wäre, an der Wall-Clock eine Rangfolge **zwischen zwei Autoren** stiftet, und ein Angreifer
+mit falscher Uhr Kontrolle über die Bindungsfrage bekäme. Hier ist die Prüfung strikt
+intra-Autor und die Wirkungsrichtung umgekehrt: eine rückwärts laufende Uhr in der eigenen
+Kette belastet ausschließlich den Signierer. Dieselbe Abgrenzung trägt gegen das in D123
+verworfene Widerspruchsfenster — ein Fenster bräuchte Ordnung zwischen Autoren, diese Regel
+nicht.
+
+**Warum `>=` und nicht `>`.** `t` ist in Sekunden aufgelöst. Zwei Claims desselben Autors
+in derselben Sekunde sind legitim; strenge Monotonie würde die Claim-Rate an die
+Uhrenauflösung binden und eine Form von Zeitautorität durch die Hintertür einführen.
+
+**Warum kein Reject.** `01 §6` hält für die selbstenthaltene Gültigkeit fest, dass die Punkte
+1 bis 7 bis auf **einen** benannten Konjunkt (`ziel.I == C.I`) ohne Speicher entscheidbar
+sind. Ein zweiter vorgängerabhängiger Reject würde den Prüfumfang des speicherlosen Geräts
+verschieben — der Begriff aus `01 §6` ist ausdrücklich der Bezugspunkt für Fassungen, die nur
+diesen Teil bauen. Das richtige Vorbild ist `EQUIVOCATION_FLAGGED`: store-abhängig, Zustand
+statt Fehler. Ist der Vorgänger unbekannt, bleibt es bei `PENDING` und es wird nicht geprüft —
+Wissen verengt das Urteil, es kehrt es nicht um.
+
+**Warum in `BUDGET_STATES`.** Wörtlich die Begründung aus D135: der Über-Commitment-Beweis
+beruht auf Signaturen, nicht auf Aktivität. Eine rückwärts laufende Uhr ist kein
+Lebenszyklus-Akt, und `02a §2.6` sagt, dass ein Vouch das Budget-Set ausschließlich über
+`t_exp` verlässt. Ein Zustand, der Budget freigibt, wäre eine Prämie auf die kaputte Uhr.
+Diese Zeile steht hier **vor** der Implementierung, weil D135 genau an dieser Stelle
+nachträglich repariert werden musste.
+
+**Geflaggt wird `C`, nicht die Kette und nicht der Autor.** `EQUIVOCATION_FLAGGED` trifft
+beide Glieder eines Paares, weil beide dasselbe `h_prev` beanspruchen und keines Vorrang hat.
+Hier hat der Vorgänger Vorrang: er steht definitorisch früher. Der Widerspruch ist `C`
+zuzurechnen.
+
+**Golden Numbers.** Alices Kette in `01` Anhang C ist bereits streng monoton:
+
+```
+TV1 1700000000 -> TV2 1700000100 -> TV3 1700000200 -> TV5 1700000300 -> TV6 1700000410
+Delta:                    +100           +100           +100           +110
+```
+
+Bobs TV4 ist Genesis. Sämtliche NV-Vektoren hängen an `h_prev_genesis(ALICE)` und haben
+keinen Vorgänger. **Kosten am Vektorsatz: null.** Gebraucht wird genau ein neuer
+Negativvektor — ein Claim, der auf einen Vorgänger mit größerem `t` kettet.
+
+**Verworfen — nichts tun.** Die Lage bliebe, dass ein signiertes Pflichtfeld in jedem Claim
+steht und nichts trägt. Solange `t` nicht kollidieren kann, ist es Ballast für LoRa und eine
+Einladung, es später doch als Ordnung zu lesen.
+
+**Verworfen — Punkt 8 in `01 §6`.** Siehe oben: verschiebt die selbstenthaltene Gültigkeit.
+
+**Verworfen — die ganze Folgekette flaggen.** Wirkt wie eine Sperre statt wie ein Vermerk und
+bestraft Claims, die selbst widerspruchsfrei sind. `05` ist die Schicht für Folgen.
+
+### D354 — Die Prämissennennung macht die Ablaufbewertung kollidierbar; Fork eröffnet und verortet
+
+**Die Frage aus D350.** Kann die Aussage „dieser Claim ist abgelaufen" zu einem signierten,
+kollidierbaren Claim werden? Zerlegt man sie gegen `_is_temporally_valid`, bleiben zwei
+Aussagen, und nur eine gehört dem Beobachter: `C.t_exp = X` ist die Aussage des **Autors**,
+längst signiert und kollidierbar. Seine eigene ist „meine Uhr stand bei der Auswertung über
+X" — eine Aussage über sein **Instrument**, nicht über die Welt, und indexikalisch: wahr nur
+relativ zu einem Auswertungsmoment. Zwei solche Aussagen widersprechen einander nur, wenn sie
+auf denselben Moment zeigen, und das Einzige, was sie darauf festnageln könnte, wäre eine Uhr.
+Zirkel. Das ist der Grund, warum `now` nach D350 außerhalb von `08 §2.2` steht, und er liegt
+tiefer als die fehlende Quelle.
+
+**Der Ausweg.** Das bestehende Kollisionsprimitiv trägt ihn nicht: `is_equivocation_pair` ist
+gleiche `(I, h_prev)` bei verschiedener `claim_id` — strukturell, bedeutungsblind, eine
+Gabelung. Zwei Claims, die inhaltlich Gegenteiliges sagen und dabei brav hintereinander
+hängen, sind darüber unsichtbar. Inhaltliche Kollision existiert im Projekt nur dort, wo ein
+Profil die Bedeutung definiert: `AMBIGUOUS_VOTE`, `CONFLICTING_APPROVAL`. Das ist der zu
+übertragende Bauplan.
+
+**Beschluss (Verortung, nicht Ausführung).** Der Fork ist eröffnet und verortet: Träger ist
+die **Prämissennennung im opaken `v`**, Key 1, ausgewertet in `02a`/`03`. Layer 01 bleibt
+unangetastet. Nennt ein Claim `B` die Bürgschaft `V` als Prämisse, dann ist
+
+```
+B.t > V.t_exp
+```
+
+ein Widerspruch zwischen zwei **signierten Zahlen** — ohne `now`, ohne Zeitquelle, ohne
+Erreichbarkeit, auf einem Gerät ohne Uhr in einer Partition nachrechenbar. Er sagt nicht
+„deine Uhr war falsch", sondern „du hast selbst bezeugt, wann du gehandelt hast, und selbst
+bezeugt, worauf".
+
+**Kosten am Feldsatz: null.** `02a` T-02.7 hält ausdrücklich fest, dass Zusatz-Keys in `v`
+zulässig sind und kein Finding erzeugen (`v = {0: 2, 1: 99}` ergibt `n = 2`). Der Steckplatz
+existiert und ist getestet. Keine Protokollversion, kein Vektor-Nachzug in `01`.
+
+**Reihenfolge ist normativ: D353 vor D354.** Ohne die Monotonie ist D354 durch Rückdatierung
+erledigt — man setzt `B.t` kleiner als `V.t_exp` und der Widerspruch verschwindet. Mit ihr
+greifen beide ineinander: zu spät handeln belastet über D354, zu früh behaupten belastet über
+D353. Beide Ausgänge produzieren ausschließlich Beweise gegen den Signierer; keiner gibt einem
+Angreifer Kontrolle über eine Bindungsfrage. Das ist die Bauform aus `08 §2.2` — nicht
+verhindern, sondern unbestreitbar machen.
+
+**Nachtrag zu D350.** „`now` bekommt keine Quelle" heißt: kein Primitiv, keine Autorität,
+keine Netzabfrage. Es heißt **nicht**, dass eine signierte Zeitaussage ausgeschlossen wäre.
+`VISION.md §5` nennt den Zeitdienst bereits als **Profil** — signierte Zeit-Attestierung „ich
+sah das zu meiner lokalen Zeit T", gestakt über `05`, ausdrücklich „kein neues Primitiv".
+D354 ist dessen allgemeinere Form: statt eines eigenen Attestierungsprofils trägt jeder
+abhängige Claim seine Prämissen, und die Zeitaussage fällt als `t` ohnehin schon an.
+
+**Getragene Grenze.** Wer schweigt, bleibt unwiderlegbar — `01 §1` selektive Stille, `08 §2.2`
+Schlusssatz. Das Loch wird nicht geschlossen, es bekommt einen Preis: wer will, dass sein
+Handeln zählt, muss zeigen, worauf er sich stützt, und legt damit die Zeitstempel offen.
+
+**Verworfen — neuer `J`-Tag.** `J` ist das Subjekt, ein Claim hat genau eines, und der Enum ist
+geschlossen (`01 §2.1`). Eine Prämissenliste ist kein Subjekt.
+
+**Verworfen — neues Feld.** Der Feldsatz aus `01 §2` ist der teuerste Ort der Spec: sechs
+Invarianten und die Vektorgruppe C.14 (NV20–NV30, Zeile für Zeile) hängen daran. Ein Key 10
+wäre Protokollversion 2 für etwas, wofür `v` bereits offen ist.
+
+**Verworfen — die Prüfung in Layer 01.** Welche Prämisse zählt, ist Bedeutung. `01` ist
+bedeutungsblind (A2); die Prüfung gehört zu dem Profil, das die Bedeutung setzt.
+
+**Offen für die nächste Runde.** Welche Prämissen muss ein Claim nennen, damit die Nennung
+nicht zur Zeremonie wird? Was gilt für einen abhängigen Claim, der keine nennt — folgenlos
+nach `08 §2.2`, oder ein eigener Vermerk? Und trägt dieselbe Mechanik über `t_exp` hinaus,
+also für jede Prämisse, deren Zustand sich ändern kann?
+
+### D355 — Intervall-`now` zurückgestellt; der Befund ist die Asymmetrie darunter
+
+**Die Frage.** Reicht als kleinere Variante ein Intervall statt eines Punktes, mit `LINKED`
+bei Überlappung mit `t_exp`, wo der Verifizierer den dritten Ausgang über `temporal is None`
+bereits kennt?
+
+**Lesart zuerst.** Ein Intervall auf **`t`** wäre ein neues Feld und damit Protokollversion 2
+(siehe D354, verworfene Alternative). Ein Intervall auf **`now`** kostet am Atom gar nichts —
+`now` ist ein Parameter, kein Feld. Der Hinweis auf `temporal is None` zeigt auf die zweite
+Lesart, und formal ist sie schön: `None` ist das Intervall von minus bis plus unendlich, jedes
+heutige Verhalten wäre der entartete Fall.
+
+**Beschluss: zurückgestellt.** Zwei Gründe. Erstens erzeugt es keine Kollision, sondern eine
+Enthaltung — es verschiebt Fälle aus `ACTIVE`/`EXPIRED` nach `LINKED`, also in die sichere
+Richtung, die bei fehlender Uhr ohnehin greift. Nach `08 §2.2` ist mehr Enthaltung genau die
+Gegenrichtung zur Priorität. Zweitens ist es keine kleine Änderung, sondern deckt eine
+Asymmetrie auf, die der Punktwert heute verbirgt.
+
+**Der eigentliche Befund.** Überlappt das Intervall `t_exp`, zerfällt `_in_budget_set`
+(`trust/groups.py:63`, heute eine Zeile `now <= claim.t_exp`) in zwei entgegengesetzte
+konservative Richtungen:
+
+| Menge | Frage | konservativ heißt | Unsicherheit |
+|---|---|---|---|
+| Kantensatz | gewährt der Vouch Vertrauen? | als abgelaufen behandeln | **raus** |
+| Budget-Set | zählt er gegen `Σ n ≤ D`? | als nicht abgelaufen behandeln | **rein** |
+
+Dieselbe Unsicherheit, derselbe Claim, dieselbe Funktion, entgegengesetzte Auflösung. Mit
+einem Punkt-`now` fallen beide zusammen, und die Frage stellt sich nie. Die Asymmetrie ist
+damit nicht Folge des Intervalls, sondern nur durch es sichtbar — sie ist die interessantere
+Frage und wird als O60 geführt.
+
+**Nebenbefund.** `trust/derive.py:39` und `trust/flow.py:30` nehmen `now: int`, nicht
+`int | None`. Ein Gerät ohne Uhr bekommt keinen konservativen Trust-Wert, es bekommt keinen.
+Das ist die harte Fassung von D350s zweitem Zeitregime: Trust ist nicht nur uhrgebunden,
+sondern uhr-**pflichtig**, und zwar auf Typebene. `01` bleibt uhrenfrei berechenbar, `02a`
+nicht.
+
+**Verworfen — jetzt bauen.** Der Gewinn ist eine ehrlichere Enthaltung auf Geräten mit grober
+Uhr. Der Preis ist eine normative Entscheidung über die Richtung in zwei Mengen, und die
+gehört erst getroffen, wenn O60 beantwortet ist. In der Reihenfolge umgekehrt wäre es eine
+Implementierung, die eine Spec-Frage nebenbei entscheidet.

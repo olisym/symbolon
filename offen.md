@@ -291,3 +291,11 @@ Repositorium `mar-go` wird archiviert, nicht umbenannt oder gelöscht (D330).
 
 Falsche Passung: löst Capability-Widerruf, nicht wirtschaftliche Durchsetzung. Die
 D313-Frage ist stattdessen durch den gemessenen Lauf 00as beantwortet. Aus D326.
+
+### O60 Budget-Set und Kantensatz lösen Zeitunsicherheit in entgegengesetzte Richtungen
+
+Aus D355. Konservativ heißt für den Kantensatz „als abgelaufen behandeln" und für das
+Budget-Set „als nicht abgelaufen behandeln" — dieselbe Unsicherheit, entgegengesetzte
+Auflösung, beide in `_in_budget_set` (`trust/groups.py:63`). Ein Punkt-`now` lässt beide
+zusammenfallen; die Frage ist heute nicht gestellt, nicht beantwortet. Vorbedingung für jede
+Fassung mit unscharfer Zeit.

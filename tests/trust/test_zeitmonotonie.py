@@ -34,12 +34,15 @@ def _szenario() -> tuple[
     c_alice = (PARAMS.C0 * PARAMS.gamma_num**0) // (PARAMS.gamma_den**0)
     # cap(ALICE → BOB) nach 02a §2.5; keine Kurzform (02a §2.2).
     expected_mid = (n * c_alice) // PARAMS.D
+    # 2n > D und n <= D gelten durch die Wahl von n fuer jedes D >= 1 und sind
+    # nicht zu pruefen. Die Konstruktion haengt daran, dass die Kante ueberhaupt
+    # Kapazitaet traegt: bei expected_mid == 0 waere der mittlere Wert null und
+    # der Anstieg unbeobachtbar.
+    assert expected_mid > 0
     return store, alice, bob, scope, nows, expected_mid
 
 
 def test_default_steigt_dann_faellt() -> None:
-    # Ohne D >= 3 ist 2n > D bei n <= D nicht erfuellbar.
-    assert PARAMS.D >= 3
     store, alice, bob, scope, nows, expected_mid = _szenario()
     values = [
         trust(
@@ -60,8 +63,6 @@ def test_default_steigt_dann_faellt() -> None:
 
 
 def test_include_flagged_nicht_steigend() -> None:
-    # Ohne D >= 3 ist 2n > D bei n <= D nicht erfuellbar.
-    assert PARAMS.D >= 3
     store, alice, bob, scope, nows, _expected_mid = _szenario()
     values = [
         trust(
@@ -79,8 +80,6 @@ def test_include_flagged_nicht_steigend() -> None:
 
 
 def test_zwischenzustand_overcommitted_author() -> None:
-    # Ohne D >= 3 ist 2n > D bei n <= D nicht erfuellbar.
-    assert PARAMS.D >= 3
     store, alice, bob, scope, nows, _expected_mid = _szenario()
     first = trust(
         store,

@@ -14188,3 +14188,84 @@ von D361 gelesene Entwurfsnummer ist erschlossen, nicht belegt.
 verfolgt wird, ist der erste messbare Schritt kein Spec-Text, sondern ein Prüffall: was tut
 `trust()` heute, wenn zwei Knoten dieselbe Claim-Menge und verschiedene `now` haben — die Zahl
 aus D362 misst einen Anker mit zwei Bürgschaften, nicht zwei Beobachter.
+
+### D364 — Ein Vouch ohne `t_exp` verlässt das Budget-Set nie; auch Widerruf befreit nicht
+
+**Anlass.** D363 lässt Weg 3 aus O61 stehen — Scopes ohne `t_exp` — und beziffert seinen Preis
+mit D362: `02a §2.6` verlöre seinen einzigen Budget-Austritt. Die Annahme dahinter war, dass
+dieser Weg noch zu bauen ist. Er ist gebaut. Gemessen wurde, was ein `t_exp`-loser Vouch im
+Bestand heute tut.
+
+**Die Mechanik, drei Stellen.** `_in_budget_set` in `trust/groups.py` gibt bei fehlendem `t_exp`
+unbedingt `True` zurück und fasst `now` gar nicht erst an. `BUDGET_STATES` enthält `REVOKED`,
+nach D135, weil der Über-Commitment-Beweis auf Signaturen beruht und nicht auf Aktivität. Und
+`build_groups` überspringt den Claim nicht: der Vermerk `VOUCH_WITHOUT_TEXP` fällt, die Gruppe
+wird trotzdem gebildet. `test_vouch_without_texp.py` belegt das von der anderen Seite — Gruppen,
+`n_budget`, `n_kante` und Knotenkapazität sind mit und ohne `t_exp` identisch. Inert ist der
+Vermerk, nicht die Bürgschaft. D119 hält es normativ fest: fehlendes `t_exp` bindet unbegrenzt.
+
+**Die Messung.** Profil TP-02 (`D = 4`, `C0 = 16`), Anker ALICE, `n = D // 2 + 1 = 3` je
+Bürgschaft, also Σ `n_budget` = 6 > 4. Erwartete Kantenkapazität nach `02a §2.5`:
+`n · C(0) // D = 12`. Gemessen außerhalb der Testreihe bei `539f0fd`:
+
+| Lage | kleines `now` | nach dem Ablauf | `now = 10**6` |
+|---|---|---|---|
+| beide ohne `t_exp` | 0, overcommitted | 0, overcommitted | 0, overcommitted |
+| eine ohne, eine mit `t_exp = 10` | 0, overcommitted | 12 | 12 |
+| gestaffelt, beide mit `t_exp` (D362) | 0 | 12 | 0 |
+| beide ohne `t_exp`, zweite widerrufen | 0, overcommitted | — | 0, overcommitted |
+| beide mit `t_exp`, zweite widerrufen | 0 | 12 | — |
+
+**Der Befund.** Die beiden letzten Zeilen tragen ihn. Ein Autor, der sich mit `t_exp`-losen
+Bürgschaften überbindet, kann sich nicht mehr befreien: `OVERCOMMITTED_AUTHOR` bleibt, bei
+`include_flagged = False` fällt jede seiner Kanten, und das dauerhaft. Der Widerruf ändert
+nichts — `REVOKED` steht im Budget-Set, und ohne `t_exp` gibt es keinen Ablauf. In der
+Gegenprobe mit `t_exp` befreit ihn ebenfalls nicht der Widerruf, sondern der Ablauf. Auf der
+anderen Seite hält der Begünstigte eine Bürgschaft ohne jede Decke, genau dort, wo `02 §7`
+`t_exp` als Abwehr 1 führt.
+
+Das ist die Mechanik aus D362 ohne deren Selbstheilung. Dort kehrte der Wert zurück, weil der
+Ablauf das Budget freigab; hier gibt es keinen Zeitpunkt, an dem sich etwas auflöst. Die
+zweite Zeile der Tabelle zeigt beides nebeneinander: der Sprung von 0 auf 12 ist derselbe wie
+in D362, aber er fällt nicht wieder.
+
+**Kein Defekt.** Wie bei D362 erzeugen mehrere Entscheidungen das Verhalten gemeinsam, und keine
+ist für sich falsch: D135 hält `REVOKED` im Budget-Set, D119 lässt `t_exp` optional und gibt der
+Pflicht aus `02 §6.2` einen Vermerk statt eines Rejects, `02a §2.6` kennt nur den einen Austritt.
+Festgehalten wird die Folge.
+
+**Verworfen, mit Begründung.** `REVOKED` aus `BUDGET_STATES` nehmen — das ist genau die Prämie
+auf den Lebenszyklus-Akt, die D135 ausschließt, und sie macht Über-Commitment durch Widerruf
+heilbar. Die Pflicht aus `02 §6.2` zum Reject härten — verschiebt den Prüfumfang des
+speicherlosen Geräts aus `01 §6` und wäre die Entscheidung, die D119 bereits einmal anders
+getroffen hat. Als Defekt behandeln und reparieren — es ist keiner, siehe oben. Offen bleibt
+dagegen der zweite Zweig von `02 §6.2`, die Policy-Maximallaufzeit als Default: D119 hält fest,
+dass das Verfassungsschema kein Feld dafür hat, und genau dieser Zweig wäre die Einhegung, die
+den Autor nicht dauerhaft lähmt.
+
+**Folge für O61.** Weg 3 dreht sich um. Er ist nicht zu bauen, sondern einzuhegen — die Mechanik
+steht, einschließlich der Zeitunabhängigkeit: `_in_budget_set` und die Gültigkeitsprüfung in
+`verifier.py` kommen bei fehlendem `t_exp` ohne `now` aus. Was den uhrlosen Knoten heute davon
+trennt, ist keine Norm und keine Mechanik, sondern eine Signatur: `derive()` nimmt `now: int`.
+Die Vorsichtsantwort aus `01 §6` ist auf Layer 01 formuliert und im Trust-Pfad nie angekommen.
+Das verschiebt O61s Kosten — der Weg ist billig zu öffnen und teuer zu begrenzen, nicht
+umgekehrt.
+
+**Rücknahme aus D363.** Der Schlussabsatz von D363 schlägt als ersten messbaren Schritt einen
+Prüffall mit zwei Beobachtern bei gleicher Claim-Menge und verschiedenem `now` vor. Der misst
+nichts: `derive()` ist eine reine Funktion von `(store, anchors, scope, now, params,
+include_flagged)` ohne inneren Zustand, zwei Beobachter mit gleichem Anker rechnen also
+dieselbe Folge wie ein Beobachter zu zwei Zeitpunkten — und die steht seit `00be` in
+`tests/trust/test_zeitmonotonie.py`. Der Vorschlag ist zurückgenommen, dieser Eintrag tritt an
+seine Stelle.
+
+**Wie geprüft, und die schwächste Stelle.** Der erste Messlauf gab für die gemischte Lage
+durchgehend 0 und damit das Gegenteil des Ergebnisses oben. Ursache war die Konstruktion, nicht
+der Bestand: dieselbe Identität über zwei Stores wiederverwendet, die Vorgänger fehlten im
+zweiten, die Claims standen auf `PENDING` — im Budget-Set, aber ohne Kante. Mit frischen
+Identitäten je Szenario kehrt sich das Ergebnis um. Schwächste Stelle: gemessen ausschließlich
+bei TP-02 und mit `include_flagged = False`.
+
+**Was folgt.** Ein Prüffall, der die dritte und vierte Zeile der Tabelle festhält, mit
+abgeleiteten Erwartungswerten und einer Rücknahmeprobe nach Prüfregel 69. Die Einhegungsfrage —
+Policy-Maximallaufzeit oder etwas anderes — bleibt offen und hängt an O61.

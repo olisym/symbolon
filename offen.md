@@ -323,3 +323,9 @@ kannte: die untere Zeitschranke aus dem `t` empfangener signierter Claims nachzi
 die Richtung auf Über-Vertrauen um, braucht persistente lokale Zustandsführung, und seine
 Hauptfrage ist offen — D353 macht nur Rückdatierung unbestreitbar, nicht Vorlauf, und D78 hat
 verwandte Wirkung zwischen Autoren schon einmal verworfen.
+
+Nach D364 ist Weg 3 nicht zu bauen, sondern einzuhegen: `t_exp`-lose Bürgschaften wirken heute
+voll, sind ohne `now` auswertbar und verlassen das Budget-Set nie, auch nicht durch Widerruf.
+Was den uhrlosen Knoten davon trennt, ist die Signatur `now: int` in `derive()`. Der Weg ist
+damit billig zu öffnen und teuer zu begrenzen; die Einhegung hängt am zweiten Zweig von
+`02 §6.2`.

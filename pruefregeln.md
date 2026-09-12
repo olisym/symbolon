@@ -166,6 +166,16 @@ abgesetzt und vom Operator angenommen, bevor sie auffiel. Regel 38 trägt den Fa
 nach: sie nennt Spec und Register, und für eine externe Quelle gibt es keinen zuständigen
 Abschnitt. Dieselbe Bauform wie Regel 22 neben 14 — Auszug und Volltext sehen gleich aus (D360).
 
+**73. Bei einem Entwurf ist der Volltext nicht die Fassung.** Ein Internet-Draft trägt eine
+Nummer, und der Unterschied zwischen zwei Nummern kann genau die Abschnitte betreffen, auf die es
+ankommt. D361 las Raytime vollständig und nannte die Nummer nicht; erschließbar ist -00 oder -01,
+und erst die nächste Fassung füllte die leeren Security Considerations, ergänzte die Grenzen der
+Nutzung alter Token und stellte den Bezug zur Vorarbeit her — die drei Stellen, an denen die
+Position hing. Vor der Position wird deshalb die neueste Fassung ermittelt, nicht nur eine
+geöffnet; die gelesene Nummer gehört in den Befund, und bei einem abgelaufenen oder nicht
+angenommenen Entwurf auch der Reifegrad. Regel 72 verlangt den Volltext und schweigt zur Fassung
+(D363).
+
 **52. Wer ungebundenes Verhalten sucht, misst am Code und nicht am Register.**
 Die Frage „welcher Registereintrag beschließt Verhalten und taucht in keinem Test auf" liefert in
 `00ah` 47 Kandidaten und damit kein Signal; die Frage „welcher Vermerks- oder Verdiktcode im
@@ -578,7 +588,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
-69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360.
+69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

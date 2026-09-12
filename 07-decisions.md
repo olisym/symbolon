@@ -13985,7 +13985,7 @@ eigenen Aufruf neben der Pfadvalidierung — eine archivierte Windows-CE-Schnitt
 **Raytime ist die einzige Quelle zur uhrlosen Lage und löst sie durch Richtungswechsel.** Der
 IETF-Entwurf `draft-amsuess-t2trg-raytime` akzeptiert Token, außer der Ablauf liegt unter der
 gehaltenen unteren Zeitschranke, und benennt den Verlust: abgelaufene Token werden nicht mehr
-unbedingt abgewiesen. Das ist die Gegenrichtung zum Unter-Vertrauen aus `01 §5.3`. Brauchbar
+unbedingt abgewiesen. Das ist die Gegenrichtung zum Unter-Vertrauen aus `01 §6`. Brauchbar
 bleiben drei Dinge: O60 hat dort Name und Form (halboffenes Intervall — vergangene Zeitpunkte
 sind erkennbar, nicht vergangene nie); die untere Schranke wird aus signierten Zeitangaben
 nachgezogen, und zwar nur aus vertrauten, weil eine zu späte Angabe eine Dienstverweigerung
@@ -14077,3 +14077,114 @@ hier nicht bloß vorsichtiger, sondern unbestimmt.
 bei `2dd4c5b` gemessen, außerhalb der Testreihe, mit `tests/helpers.Identity`. Das ist keine
 Abnahme. Der Lauf muss den Fall im Baum neu konstruieren und die Erwartung ableiten, nicht
 diese Tabelle abtippen.
+
+### D363 — Literaturbefund zu O61: zwei Wege fallen, ein vierter kommt hinzu
+
+**Anlass.** O61 sollte entschieden werden, und die Belegbasis für ein „nein" trug weiter als die
+für ein „ja": D361 nennt die BRSKI-Entwürfe bis -18 mit ihrem „current reasonable date" als
+Vorarbeit zu Raytime und hat sie nicht gelesen. Statt auf der billigeren Antwort zu entscheiden,
+wurde nachgelesen. Gelesen: RFC 8995 §2.6.1, §3.1, §7.4.1 und die Terminologie im Wortlaut, dazu
+Volltextsuchen über RFC 8995 sowie `draft-ietf-anima-bootstrapping-keyinfra` -18 und -45;
+`draft-amsuess-t2trg-raytime` -01 und -02 vollständig. Drei Korrekturen an D361 folgen daraus.
+
+**Korrektur 1 — die Fassung.** D361 nennt keine Entwurfsnummer. Aus dem Inhalt folgt -00 oder
+-01: die beiden harten Schranken zur Nutzung alter Token fehlen dort, und der Abschnitt
+„Security Considerations" ist leer. Beides kam erst mit -02 vom 11. Januar 2024, das zusätzlich
+festhält, dass Raytime Sicherheitseigenschaften vermindert, und einen Anhang zum Vergleich mit
+der BRSKI-Vorarbeit trägt — dessen Inhalt eine Notiz ist, das noch einmal durchzugehen. Der
+Entwurf ist Experimental, eine Einzeleinreichung an die Forschungsgruppe t2trg und nicht von ihr
+angenommen, im Juli 2024 abgelaufen, mit unbeantworteten offenen Fragen. Das ist der Reifegrad,
+auf den O61 sich bezogen hat.
+
+**Korrektur 2 — BRSKI ist keine Vorarbeit, sondern eine verworfene Konstruktion.** Das „current
+reasonable date" ist in der finalen RFC 8995 nicht mehr vorhanden und schon im letzten Entwurf
+davor nicht (-45; -46 gibt es nicht). An seine Stelle tritt eine binäre Regel: ein Gerät mit
+einer Uhr, der es vertraut, MUSS alle Zeitfelder prüfen; ein Gerät ohne Kenntnis der aktuellen
+Zeit DARF sämtliche Zeitstempel ignorieren. Frische stellt stattdessen die Nonce im
+Voucher-Request her, deren Frische ausdrücklich als Ausgleich für die fehlende Echtzeituhr
+benannt wird. Die Terminologie macht die Aufteilung erschöpfend: ein Voucher ohne Nonce verlässt
+sich entweder auf genaue Uhren für den Ablauf, oder er läuft gar nicht ab. Wo BRSKI den zweiten
+Fall zulässt, wird er beim Namen genannt — der Voucher kann unbegrenzt gelten und macht die
+Domäne dauerhaft vertrauenswürdig; getragen wird das durch ein Audit-Log und eine
+Besitznachverfolgung, die der Standard ausdrücklich außerhalb seines Geltungsbereichs lässt.
+Drei Ausgänge also, kein vierter: Uhr, Interaktion, oder eingestandenes Über-Vertrauen mit
+außerprotokollarischem Ausgleich.
+
+**Korrektur 3 — Raytimes Zeitquelle ist zentral.** Die untere Schranke wird ausschließlich aus
+Aussagen des Authorization Server nachgezogen, und der Entwurf hält fest, dass verteilte
+Zeitquellen für seine Mechanik nicht einschlägig sind. Raytime ist damit kein dezentraler
+Mechanismus, sondern einer für ein Gerät, das eine Autorität hat und sie zeitweise nicht
+erreicht. Der Grund für die Beschränkung steht in seinem Bedrohungsmodell: eine zu späte
+Zeitangabe ist eine Dienstverweigerung gegen gültige Token. Wer die Quelle öffnet, öffnet
+diesen Vektor.
+
+**Folge für O61: zwei der drei Wege fallen.** Die signierte Zeit-Attestierung (`VISION.md §5`,
+D350) löst die Frage nicht. `VISION.md §5` räumt selbst ein, dass ein nicht erreichbarer
+Zeitdienst schlicht der Offline-Fall ist — und der partitionierte Knoten ist genau dieser Fall.
+Das ist dieselbe Form, in der D361 die D354-Zweige ausgeschlossen hat: mehr ablehnen dürfen,
+nichts benutzen können. Der Wechsel auf die Verfügbarkeitsseite nach Raytime fällt mit Korrektur
+3: die Konstruktion, auf die O61 zeigt, setzt voraus, was D350 verworfen hat. Der dritte Weg,
+Scopes ohne `t_exp`, bleibt, hat aber mit D362 seinen Preis beziffert bekommen — `02a §2.6`
+verlöre seinen einzigen Budget-Austritt für genau die Claims, die ihn am nötigsten haben.
+
+**Der vierte Weg.** Was Raytime -02 neu hinzufügt, ist die zweite seiner beiden harten
+Schranken: sobald eine neuere Aussage gesehen wird, die nach dem Ablauf einer älteren
+ausgestellt wurde, wird die ältere unbrauchbar. Übertragen heißt das: die untere Zeitschranke
+wird aus dem `t` empfangener signierter Claims nachgezogen. Das ist die Konkretisierung dessen,
+was D350 als zweiten Satz angekündigt und nicht ausgeführt hat — zeitliche Rechenschaft läuft
+über `t`, nicht über `now`. Die erste der beiden Schranken, Betriebszeit statt Kalenderzeit, ist
+dagegen unbrauchbar: sie wäre ein persistenter lokaler Zähler, der in keinem Claim steht und das
+Ergebnis ändert, also D350 Befund 1 in neuer Form.
+
+**Was D353 dazu beiträgt, und was nicht.** Der naheliegende Schluss ist, dass MaR den Ersatz für
+Raytimes Autorität längst hat: `t` ist signiert und monoton entlang der Autorenkette, wer die
+Zeit verstellt, bindet sich also daran. Der Schluss hält nur zur Hälfte, und die Hälfte, die
+fällt, ist die wichtigere. D353 ist ausdrücklich strikt intra-Autor und belastet eine
+**rückwärts** laufende Uhr in der eigenen Kette. Ein Autor, der konsistent **vorläuft**,
+kollidiert mit nichts — seine Kette ist monoton, jeder Claim für sich gültig — und stellt
+trotzdem bei jedem Empfänger die Schranke vor. Das ist genau der Vektor aus Raytimes
+Bedrohungsmodell, den dort die Beschränkung auf den Authorization Server schließt. D353 macht
+Rückdatierung unbestreitbar; für Vorlauf gibt es keine Kollision.
+
+**Und D78 hat die Wirkungsklasse bereits verworfen.** Dort ging es um `t` als Rangfolge zwischen
+zwei Autoren, verworfen mit der Begründung, es wäre die einzige Stelle im Protokoll, an der
+Wall-Clock zwischen Autoren wirkt, und ein Angreifer mit falscher Uhr bekäme Kontrolle über die
+Bindungsfrage. Der vierte Weg stiftet keine Rangfolge — er zieht eine monotone Schranke —, aber
+er lässt fremdes Wall-Clock beim Empfänger über Gültigkeit entscheiden, und der Angriff ist
+derselbe. Ob die Unterscheidung zwischen Ordnung und Schranke trägt, ist die Hauptfrage dieser
+Gabel und nicht nebenbei zu beantworten.
+
+**Der Preis, ohne Beschönigung.** Die untere Schranke ist lokal und muss persistiert werden,
+sonst macht ein Neustart alle abgelaufenen Bürgschaften wieder gültig. Sie bleibt damit eine
+beobachterabhängige Größe mit öffentlich wirksamer Folge, also dieselbe strukturelle Schwäche
+wie `now` — abgeschwächt in zwei Punkten: ihre Eingaben sind signiert und damit kollidierbar,
+und sie ist monoton, ein Knoten kann nicht zurückfallen. Vor allem kehrt sie die Richtung um.
+Ein Knoten ohne Uhr lehnt dann nicht mehr alles ab, sondern akzeptiert abgelaufene Bürgschaften
+bis zur nächsten Nachricht, die ihn weiterstellt. Das ist Über-Vertrauen, und `02 §7` führt
+`t_exp` als Abwehr 1 genau dagegen. D362 hat gezeigt, dass der Wert schon ohne diesen Weg in die
+gefährliche Richtung springen kann.
+
+**Nicht entschieden.** Dieser Eintrag eröffnet den vierten Weg als Gabel und schließt O61 nicht.
+Drei Fragen hängen daran: die Abwägung gegen `02 §7` Abwehr 1, die Abgrenzung gegen D78, und
+welche `t` überhaupt als Eingabe zählen — jedes empfangene, nur die aus dem eigenen Nukleus, nur
+die von Autoren mit eigener Trust-Kante. Die dritte ist Raytimes Beschränkung auf den
+Authorization Server, nur ohne Server, und sie ist zugleich die einzige Stelle, an der eine
+Antwort auf D78 liegen kann.
+
+**Beifang: ein Fehlverweis, dreimal.** D361 bezieht das Unter-Vertrauen auf `01 §5.3`; dort steht
+`core/supersede@1`. Die Regel steht in `01 §6`. Der Verweis ist von D361 nach `offen.md` O61 und
+in den Sitzungsstart gewandert. `tools/check_specs.py` konnte ihn nicht sehen: es löst
+Abschnittsverweise auf Existenz auf, und `01 §5.3` existiert. Ein Verweis auf den falschen
+vorhandenen Abschnitt ist maschinell nicht von einem richtigen zu unterscheiden — dieselbe
+Bauform wie die falsche Begründung im Prompt aus `00be`. Hier korrigiert; im Sitzungsstart mit
+der nächsten Fortschreibung.
+
+**Wie geprüft, und die schwächste Stelle.** Die erste Fassung dieses Eintrags behauptete, D353
+liefere den Ersatz für Raytimes Autorität. Gefunden wurde der Fehler in der Abnahme, beim
+Öffnen von D353 und D78 — nicht beim Schreiben. Die schwächste Stelle bleibt Korrektur 1: die
+von D361 gelesene Entwurfsnummer ist erschlossen, nicht belegt.
+
+**Was folgt.** Prüfregel 73. O61 wird fortgeschrieben, nicht geschlossen. Wenn der vierte Weg
+verfolgt wird, ist der erste messbare Schritt kein Spec-Text, sondern ein Prüffall: was tut
+`trust()` heute, wenn zwei Knoten dieselbe Claim-Menge und verschiedene `now` haben — die Zahl
+aus D362 misst einen Anker mit zwei Bürgschaften, nicht zwei Beobachter.

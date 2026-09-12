@@ -306,11 +306,20 @@ Die Richtungsfrage bleibt offen, aber sie wird nicht erst bei unscharfer Zeit sc
 
 ### O61 Soll ein uhrloser Knoten Vertrauen gewähren können?
 
-Aus D361. `01 §5.3` beantwortet die Lage heute vollständig: ohne vertraute Zeitquelle ist die
+Aus D361. `01 §6` beantwortet die Lage heute vollständig: ohne vertraute Zeitquelle ist die
 `t_exp`-Gültigkeit unentscheidbar, der Claim wird für trust-gewährende Zwecke nicht herangezogen.
 Das ist kohärent, aber es heißt, dass ein Knoten ohne Uhr gar nichts gewähren kann. Drei Wege
 stehen offen: eine signierte Zeit-Attestierung von einer vertrauten Quelle (`VISION.md §5`,
-D350), der Wechsel auf die Verfügbarkeitsseite nach Raytime (gegen `01 §5.3`), oder Scopes ohne
+D350), der Wechsel auf die Verfügbarkeitsseite nach Raytime (gegen `01 §6`), oder Scopes ohne
 `t_exp` (von der Budgetregel ausgeschlossen). D354 trägt nur im zweiten und dritten Zweig etwas
 bei. Stolperdraht: das erste Profil, das einen Prämissen-Key deklariert — bis dahin ist die
 Vertagung kostenlos.
+
+Nach D363 stehen die drei Wege anders. Die signierte Zeit-Attestierung löst die Frage nicht:
+`VISION.md §5` räumt selbst ein, dass ein nicht erreichbarer Zeitdienst der Offline-Fall ist, und
+der partitionierte Knoten ist genau dieser Fall. Raytime setzt eine zentrale vertraute Zeitquelle
+voraus, die es nach D350 nicht geben soll. Hinzu kommt ein vierter Weg, den die Liste nicht
+kannte: die untere Zeitschranke aus dem `t` empfangener signierter Claims nachziehen. Er kehrt
+die Richtung auf Über-Vertrauen um, braucht persistente lokale Zustandsführung, und seine
+Hauptfrage ist offen — D353 macht nur Rückdatierung unbestreitbar, nicht Vorlauf, und D78 hat
+verwandte Wirkung zwischen Autoren schon einmal verworfen.

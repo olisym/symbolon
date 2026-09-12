@@ -14208,13 +14208,13 @@ Vermerk, nicht die Bürgschaft. D119 hält es normativ fest: fehlendes `t_exp` b
 Bürgschaft, also Σ `n_budget` = 6 > 4. Erwartete Kantenkapazität nach `02a §2.5`:
 `n · C(0) // D = 12`. Gemessen außerhalb der Testreihe bei `539f0fd`:
 
-| Lage | kleines `now` | nach dem Ablauf | `now = 10**6` |
-|---|---|---|---|
-| beide ohne `t_exp` | 0, overcommitted | 0, overcommitted | 0, overcommitted |
-| eine ohne, eine mit `t_exp = 10` | 0, overcommitted | 12 | 12 |
-| gestaffelt, beide mit `t_exp` (D362) | 0 | 12 | 0 |
-| beide ohne `t_exp`, zweite widerrufen | 0, overcommitted | — | 0, overcommitted |
-| beide mit `t_exp`, zweite widerrufen | 0 | 12 | — |
+| Lage (je `n = 3`, Ziel BOB) | gemessene `now` | Werte |
+|---|---|---|
+| BOB ohne `t_exp`, CAROL ohne | 5 / 10**6 / 10**12 | 0 / 0 / 0, durchgehend overcommitted |
+| BOB ohne `t_exp`, CAROL `t_exp = 10` | 9 / 11 / 10**6 | 0 (overcommitted) / 12 / 12 |
+| BOB `t_exp = 20`, CAROL `t_exp = 10` (D362) | 9 / 11 / 21 | 0 / 12 / 0 |
+| wie Zeile 1, CAROL widerrufen bei `t = 5` | 10 / 10**6 | 0 / 0, durchgehend overcommitted |
+| wie Zeile 2, CAROL widerrufen bei `t = 5` | 8 / 11 | 0 / 12 |
 
 **Der Befund.** Die beiden letzten Zeilen tragen ihn. Ein Autor, der sich mit `t_exp`-losen
 Bürgschaften überbindet, kann sich nicht mehr befreien: `OVERCOMMITTED_AUTHOR` bleibt, bei
@@ -14266,6 +14266,13 @@ zweiten, die Claims standen auf `PENDING` — im Budget-Set, aber ohne Kante. Mi
 Identitäten je Szenario kehrt sich das Ergebnis um. Schwächste Stelle: gemessen ausschließlich
 bei TP-02 und mit `include_flagged = False`.
 
-**Was folgt.** Ein Prüffall, der die dritte und vierte Zeile der Tabelle festhält, mit
+Auch die Tabelle stand zunächst falsch, und mit ihr der Verweis darauf: ihre fünfte Zeile war
+als „beide mit `t_exp`" beschriftet, obwohl dort die Bürgschaft auf BOB keines trug, die dritte
+Zeile bekam eine Spalte zugeordnet, die nicht gemessen worden war, und der Schlussabsatz zeigte
+auf die dritte und vierte Zeile statt auf die beiden Widerrufszeilen. Der Kontrast zwischen
+diesen beiden — ein einziges gesetztes `t_exp` auf der widerrufenen Bürgschaft — stimmte, die
+Beschriftung nicht. Beschriftet und gezählt wurde aus dem Gedächtnis statt aus dem Messcode.
+
+**Was folgt.** Ein Prüffall, der die beiden Widerrufszeilen der Tabelle festhält, mit
 abgeleiteten Erwartungswerten und einer Rücknahmeprobe nach Prüfregel 69. Die Einhegungsfrage —
 Policy-Maximallaufzeit oder etwas anderes — bleibt offen und hängt an O61.

@@ -157,6 +157,15 @@ geschieht davor. Wer eine Lage für ungeklärt hält, schlägt zuerst nach, wer 
 `tools/register_index.py` nennt die Einträge zu einem Abschnitt. In der Sitzung zu D207 wurden drei
 von vier Positionen zurückgenommen, jede davon gegen eine Entscheidung, die es bereits gab (D209).
 
+**72. Ein Suchauszug ist keine gelesene Quelle.** Wird eine Position auf eine Gabel bezogen,
+die außerhalb von MaR bearbeitet wird, wird die Primärquelle vollständig geöffnet, bevor die
+Position steht. In `00bd` entstanden aus Auszügen zwei Lager — PKIX ohne Verschachtelung,
+Capability-Systeme mit —, und die Volltexte drehten es um: UCAN 1.0 erlaubt abweichende
+Gültigkeitsperioden ausdrücklich und prüft jedes Kettenglied gegen `now`. Die Fehlmeldung war
+abgesetzt und vom Operator angenommen, bevor sie auffiel. Regel 38 trägt den Fall nur dem Sinn
+nach: sie nennt Spec und Register, und für eine externe Quelle gibt es keinen zuständigen
+Abschnitt. Dieselbe Bauform wie Regel 22 neben 14 — Auszug und Volltext sehen gleich aus (D360).
+
 **52. Wer ungebundenes Verhalten sucht, misst am Code und nicht am Register.**
 Die Frage „welcher Registereintrag beschließt Verhalten und taucht in keinem Test auf" liefert in
 `00ah` 47 Kandidaten und damit kein Signal; die Frage „welcher Vermerks- oder Verdiktcode im
@@ -569,7 +578,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
-69 aus D352, 70 aus D358, 71 aus D359.
+69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

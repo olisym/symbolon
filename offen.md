@@ -299,3 +299,14 @@ Budget-Set „als nicht abgelaufen behandeln" — dieselbe Unsicherheit, entgege
 Auflösung, beide in `_in_budget_set` (`trust/groups.py:63`). Ein Punkt-`now` lässt beide
 zusammenfallen; die Frage ist heute nicht gestellt, nicht beantwortet. Vorbedingung für jede
 Fassung mit unscharfer Zeit.
+
+### O61 Soll ein uhrloser Knoten Vertrauen gewähren können?
+
+Aus D361. `01 §5.3` beantwortet die Lage heute vollständig: ohne vertraute Zeitquelle ist die
+`t_exp`-Gültigkeit unentscheidbar, der Claim wird für trust-gewährende Zwecke nicht herangezogen.
+Das ist kohärent, aber es heißt, dass ein Knoten ohne Uhr gar nichts gewähren kann. Drei Wege
+stehen offen: eine signierte Zeit-Attestierung von einer vertrauten Quelle (`VISION.md §5`,
+D350), der Wechsel auf die Verfügbarkeitsseite nach Raytime (gegen `01 §5.3`), oder Scopes ohne
+`t_exp` (von der Budgetregel ausgeschlossen). D354 trägt nur im zweiten und dritten Zweig etwas
+bei. Stolperdraht: das erste Profil, das einen Prämissen-Key deklariert — bis dahin ist die
+Vertagung kostenlos.

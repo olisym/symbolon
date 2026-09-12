@@ -13937,3 +13937,77 @@ hat, verschiebt die Ursache auf die Regel statt auf den Ablauf.
 Die Anweisung, Rückfragen als Liste ans Ende zu melden statt unterwegs zu entscheiden, hat hier
 zum zweiten Mal in dieser Sitzungsreihe einen Supervisor-Fehler gefangen — das erste Mal waren es
 die roten Szenarien (D357). Beide Male hat das Werkzeug nicht committet und gefragt.
+
+### D360 — Die Leseregeln zeigen nach innen; für externe Quellen fehlte eine
+
+In `00bd` wurde eine Fork-Position zu D354 auf Suchauszüge gestützt und als Befund gemeldet:
+zwei Lager, PKIX ohne Verschachtelung, Capability-Systeme mit. Die Volltexte drehten den
+Hauptpunkt um. UCAN 1.0 Delegation erlaubt abweichende Gültigkeitsperioden in einer Kette
+ausdrücklich und prüft jedes Glied gegen `now`; die Schnittmenge entsteht bei der Auswertung und
+wird nicht erzwungen. Der Operator hatte die Fehlmeldung zu diesem Zeitpunkt bereits angenommen.
+
+**Verworfen — den Geltungsbereich von Prüfregel 27 erweitern.** Das war der erste Vorschlag des
+Supervisors und er war überflüssig: Prüfregel 38 sagt seit D209 wörtlich, dass eine Position erst
+bezogen wird, nachdem der zuständige Abschnitt aufgeschlagen ist, und begründet ausdrücklich,
+dass 27 und 33 zu spät greifen. Der Vorschlag war D359 eine Ebene höher — eine Regel neu
+hergeleitet, die dasteht und nicht gelesen wurde.
+
+**Beschluss — Prüfregel 72, mit eng begrenztem Zuwachs.** 27, 33 und 38 zeigen alle nach innen,
+auf Spec, Register und `tools/register_index.py`. Für eine Gabel, die außerhalb von MaR
+bearbeitet wird, gibt es keinen zuständigen Abschnitt, und der Fehlermechanismus ist ein anderer:
+ein Auszug sieht aus wie eine gelesene Quelle. Das ist die Bauform, mit der Regel 22 ihre Existenz
+neben 14 begründet, wo gelesen und vollständig gelesen bei einem Funktionsrumpf gleich aussehen.
+
+**Nicht geändert.** 27, 33 und 38 bleiben im Wortlaut. Sie wurden nicht missverstanden.
+
+### D361 — Literaturbefund zu D354; die Begründung fällt, die Gabel bleibt offen
+
+Vier Systeme und einen IETF-Entwurf geprüft, weil D354 eine Frage stellt, die außerhalb von MaR
+seit langem bearbeitet wird: darf eine abhängige Aussage die Zeitgrenze ihrer Prämisse
+überschreiten? Vollständig gelesen wurden UCAN 1.0 Delegation und der Raytime-Entwurf;
+RFC 5280 §4.1.2.5 im Wortlaut, dazu eine Volltextsuche über das ganze RFC; Biscuits
+`SPECIFICATIONS.md` an den Stellen zu Zeitprüfung und Authorizer, gegen eine Volltextsuche
+abgesichert. Für Macaroons trägt nur die Dokumentation der Referenzimplementierung — die
+schwächste Stelle dieses Eintrags, nach Prüfregel 72 benannt statt verschwiegen.
+
+**Der gemeinsame Nenner: keines vergleicht Zeit zwischen zwei signierten Aussagen.** Jede
+Zeitgrenze wird gegen eine Uhr zur Nutzungszeit geprüft. UCAN 1.0 lässt abweichende Perioden zu
+und prüft jedes Kettenglied einzeln; die Schnittmenge ist emergent. Biscuit kodiert Ablauf als
+Datalog-Check der Form `check if time($0), $0 < <Datum>`; die `time`-Fakt liefert der Authorizer
+zusammen mit Umgebungsdaten wie Quell-IP und Widerrufslisten. Die Verengung ist strukturell, weil
+Blöcke append-only sind, nicht geprüft. Macaroons sammeln Caveats im selben Objekt.
+RFC 5280 §4.1.2.5 erwähnt das `notAfter` des Ausstellers nicht; stattdessen steht dort
+eine Pflicht am Aussteller, nach Ende der Statuspflege keinen gültigen Pfad bestehen zu lassen —
+eine Autorenpflicht ohne Leser, also genau die Bauform, vor der Prüfregel 10 warnt.
+Verschachtelung ist bekannt und wird nirgends verlangt: `CertVerifyValidityNesting` prüft sie als
+eigenen Aufruf neben der Pfadvalidierung — eine archivierte Windows-CE-Schnittstelle von 2004.
+
+**Raytime ist die einzige Quelle zur uhrlosen Lage und löst sie durch Richtungswechsel.** Der
+IETF-Entwurf `draft-amsuess-t2trg-raytime` akzeptiert Token, außer der Ablauf liegt unter der
+gehaltenen unteren Zeitschranke, und benennt den Verlust: abgelaufene Token werden nicht mehr
+unbedingt abgewiesen. Das ist die Gegenrichtung zum Unter-Vertrauen aus `01 §5.3`. Brauchbar
+bleiben drei Dinge: O60 hat dort Name und Form (halboffenes Intervall — vergangene Zeitpunkte
+sind erkennbar, nicht vergangene nie); die untere Schranke wird aus signierten Zeitangaben
+nachgezogen, und zwar nur aus vertrauten, weil eine zu späte Angabe eine Dienstverweigerung
+gegen gültige Token ist; die Schranke muss persistiert werden, sonst macht ein Stromausfall alles
+wieder gültig. Vorarbeit: die BRSKI-Entwürfe bis -18 führten ein „current reasonable date".
+
+**Korrektur an D354.** Die Verortung „`v` Key 1" hält nicht. Der Keyraum ist prädikat-lokal
+(`03 §1.3`), und Key 1 ist in `obligation@1` und `verdict@1` belegt — gerade dort, wo
+Abhängigkeit naheliegt. `02a` T-02.7 erlaubt Zusatz-Keys ausdrücklich als **ungelesene**; ein
+gelesener Prämissen-Key ist keiner mehr und braucht eine Zeile je Profil in `03 §1.3` sowie
+Vermerke in `03 §6.1`. D354s Kernaussage „kein Feldsatz, keine Protokollversion" bleibt richtig,
+ihre Begründung nicht.
+
+**Nebenbefund: zwei `v`-Leser mit verschiedenen Verträgen.** `profiles/payload.py:read_v` gibt
+jede Map zurück; `trust/groups.py:_decode_weight` verlangt Key 0, sobald `v` überhaupt gesetzt
+ist. Ein Vouch, der eine Prämisse nennen will, muss deshalb sein Gewicht explizit setzen, sonst
+verliert er Kante und Budgetbeitrag. Heute folgenlos, weil niemand `v` auf einem Vouch ohne
+Gewicht setzt; D354 schafft den Grund.
+
+**Offen gelassen, mit Begründung.** Weder Verschachtelung noch Prämissennennung erlauben einem
+uhrlosen Knoten, etwas zu **benutzen** — beide erlauben nur, mehr abzulehnen. D354 löst also
+nicht die Offline-Frage, es fügt eine Kollisionsklasse hinzu. Ob die sich lohnt, hängt an einer
+Entscheidung eine Ebene höher, geführt als O61. Die Vertagung kostet nichts: solange kein Profil
+einen Prämissen-Key deklariert, kann kein Claim eine Verschachtelung verletzen, und die Kosten am
+Vektorsatz sind in jeder Variante null.

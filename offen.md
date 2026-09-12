@@ -300,6 +300,10 @@ Auflösung, beide in `_in_budget_set` (`trust/groups.py:63`). Ein Punkt-`now` l�
 zusammenfallen; die Frage ist heute nicht gestellt, nicht beantwortet. Vorbedingung für jede
 Fassung mit unscharfer Zeit.
 
+Gemessen ist die Lage inzwischen (D362): schon mit einem Punkt-`now` ist der Trust-Wert nicht
+monoton in der Zeit — an einer `t_exp`-Kante springt das Autor-Flag und mit ihm der Wert.
+Die Richtungsfrage bleibt offen, aber sie wird nicht erst bei unscharfer Zeit scharf.
+
 ### O61 Soll ein uhrloser Knoten Vertrauen gewähren können?
 
 Aus D361. `01 §5.3` beantwortet die Lage heute vollständig: ohne vertraute Zeitquelle ist die

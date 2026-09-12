@@ -14011,3 +14011,69 @@ nicht die Offline-Frage, es fügt eine Kollisionsklasse hinzu. Ob die sich lohnt
 Entscheidung eine Ebene höher, geführt als O61. Die Vertagung kostet nichts: solange kein Profil
 einen Prämissen-Key deklariert, kann kein Claim eine Verschachtelung verletzen, und die Kosten am
 Vektorsatz sind in jeder Variante null.
+
+### D362 — Der Trust-Wert ist nicht monoton in `now`
+
+Szenario H hat `_is_temporally_valid` als uhrabhängig belegt, nicht den Trust-Pfad (D352).
+Dieser Lauf stellt die eigene Frage: ist `trust().value` monoton in `now`? Antwort: nein,
+und zweiseitig.
+
+**Der Aufbau.** Profil TP-02 (`C0 = 16`, `γ = 1/2`, `D = 4`), Anker ALICE, Ziel BOB. ALICE
+bürgt für BOB mit `n = 3`, `t_exp = 2000`, und für CAROL mit `n = 3`, `t_exp = 1500`. Ein
+Store, ein Aufruf je Zeitpunkt.
+
+| `now` | `value`, `include_flagged = False` | `value`, `include_flagged = True` |
+|---|---|---|
+| 1000 | 0, Vermerk `OVERCOMMITTED_AUTHOR` | 12 |
+| 1501 | 12 | 12 |
+| 2001 | 0 | 0 |
+
+`12` ist `(3 * 16) // 4` nach `02a §2.5` bei `d(ALICE) = 0`.
+
+**Die Mechanik.** Σ `n_budget` für ALICE ist 6 > 4, also `OVERCOMMITTED_AUTHOR`. Bei
+`include_flagged = False` fällt daraufhin **jede** Kante des Autors, nicht anteilig (D40).
+Läuft der CAROL-Vouch ab, verlässt er das Budget-Set — der einzige Austritt, den `02a §2.6`
+kennt —, Σ fällt auf 3, das Flag verschwindet, und die Kante ALICE→BOB trägt wieder. Der
+Wert steigt mit fortschreitender Uhr, bevor er fällt.
+
+**Abgrenzung zu D118.** `02 §7` hält dieselbe Nicht-Monotonie für den *Claim-Bestand* fest:
+wer weniger weiß, sieht mehr Vertrauen, Gegenbeispiel zwei Vouches mit `n = 51` bei
+`D = 100`. Für die *Zeit* steht sie nirgends. Im selben Abschnitt ist `t_exp` als Abwehr 1
+gegen Über-Vertrauen geführt, als strukturelle harte Decke — hier ist `t_exp` die Ursache
+des Anstiegs. Zwei ehrliche Knoten, deren Uhren um Minuten auseinanderliegen, rechnen 0
+gegen 12, und der Knoten mit der vorlaufenden Uhr sieht **mehr**.
+
+**Warum der Ankersatz das nicht sehen konnte.** Die Ankerwerte in `02-golden-anchors.md
+§3–§5` gelten bei `include_flagged = True` (`02a §3`). In dieser Variante ist der Wert
+monoton fallend. Die Nicht-Monotonie hängt ausschließlich am Flag-Pfad, also am Default.
+`tests/trust/test_groups.py` variiert `now` bereits (T-02.2, Schritt S2), aber auf
+Gruppenebene und mit `include_flagged = True`. Ungedeckt ist die Komposition:
+Budgetfreigabe, Entflaggen, Kantensatz, Wert.
+
+**Beschluss: kein Defekt, sondern eine unverzeichnete Folge.** Drei Entscheidungen erzeugen
+sie gemeinsam, und keine ist falsch: der Austritt aus dem Budget-Set ausschließlich über
+`t_exp` (`02a §2.6`, D135), das Alles-oder-Nichts des Autor-Flags (D40) und die Reihenfolge
+Budget vor Flags vor BFS (`02a §2.10`). Festgehalten wird die Folge; die Ursachen bleiben.
+
+**Verworfen: anteilig kappen statt Alles-oder-Nichts.** Damit wäre der Wert monoton, aber
+D40 hat das Alles-oder-Nichts gewählt, weil der Über-Commitment-Beweis den Autor trifft und
+nicht die einzelne Bürgschaft. Anteilig zu kappen hieße zu entscheiden, welche Bürgschaft
+der Autor gemeint hat, und das steht dem Leser nicht zu.
+
+**Verworfen: den Budget-Austritt über `t_exp` streichen.** Dann bindet eine einmal
+abgegebene Bürgschaft Budget auf Lebenszeit, und `02a §2.6` verlöre seinen einzigen
+Austritt. Der Preis ist höher, als die Monotonie wert ist.
+
+**Verworfen: als Defekt behandeln und reparieren.** Es gibt keine Norm, der das Verhalten
+widerspricht. Was fehlt, ist ein Prüffall und ein Vermerk an der Stelle, an der ein Leser
+das Gegenteil vermuten muss.
+
+**Was folgt.** Ein Prüffall, der beide `include_flagged`-Varianten über die drei Zeitpunkte
+legt, mit Rücknahmeprobe nach Prüfregel 69. Ein Vermerk in `02 §7` an Abwehr 1. O60 bekommt
+eine gemessene Zahl statt einer Vermutung, O61 ebenso: ein Knoten ohne verlässliche Uhr ist
+hier nicht bloß vorsichtiger, sondern unbestimmt.
+
+**Wie gemessen, und die schwächste Stelle.** Der Supervisor hat direkt gegen den Modulcode
+bei `2dd4c5b` gemessen, außerhalb der Testreihe, mit `tests/helpers.Identity`. Das ist keine
+Abnahme. Der Lauf muss den Fall im Baum neu konstruieren und die Erwartung ableiten, nicht
+diese Tabelle abtippen.

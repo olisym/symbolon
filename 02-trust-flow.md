@@ -513,6 +513,14 @@ Toleranz.
   Zustellen: sobald der überzeichnende Vouch eintrifft, fällt alles, und die Richtung ist danach
   dauerhaft konservativ. Der Autor verliert dabei sein gesamtes Budget und hinterlässt einen
   signierten Beweis; die Folge regelt Layer 05 (D40).
+- **⚠️ Und nicht monoton in `now` (D362).** Dieselbe Budgetprüfung macht den Wert auch
+  in der Zeit nicht monoton: läuft eine Bürgschaft ab, verlässt sie das Budget-Set,
+  `Σ n` fällt unter `D`, das Autor-Flag verschwindet, und **alle** Kanten dieses Autors
+  kehren zurück. Der Wert steigt dann mit fortschreitender Uhr. Abwehr 1 unten ist
+  deshalb keine Decke gegen jede Form von Über-Vertrauen — hier ist `t_exp` die Ursache.
+  Zwei ehrliche Knoten mit Uhrversatz rechnen verschieden, und der mit der vorlaufenden
+  Uhr sieht mehr. Gilt bei `include_flagged = False`, dem Default; bei `True` ist der
+  Wert monoton fallend.
 - **Die andere gefährliche Richtung:** ein fehlender *Widerruf* (nicht eine fehlende
   Bürgschaft). Hast du den Vouch, aber sein `revoke` steckt in einer Partition, dann
   **über**-vertraust du. Drei gestaffelte Abwehren:

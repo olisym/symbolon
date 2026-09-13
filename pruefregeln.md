@@ -349,6 +349,15 @@ und der Defekt saß danach genau in diesem Pfad und überlebte bis `00ba`. Wer e
 schließt, nimmt die Reparatur zurück und sieht den Test fallen; sonst ist unbekannt, ob er die
 Lücke trifft (D352).
 
+**74. Eine Rücknahmeprobe braucht eine Mutation je Mechanik.**
+Eine Mutation belegt einen Pfad. Ein Prüffall über zwei Mechaniken ist nach einer Probe zur
+Hälfte belegt, und die ungeprüfte Hälfte sieht aus wie die geprüfte — der Fall bleibt grün und
+wirkt robust. Im Lauf zu D364 blieb der Fall zum Widerruf unter der `t_exp`-Mutation grün, weil
+er zwei Läufe vergleicht, die unter ihr symmetrisch mitwandern; erst die Mutation an
+`BUDGET_STATES` liess ihn fallen. Der Prompt benennt deshalb je tragender Mechanik eine
+Mutation und verlangt für jede, welche Fälle fallen und welche grün bleiben. Regel 69 spricht
+von der Reparatur im Singular und stammt aus einem Fall mit einem Pfad (D365).
+
 **70. Ein Vektor muss den Zustand, den er belegt, im vollständigen Speicher annehmen.**
 Anhang C ist der geteilte Anker der ganzen Spec-Reihe, kein Vorrat einzeln gebauter Welten. NV32
 sollte `time-regression-flagged` zeigen und hing zunächst an TV1 — damit trug er dasselbe
@@ -588,7 +597,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
-69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363.
+69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

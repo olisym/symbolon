@@ -14276,3 +14276,41 @@ Beschriftung nicht. Beschriftet und gezählt wurde aus dem Gedächtnis statt aus
 **Was folgt.** Ein Prüffall, der die beiden Widerrufszeilen der Tabelle festhält, mit
 abgeleiteten Erwartungswerten und einer Rücknahmeprobe nach Prüfregel 69. Die Einhegungsfrage —
 Policy-Maximallaufzeit oder etwas anderes — bleibt offen und hängt an O61.
+
+### D365 — Eine Rücknahmeprobe braucht eine Mutation je Mechanik, nicht eine je Prüffall
+
+**Anlass.** Der Prüffall zu D364 trägt zwei Mechaniken: dass eine Bürgschaft ohne `t_exp` das
+Budget-Set nie verlässt, und dass `REVOKED` darin bleibt (D135). Der Prompt verlangte eine
+Rücknahmeprobe und benannte eine Mutation — die am `t_exp`-Zweig von `_in_budget_set`. Das
+Werkzeug hat sie ausgeführt und korrekt berichtet, dass ein Fall dabei grün blieb.
+
+**Der Befund.** Erst zwei Mutationen belegen den Prüffall:
+
+| Mutation | Fall 1 (überbunden) | Fall 2 (Widerruf) | Fall 3 (Ablauf) |
+|---|---|---|---|
+| `t_exp is None` liefert `False` | fällt | grün | fällt |
+| `State.REVOKED` aus `BUDGET_STATES` | grün | fällt | fällt |
+
+Nach der ersten Probe allein sah Fall 2 aus wie ein robuster Test und war ein blinder. Er
+vergleicht zwei Läufe, die sich nur im Widerruf unterscheiden; eine Mutation am `t_exp`-Zweig
+wirkt auf beide gleich, die verglichenen Werte wandern symmetrisch mit, und die Gleichheit
+bleibt bestehen. Ein Test, der nichts sehen kann, ist von einem, der nichts zu sehen findet,
+an der Farbe nicht zu unterscheiden.
+
+**Warum Regel 69 das nicht deckt.** Sie spricht von *der* Reparatur, im Singular, und stammt
+aus einem Fall mit genau einem Pfad (D352). Wo ein Prüffall über mehrere Mechaniken liegt,
+belegt eine Mutation nur die eine, und die ungeprüfte Hälfte tarnt sich als geprüfte. Die
+Verschärfung ist Regel 74.
+
+**Der Ort des Fehlers.** Nicht im Lauf. Das Werkzeug hat den Auftrag eingehalten, die Probe
+gefahren und das Ergebnis vollständig berichtet, einschließlich des grün gebliebenen Falls —
+genau wie es die Prompt-Regel verlangt. Gefehlt hat die zweite Mutation im Prompt. Das ist
+dieselbe Stelle wie in `00be`, wo die falsche Vorbedingung aus dem Prompt in den Baum wanderte:
+was der Prompt nicht verlangt, entsteht nicht, und ein vollständiger Bericht über eine
+unvollständige Probe sieht aus wie eine vollständige Abnahme.
+
+**Wie geprüft.** Die zweite Mutation lief nicht im Baum, sondern im Supervisor-Sandbox gegen
+`0c00261`, mit der aus dem gelieferten Diff nachgebauten Testdatei. `symbolon/` wurde dabei
+nicht verändert; der Merge ging auf dem unveränderten Lauf-Commit. Schwächste Stelle: die
+Zuordnung „eine Mechanik" bleibt eine Ermessensfrage — zwei Mutationen belegen hier drei
+Fälle, aber die Regel nennt keine Zahl, sondern einen Maßstab.

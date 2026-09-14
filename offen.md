@@ -345,3 +345,7 @@ der Max-Flow kommt aus einer Bibliothek. Der Ankersatz ist `01-claim-atom.md` un
 `02-trust-flow.md` mit eigener `STAND.md`; `02-golden-anchors.md` und `02a` werden
 zurückgehalten. Offen bleibt die Sprache — Prüfregel 15 verlangt den Literaturcheck vor der
 Wahl. Offen bleibt ebenso, wann die Ankerkopie angelegt wird; bis dahin ist nichts eingefroren.
+
+Nach D370 steht die Sprache: Haskell, mit `fgl` (`Data.Graph.Inductive.Query.MaxFlow`, nicht
+`MaxFlow2`) und `crypton` (nicht `ed25519`). Offen bleibt allein, wann die Ankerkopie angelegt
+und der Auftrag geschrieben wird; bis dahin ist nichts eingefroren.

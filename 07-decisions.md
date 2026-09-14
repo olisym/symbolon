@@ -14277,6 +14277,12 @@ Beschriftung nicht. Beschriftet und gezählt wurde aus dem Gedächtnis statt aus
 abgeleiteten Erwartungswerten und einer Rücknahmeprobe nach Prüfregel 69. Die Einhegungsfrage —
 Policy-Maximallaufzeit oder etwas anderes — bleibt offen und hängt an O61.
 
+**Nachtrag (00bg).** Die Einhegungsfrage aus dem letzten Absatz bleibt an zwei Stellen
+unsichtbar, unabhängig vom offenen Policy-Zweig: `02 §6.2` warnt vor unbefristeter Bindung,
+aber nicht vor deren Unwiderruflichkeit, und `TrustFinding.VOUCH_WITHOUT_TEXP` trägt als
+einziger Berührungspunkt der Public API keinen Verweis auf diesen Befund. Beides nachgetragen,
+ohne neue Norm — zur Methodik, die diese Runde zwei Durchgänge gekostet hat, siehe D366.
+
 ### D365 — Eine Rücknahmeprobe braucht eine Mutation je Mechanik, nicht eine je Prüffall
 
 **Anlass.** Der Prüffall zu D364 trägt zwei Mechaniken: dass eine Bürgschaft ohne `t_exp` das
@@ -14314,3 +14320,37 @@ unvollständige Probe sieht aus wie eine vollständige Abnahme.
 nicht verändert; der Merge ging auf dem unveränderten Lauf-Commit. Schwächste Stelle: die
 Zuordnung „eine Mechanik" bleibt eine Ermessensfrage — zwei Mutationen belegen hier drei
 Fälle, aber die Regel nennt keine Zahl, sondern einen Maßstab.
+
+### D366 — Ein „nächster Schritt" ist Behauptung, keine Messung
+
+**Anlass.** `00bg`s „nächster Schritt" charakterisierte den Codezustand zur Einhegung aus
+`02 §6.2`: der Autor, der sich gerade unwiderruflich bindet, sehe nichts, es gebe kein Reject
+und keine Warnung auf der Schreibseite. Diese Runde übernahm den Satz als Prämisse, ohne ihn
+gegen den Modulcode zu prüfen.
+
+**Der Befund.** Zwei Lesedurchgänge widerlegten ihn schrittweise. `tools/example_nucleus.py`s
+`_Author.vouch()` verlangt `t_exp: int` bereits ohne Default — der erste Entwurf, `vouch()`
+müsse das stille `None` verweigern, zielte auf eine bereits geschlossene Stelle. Der zweite
+Entwurf, eine geteilte Prüffunktion für die Autorenseite, zielte auf `_in_budget_set` in
+`trust/groups.py` — aber `symbolon/trust/__init__.py`s `__all__` exportiert dieses Modul nicht,
+und die Bedingung selbst ist zu klein für eine Extraktion. Die tatsächliche Lücke war in beiden
+Fällen keine im Code, sondern eine in der Sichtbarkeit von D364 an den zwei Stellen, die ein
+Implementierer liest: `02 §6.2` und der öffentliche Enum-Wert `VOUCH_WITHOUT_TEXP`.
+
+**Warum Regel 74 das nicht deckt.** Sie entstand aus einem Prompt-Fehler (D365) und benennt den
+erzählenden Teil nur für den Prompt. Der Absatz „der nächste Schritt" eines Sitzungsstarts ist
+derselbe erzählende Teil, nur eine Sitzung früher geschrieben.
+
+**Der Ort des Fehlers.** Nicht im Modulcode-Lesen dieser Runde — das korrigierte sich zweimal
+selbst. Der Fehler sass in der Übernahme: eine Charakterisierung aus der Vorrunde ging als
+Prämisse ein statt als zu prüfende Behauptung. Dieselbe Klasse traf ein zweites Mal den Prompt
+dieser Runde: er verwies für den Registertext auf eine „Registervorlage im Sitzungsprotokoll",
+die es nicht gibt. Das Werkzeug hat angehalten und nachgefragt, statt den Wortlaut zu erfinden
+— Prüfregel 27 deckt den Fall bereits, eine neue Regel braucht es dafür nicht.
+
+**Prüfregel 75.** Jede Codezustands-Behauptung in einem Sitzungsstart — Prompt, „nächster
+Schritt", Werkzeugnotiz, gleich an welcher Stelle — wird vor Übernahme in eine Runde gegen den
+Modulcode neu geprüft, nie gegen den Text der Vorrunde allein.
+
+**Was folgt.** Der eigentliche Befund trägt keine eigene Normativität und läuft als Nachtrag
+unter D364.

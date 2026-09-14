@@ -12,6 +12,7 @@ class TrustFinding(str, Enum):
     INVALID_VOUCH_WEIGHT = "INVALID_VOUCH_WEIGHT"
     UNPARSABLE_VOUCH_PAYLOAD = "UNPARSABLE_VOUCH_PAYLOAD"
     NON_CANONICAL_V = "NON_CANONICAL_V"
+    # unbefristet bindend, auch Widerruf befreit nie (02 §6.2, D364)
     VOUCH_WITHOUT_TEXP = "VOUCH_WITHOUT_TEXP"
 
 

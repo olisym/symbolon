@@ -473,8 +473,9 @@ selbst" meint also *strukturell definiert*, nicht *global synchron*.
 
 **`t_exp` ist für Vouches verpflichtend.** In Scopes mit Budgetregel (§3.1) MUSS ein Vouch
 `t_exp` tragen, oder die Policy setzt eine Maximallaufzeit als Default — andernfalls bindet er
-Budget unbefristet. Damit wird `t_exp` zur ökonomischen Entscheidung und nicht bloß zum
-Sicherheits-Backstop: kurze Laufzeit bedeutet liquides Budget, häufige Erneuerung und ein
+Budget unbefristet, und zwar unwiderruflich: ein Widerruf befreit ohne `t_exp` nie, `REVOKED`
+bleibt im Budget-Set (D364). Damit wird `t_exp` zur ökonomischen Entscheidung und nicht bloß
+zum Sicherheits-Backstop: kurze Laufzeit bedeutet liquides Budget, häufige Erneuerung und ein
 schwächeres Signal; lange Laufzeit bedeutet ein starkes Signal bei gebundener Kapazität.
 Erneuerung ist wiederholte aktive Bestätigung und damit frischere Evidenz als ein alter,
 nie widerrufener Vouch.

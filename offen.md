@@ -349,6 +349,7 @@ Wahl. Offen bleibt ebenso, wann die Ankerkopie angelegt wird; bis dahin ist nich
 Nach D370 steht die Sprache: Haskell, mit `fgl` (`Data.Graph.Inductive.Query.MaxFlow`, nicht
 `MaxFlow2`) und `crypton` (nicht `ed25519`). Offen bleibt allein, wann die Ankerkopie angelegt
 und der Auftrag geschrieben wird; bis dahin ist nichts eingefroren.
+
 Nach D371 steht der Anker: `hs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md` und einer
 `STAND.md`, die den Ankercommit, beide Blob-Hashes und die Zurückhaltung von
 `02-golden-anchors.md` und `02a` benennt. Offen bleibt allein der Auftrag.

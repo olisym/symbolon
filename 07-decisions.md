@@ -14468,3 +14468,46 @@ Referenz ist für eine Zweitfassung nicht normativ — sie darf anders schneiden
 Ausgänge stimmen.
 
 **Was folgt.** Die Ankerkopie und der Auftrag.
+
+### D369 — `02a §4` trägt die von D42 verworfene Belegung
+
+**Anlass.** Vor der Beauftragung der Layer-02-Zweitfassung (D368) wurde `graph.py` gelesen. Der
+Kommentar über dem Einheitskapazitäts-Zweig nennt sich selbst eine „Abweichung von der
+wörtlichen K5-Tabelle" und verweist auf eine Rückfragen-Liste im Abnahme-Bericht.
+
+**Gemessen.** Der Code weicht von nichts ab. D42 hat die Frage entschieden und dabei D32
+ausdrücklich korrigiert: im Disjunktheitslauf tragen die Vouch-Kanten `1`, nicht `INF`, mit zwei
+Gründen — der Sentinel `INF = Σ(endliche Kapazitäten) + 1` ist dort zirkulär, und ohne
+Zwischenknoten trägt jede Kante des Pfades `INF`, womit der Solver den Sentinel statt einer
+Pfadzahl liefert (in `TP-BOOT` gemessen: 219 statt 1). K5 in `02-golden-anchors.md` trägt die
+Korrektur, `02 §8` trägt sie, `graph.py` trägt sie.
+
+`02a §4` trägt sie nicht. Die Tabellenzeile dort steht in der Vouch-Spalte auf `INF` — die von
+D42 verworfene Belegung, ausgerechnet in einer Zeile, die mit „(K5)" beschriftet ist und K5
+damit widerspricht. Ein Folgesatz desselben Abschnitts hängt daran: er begründet den
+Kantenfilter aus `§2.7` mit `INF` auf allen Vouch-Kanten. Das Argument trägt mit `1` unverändert
+— eine Kante mit `cap == 0` wäre ungefiltert von einer vollwertigen nicht zu unterscheiden —,
+die Zahl ist falsch.
+
+**Beschluss.** `02a §4` wird auf D42 nachgezogen: Vouch-Spalte auf `1`, Folgesatz auf `1`, mit
+Verweis auf D42. Der Kommentar in `graph.py` nennt D42 statt einer Rückfragen-Liste und
+beschreibt sich nicht länger als Abweichung; seine Begründung bleibt, sie ist D42s eigene.
+Verhalten ändert sich nicht.
+
+**Warum das kein Nebenbefund ist.** `02a` ist normativer Text, solange Code auf ihn zeigt, und
+`check_specs.py` prüft seine Verweise mit. Eine stehengebliebene Belegung in einer Tabelle, die
+der Code stillschweigend anders auflöst, ist die Bauform aus D135: dort stand eine Aufzählung
+neun Zeilen über ihrer eigenen Widerlegung, der Code folgte der Aufzählung, und Equivocation
+wurde zum Budget-Reset. Hier ist es umgekehrt gelaufen — der Code folgte der Norm und der Text
+blieb stehen —, aber die nächste Fassung, die den Text liest, entscheidet die andere Richtung.
+
+**Was es für D368 bedeutet.** Nichts am Ankersatz: `02a` ist nach D368 Beschluss 3 ohnehin
+zurückgehalten, die Zweitfassung hätte die Zeile nie gesehen. Der Befund stammt aus der
+Vorbereitung, nicht aus der Kampagne, und er wäre ohne sie nicht gefunden worden.
+
+**Wie geprüft, und die schwächste Stelle.** D42s normative Tabelle wurde vollständig gelesen,
+nicht die ersten Zeilen; der erste Blick hatte sie abgeschnitten und hätte die Richtung der
+Korrektur nur geraten. Schwächste Stelle: geprüft wurde die eine Tabelle und ihr Folgesatz.
+Ob `02a` weitere Stellen trägt, die eine spätere Entscheidung überholt hat, ist nicht gemessen.
+
+**Was folgt.** Die Sprachwahl und der Auftrag (O62).

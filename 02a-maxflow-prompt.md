@@ -263,7 +263,7 @@ Dinic. Einmal implementieren, zwei Kapazitätsbelegungen darauf:
 | Lauf | interne Kanten | interne Kanten **der Anker** | Vouch-Kanten | liefert |
 |---|---|---|---|---|
 | Fluss | `C(d(x))` | `C₀` (wie alle) | `cap(I→J)` | `value`, `cut` |
-| Disjunktheit (K5) | `1` | **`INF`** | `INF` | `disjoint_paths` |
+| Disjunktheit (K5) | `1` | **`INF`** | **`1`** (D42) | `disjoint_paths` |
 
 Der Disjunktheitslauf ist **knoten**-disjunkt, nicht kantendisjunkt, und **spaltet die Endpunkte
 nicht**: die interne Kante der Anker trägt `INF`. Knoten-Disjunktheit zählt *Zwischen*knoten —
@@ -274,7 +274,7 @@ Die beiden Läufe unterscheiden sich damit in **zwei** Punkten: Kapazitätsvekto
 Quellanbindung. Wer nur den Vektor tauscht, bekommt überall `1`.
 
 Beide Läufe arbeiten auf demselben bereits gefilterten Graphen (§2.7) — deshalb ist der Filter
-dort sicherheitsrelevant: mit `INF` auf allen Vouch-Kanten wäre eine Kante mit `cap == 0` sonst
+dort sicherheitsrelevant: mit `1` auf allen Vouch-Kanten wäre eine Kante mit `cap == 0` sonst
 von einer vollwertigen nicht mehr unterscheidbar.
 
 Determinismus: Knotenindizes nach Identity-Bytes aufsteigend vergeben, Adjazenzlisten in

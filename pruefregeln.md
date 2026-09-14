@@ -586,6 +586,14 @@ Befund vor. In `00ak` meldete der erste Lauf der Kampagne zwölf Zeilen und enth
 Prüfregel 38 — und wo `tools/register_index.py` schweigt, weil der Verweis auf einen Anhang zeigt,
 wird gegrept statt geschlossen.
 
+**75. Eine Codezustands-Behauptung in einem Sitzungsstart ist Prämisse, keine Messung.**
+Der Absatz „der nächste Schritt", eine Werkzeugnotiz oder ein Prompt-Text charakterisiert den
+Code oft zutreffend — aber geschrieben wurde er vor der Messung dieser Runde, nicht in ihr. Vor
+Übernahme in einen neuen Prompt oder eine neue Position wird jede solche Behauptung gegen den
+Modulcode neu geprüft. In `00bg` kostete das Überspringen zwei Durchgänge, bevor sich zeigte,
+dass die vermeintliche Autorenseiten-Lücke an einer Stelle bereits geschlossen und an der
+anderen kein Code-, sondern ein Sichtbarkeitsproblem war (D366).
+
 ## Herkunft der Nummern
 
 Die Regeln 1–7 stammen aus `sitzungsstart-05.md`, 10–12 aus `sitzungsstart-anwendung.md`, 13–15
@@ -597,7 +605,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
-69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365.
+69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

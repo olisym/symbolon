@@ -28,7 +28,6 @@
     },
     "profil": "A",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "f19fe6febd2a33b730ae8cfbe6327804f7ba355e53369a739fbc5b5fd03776e2",
       "f96c882832bc005bd05a0f904cb31be93e69c3e619f63eaaa0e95105345fb67c",
@@ -64,7 +63,6 @@
     },
     "profil": "B",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "a3f6f30189581b0d40c06a6454e9cdd7ed556e542abd1fc4fc70db3c74664f43",
       "5b1cd533e782b3cacbf3fe0ec2b85873081f62d8f8624ee23a3b73640a54c519",
@@ -106,7 +104,6 @@
     },
     "profil": "C",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "c8fc6e9e0396b7ffaf937e1901d46d33ccaba2408f3020534c4ecebaa470ae04",
       "07ec5d011d5d32c3490f99c0ef0ca966b07940cf9e7ed632c459913fc585c779",
@@ -148,7 +145,6 @@
     },
     "profil": "D",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "70e68e41108fca3b4f66fd17382238065b10d6bf82a814f0a46a51aadf7abf6e",
       "e185e62420666bfec00c08fb01512715330166fcc39200c0e16c1d95a393e72f",
@@ -188,7 +184,6 @@
     },
     "profil": "E",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "fcad9325bce3157c25a6a2b3f55b0878c63e6d4e9fbd8179981a70a2d8f5abe4",
       "556a6568c3377de5bf9bc37d543e0077d0061595c3893e2205a2bf141d103499",
@@ -222,7 +217,6 @@
     },
     "profil": "E0",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "0556adeaea130899b097d5174a4389d934681fe7ef7e41025ec85f3d363ebbda",
       "adf936af4729b70e03ed219647b8e2ce5b1cafad04a35a4cccb4cc4b90811d76",
@@ -264,7 +258,6 @@
     },
     "profil": "F",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "f91678643f6dd76d597d65346c9109edef57321182696d511d1be02cde1874de",
       "6b2cafa7a8bfdcba957d57660105e9621fbc4246542626c05b64c23245583ac0",
@@ -297,7 +290,6 @@
     },
     "profil": "A_prime",
     "scope": "19894710c09d10c4077a629a0f4007bf8bfecf6d59d3116265667f93b6fc0a3d",
-    "t_exp": 5000,
     "targets": [
       "c8b013267eba85277e3d3b371e8273893d9fa9607418f8dd14612ed98301bd00",
       "a5060f2f00ce0d42e7a73c9ec53d6bd65362a5610dab1ac18f2c164d3ba4c943",

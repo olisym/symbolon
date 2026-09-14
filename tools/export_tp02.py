@@ -15,7 +15,6 @@ from symbolon.atom import signed_bytes
 from tests.trust.tp02 import (
     NOW,
     PARAMS,
-    T_EXP,
     VARIANTS,
     Graph,
     build,
@@ -42,7 +41,6 @@ def _entry(profil: str, graph: Graph) -> dict[str, object]:
         },
         "profil": profil,
         "scope": graph.scope.hex(),
-        "t_exp": T_EXP,
         "targets": [
             graph.identities["g1"].pub.hex(),
             graph.identities["g2"].pub.hex(),

@@ -144,12 +144,12 @@ def build_flow_graph(
         solver.add_edge(node_in(target), SINK, inf)
 
     for edge in bfs_result.edges:
-        # Abweichung von der woertlichen K5-Tabelle ("Vouch-Kanten = INF"): siehe
-        # Rueckfragen-Liste im Abnahme-Bericht. Bei einer direkten Anker->Ziel-Kante ohne
-        # Zwischenknoten liegt sonst gar keine Kapazitaets-1-Kante auf dem Pfad (das Ziel
-        # ist wegen K3 ungespalten, der Anker intern ist wegen K4 INF) -- der Fluss waere
-        # dann nur durch den INF-Sentinel begrenzt statt durch die tatsaechliche Pfadzahl
-        # (TP-BOOT m=1/m=2: disjoint_paths muesste 1 bzw. 2 sein, nicht der Sentinel-Wert).
+        # Vouch-Kanten tragen im Disjunktheitslauf 1, nicht INF (D42, K5, 02 Paragraph 8).
+        # Bei einer direkten Anker->Ziel-Kante ohne Zwischenknoten laege sonst gar keine
+        # Kapazitaets-1-Kante auf dem Pfad (das Ziel ist wegen K3 ungespalten, der Anker
+        # intern ist wegen K4 INF) -- der Fluss waere dann nur durch den INF-Sentinel
+        # begrenzt statt durch die tatsaechliche Pfadzahl (TP-BOOT m=1/m=2: disjoint_paths
+        # muesste 1 bzw. 2 sein, nicht der Sentinel-Wert).
         cap = 1 if unit_capacities else edge.cap
         solver.add_edge(node_out(edge.author), node_in(edge.subject), cap)
 

@@ -339,3 +339,9 @@ selbst wäre die grössere Fläche und der teurere Bau. Offen ist ebenso die Spr
 verlangt den Literaturcheck vor der Wahl, und die Go-Fassung bindet nichts, weil ihr Umfang ein
 anderer ist. Stolperdraht: der erste Layer-02-Befund, der ohne zweiten Zeugen entschieden werden
 müsste.
+
+Nach D368 steht der Umfang: `classify_all`, Gruppen- und Budgetstufe, Graphbau nach `02a §2.8`;
+der Max-Flow kommt aus einer Bibliothek. Der Ankersatz ist `01-claim-atom.md` und
+`02-trust-flow.md` mit eigener `STAND.md`; `02-golden-anchors.md` und `02a` werden
+zurückgehalten. Offen bleibt die Sprache — Prüfregel 15 verlangt den Literaturcheck vor der
+Wahl. Offen bleibt ebenso, wann die Ankerkopie angelegt wird; bis dahin ist nichts eingefroren.

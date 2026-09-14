@@ -14405,3 +14405,66 @@ Schwächste Stelle: gemessen nur bei TP-02 und Variante C, und die `ERR_OVERCOMM
 Testpunkts ist gerechnet, nicht gefahren.
 
 **Was folgt.** O62.
+
+### D368 — Umfang und Ankersatz der Layer-02-Zweitfassung
+
+**Anlass.** D367 beschliesst die Zweitfassung für Layer 02 und lässt ihren Umfang offen (O62).
+Die Vermutung beim Eröffnen von O62 war, die Gruppenbildung nach `02a §2.4` sei die billige
+Hälfte und der Max-Flow-Solver der teure Aufschlag.
+
+**Gemessen — die Vermutung fällt.** Drei Stufen, in Zeilen der Referenz:
+
+| Stufe | Zeilen | Rolle |
+|---|---|---|
+| `index.py` + `verifier.py` (Zustandsmaschine) | 525 | Voraussetzung **beider** Hälften |
+| `groups` + `params` + `derive` + `findings` | 308 | Gruppen- und Budgethälfte |
+| `graph` + `dinic` + `flow` | 325 | Solverhälfte |
+
+Die Gruppenhälfte ist nicht die billige: `02a §2.10` beginnt mit `classify_all`, und das
+Budget-Set in `§2.6` verlangt sechs Zustände — also die vollständige Zustandsmaschine aus
+`01 §B.1`, genau die Stufe, die D256 Beschluss 2 für die Go-Fassung ausgelassen hat. Gruppen
+ohne Solver kosten 833 Zeilen, Gruppen mit Solver 1158. Der Solver ist der Aufschlag.
+
+**Beschluss 1 — Umfang.** Gebaut werden `classify_all`, die Gruppen- und Budgetstufe und der
+**Graphbau** nach `02a §2.8`. Der Max-Flow kommt aus einer Bibliothek und wird nicht selbst
+geschrieben. Das ist D256s Argument zur Signaturprüfung, konsequent angewandt: Dinic ist
+Lehrbuch und nicht MaR-normativ, eine zweite Fassung davon misst nichts und schafft Risiko.
+Normativ am Solver ist die Konstruktion — Splitting, Super-Source an `a_in` statt `a_out`
+(Vektor A′ misst genau das), `INF` als Summe endlicher Kapazitäten statt `float('inf')`, K3 bis
+K5. Das sind 168 der 325 Zeilen; 92 davon sind Dinic.
+
+**Beschluss 2 — kein Vektorlauf für `superseded` und `expired`.** Beide haben in `01` Anhang C
+keinen gedruckten Vektor; sie stehen allein in der B.1-Tabelle. `expired` ist der Budget-Austritt,
+an dem Anker 5, 5c, D362 und D364 hängen. Trotzdem wird D367s Muster hier **nicht** wiederholt,
+und der Unterschied ist benannt: dort gab es keine Abdeckung und eine Zweitfassung wäre grün
+durchgelaufen; hier fällt ein falsches `expired` oder `superseded` an Anker 5b, 5 und 5c. Was
+fehlt, ist nicht die Abdeckung, sondern ihre Auflösung. Stattdessen gilt als Verfahren: eine
+Abweichung an diesen drei Ankern wird erst zwischen Zustandsstufe und Gruppierung lokalisiert,
+bevor sie als Spec-Befund geführt wird. Eine aggregate Prüfung kann einen Zustandsfehler mit
+einem Gruppierungsfehler verwechseln, und der Unterschied entscheidet, welche Norm betroffen ist.
+
+**Beschluss 3 — Ankersatz.** Die Fassung liest `01-claim-atom.md` und `02-trust-flow.md`,
+eingefroren auf den Commit der Beauftragung, mit eigener `STAND.md` nach dem Muster aus D302.
+Zurückgehalten werden `02-golden-anchors.md` und `02a-maxflow-prompt.md`: die Ankerdatei trägt
+die Antworten, und `02a` nimmt die Mehrdeutigkeit vorweg, die zu finden der Zweck ist. Geprüft
+wurde vorher, ob `02-trust-flow.md` allein trägt — die Substanz der acht Konventionen K1 bis K8
+steht dort (Rundung einmal am Ende, Super-Source und Super-Sink, Out-Degree, „Maximum, nicht
+Summe", `E⁺`); nur die Kürzel leben in der Ankerdatei. Der Vorbehalt aus `02-golden-anchors.md`
+§0, die Konventionen gehörten als Spec-Nachzug in `02`, ist der Sache nach erfüllt.
+
+**Verworfen, mit Begründung.** Nur die Gruppenhälfte: sie zahlt 525 Zeilen Voraussetzung und
+lässt die Fläche liegen, für die es mit Anker 1 bis 3, 6 und 7 bereits Vektoren gibt — der
+schlechteste Schnitt von allen. Dinic mitbauen: misst nichts über MaR und ist die Stelle, an der
+ein Fehler am teuersten zu finden wäre. `02a` mitgeben: erspart Rückfragen und kostet genau die
+Rückfragen, die der Ertrag sind; die Fragenliste der Go-Fassung war ihr wertvollstes Ergebnis.
+Den Layer-01-Anker `79b73a2` wiederverwenden: sein Text ist überholt (D367 Beschluss 3), und der
+Umfang ist ein anderer (D302).
+
+**Wie geprüft, und die schwächste Stelle.** Die Position aus der Vorrunde war falsch und ist
+durch die Messung gekippt, nicht durch ein Argument; die Sorge um K1 bis K8 war unbegründet und
+ist vor dem Eintrag geprüft worden, nicht danach. Schwächste Stelle: Zeilenzahlen der
+Referenz sind ein Stellvertreter für Aufwand und kein Mass für ihn, und die Modulteilung der
+Referenz ist für eine Zweitfassung nicht normativ — sie darf anders schneiden, solange die
+Ausgänge stimmen.
+
+**Was folgt.** Die Ankerkopie und der Auftrag.

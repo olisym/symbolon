@@ -3,7 +3,7 @@
 Diese Kopie ist der eingefrorene Anker für eine dritte Implementierung (D290, D294, D302).
 Sie ist keine Arbeitskopie: wer sie verschiebt, braucht einen Registereintrag.
 
-- Quelle: `git.h.error13.de/oli/mensch-als-republik`
+- Quelle: `git.h.error13.de/oli/symbolon`
 - Commit: `79b73a2`
 - Datei: `01-claim-atom.md`
 - Blob: `0271a1808afb3730aa3a1ceb0043f6d8f24f391e`

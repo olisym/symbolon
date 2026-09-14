@@ -14577,3 +14577,60 @@ Beschluss 3), nicht aus der Sprache; die Sprache erzwingt eine andere Struktur, 
 anderen Leser.
 
 **Was folgt.** Die Ankerkopie und der Auftrag.
+
+### D371 — Der Anker der Layer-02-Zweitfassung: Ort, Commit und der Vermerk über das Fehlende
+
+**Anlass.** D368 Beschluss 3 legt den Ankersatz fest, D370 die Sprache. Beides lässt offen, wo die
+Kopie liegt, welcher Commit sie benennt und wie eine Kopie aus zwei Dateien ihre Herkunft trägt.
+D302 hat die Form für **eine** Datei; auf zwei überträgt sie sich nicht ohne Zusatz.
+
+**Gemessen — der Ort.** Die Go-Fassung liegt im Baum: `go/spec/01-claim-atom.md`,
+`go/spec/STAND.md`, daneben `go/AUFTRAG.md` und `go/FRAGEN.md`. D302 spricht noch von
+`~/mar-go`; dort steht sie heute nicht mehr. Ein Ort ausserhalb des Baums wäre eine Rückkehr zu
+genau dem Zustand, den D302 Beschluss 2 als Mangel benannt hat.
+
+**Gemessen — die Prüffläche.** `tools/check_specs.py` liest `ROOT.glob("*.md")`.
+Unterverzeichnisse sieht es nicht, `go/spec/STAND.md` also auch nicht, und `hs/spec/` wird es
+ebenso wenig sehen. Der Anker trägt seine Prüfung deshalb selbst: Blob-Hashes in der Textform,
+`git hash-object` als Verfahren.
+
+**Beschluss 1 — Ort.** `hs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md` und `STAND.md`.
+Sprachkürzel als Verzeichnisname wie bei `go/`; der Auftrag kommt später als `hs/AUFTRAG.md`
+daneben.
+
+**Beschluss 2 — der benannte Commit ist der Kopf zum Zeitpunkt der Kopie, und er wird
+abgeleitet.** D368 Beschluss 3 sagt „Commit der Beauftragung". Der Auftrag entsteht später als die
+Kopie; wäre sein Commit gemeint, wäre die Kopie zwischen beiden Zügen nicht eingefroren und die
+Textform müsste nachgezogen werden, sobald sie geschrieben ist. Der Auftrag zeigt auf den
+Ankercommit, nicht umgekehrt. Der Wert wird im Kopierschritt mit `git rev-parse --short HEAD`
+gelesen, ebenso beide Blob-Hashes mit `git hash-object`. Eine getippte Herkunftsangabe veraltet
+still — das ist die Klasse, an der D302 Beschluss 2 und D367 Beschluss 3 bereits gearbeitet haben.
+
+**Beschluss 3 — die Textform nennt, was fehlt.** Bei einer Datei war der Umfang durch den Satz
+über Layer 01 gedeckt. Hier ist die Auslassung der Zweck: `02-golden-anchors.md` trägt die
+Antworten, `02a-maxflow-prompt.md` nimmt die Mehrdeutigkeit vorweg, deren Auffinden der Ertrag
+ist (D368 Beschluss 3). Ohne Vermerk liest eine spätere Fassung das Fehlen als Versehen und
+reicht nach. `hs/spec/STAND.md` benennt beide Dateien ausdrücklich als zurückgehalten.
+
+**Beschluss 4 — Nachzug an `go/spec/STAND.md`.** Die Quellzeile dort nennt
+`git.h.error13.de/oli/mensch-als-republik`. Das Repositorium heisst `symbolon`; der Pfad ist tot.
+Die Zeile wird nachgezogen, der Anker selbst bleibt unberührt — Commit `79b73a2` und Blob
+`0271a180` stehen unverändert.
+
+**Verworfen: die Kopie ausserhalb des Baums.** Sie wäre nicht mitversioniert, nicht mitgespiegelt
+und nicht mitgesichert, und ihre Herkunft läge wieder allein im Dateiinhalt. D302 hat diesen
+Zustand vorgefunden und behoben; ihn für die dritte Fassung neu herzustellen, wäre ein Rückschritt
+ohne Gegenwert.
+
+**Verworfen: `hs/spec/` in `check_specs.py` aufnehmen.** Es schlösse die gemessene Prüflücke und
+wäre billig. Es stellte den Anker aber unter dasselbe Regelwerk wie den laufenden Text und zöge
+bei der nächsten Regeländerung an ihm. Ein Anker, der mit dem Regelwerk mitwandert, ist keiner.
+Die Blob-Prüfung ist das Instrument, das hier trägt, und sie ist unabhängig von jeder Regel.
+
+**Wie geprüft, und die schwächste Stelle.** Ort und Prüffläche sind gelesen, nicht angenommen.
+Schwächste Stelle: ab der Kopie läuft `02-trust-flow.md` in der Wurzel weiter, und nichts meldet
+die Divergenz — dieselbe Lage wie bei `79b73a2`, die D367 Beschluss 3 erst nach vier Commits
+bemerkt hat. Der Anker wandert nicht mit; ob der Auftrag noch auf dem Text sitzt, den er
+behauptet, ist vor der Beauftragung zu lesen und nicht zu unterstellen.
+
+**Was folgt.** Der Auftrag, mit dem Ankercommit aus dieser Kopie.

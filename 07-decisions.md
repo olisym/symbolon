@@ -14354,3 +14354,54 @@ Modulcode neu geprüft, nie gegen den Text der Vorrunde allein.
 
 **Was folgt.** Der eigentliche Befund trägt keine eigene Normativität und läuft als Nachtrag
 unter D364.
+
+### D367 — Die Messfläche vor der Zweitimplementierung, auch auf Layer 02
+
+**Anlass.** Die Zweitimplementierung soll auf Layer 02 ausgedehnt werden: die Trust-Flow-Befunde
+der letzten Runden — D362, D364 und der Nachtrag aus `00bg` — stehen alle gegen genau einen
+Zeugen, und `08 §2.2` verlangt, dass Aussagen kollidieren können.
+
+**Gemessen.** Die Layer-02-Messfläche kennt den `t_exp`-losen Fall nicht. `02-golden-anchors.md`
+§1 setzt `t_exp = 5000` als Default für alle Vouches; Anker 5 variiert zwischen 2000 und 5000.
+Über `02-golden-anchors.md`, `02b-golden-anchors.md`, `02a-maxflow-prompt.md` und
+`02-trust-flow.md` findet sich kein Vektor ohne `t_exp` und keine Stelle, die seine Abwesenheit
+als Lage führt. D364 steht damit ausschliesslich in Python-Prüffällen — und D256 Beschluss 3
+schliesst genau das als Erwartungsquelle aus: gegen die Referenzausgabe zu messen prüft die
+Referenz, nicht die Spec.
+
+**Beschluss 1 — Anker 5c vor dem Auftrag.** D256 Beschluss 1 gilt auf Layer 02 unverändert: die
+Messfläche zuerst. `02-golden-anchors.md` bekommt den `t_exp`-losen Budget-Fall als gedruckten
+Vektor, bevor eine Zweitfassung beauftragt wird. Ohne ihn liefe sie an der teuersten bekannten
+Stelle grün durch — die teuerste Art, nichts zu lernen.
+
+**Beschluss 2 — eigener Anker für Layer 02.** D302 schliesst mit dem Satz, eine Fassung mit
+anderem Umfang brauche einen eigenen Anker. Der Layer-01-Anker `79b73a2` bleibt eingefroren
+(D290, D302 Beschluss 3); die Layer-02-Fassung liest einen eigenen, und ihr Umfang wird bei der
+Beauftragung benannt, nicht aus „Layer 02" erraten.
+
+**Beschluss 3 — `go/spec/STAND.md` wird nachgezogen.** Dort steht, der Text sei seit `79b73a2`
+unverändert, gemessen bis `a1f4751` (D302). Das gilt nicht mehr: vier Commits haben
+`01-claim-atom.md` seither berührt, +80/−4 Zeilen, darunter D353 und D358 (Zustand
+`time-regression-flagged`, Vektor NV32) und D308 (Versionsausnahme). Der eingefrorene Blob ist
+intakt und byteidentisch mit `79b73a2`; falsch ist allein die Aussage über seine Aktualität. Der
+Anker wandert nicht — genau davor warnt D302 Beschluss 3 —, der Satz wird korrigiert.
+
+**Verworfen, mit Begründung.** Die Layer-02-Fassung sofort beauftragen: sie misst dann eine
+Fläche, in der der folgenreichste Fall keinen Vektor hat, und ihr Schweigen wäre nicht von
+Übereinstimmung zu unterscheiden. Den Layer-01-Anker auf den Kopf setzen, weil die Datei sich
+geändert hat: das ist die Bewegung, die D302 als still und nicht mehr unterscheidbar verwirft —
+eine Änderung des Ankers ist ein Registerakt, kein Nachzug. Die `02 §6.2`-Einhegung in dieser
+Runde entscheiden: sie hängt an O61, und O61 ist nach D363 ein Vier-Wege-Fork mit offener
+Hauptfrage gegen D78.
+
+**Wie geprüft, und die schwächste Stelle.** Die Tabelle zu 5c stand zuerst falsch: für
+`now = 10**6` war `Σ n_budget = 3` eingetragen, obwohl dort auch CAROLs übrige Vouches mit dem
+Default `t_exp = 5000` ablaufen und der Wert auf 1 fällt. Geschrieben war die Zeile aus der Form
+der Aussage — „verlässt das Budget-Set nie" — statt aus den Werten, und das ist die Klasse aus
+D366. Gefangen hat sie die Gegenprobe. Der Anker trägt deshalb ein fernes `t_exp` für die
+Nachbarn, damit die Mechanik isoliert steht. Die Erwartung ist aus `02a §2.6` und D135
+abgeleitet; die Referenz lief nach dem Muster aus D294 als Gegenprobe und stimmt überein.
+Schwächste Stelle: gemessen nur bei TP-02 und Variante C, und die `ERR_OVERCOMMIT`-Zeile des
+Testpunkts ist gerechnet, nicht gefahren.
+
+**Was folgt.** O62.

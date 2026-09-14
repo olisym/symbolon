@@ -329,3 +329,13 @@ voll, sind ohne `now` auswertbar und verlassen das Budget-Set nie, auch nicht du
 Was den uhrlosen Knoten davon trennt, ist die Signatur `now: int` in `derive()`. Der Weg ist
 damit billig zu öffnen und teuer zu begrenzen; die Einhegung hängt am zweiten Zweig von
 `02 §6.2`.
+
+### O62 Zweitimplementierung für Layer 02
+
+Aus D367. Beschlossen ist, dass sie kommt, und dass sie einen eigenen Anker liest (D302). Offen
+ist der Umfang: die Gruppenbildung nach `02a §2.4` mit Budget- und Aktiv-Set ist die Stelle, an
+der D362, D364 und Anker 5c hängen, und sie ist ohne den Max-Flow-Solver prüfbar. Der Solver
+selbst wäre die grössere Fläche und der teurere Bau. Offen ist ebenso die Sprache; Prüfregel 15
+verlangt den Literaturcheck vor der Wahl, und die Go-Fassung bindet nichts, weil ihr Umfang ein
+anderer ist. Stolperdraht: der erste Layer-02-Befund, der ohne zweiten Zeugen entschieden werden
+müsste.

@@ -283,6 +283,46 @@ werden identisch behandelt, und genau das ist INV-6.
 
 ---
 
+### Anker 5c — Budget-Fall **ohne** `t_exp` (D364)
+
+Basis: Variante C, wie Anker 5. Abweichend tragen der Rumpf und CAROLs übrige Vouches
+`t_exp = 10**9` (markierte Ausnahme zu §1), damit allein der Widerruf und das fehlende `t_exp`
+variieren. Der Vouch `CAROL → g₁` trägt **kein** `t_exp`; die Zeile ohne Widerruf wiederholt
+denselben Aufbau ohne den Widerrufs-Claim.
+
+Die Vergleichszeilen geben Anker 5 **in diesem** Aufbau wieder, nicht die in §5 gedruckten
+Werte: dort stehen die Nachbarn beim Default `t_exp = 5000` und laufen bis `now = 10**6`
+selbst ab, womit `Σ n_budget` dort auf 0 fällt. Verglichen wird nur die eine Mechanik.
+
+| Lage | `now` | Aktiv-Set (CAROL) | Budget-Set (CAROL) | `Σ n_budget` | frei |
+|---|---|---|---|---|---|
+| Anker 5 **in diesem Aufbau** (`t_exp = 2000`, widerrufen bei 900) | 1000 | g₂, g₃ | g₁, g₂, g₃ | 3 | 1 |
+| | 2001 | g₂, g₃ | g₂, g₃ | 2 | 2 |
+| | 10**6 | g₂, g₃ | g₂, g₃ | 2 | 2 |
+| **ohne `t_exp`, widerrufen bei 900** | 1000 | g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+| | 2001 | g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+| | 10**6 | g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+| **ohne `t_exp`, nicht widerrufen** | 1000 | g₁, g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+| | 2001 | g₁, g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+| | 10**6 | g₁, g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
+
+**Ableitung.** `02a §2.6` kennt genau einen Austritt aus dem Budget-Set, und der hängt an
+`t_exp`. Fehlt es, gibt es keinen — die Zeile ist in `now` konstant. D135 hält `REVOKED` im
+Budget-Set, also ändert der Widerruf am Budget nichts; er senkt nur `n_kante` auf 0 und damit
+das Aktiv-Set. Genau deshalb sind die beiden unteren Blöcke in ihrer Budgetspalte identisch und
+unterscheiden sich allein im Aktiv-Set.
+
+**Der Testpunkt.** Eine neue Bürgschaft `CAROL → DAVE` mit `n = 2` ergibt `3 + 2 = 5 > 4` und
+damit `ERR_OVERCOMMIT` — bei Anker 5 nur bis `now = 2000`, hier **bei jedem `now`**. Anker 5
+zeigt Selbstheilung durch Ablauf; 5c zeigt ihr Fehlen. Wer den Budget-Austritt an den Widerruf
+statt an `t_exp` hängt, liefert hier fälschlich `Σ = 2` und übersieht D364.
+
+**Warum dieser Anker gedruckt wird.** Vor ihm trug die gesamte Layer-02-Messfläche in jedem
+Vektor ein `t_exp`; §1 setzt es als Default für alle Vouches. Eine Zweitimplementierung, die den
+Austritt falsch bindet, liefe über alle übrigen Anker grün durch (D256 Beschluss 1, D367).
+
+---
+
 ## 6. Anker 6 — Einheitskapazitäten, Pfad-Disjunktheit (D19/D24)
 
 Belegung nach K5: alle internen Kanten `= 1`, alle Vouch-Kanten **`= 1`** (D42), **Endpunkte

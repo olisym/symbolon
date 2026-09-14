@@ -14511,3 +14511,69 @@ Korrektur nur geraten. Schwächste Stelle: geprüft wurde die eine Tabelle und i
 Ob `02a` weitere Stellen trägt, die eine spätere Entscheidung überholt hat, ist nicht gemessen.
 
 **Was folgt.** Die Sprachwahl und der Auftrag (O62).
+
+### D370 — Die Layer-02-Zweitfassung wird in Haskell gebaut
+
+**Anlass.** D368 lässt die Sprache offen; Prüfregel 15 verlangt den Literaturcheck vor der Wahl.
+Vier Kriterien standen fest: ganzzahliger Max-Flow aus einer Bibliothek (D368), keine Floats im
+Solver (K1), exakte Rechnung für die Kapazitätsleiter `C0 · num^d // den^d` ohne stillen
+Überlauf (`02a §2.2`), und eine mit Apache-2.0 verträgliche Lizenz.
+
+**Beschluss 1 — Klarstellung zu D256.** D256 verlangt die Signaturprüfung „aus der
+Standardbibliothek". Die dort genannte Begründung lautet: sie ist RFC 8032 und nicht
+MaR-normativ, eine Eigenimplementierung misst nichts und schafft Risiko. Der Grund ist **nicht
+selbst schreiben**, nicht **muss Standardbibliothek sein**; eine etablierte, unterhaltene
+Fremdbibliothek erfüllt ihn vollständig. Das ist eine Klarstellung des Wortlauts an seiner
+eigenen Begründung, keine Lockerung.
+
+**Nicht gelockert — der Max-Flow.** Hier trägt D256s Argument gegen uns und bleibt stehen. Dinic
+selbst zu schreiben misst nichts über MaR. Ebenso scheidet eine Float-Bibliothek aus: sie bringt
+Epsilon-Vergleiche mit, also eine Divergenzklasse, die nicht MaRs ist, und macht jede Abweichung
+mehrdeutig. Wer hier lockert, kauft Sprachauswahl mit Messqualität.
+
+**Gemessen — die Bibliothekslage.**
+
+| Sprache | Max-Flow | Ganzzahl | Lizenz | Befund |
+|---|---|---|---|---|
+| Rust | `rs-graph` generisch | ja | **GPL-3** | unverträglich mit Apache-2.0 |
+| Rust | `uni-algo`, `oxicuda-graphalg` | **`f64`** | permissiv | K1 verletzt |
+| Go | keine etablierte | — | — | erzwänge Eigenbau |
+| Java | JGraphT | **Kantengewicht `double`** | EPL/LGPL | K1 verletzt |
+| OCaml | `ocamlgraph`, funktorisiert | ja | LGPL + Linking | tragfähig |
+| Haskell | `fgl`, `Query.MaxFlow` | ja, `(Num b, Ord b)` | **BSD-3** | tragfähig |
+
+**Beschluss 2 — Haskell, `fgl`, `crypton`.** Drei Gründe, zwei davon aus den eigenen Kriterien.
+`Integer` ist der Standardtyp, womit das Überlaufkriterium der Kapazitätsleiter ersatzlos
+entfällt — OCaml bräuchte dafür Zarith. BSD-3 erspart die Lizenzanalyse, die LGPL mit
+Linking-Ausnahme verlangte. Und Reinheit stellt jede Abhängigkeit von `now` oder vom
+Speicherinhalt in den Typ: genau dort sitzen O61, D362 und D364, und genau diese Rückfrage soll
+die Fassung erzwingen.
+
+**Zwei benannte Fallen.** Gebraucht wird `Data.Graph.Inductive.Query.MaxFlow`, **nicht**
+`MaxFlow2` — letzteres ist auf `Double` festverdrahtet und verstösst gegen K1. Für die Signatur
+ist es `crypton`, **nicht** das gleichnamige Paket `ed25519`: dieses steht bei 0.0.5.0, ist seit
+Stackage Nightly 2024-03-28 aus der kuratierten Menge gefallen und wird von einem Paket benutzt.
+`crypton` ist der unterhaltene `cryptonite`-Fork unter der `haskell-crypto`-Organisation, trägt
+`tls`, `http2`, `quic`, `pandoc` und `jose` und hat dokumentierte Sicherheitsfixes an Ed25519
+selbst. Beide Fallen gehören in den Auftrag; ohne sie greift die Fassung daneben.
+
+**Verworfen, mit Begründung.** OCaml — die Empfehlung dieser Sitzung, bevor gemessen wurde, und
+sachlich tragfähig: strikte Auswertung, Funktordisziplin, `ocamlgraph` liefert Fluss je Kante,
+woraus sich der quellseitige Schnitt wie in `graph.py` rekonstruieren lässt. Sie verliert auf
+den drei Punkten oben, nicht auf einem Mangel. Rust — die einzige ganzzahlgenerische Bibliothek
+steht unter GPL-3, die übrigen rechnen in `f64`. Go — es gibt keine etablierte Max-Flow-
+Bibliothek, die Wahl erzwänge den Eigenbau und damit den Verstoss gegen D368. Java — JGraphT
+nimmt Kantengewichte als `double`; ganzzahlige Werte sind darunter zwar exakt, aber der Solver
+ist es nicht, und K1 spricht vom Solver.
+
+**Rückfallweg, jetzt benannt.** Erweist sich `fgl` beim Bau als untragfähig, ist der Rückfall
+OCaml mit `ocamlgraph` und Zarith. Das wird dann nicht neu verhandelt, sondern vermerkt.
+
+**Wie geprüft, und die schwächste Stelle.** `fgl` steht bei 5.8.3.1 und ist in Stackage LTS und
+Nightly bis 2026-07-28 enthalten. Schwächste Stelle: es wird dort nur von rund zehn Paketen
+benutzt — es lebt in der kuratierten Menge, ist aber kein Schwergewicht wie `ocamlgraph` im
+OCaml-Ökosystem. Und die Unabhängigkeit des zweiten Zeugen kommt aus der Spec-Diät (D368
+Beschluss 3), nicht aus der Sprache; die Sprache erzwingt eine andere Struktur, nicht einen
+anderen Leser.
+
+**Was folgt.** Die Ankerkopie und der Auftrag.

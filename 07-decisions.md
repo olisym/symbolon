@@ -14634,3 +14634,79 @@ bemerkt hat. Der Anker wandert nicht mit; ob der Auftrag noch auf dem Text sitzt
 behauptet, ist vor der Beauftragung zu lesen und nicht zu unterstellen.
 
 **Was folgt.** Der Auftrag, mit dem Ankercommit aus dieser Kopie.
+
+### D372 — Die Messfläche der Zweitfassung: gestufte Ausgabe, gesetztes Flag, offene Schnittseite
+
+**Anlass.** Der Auftrag braucht eine Schnittstelle. Layer 01 kam mit einer Zeile je Claim aus.
+Layer 02 nimmt einen Speicher und gibt eine Zahl; dazwischen liegen vier Stufen, an denen eine
+Abweichung entstehen kann, und die Zahl allein sagt nicht, an welcher.
+
+**Gemessen — die Eingabe fehlte.** `TP-02` bestand nur als Python-Fixture
+(`tests/trust/tp02.py`). Layer 01 hat `tests/vectors/vectors_01.json`, Layer 02 hatte nichts
+Vergleichbares. `00bn` hat das geschlossen: `tests/vectors/vectors_02_tp02.json`, acht Profile,
+deterministisch aus Labels erzeugt und gegen `tp02.py` regressionsgeprüft. Die Datei trägt
+ausschliesslich Eingabe; kein Feld enthält ein Ergebnis.
+
+**Beschluss 1 — die Ausgabe ist gestuft.** Gedruckt werden je Profil: Zustand je Claim, Gruppe
+mit `n_budget` und `n_kante`, Budgetverdikt je Autor, Kante mit `d`, `C` und `cap`, dann Fluss
+einzeln, simultan, disjunkt und Schnitt, zuletzt die Vermerke. Der Grund ist D368 Beschluss 2:
+eine Abweichung an Anker 5b, 5 oder 5c ist zwischen Zustandsstufe und Gruppierung zu
+lokalisieren, bevor sie als Spec-Befund geführt wird. Mit einer Ausgabe aus Flusswert, Disjunktheit
+und Schnitt ist dieses Verfahren nicht ausführbar.
+
+**Der Preis, und warum er tragbar ist.** D368 hält fest, dass die Modulteilung der Referenz für
+eine Zweitfassung nicht normativ ist — sie darf anders schneiden, solange die Ausgänge stimmen.
+Gestufte Ausgänge schreiben mehr vor als das Endergebnis. Geprüft wurde deshalb, ob die Stufen
+Begriffe des Ankersatzes sind oder Struktur der Referenz: `02-trust-flow.md` führt `Budget-Set`
+zehnmal, `n_budget` fünfmal, `n_kante` elfmal, `Distanz` siebzehnmal, `Fluss` achtundzwanzigmal.
+Die erste Stufe nicht: `lassifik` kommt null Mal vor. Ihr Name stammt aus `01-claim-atom.md`, und
+der Auftrag verweist dafür ausdrücklich dorthin, statt das Werkzeug einen Begriff erfinden zu
+lassen.
+
+**Und eine Falle, die daran hängt.** `02 §3.1` hält fest, die Zugehörigkeit zum Budget-Set sei ein
+Prädikat und unabhängig vom Lebenszyklus-Zustand; wer sie an einen Zustand knüpft, erzeugt den
+Deadlock aus D41. Eine Blockfolge, die Zustand vor Gruppe druckt, legt genau die Abhängigkeit
+nahe, die der Text verneint. Der Auftrag bezeichnet die Folge deshalb als Ausgabeordnung und
+sagt ausdrücklich, dass sie keine Rechenreihenfolge und keine Abhängigkeit zwischen den Stufen
+vorschreibt.
+
+**Beschluss 2 — das Flag wird gesetzt, nicht dem Text überlassen.** `02-trust-flow.md` nennt den
+Vorgabewert für das Tragen geflaggter Kanten zweimal, und er ist der andere als der, unter dem
+die Ankerwerte in `02-golden-anchors.md §3–§5` gelten. Mit dem Vorgabewert sind die Varianten A, D
+und A′ rot, ohne dass ein Rechenfehler vorläge, und der Vorbehalt dazu steht in der
+zurückgehaltenen Ankerdatei. Ohne Vorgabe im Auftrag hätte die Abnahme eine Policy-Differenz
+gemessen und für einen Befund gehalten. Der Auftrag setzt den Fall, benennt ihn als Abweichung
+vom Vorgabewert und begründet ihn mit Mechanismus statt Policy — damit ist kein Ergebniswert
+verraten.
+
+**Beschluss 3 — die Schnittseite bleibt offen, und das wird vorhergesagt.** `02` kennt den
+Min-Cut als Schranke (§4), normiert aber nirgends, welche Seite auszugeben ist; `02a §3` schreibt
+den quellseitigen Schnitt vor und ist zurückgehalten. Der Auftrag verlangt den Schnitt, überlässt
+die Seite der Fassung und macht den Eintrag in `FRAGEN.md` zur Pflicht. Weicht sie ab, ist das
+ein Spec-Befund an `02` und kein Fehler der Fassung. Vermerkt wird es hier, damit es später nicht
+als Zufall durchgeht: wird der Punkt gefunden, war er vorhergesagt; wird er nicht gefunden, ist
+die Fassung auf dieselbe Seite gekommen, ohne dass der Text sie dorthin geführt hätte — und die
+Lücke in `02` besteht trotzdem.
+
+**Verworfen: nur Flusswert, Disjunktheit und Schnitt ausgeben.** Das ist die Signatur der
+Referenz und die kleinste Messfläche. Jede Abweichung erzwänge einen zweiten Lauf mit einer
+anderen Schnittstelle — und der zweite Lauf misst dann nicht mehr dasselbe Programm, sondern
+eines, das für die Diagnose umgebaut wurde.
+
+**Verworfen: den Schnitt weglassen.** Er ist die einzige Ausgabe, die die Struktur des Graphen
+prüft statt nur seinen Durchsatz. Zwei verschieden gebaute Graphen liefern leicht denselben
+Fluss; sie liefern selten denselben Schnitt.
+
+**Verworfen: das Flag in die Vektordatei schreiben.** Es ist Policy, kein Profilmerkmal. In der
+Datei stünde es zwischen `now` und `scope` und würde als Eigenschaft des Profils gelesen, womit
+die Trennung zwischen Mechanismus und Policy genau dort verschwände, wo sie gemessen werden soll.
+
+**Wie geprüft, und die schwächste Stelle.** Die Stufenbegriffe und die Namen der Vermerke sind in
+`02-trust-flow.md` gezählt, nicht erinnert; die Adressierungstabelle dort macht die Vermerke
+vergleichbar. Die Behauptung, die vier Stufen seien Begriffe aus `02`, stand vorher ungeprüft im
+Raum und ist für die erste Stufe gefallen — das ist die D366-Klasse, gefangen von Prüfregel 75.
+Schwächste Stelle: der Regressionstest aus `00bn` vergleicht die Vektordatei gegen
+`build_profiles()` desselben Exporters. Drift in `tp02.py` fängt er; eine Auslassung im Exporter
+samt Neuerzeugung der Datei bliebe grün.
+
+**Was folgt.** Der Lauf.

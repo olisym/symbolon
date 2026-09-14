@@ -353,3 +353,7 @@ und der Auftrag geschrieben wird; bis dahin ist nichts eingefroren.
 Nach D371 steht der Anker: `hs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md` und einer
 `STAND.md`, die den Ankercommit, beide Blob-Hashes und die Zurückhaltung von
 `02-golden-anchors.md` und `02a` benennt. Offen bleibt allein der Auftrag.
+
+Nach D372 steht die Messfläche: `tests/vectors/vectors_02_tp02.json` als Eingabe, die gestufte
+Ausgabe als Schnittstelle, das Flag im Auftrag gesetzt, die Schnittseite offen gelassen. Offen
+bleibt der Lauf.

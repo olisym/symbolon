@@ -6,3 +6,4 @@ __pycache__/
 *.egg-info/
 .cursorrules
 mensch_als_republik.egg-info/
+dist-newstyle/

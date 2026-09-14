@@ -14877,3 +14877,56 @@ gemessen. Flusswerte, Budget und Befunde sind es, Schnitt war es nicht — und d
 Ausgänge ist damit erschöpft, aber das ist Abzählen und kein Test.
 
 **Was folgt.** Der Zustands-Vektorsatz aus Anker 5, wie in D374 beschlossen.
+
+### D376 — TZ-02: die Zustandsstufe wird beobachtbar
+
+**Anlass.** D374 hat gemessen, dass `TP-02` in allen acht Profilen ausschliesslich `active`
+trägt. Die erste Stufe der Messfläche aus D372 hatte damit nichts zu unterscheiden, und Anker 5,
+5b und 5c lagen ausserhalb jedes Vektorsatzes — sie existierten nur als Python-Zusicherungen.
+
+**Gemessen — achtzehn Werte, unabhängig nachgerechnet.** Nicht aus dem Bericht des Werkzeugs
+übernommen, sondern aus der erzeugten Datei über `read_claim`, `classify_all` und `build_groups`:
+`Σ n_budget` für CAROL trifft in Z1 bis Z9 die Ankerwerte 3, 2, 4, 4, 5, 4, 3, 3, 2. Die
+Gruppenwerte treffen ebenso: Z1 führt `g₁` mit `n_budget = 1` und `n_kante = 0` — im Budget-Set,
+ohne Kante, genau die Trennung, an der Anker 5 die Implementierungen scheidet. Z2 verliert `g₁`
+ganz. Z4 trägt `n_budget = 2` gegen `n_kante = 1`, die Herabstufung aus Anker 5b. Z7 hält `g₁`
+ohne `t_exp` trotz Widerruf im Budget-Set, Z9 verliert es. `revoked`, `superseded` und `expired`
+treten real auf.
+
+**Beschluss 1 — ein eigener Satz, nicht die Erweiterung von TP-02.** `vectors_02_tp02.json` ist
+Eingabe zweier gelaufener Fassungen. Jede Änderung daran entwertet den Vergleich mit ihnen, und
+die Zustandsprofile brauchen andere Uhren als die Flussprofile. `TZ-02` steht daneben, mit
+eigenem Fixture-Modul, eigenem Exporter und eigenem Vergleichstest.
+
+**Beschluss 2 — der Aufbau zieht um, die Zusicherungen bleiben.** Anker 5 und 5b lagen in
+`tests/trust/test_groups.py` eingebettet; sie stehen jetzt in `tests/trust/tz02.py`, und die
+Tests importieren von dort. Geprüft ist, dass keine Testfunktion und kein `assert` verloren ging.
+`tests/trust/test_texp_los.py` bleibt unberührt: es trägt den kleinen D364-Probegraphen, nicht
+Variante C, und Anker 5c ist in `tz02.py` nach `§5` neu aufgebaut statt von dort entlehnt.
+
+**Der Vorbehalt, der mitgeführt werden muss.** In Z7, Z8 und Z9 läuft das Mesh ab — es trägt den
+Default `t_exp = 5000` gegen `now = 10**6`, während Anker 5c nur Rumpf und CAROLs übrige Vouches
+auf `10**9` hebt. Für die Budgetaussage ist das richtig und ankertreu. Für die **Flusswerte**
+dieser drei Profile gibt es damit keine Ankerdeckung: eine Fassung wird dort Zahlen drucken, die
+in keiner Tabelle stehen. Sie sind zwischen Fassungen vergleichbar und gegen die Anker nicht
+prüfbar, und eine Abnahme, die das verwechselt, liest eine Übereinstimmung als Bestätigung.
+
+**Verworfen: das Mesh in Z7 bis Z9 ebenfalls auf `10**9` heben.** Das machte die Flusswerte
+ankerdeckbar und wäre billig. Es veränderte aber den Aufbau, den `§5` für Anker 5c vorschreibt,
+und der Anker ist dort bewusst so gebaut, dass allein Widerruf und fehlendes `t_exp` variieren.
+Ein Vektorsatz, der den Anker bequemer macht, misst ihn nicht mehr.
+
+**Verworfen: Equivocation und Zeitregression mit aufzunehmen.** Beide Zustände sind in `01`
+definiert und in keiner Ankerlage von `§5` verlangt. Sie hier zu erfinden hiesse, Erwartungswerte
+ohne normative Grundlage zu erzeugen — dieselbe Klasse, die D256 Beschluss 3 für die
+Referenzausgabe ausschliesst.
+
+**Wie geprüft, und die schwächste Stelle.** Achtzehn Werte gegen die Ankertabellen, abgeleitet
+aus der Datei und nicht aus dem Bericht; Testnamen und `assert`-Zahl gegen den Basis-Commit
+verglichen. Schwächste Stelle: geprüft sind Budget- und Gruppenstufe. Distanzen, Kapazitäten und
+Flusswerte von `TZ-02` sind nicht nachgerechnet — für Z7 bis Z9 gibt es dafür auch keine
+Grundlage, für Z1 bis Z6 gäbe es sie, und sie ist ungenutzt geblieben.
+
+**Was folgt.** Der Ankersatz der dritten Fassung: `hs/spec/` steht auf `764f0da` und trägt den
+Absatz aus D375 nicht, `TZ-02` fehlt dort ohnehin. Eine neue Kopie nach dem Muster von D371, und
+davor die Sprachwahl unter dem Kriterium aus D374 Beschluss 3.

@@ -366,3 +366,7 @@ Vektorsatz aus Anker 5, nicht eine dritte Fassung.
 Nach D375 ist der Schnitt der erste gemessene Befund der Zweitfassung: `02` normiert die
 Ausgabeform nicht, beide Fassungen weichen gleich von der Referenz ab, `§4` bekommt die
 Unterscheidung. Der Zustands-Vektorsatz steht weiter aus.
+
+Nach D376 steht `TZ-02`: neun Profile, achtzehn geprüfte Ankerwerte, `revoked`, `superseded` und
+`expired` beobachtbar. Offen sind die Sprachwahl für die dritte Fassung und eine neue Ankerkopie,
+die `TZ-02` und den D375-Absatz mitführt.

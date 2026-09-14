@@ -370,3 +370,6 @@ Unterscheidung. Der Zustands-Vektorsatz steht weiter aus.
 Nach D376 steht `TZ-02`: neun Profile, achtzehn geprüfte Ankerwerte, `revoked`, `superseded` und
 `expired` beobachtbar. Offen sind die Sprachwahl für die dritte Fassung und eine neue Ankerkopie,
 die `TZ-02` und den D375-Absatz mitführt.
+
+Nach D377 geht der Falltest zum Kapazitätsbereich der Sprachwahl voraus. Danach erst die
+Ankerkopie, die `TZ-02` und den D375-Absatz mitführt.

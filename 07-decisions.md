@@ -14930,3 +14930,55 @@ Grundlage, für Z1 bis Z6 gäbe es sie, und sie ist ungenutzt geblieben.
 **Was folgt.** Der Ankersatz der dritten Fassung: `hs/spec/` steht auf `764f0da` und trägt den
 Absatz aus D375 nicht, `TZ-02` fehlt dort ohnehin. Eine neue Kopie nach dem Muster von D371, und
 davor die Sprachwahl unter dem Kriterium aus D374 Beschluss 3.
+
+### D377 — Das Überlaufkriterium wird gemessen, bevor es eine Sprache auswählt
+
+**Anlass.** D374 Beschluss 3 verlangt für die dritte Fassung eine Sprache mit begrenztem
+Standardtyp, damit Zahlbereich und Überlauf zum ersten Mal gemessen werden. Das Kriterium ist
+selbst nie gemessen worden — und die Sprachwahl darauf zu gründen hiesse, eine Runde nach einem
+Massstab zu entscheiden, dessen Schärfe niemand kennt.
+
+**Gemessen.** `TrustParams` fordert `C0 > 0` und sonst nichts; `02-trust-flow.md` kennt keine
+Obergrenze. Ein Profil mit grossem `C₀` ist damit spec-konform und kein Sonderfall.
+
+**Der Hebel.** D374 hat zwei Kodierungen von `∞` nebeneinander gefunden: `1 + Σ` aller endlichen
+Kapazitäten gegen ein festes Literal. Bei `C₀ = 16` sind sie ununterscheidbar, und genau deshalb
+hat der Doppellauf dort nichts gezeigt. Wächst `C₀`, trennen sie sich: das feste Literal wird
+irgendwann von einer echten Kapazität überholt und bindet — die `∞`-Kante wird zur Schranke und
+der Fluss fällt zu klein aus. Die mitwachsende Summe bindet nie, wird aber selbst so gross, dass
+sie in einem 64-Bit-Typ nicht mehr trägt. **Beide Strategien brechen, auf verschiedene Weise**,
+und ein einziges Profil zeigt beides.
+
+**Die Erwartung braucht keine Ankertabelle.** Für Variante A folgt sie aus der Formel:
+`trust(ALICE → gᵢ)` ist `C(CAROL) = ⌊C₀·γ²⌋`, und die Kante trägt `⌊n·C(CAROL)/D⌋` mit `n = D`,
+also denselben Wert. Bei einer Zweierpotenz für `C₀` und `γ = 1/2` entfällt jede Rundung. Der
+Wert ist abgeleitet und nicht abgetippt — die Bedingung aus D256 Beschluss 3 ist erfüllt, ohne
+dass eine neue Ankerzeile entsteht.
+
+**Beschluss 1 — das Kapazitätsprofil wird gebaut und ausdrücklich als Falltest geführt.** Es ist
+kein Anker. Ein Anker misst, was der Text sagt; dieses Profil misst, ob eine Fassung eine
+Entscheidung robust getroffen hat, die der Text ihr überlässt. Das ist eine andere Sorte Prüfung
+als alles Bisherige im Repositorium, und sie wird als solche benannt statt untergeschoben. Der
+Satz bekommt einen eigenen Namen und steht neben `TP-02` und `TZ-02`, nicht in ihnen.
+
+**Beschluss 2 — die Sprachwahl wartet auf sein Ergebnis.** Zeigt der Falltest, dass die
+`∞`-Kodierung die verwundbare Stelle ist und nicht die Kapazitätsleiter, dann misst eine Sprache
+mit begrenztem Standardtyp etwas anderes als gedacht, und D370s Bibliothekslage — Rusts einzige
+ganzzahlgenerische Bibliothek unter GPL-3, keine etablierte in Go, `double` in JGraphT — wiegt
+schwerer als das Typkriterium. Die beiden Kriterien ziehen gegeneinander; welches nachgibt,
+entscheidet die Messung und nicht die Reihenfolge der Registereinträge.
+
+**Verworfen: direkt die dritte Fassung bauen.** Sie ist der teuerste Weg zu einer Antwort, die
+ein Profil billiger gibt, und sie bindet die Sprachwahl, bevor klar ist, worauf es ankommt.
+
+**Verworfen: das Profil in `TP-02` aufnehmen.** Derselbe Grund wie in D376 Beschluss 1: die
+Datei ist Eingabe zweier gelaufener Fassungen, und ein zusätzliches Profil entwertet den
+Vergleich mit ihnen.
+
+**Wie geprüft, und die schwächste Stelle.** Die fehlende Obergrenze ist gelesen, nicht
+angenommen. Schwächste Stelle, und sie ist erheblich: beide vorliegenden Fassungen rechnen in
+`Integer`. Der Falltest kann an ihnen nur die `∞`-Hälfte zeigen; die Überlaufhälfte bleibt
+ungemessen, bis eine Fassung mit begrenztem Typ existiert. Das Ergebnis wird also eine der beiden
+Fragen beantworten und die andere schärfen, nicht beide schliessen.
+
+**Was folgt.** Der Falltest, dann die Sprachwahl, dann die neue Ankerkopie.

@@ -357,3 +357,8 @@ Nach D371 steht der Anker: `hs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md`
 Nach D372 steht die Messfläche: `tests/vectors/vectors_02_tp02.json` als Eingabe, die gestufte
 Ausgabe als Schnittstelle, das Flag im Auftrag gesetzt, die Schnittseite offen gelassen. Offen
 bleibt der Lauf.
+
+Nach D374 ist die Flusshälfte bestätigt: zwei unabhängig gebaute Fassungen liefern über alle acht
+Profile dieselben Werte wie die Referenz, unter Abzug des in D373 ausgewiesenen Lecks. Die
+Zustandshälfte ist ungemessen — `TP-02` trägt ausschliesslich `active`. Nächster Schritt ist ein
+Vektorsatz aus Anker 5, nicht eine dritte Fassung.

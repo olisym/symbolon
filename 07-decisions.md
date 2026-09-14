@@ -14710,3 +14710,108 @@ Schwächste Stelle: der Regressionstest aus `00bn` vergleicht die Vektordatei ge
 samt Neuerzeugung der Datei bliebe grün.
 
 **Was folgt.** Der Lauf.
+
+### D373 — Der Ankersatz zitiert seine eigene Prüfdatei
+
+**Anlass.** Die zweite Haskell-Fassung meldete im Bauplan, ihr Zwischenergebnis für Profil A
+decke sich mit „Golden Anchors §3, Variante A". Diese Datei liegt nicht im Isolat. Der Verdacht
+lautete auf Kontamination; die Messung ergab etwas anderes.
+
+**Gemessen.** `02-trust-flow.md` nennt `02-golden-anchors.md` viermal namentlich und druckt in
+seinen Erklärungskästen Ankerwerte mit: der simultane Fluss 4 für die Varianten A, E und F, für F
+zusätzlich die Summe 10 der Einzelabfragen und drei Identitäten über der Schwelle, sowie die
+A′-Konstellation mit `⌊4·16/4⌋ = 16` und simultan 48 als verworfene Belegung. Vier der acht
+simultanen Werte und eine Einzelsumme stehen damit im Ankersatz selbst.
+
+**Befund gegen D368 Beschluss 3.** Das Zurückhalten von `02-golden-anchors.md` ist unvollständig,
+und zwar nicht durch einen Fehler beim Kopieren. Der normative Text belegt seine eigenen Aussagen
+mit den Zahlen, die die Prüfdatei prüft — das ist guter Spec-Stil und zugleich ein Leck in jede
+Zweitfassung hinein. Beides zugleich lässt sich nicht haben.
+
+**Beschluss — das Leck wird ausgewiesen, nicht gestopft.** Die Kästen bleiben stehen. Ein
+normativer Text, dem man die Belege nimmt, damit eine Prüfkonstruktion sauber bleibt, ist
+schlechter geworden, um besser gemessen zu werden. Stattdessen gilt der Umfang als bekannt: wer
+eine Fassung gegen die Anker hält, darf die simultanen Werte von A, E und F sowie die F-Summe
+nicht als unabhängige Bestätigung lesen. Alles andere — sämtliche Einzelwerte von B, C, D und E₀,
+jede Gruppen-, Budget- und Kantenstufe, jede Befundadresse und der Schnitt — steht nirgends im
+Ankersatz.
+
+**Verworfen: die Werte aus den Kästen entfernen.** Sie tragen dort die Beweislast für Sätze über
+den Ertrag der Budgetregel. Ohne sie bliebe die Behauptung unbelegt, und die Belegstelle wanderte
+in eine Datei, die der Leser des Layers nicht vor sich hat.
+
+**Verworfen: die Kästen in den zurückgehaltenen Teil verschieben.** Dasselbe in anderer Form, mit
+dem Zusatz, dass `02` dann eine Lücke im Argumentationsgang trüge.
+
+**Wie geprüft, und die schwächste Stelle.** Gegrept in der Ankerkopie selbst, nicht im laufenden
+Text. Schwächste Stelle: der Umfang des Lecks ist für `01-claim-atom.md` nicht gemessen — dort
+wurde nur nach den Anker-Stichworten gesucht und nichts gefunden, nicht nach durchgerechneten
+Beispielen.
+
+**Was folgt.** Der Umfang gehört in jeden künftigen Ankersatz-Beschluss, nicht in eine Prüfregel.
+
+### D374 — Der Doppellauf: was er bestätigt hat, und wo der Ertrag tatsächlich lag
+
+**Anlass.** Zwei Haskell-Fassungen von Layer 02, gebaut aus `01-claim-atom.md` und
+`02-trust-flow.md` allein. Die erste lief versehentlich im Repositoriumskontext, die zweite in
+einem Isolat ohne Pfad nach aussen.
+
+**Gemessen — die Kontamination der ersten Fassung ist belegt, nicht vermutet.** Ihre Fragenliste
+begründet die Budgetentscheidung mit „D41 / D372". D41 und D278 stehen in den Spec-Dateien. D372
+steht in keiner Datei unter `hs/` und kann dort nicht stehen: der Ankercommit ist älter als der
+Eintrag, und der Auftrag nennt keine D-Nummern. Der Zahlenvergleich hätte das nie gezeigt — beide
+Fassungen treffen jede Ankerzahl, und eine korrekte unabhängige Fassung sieht genauso aus wie eine
+abgeschriebene.
+
+**Gemessen — das Ergebnis.** Über alle acht Profile stimmen beide Fassungen in jedem Flusswert,
+jeder Budgetsumme, jedem Verdikt, jeder Befundadresse einschliesslich der vier
+`SUBGRANULAR_VOUCH`-`claim_id`s, jeder Schnittmenge und jeder Strukturzahl überein, und mit der
+Referenz. Unter Abzug von D373 bleibt das eine unabhängige Bestätigung der Flusshälfte.
+
+**Beschluss 1 — der Ertrag liegt in den Fragenlisten, nicht in den Ausgaben.** Die gestufte
+Ausgabe aus D372 hat keine einzige Abweichung lokalisiert, weil es keine gab. Gefunden wurden vier
+Dinge, alle aus dem Vergleich der Entscheidungsprotokolle: ein Lesefehler der zweiten Fassung an
+`01` Anhang B.1, die dort ausdrücklich sagt, `malformed` sei kein Klassifikationsergebnis (D278) —
+die Fassung zitiert den Satz und druckt den Zustand trotzdem; die in D372 vorhergesagte Lücke zur
+Schnittseite, von beiden gleich aufgelöst; eine ungemessene Lücke in `02 §4` zur Darstellung von
+`∞` in ganzzahliger Arithmetik; und ein Defekt im Vektorsatz dieses Registers.
+
+**Die `∞`-Lücke, weil sie die interessanteste ist.** `§4` verlangt Kanten unendlicher Kapazität,
+sagt aber nichts über ihre Darstellung. Die erste Fassung rechnet `1 + Σ` aller endlichen
+Kapazitäten und verwirft ein festes Literal ausdrücklich, weil es bei grossem `C₀` binden könnte.
+Die zweite nimmt `10**18`. Beide liefern hier dasselbe, weil alle Kapazitäten unter 17 liegen. Die
+naheliegende Wahl ist die brüchige, und in einem Typ mit begrenztem Wertebereich wäre sie ein
+Überlauf.
+
+**Beschluss 2 — der Vektorsatz verliert das Feld `t_exp`.** Beide Fassungen mussten einen Eintrag
+darauf verwenden, mit entgegengesetzter Begründung: die eine hält es für einen
+Konstruktionshinweis und verwirft es als Policy-Default, die andere hält es genau dafür. Das Feld
+bestimmt nichts und erzwingt in jeder weiteren Fassung dieselbe Frage. Es wird aus
+`tools/export_tp02.py` und damit aus beiden Vektordateien entfernt. Der Preis ist benannt: künftige
+Läufe arbeiten auf einem anderen Satz als diese beiden. Er ist tragbar, weil die Vergleichbarkeit
+an den Claims und den Abfrageparametern hängt, nicht an einem ungenutzten Feld.
+
+**Beschluss 3 — zwei Achsen, die nicht dasselbe messen.** Zwei Modelle in derselben Sprache messen
+die Lesbarkeit des Textes: wo führt derselbe Satz zwei kompetente Leser auseinander. Zwei Sprachen
+messen Zahlbereich, Rundung, Sortierstabilität und Überlauf. Die zweite Achse ist unberührt — beide
+Fassungen rechneten in `Integer`, und das Überlaufkriterium aus D370 wurde nie auf die Probe
+gestellt, obwohl die zweite Fassung genau die Konstruktion wählte, die in einem 64-Bit-Typ
+gefährlich wäre. Eine dritte Fassung gehört deshalb nicht noch einmal in Haskell.
+
+**Beschluss 4 — die Fragenliste wird gegliedert, bevor eine dritte Fassung startet.** Sie ist das
+Instrument, also braucht sie eine feste Ordnung nach Spec-Abschnitt. Zwei frei nummerierte Listen
+gegeneinanderzuhalten war Handarbeit; bei drei Fassungen skaliert das nicht.
+
+**Und die Gegenrechnung.** In allen acht Profilen trägt jede Zustandszeile `active`. Kein
+Widerruf, kein Ablauf, kein Supersede, kein `pending`, kein Flag. Die erste Stufe der Messfläche,
+für die D372 eigens die Blockfolge entworfen hat, hatte nichts zu unterscheiden — der teuerste
+Teil der Konstruktion war der tote. Genau die Fälle, für die D367 und D368 mit Anker 5, 5b und 5c
+Prüffläche geschaffen haben, liegen ausserhalb von `TP-02`.
+
+**Wie geprüft, und die schwächste Stelle.** Die Ausgaben sind maschinell verglichen, die
+Fragenlisten gelesen, der `malformed`-Punkt gegen die Zeile in `01` entschieden und nicht nach
+Plausibilität. Schwächste Stelle: die Übereinstimmung der zweiten Fassung mit der Referenz ist für
+die Zustandsstufe leer. O62 ist in der Flusshälfte bestätigt und in der Zustandshälfte ungemessen.
+
+**Was folgt.** Ein Vektorsatz, der die Zustandsstufe beobachtbar macht, abgeleitet aus Anker 5.
+Erst danach die dritte Fassung, in einer Sprache mit begrenztem Standardtyp.

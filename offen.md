@@ -362,3 +362,7 @@ Nach D374 ist die Flusshälfte bestätigt: zwei unabhängig gebaute Fassungen li
 Profile dieselben Werte wie die Referenz, unter Abzug des in D373 ausgewiesenen Lecks. Die
 Zustandshälfte ist ungemessen — `TP-02` trägt ausschliesslich `active`. Nächster Schritt ist ein
 Vektorsatz aus Anker 5, nicht eine dritte Fassung.
+
+Nach D375 ist der Schnitt der erste gemessene Befund der Zweitfassung: `02` normiert die
+Ausgabeform nicht, beide Fassungen weichen gleich von der Referenz ab, `§4` bekommt die
+Unterscheidung. Der Zustands-Vektorsatz steht weiter aus.

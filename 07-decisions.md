@@ -14765,8 +14765,10 @@ abgeschriebene.
 
 **Gemessen — das Ergebnis.** Über alle acht Profile stimmen beide Fassungen in jedem Flusswert,
 jeder Budgetsumme, jedem Verdikt, jeder Befundadresse einschliesslich der vier
-`SUBGRANULAR_VOUCH`-`claim_id`s, jeder Schnittmenge und jeder Strukturzahl überein, und mit der
-Referenz. Unter Abzug von D373 bleibt das eine unabhängige Bestätigung der Flusshälfte.
+`SUBGRANULAR_VOUCH`-`claim_id`s und jeder Strukturzahl überein, und mit der Referenz. Die
+Schnittmengen stimmen untereinander überein, **nicht** mit der Referenz; der Satz stand hier
+zunächst ohne diese Einschränkung, siehe D375. Unter Abzug von D373 bleibt das eine unabhängige
+Bestätigung der Flusshälfte.
 
 **Beschluss 1 — der Ertrag liegt in den Fragenlisten, nicht in den Ausgaben.** Die gestufte
 Ausgabe aus D372 hat keine einzige Abweichung lokalisiert, weil es keine gab. Gefunden wurden vier
@@ -14815,3 +14817,63 @@ die Zustandsstufe leer. O62 ist in der Flusshälfte bestätigt und in der Zustan
 
 **Was folgt.** Ein Vektorsatz, der die Zustandsstufe beobachtbar macht, abgeleitet aus Anker 5.
 Erst danach die dritte Fassung, in einer Sprache mit begrenztem Standardtyp.
+
+### D375 — Der Schnitt: eine Kapazität, keine Knotenmenge
+
+**Anlass.** D372 Beschluss 3 hat vorhergesagt, dass die Ausgabeform des Schnitts in `02` nicht
+normiert ist und eine Zweitfassung dort abweichen wird. Beim Vorbereiten des Zustands-Vektorsatzes
+fiel auf, dass `tests/trust/test_anchors.py` drei Schnittwerte prüft. Der Abgleich stand aus.
+
+**Gemessen.** Die Referenz liefert für die simultane Abfrage der Varianten A und F je genau
+CAROL und für B die leere Menge. Beide Haskell-Fassungen liefern in allen drei Fällen Anker,
+Rumpfknoten und CAROL. `symbolon/trust/graph.py` nimmt die Identitäten, deren **interne** Kante
+den Schnitt bildet — `x_in` erreichbar, `x_out` nicht. Die Fassungen nehmen alle quellseitig
+erreichbaren Identitäten. In B sättigt keine interne Kante, der Engpass sind die drei
+Vouch-Kanten; deshalb ist die Referenzmenge dort leer.
+
+**Die Quelle der Divergenz.** `02a §3` normiert die Form vollständig und nennt auch den leeren
+Fall. `02-trust-flow.md` kennt den Min-Cut ausschliesslich als Kapazitätsschranke und daneben den
+Begriff `Grenze` — die ehrlichen Knoten mit mindestens einer Angriffskante. Das sind zwei
+verschiedene Mengen, und der Text sagt nirgends, dass sie es sind. Zwei unabhängig gebaute
+Fassungen sind auf dieselbe falsche Zusammenlegung gekommen; das ist kein Zufall zweier Leser,
+sondern die naheliegende Lesart des vorliegenden Textes.
+
+**Beschluss 1 — `02` normiert die Ausgabeform nicht.** Der Schnitt als Knotenliste ist
+Diagnoseausgabe einer Implementierung, nicht Gegenstand des Layers. Er steht in `02a §3`, wo er
+hingehört, und künftige Aufträge geben ihn vor, statt ihn der Fassung zu überlassen. Eine
+Normierung in `02` würde einen Layer, der über Schranken spricht, um eine Ausgabevorschrift
+erweitern.
+
+**Beschluss 2 — was `02` fehlt, ist die Unterscheidung selbst.** `§4` bekommt einen Absatz: die
+Schranke ist eine Kapazität und keine Knotenmenge, und `Grenze` ist nicht der minimale Schnitt.
+Besteht der Schnitt ausschliesslich aus Vouch-Kanten, enthält er keine interne Kante und damit
+keinen Knoten, während `Grenze` nicht leer ist. Wer beides gleichsetzt, liest aus einer leeren
+Schnittmenge fälschlich einen fehlenden Engpass. Genau diese Leerstelle hat beide Fassungen
+gleich fehlgeleitet.
+
+**Beschluss 3 — Korrektur an D374.** Der dortige Abnahmesatz dehnte die Übereinstimmung der
+beiden Fassungen auf die Referenz aus, auch für die Schnittmengen. Gegen die Referenz geprüft
+waren sie nicht. Der Satz ist eingeschränkt und verweist hierher. Das ist die D366-Klasse an
+einer Stelle, die Prüfregel 75 nicht abdeckt: sie gilt für Codezustands-Behauptungen im
+Sitzungsstart, nicht für Abnahmesätze im Register. Eine eigene Regel dafür wäre Zeremonie — der
+Fehler war nicht, die Messung zu unterlassen, sondern das Ergebnis einer Messung auf einen
+Gegenstand auszudehnen, der nicht in ihr vorkam.
+
+**Verworfen: die beiden Fassungen als fehlerhaft zu führen.** Sie haben aus dem Ankersatz
+korrekt gelesen, der die Form nicht vorschreibt und den Auftrag zur eigenen Entscheidung
+ausdrücklich enthielt. Was sie ausgeben, ist eine zulässige Lesart; nur die Gleichsetzung mit der
+Referenz war unzulässig, und die stammt von hier.
+
+**Die Kopie divergiert ab jetzt.** `hs/spec/02-trust-flow.md` bleibt auf dem Ankercommit und
+trägt den neuen Absatz nicht. Das ist die in D371 benannte schwächste Stelle, zum ersten Mal
+eingetreten und nicht mehr hypothetisch. Ein Auftrag, der auf diese Kopie zeigt, misst weiter den
+Text ohne den Absatz — was für den Vergleich mit den beiden vorliegenden Fassungen richtig ist
+und für eine dritte Fassung nachgezogen werden muss.
+
+**Wie geprüft, und die schwächste Stelle.** Die drei Referenzwerte stammen aus den Zusicherungen
+in `test_anchors.py`, die Referenzlesart aus `graph.py`, die Normierung aus `02a §3`. Schwächste
+Stelle: ob weitere Ausgänge der beiden Fassungen ungeprüft gegen die Referenz stehen, ist nicht
+gemessen. Flusswerte, Budget und Befunde sind es, Schnitt war es nicht — und die Liste der
+Ausgänge ist damit erschöpft, aber das ist Abzählen und kein Test.
+
+**Was folgt.** Der Zustands-Vektorsatz aus Anker 5, wie in D374 beschlossen.

@@ -277,6 +277,13 @@ Schnittkapazität. Jeder Pfad von der Quelle nach `T*` passiert einen ehrlichen 
 Kantenkapazitäten `⌊n·C(·)/D⌋` aus §3.1 können den Fluss nur weiter **senken**, nie anheben;
 die Schranke gilt daher erst recht. ∎
 
+> **Die Schranke ist eine Kapazität, keine Knotenmenge.** Der Satz nennt eine Zahl. Welche Knoten
+> den minimalen Schnitt bilden, ist für ihn ohne Belang, und dieser Layer schreibt dafür keine
+> Ausgabeform vor. Insbesondere ist `Grenze` **nicht** der minimale Schnitt: besteht der Schnitt
+> ausschliesslich aus Vouch-Kanten, enthält er keine interne Kante und damit keinen Knoten,
+> während `Grenze` nicht leer ist. Wer beides gleichsetzt, liest aus einer leeren Schnittmenge
+> fälschlich einen fehlenden Engpass.
+
 Hinge die Quelle an `a_out`, wäre der Satz **falsch**: drei Kanten mit `n = D` von einem
 Anker mit `C₀ = 16, D = 4` tragen je `⌊4·16/4⌋ = 16` und simultan 48 gegen eine behauptete
 Schranke von 16. Die Anbindung an `a_in` ist kein Konventionsdetail, sondern die

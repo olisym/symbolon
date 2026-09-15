@@ -15379,3 +15379,46 @@ Text von einem davon abrückt. D371 hat diese Lage für einen Anker benannt; sie
 weiteren schlechter und ist weiterhin nicht instrumentiert.
 
 **Was folgt.** Der Auftrag `rs/AUFTRAG.md`, mit dem Ankercommit aus dieser Kopie.
+
+### D384 — Die beiden Haskell-Fragenlisten kommen in den Baum, mit ihrem Vorbehalt
+
+**Anlass.** D374 Beschluss 4 macht die Gliederung der Fragenlisten zur Vorbedingung für den Start
+einer dritten Fassung. Der Posten ist liegen geblieben, und der Grund ist gemessen statt vermutet:
+zwei der drei Listen liegen nicht im Baum.
+
+**Gemessen — wo sie liegen.** `go/FRAGEN.md` steht in `main`. Die Liste der ersten Haskell-Fassung
+steht in `00bo-hs:hs/FRAGEN.md` mit 403 Zeilen, und dieser Branch ist nicht gespiegelt. Die
+Liste der zweiten steht in `~/mar-hs2/FRAGEN.md` mit 244 Zeilen, ausserhalb jeder Sicherung
+dieses Projekts. `hs/AUFTRAG.md` nennt die Fragenliste das wichtigste Ergebnis der Arbeit; zwei
+Drittel davon waren nicht mitversioniert, nicht gespiegelt und für den Supervisor nicht lesbar.
+
+**Beschluss 1 — Ort und Unversehrtheit.** `hs/FRAGEN-1.md` und `hs/FRAGEN-2.md` neben
+`hs/AUFTRAG.md`, Inhalt unverändert. Die Nummerierung bleibt, wie sie ist; eine Umstellung beim
+Import wäre eine Änderung am Beleg im selben Zug, in dem er gesichert wird.
+
+**Beschluss 2 — der Vermerk liegt daneben, nicht im Artefakt.** `hs/FRAGEN-STAND.md` trägt
+Herkunft, abgeleitete Blobs, Zeilenzahlen und die Vorbehalte. Dieselbe Trennung wie bei
+`spec/STAND.md` und aus demselben Grund: ein Ergebnis, in das beim Einlagern hineingeschrieben
+wird, ist als Beleg entwertet.
+
+**Beschluss 3 — der Kontaminationsvorbehalt wird mitgeführt, nicht vorausgesetzt.** D374 belegt
+die Kontamination der ersten Fassung. Ihre Fragen bleiben verwertbar; eine Übereinstimmung
+zwischen ihrer Liste und der Referenzlesart ist es nicht. Ohne Vermerk liest ein späterer
+Vergleich drei gleichrangige Listen, wo zwei unabhängig sind.
+
+**Verworfen: nur die zweite Liste importieren.** Sie ist die unkontaminierte, und der Import wäre
+billiger. Die erste trägt aber die Fragen, an denen sich zeigt, welche Stellen des Textes auch mit
+Vorwissen noch mehrdeutig blieben — das ist der schärfere Befund, nicht der schwächere.
+
+**Verworfen: den Vermerk als Kopf in die Dateien schreiben.** Bequemer zu lesen und teurer zu
+verantworten: die Blob-Angabe bezöge sich dann auf eine Datei, die es vor dem Import nicht gab.
+
+**Verworfen: gleich umstellen.** Die Ordnung nach Spec-Abschnitt wird aus allen drei Listen
+abgeleitet und nicht vorab gesetzt. Zwei davon waren beim Fassen dieses Eintrags nicht lesbar.
+
+**Wie geprüft, und die schwächste Stelle.** Pfade, Zeilenzahlen und die Branchlage sind gemessen;
+die Blobs leitet der Import ab. Schwächste Stelle: die Herkunft der zweiten Liste ist ein
+Dateipfad ohne Commit dieses Repositoriums. Der Import friert einen Stand ein und belegt nicht,
+dass es der Stand ist, der zum gemeldeten Lauf gehört.
+
+**Was folgt.** Die Ordnung nach Spec-Abschnitt (D374 Beschluss 4), dann `rs/AUFTRAG.md`.

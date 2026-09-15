@@ -14982,3 +14982,75 @@ ungemessen, bis eine Fassung mit begrenztem Typ existiert. Das Ergebnis wird als
 Fragen beantworten und die andere schärfen, nicht beide schliessen.
 
 **Was folgt.** Der Falltest, dann die Sprachwahl, dann die neue Ankerkopie.
+
+### D378 — Der Falltest bekommt sein Profil, und die Schwelle teilt sich in zwei
+
+**Anlass.** D377 setzt den Falltest an: ein Kapazitätsprofil mit grossem C0, das die beiden
+Kodierungen der unendlichen Kante trennt. Beim Entwurf des Profils ist die Rechnung aufgegangen
+und zugleich anders ausgegangen als der Ansatz.
+
+**Gemessen — der Aufbau, und warum nicht Variante A.** Kette ALICE → BOB → CAROL mit je n=4, dann
+ein Fächer CAROL → g1 mit n=2 und CAROL → g2, CAROL → g3 mit je n=1. Die Budgetsumme bei CAROL
+ist damit genau D=4: das Profil trägt **null Befunde** und braucht `include_flagged` nicht.
+Variante A aus `TP-02` wäre der naheliegende Aufbau gewesen und ist der falsche. Sie ist
+überzeichnet — CAROL vergibt 3 mal 4 gegen D=4 —, und ihre Ankerwerte entstehen nur mit gesetztem
+Flag; gemessen wurde das, nicht vermutet: ohne Flag liefert Variante A den Wert 0 und einen leeren
+Schnitt. Ein Falltest, der eine Obergrenze messen soll, hat keine Überzeichnung danebenzulegen.
+
+**Gemessen — drei Sprossen, alle gegen die Referenz gerechnet.** Ein Graph, nur C0 variiert;
+`value` ist in allen drei C0/4, `disjoint_paths` ist 1, der Schnitt ist CAROL, die Befundliste ist
+leer. Die Einzelwerte folgen den Kantenkapazitäten: C0/8 für g1, C0/16 für g2 und g3.
+
+| Sprosse | C0 | value | INF | int64 | festes Literal 10^18 |
+| --- | --- | --- | --- | --- | --- |
+| R1 | 1152921504606846976 | 288230376151711744 | 4467570830351532033 | trägt | richtig |
+| R2 | 3458764513820540928 | 864691128455135232 | 13402712491054596097 | überläuft | richtig |
+| R3 | 4611686018427387904 | 1152921504606846976 | 17870283321406128129 | überläuft | klippt |
+
+**Befund 1 — INF hängt am Graphen, nicht an den Parametern.** `02a §2.8` bestimmt INF als Summe
+aller endlichen Kapazitäten plus eins. Für diesen Aufbau sind das 31 mal C0 durch 8 plus eins, für
+den Variante-A-Aufbau 35 mal C0 durch 8 plus eins, für die blosse Kette auf ein Ziel 29 mal C0
+durch 8 plus eins. Die Frage, ob INF in einen begrenzten Standardtyp passt, ist damit keine
+Eigenschaft der Kalibrierung, sondern eine des vorgelegten Claim-Bestandes. Eine Fassung mit
+begrenztem Typ kann keine Schranke an C0 prüfen, ohne den Graphen schon gebaut zu haben.
+
+**Befund 2 — die beiden Schwellen fallen auseinander, und dazwischen gewinnt die Abkürzung.** Das
+feste Literal bindet, sobald der Flusswert es überholt, hier also ab C0 grösser als 4 mal 10^18.
+Die spec-konforme Summe sprengt int64 schon ab 31 mal C0 durch 8 grösser als 2^63 minus eins, also
+ab rund 2,38 mal 10^18. R2 liegt dazwischen. Dort rechnet die Abkürzung richtig und der Normtext
+ist in int64 nicht implementierbar. D374 hält fest, die naheliegende Wahl sei die brüchige; das
+gilt erst oberhalb der zweiten Schwelle. Unterhalb ist sie die robustere, und was sie kostet, ist
+Genauigkeit an einer Stelle, an der der Text keine Genauigkeit verlangt hat.
+
+**Beschluss 1 — drei Sprossen auf einem Graphen, nicht eine.** Ein einzelnes grosses Profil hätte
+R3 getroffen und beide Schwellen zugleich ausgelöst. Getrennt werden sie nur durch R2, und R1 hält
+fest, dass der Aufbau ohne jede Decke korrekt ist — ohne R1 wäre ein Fehler auf R3 nicht von einem
+Fehler im Profil zu unterscheiden.
+
+**Beschluss 2 — eigener Vektorsatz `FALL-02`.** Dateien `tests/trust/fall02.py`,
+`tools/export_fall02.py`, `tests/vectors/vectors_02_fall02.json`, Vergleichstest analog `TP-02`.
+Nicht in `TP-02` oder `TZ-02` aufgenommen, aus dem Grund aus D376 Beschluss 1 und D377: beide
+Dateien sind Eingabe gelaufener Fassungen, und ein zusätzliches Profil entwertet den Vergleich mit
+ihnen. `t_exp` bleibt in den Claims und nicht im Export, nach D374 Beschluss 2.
+
+**Beschluss 3 — Falltest, keine Ankerzeile.** `02-golden-anchors.md` bleibt unberührt. Die
+Erwartung ist aus C(d) und cap(e) abgeleitet, nicht gesetzt: die Werte messen nicht den Text,
+sondern ob eine Fassung eine Entscheidung robust getroffen hat, die der Text ihr überlässt.
+
+**Verworfen: Zweierpotenzen für alle drei C0.** Zwischen 2^61 und 2^62 liegt keine, die R2 trifft.
+Verlangt ist nur Teilbarkeit durch 8, damit C(d) bis d=3 ohne Abrundungsverlust bleibt; 3 mal 2^60
+erfüllt das und liegt im Fenster.
+
+**Verworfen: die blosse Kette auf ein Ziel.** Das kleinste Profil, aber 29 mal C0 durch 8 legt
+beide Schwellen zwischen dieselben zwei Zweierpotenzen. R2 verschwindet, und mit ihr der einzige
+Befund, den D377 nicht schon hatte.
+
+**Wie geprüft, und die schwächste Stelle.** Alle Zahlen im Supervisor-Sandbox gegen die Referenz
+gerechnet, keine getippt; die Erwartung stand vor dem Lauf, und die Überzeichnung von Variante A
+ist dabei aufgefallen, nicht vorher gewusst. Schwächste Stelle: das Verhalten der zweiten
+Haskell-Fassung auf R3 ist vorhergesagt, nicht gemessen. Wert 10^18 und leerer Schnitt folgen aus
+gelesenem Quelltext — `inf = 1000000000000000000`, drei Verwendungsstellen —, der Lauf steht aus.
+Trifft die Vorhersage nicht ein, ist die Vorhersage falsch und nicht der Falltest.
+
+**Was folgt.** Der Lauf im Repositorium, dann beide vorliegenden Fassungen gegen `FALL-02`, dann
+die Sprachwahl.

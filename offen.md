@@ -373,3 +373,7 @@ die `TZ-02` und den D375-Absatz mitführt.
 
 Nach D377 geht der Falltest zum Kapazitätsbereich der Sprachwahl voraus. Danach erst die
 Ankerkopie, die `TZ-02` und den D375-Absatz mitführt.
+
+Nach D378 steht das Profil des Falltests: `FALL-02`, drei Sprossen auf einem Graphen ohne
+Überzeichnung, Erwartungen abgeleitet statt gesetzt. Offen ist der Lauf gegen beide vorliegenden
+Fassungen und danach die Sprachwahl.

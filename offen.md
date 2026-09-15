@@ -377,3 +377,15 @@ Ankerkopie, die `TZ-02` und den D375-Absatz mitführt.
 Nach D378 steht das Profil des Falltests: `FALL-02`, drei Sprossen auf einem Graphen ohne
 Überzeichnung, Erwartungen abgeleitet statt gesetzt. Offen ist der Lauf gegen beide vorliegenden
 Fassungen und danach die Sprachwahl.
+
+### O63 Der INF-Sentinel hängt am Bestand, nicht an der Kalibrierung
+
+Aus D378 Befund 1 und D379. `02a §2.8` bestimmt INF als Summe aller endlichen Kapazitäten plus
+eins; die Summe wächst mit dem vorgelegten Claim-Bestand. Offen ist, ob eine engere Schranke
+normiert wird — der in D379 skizzierte Kandidat hängt nur an Ankerzahl und Kalibrierung — und ob
+das Schnittargument dafür bei mehreren Ankern, bei direkten Anker-nach-Ziel-Kanten und im
+Einheitslauf trägt.
+
+Stolperdraht: `FALL-02` pinnt drei INF-Werte. Jede Änderung an §2.8 zieht diese Zusicherungen mit
+und entwertet den Vergleich mit Fassungen, die auf dem alten Sentinel gelaufen sind. Die
+Reihenfolge ist deshalb festgelegt: erst der Lauf, dann dieser Posten.

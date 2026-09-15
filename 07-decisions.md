@@ -15054,3 +15054,49 @@ Trifft die Vorhersage nicht ein, ist die Vorhersage falsch und nicht der Falltes
 
 **Was folgt.** Der Lauf im Repositorium, dann beide vorliegenden Fassungen gegen `FALL-02`, dann
 die Sprachwahl.
+
+### D379 — INF hängt am Bestand, und das ist vermutlich mehr Spielraum als das Argument braucht
+
+**Anlass.** D378 Befund 1. Beim Entwurf von `FALL-02` aufgefallen, dort benannt und nicht
+entschieden, weil die Runde dem Falltest gehörte.
+
+**Der Befund, mit Zahlen.** `02a §2.8` setzt INF als Summe aller endlichen Kapazitäten plus eins.
+Die Summe läuft über alle Knotenkapazitäten und alle Kanten aus E+. Für die drei in D378
+gerechneten Aufbauten ergibt das 29, 31 und 35 Achtel von C0 — bei sechs bis sieben Identitäten
+und drei bis fünf Kanten. Der Faktor wächst mit dem vorgelegten Bestand und ist nach oben durch
+nichts beschränkt, was in der Kalibrierung stünde.
+
+**Warum das mehr ist als eine Unschönheit.** Erstens lässt sich keine Schranke an C0 angeben, die
+eine Fassung vor dem Bau des Graphen prüfen könnte. Zweitens ist damit auch die Frage, ob INF in
+einen begrenzten Standardtyp passt, nicht aus den Parametern heraus zu beantworten. Drittens hängt
+daran die Sprachwahl aus D370 und D377: das Typkriterium wiegt nur so schwer, wie der Sentinel
+gross ist.
+
+**Kandidat für eine engere Schranke — ausdrücklich skizziert, nicht bewiesen.** Der Sentinel muss
+allein gross genug sein, um nie selbst zu binden. Im Flusslauf passiert jeder Pfad die interne
+Kante eines Ankers, denn Anker und Ziele sind disjunkt; der Schnitt aus der Quelle und den
+Anker-Eingängen hat deshalb die Kapazität Summe der C(0) über die Anker, und der Flusswert liegt
+darunter. Im Einheitslauf trägt jede Vouch-Kante 1 und jeder Pfad benutzt mindestens eine, also
+beschränkt die Kantenzahl. Eins plus das Grössere von beidem wäre damit hinreichend und hinge nur
+an Ankerzahl und Kalibrierung. Bei einem Anker wäre das C0 plus eins statt 31 Achtel C0 plus eins
+— die int64-Schwelle verschöbe sich um knapp Faktor vier.
+
+**Beschluss — O63, keine Textänderung in dieser Sitzung.** `02a §2.8` bleibt, wie es ist, bis der
+Falltest gelaufen ist. Grund: `FALL-02` ist Eingabe für beide vorliegenden Fassungen und pinnt in
+`tests/trust/test_fall02.py` drei INF-Werte. Eine Änderung an §2.8 zöge diese Zusicherungen mit
+und damit die Vergleichsfläche unter einem Vergleich weg, der noch läuft. Käme die engere Schranke
+zuerst, verschwände womöglich R2 — die Sprosse, wegen der der Falltest drei Profile hat.
+
+**Verworfen: jetzt ändern.** Siehe oben; ausserdem ist das Schnittargument nicht geprüft. Ein
+Normtext, der auf einer Skizze beruht, ist schlechter als einer, der zu grosszügig ist.
+
+**Verworfen: als Fussnote in D378 belassen.** Der Befund berührt `02a §2.8`, die Sprachwahl und
+die Frage, was eine Fassung überhaupt vorab prüfen kann. Was in einem fremden Eintrag als
+Nebensatz steht, ist in einem Jahr nicht auffindbar.
+
+**Wie geprüft, und die schwächste Stelle.** Die drei Faktoren sind gerechnet, nicht geschätzt.
+Schwächste Stelle ist der Kandidat: das Schnittargument ist skizziert und weder bei mehreren
+Ankern noch bei einer direkten Anker-nach-Ziel-Kante durchgespielt. Genau diese Arbeit benennt
+O63; sie ist hier nicht getan.
+
+**Was folgt.** Erst der Lauf gegen beide Fassungen, dann O63.

@@ -15483,3 +15483,48 @@ Pflichtangabe in Beschluss 3.
 
 **Was folgt.** Der Werkzeugauftrag für `tools/check_fragen.py` und `fragen-index.md`, danach
 `rs/AUFTRAG.md`.
+
+### D386 — Die Adressen der Altlisten werden zugeordnet, nicht extrahiert
+
+**Anlass.** D385 Beschluss 3 unterstellt, je eine Extraktionsregel und eine kurze Ausnahmeliste
+reiche, um die drei vorhandenen Fragenlisten zu erschliessen. Das ist vor dem Werkzeugauftrag
+gemessen worden statt beim Schreiben des Auftrags aufzufallen.
+
+**Gemessen — wie weit die Regeln tragen.** `go/FRAGEN.md`: 12 von 22 Titeln nennen eine Stelle,
+10 nennen keine. `hs/FRAGEN-1.md`: 17 von 27 Titeln tragen ein `§`; von den zehn übrigen tragen
+drei die Adresse in anderer Form (`01 B.1`, `01 B.2`, `01 Anhang A`), vier zeigen auf den Auftrag,
+einer auf die Bibliothek, zwei auf nichts.
+
+**Gemessen — und die Lücke sitzt an der teuersten Stelle.** Von den zehn adresslosen Titeln in
+`go/FRAGEN.md` betreffen fünf die CBOR-Dekodierung: Trailing-Bytes nach einem Item,
+Indefinite-Length und Break, doppelte Map-Keys, Extra-Keys und Pflichtfelder, kanonische
+Re-Serialisierung. Das ist durchweg `01 §3` und der dichteste Punkt der ganzen Liste. Eine Regel,
+die dort blind ist, erzeugt einen Index, der den Hotspot unter „ohne Adresse" führt — also genau
+das Gegenteil dessen, wofür D374 Beschluss 4 die Ordnung verlangt.
+
+**Beschluss 1 — die Zuordnung leistet der Supervisor.** `fragen-adressen.md` in der Wurzel, je
+Zeile Quelle, Eintragsnummer und kanonische Adresse nach D385 Beschluss 1. Welche Spec-Stelle ein
+fremd formulierter Eintrag betrifft, ist eine Lesart, kein Musterabgleich.
+
+**Beschluss 2 — das Werkzeug extrahiert keine Adressen.** Es prüft die Zuordnung gegen die Listen
+— jede Überschrift genau eine Zeile, jede Zeile eine vorhandene Überschrift — und erzeugt daraus
+`fragen-index.md`. Damit bleibt die Mechanik prüfbar und das Urteil belegt.
+
+**Beschluss 3 — D385 Beschluss 3 gilt nur in seiner zweiten Hälfte weiter.** Neue Fragenlisten
+tragen die Adresse als Pflichtfeld; der Rust-Auftrag schreibt es vor. Die Extraktionsregeln und die
+Ausnahmeliste entfallen ersatzlos.
+
+**Verworfen: die Regel auf die erste `§`- oder Anhang-Nennung irgendwo im Titel erweitern.** Hebt
+`go/FRAGEN.md` von 12 auf 15 und lässt die fünf CBOR-Einträge weiter draussen. Der billige Teil
+würde automatisiert und der teure bliebe liegen.
+
+**Verworfen: die adresslosen Einträge unter einer Sammeladresse führen.** Kostenlos, und es macht
+den Index an der einzigen Stelle stumpf, an der er etwas zeigen soll.
+
+**Wie geprüft, und die schwächste Stelle.** Titel gegrept, nicht überschlagen; die adresslosen
+Titel sind einzeln gelesen. Schwächste Stelle: die Zuordnung ist mein Urteil über fremde Einträge,
+und wo ein Eintrag zwei Stellen gleich stark betrifft, entscheidet meine Lesart, was im Index vorn
+steht. Der Index nennt deshalb die Adresse und nicht die Begründung — wer zweifelt, liest den
+Eintrag.
+
+**Was folgt.** `fragen-adressen.md`, dann der Werkzeugauftrag, dann `rs/AUFTRAG.md`.

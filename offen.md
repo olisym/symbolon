@@ -346,6 +346,10 @@ der Max-Flow kommt aus einer Bibliothek. Der Ankersatz ist `01-claim-atom.md` un
 zurückgehalten. Offen bleibt die Sprache — Prüfregel 15 verlangt den Literaturcheck vor der
 Wahl. Offen bleibt ebenso, wann die Ankerkopie angelegt wird; bis dahin ist nichts eingefroren.
 
+Nach D382 ist die Sprache Rust, nach D383 liegt der Anker in `rs/spec/` auf dem Kopf
+zum Zeitpunkt der Kopie und trägt gegenüber `hs/spec/` zwei Kästen mehr in `02 §4`
+(D375, D381). Offen ist der Auftrag `rs/AUFTRAG.md`.
+
 Nach D370 steht die Sprache: Haskell, mit `fgl` (`Data.Graph.Inductive.Query.MaxFlow`, nicht
 `MaxFlow2`) und `crypton` (nicht `ed25519`). Offen bleibt allein, wann die Ankerkopie angelegt
 und der Auftrag geschrieben wird; bis dahin ist nichts eingefroren.

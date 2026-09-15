@@ -15327,3 +15327,55 @@ für petgraph als Ganzes und nicht für dieses Modul. Zweite: dass die Kanonisie
 uint-Keys zusammenfallen, ist argumentiert und nicht an Testvektoren nachgewiesen.
 
 **Was folgt.** Die neue Ankerkopie, dann der Auftrag für die dritte Fassung.
+
+### D383 — Der Rust-Anker: zwei Kästen Unterschied, und was `FALL-02` gegen ihn nicht mehr misst
+
+**Anlass.** D368 Beschluss 3 legt den Ankersatz fest, D371 Ort, Commit und Vermerkform für
+`hs/spec/`, D382 die Sprache. Die Übertragung auf die Rust-Fassung ist mechanisch, bis auf eine
+Stelle, und die ist vor dem Anlegen gemessen worden statt angenommen.
+
+**Gemessen — die Divergenz besteht aus zwei Kästen, nicht aus einem.** `01-claim-atom.md` ist
+seit `764f0da` unverändert: Blob `41016c8a` in der Wurzel und in `hs/spec/`. `02-trust-flow.md`
+hat sich in genau zwei Hunks geändert, beide in `§4`, beide Kästen: D375 (Commit `889deb9`) und
+D381 (Commit `9ca9ae0`). D382 und der Sitzungsstart `00bu` nennen nur den zweiten. Der erste ist
+nicht der kleinere: er sagt, dass `Grenze` nicht der minimale Schnitt ist und eine leere
+Schnittmenge kein fehlender Engpass — die Verwechslung, die HS2 in D380 auf R3 vorgeführt hat.
+
+**Gemessen — wieviel der D381-Kasten preisgibt.** Er trägt nicht nur die Bedingung. Er nennt die
+Herleitung und mit der Summe der `C(a)` über die Anker eine hinreichende Schranke. Was HS2 gefehlt
+hat, steht damit im Ankersatz der Rust-Fassung, bevor sie beginnt.
+
+**Was daraus folgt, und es ist kein Nebensatz.** An zwei Stellen ist die Rust-Fassung kein
+unabhängiger Zeuge mehr, sondern eine Probe darauf, ob die Reparatur trägt. Das ist ein
+brauchbares Messziel, aber ein anderes. Wer später drei Läufe nebeneinanderstellt und zweimal
+Übereinstimmung an der `∞`-Stelle liest, liest kein Ergebnis.
+
+**Beschluss 1 — Ort und Werte.** `rs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md` und
+`STAND.md`, Sprachkürzel als Verzeichnisname nach D371 Beschluss 1. Commit und Blobs werden im
+Kopierschritt abgeleitet (`git rev-parse --short HEAD`, `git hash-object`), nicht getippt.
+
+**Beschluss 2 — `STAND.md` benennt den Unterschied zum Haskell-Anker.** Nicht nur die
+zurückgehaltenen Dateien, wie D371 Beschluss 3 verlangt, sondern auch die beiden Kästen und den
+Commit, gegen den sie fehlen. Der Vermerk richtet sich an den Vergleich der drei Läufe, nicht an
+die Fassung selbst; ohne ihn liegt die Information allein in diesem Registereintrag.
+
+**Beschluss 3 — der Verweis auf `02a §2.8` bleibt stehen.** Der `∞`-Kasten zeigt auf eine
+zurückgehaltene Datei. Ihn zu kürzen hiesse, den Anker zu redigieren; `STAND.md` weist den
+Verweis stattdessen als bewusst ins Leere führend aus und hält fest, dass die Bedingung im Kasten
+vollständig ist.
+
+**Verworfen: die Kopie auf `764f0da` einfrieren, um die drei Läufe vergleichbar zu halten.** In
+D382 bereits verworfen und hier bestätigt: eine Fassung gegen den unreparierten Text baut einen
+bekannten Mangel absichtlich nach, und D371 Beschluss 2 benennt den Kopf zum Zeitpunkt der Kopie.
+
+**Verworfen: die beiden Kästen aus der Kopie streichen.** Das erhielte die Messfläche und machte
+den Anker zu einem redigierten Text, dessen Herkunft kein `git hash-object` mehr belegt. Ein
+Anker, den jemand für die Messung zurechtschneidet, ist keiner.
+
+**Wie geprüft, und die schwächste Stelle.** Blobs, Commits und der Diff sind gelesen, nicht
+angenommen; die Zahl der Kästen ist gegrept. Schwächste Stelle: ab hier laufen drei eingefrorene
+Anker nebeneinander — `go/spec/`, `hs/spec/`, `rs/spec/` —, und nichts meldet, wenn der laufende
+Text von einem davon abrückt. D371 hat diese Lage für einen Anker benannt; sie wird mit jedem
+weiteren schlechter und ist weiterhin nicht instrumentiert.
+
+**Was folgt.** Der Auftrag `rs/AUFTRAG.md`, mit dem Ankercommit aus dieser Kopie.

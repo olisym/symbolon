@@ -15625,3 +15625,65 @@ Lauf misst an diesen Stellen, ob die Vorgabe trägt, und nicht mehr, ob der Text
 
 **Was folgt.** Das Arbeitsverzeichnis anlegen, Ankerkopie und Vektoren hineinkopieren, dann der
 Lauf.
+
+### D389 — Werkzeuggedächtnis ist ein eigener Kontaminationskanal
+
+**Anlass.** Vor der Beauftragung der dritten Fassung ist geprüft worden, ob das Werkzeugmodell
+das Projekt kennt. Die Probe war zuerst falsch gebaut und hat dabei mehr gezeigt als richtig
+gebaut.
+
+**Gemessen — die erste Probe taugt als Detektor nicht.** Gefragt war nach den erwarteten Werten
+für Variante A. Die Antwort traf die Ankertabelle in jeder Zahl — und beweist nichts, weil diese
+Zahlen aus Spec und Eingabedatei berechenbar sind. D374 sagt denselben Satz bereits: eine korrekte
+unabhängige Fassung sieht aus wie eine abgeschriebene. Ich habe ihn im selben Zug zitiert und eine
+Probe gebaut, die ihn ignoriert.
+
+**Gemessen — was das Werkzeug dennoch überführt.** Genannt wurden der Aufbau der zurückgehaltenen
+Ankerdatei einschliesslich der Verortung von `A′`, die Existenz zweier weiterer Ankerdateien zu
+späteren Layern, die Umbenennung des Python-Pakets und Einzelheiten der beiden Haskell-Läufe.
+Nichts davon steht im Ankersatz, nichts ist berechenbar. Die Quelle sind nach eigener Auskunft
+frühere Sitzungen desselben Werkzeugs.
+
+**Beschluss 1 — der Kanal heisst Werkzeuggedächtnis, und D374 wird insoweit korrigiert.** Dort
+heisst es, die erste Haskell-Fassung sei versehentlich im Repositoriumskontext gelaufen und die
+zweite in einem Isolat ohne Pfad nach aussen. Das trifft die Dateiseite. Ein Werkzeug, das
+Sitzungen über Verzeichnisse hinweg erinnert, hält kein Dateisystem-Isolat auf. Für die zweite
+Fassung gilt damit: dateiseitig isoliert, werkzeugseitig unbelegt.
+
+**Gemessen — die zweite Fassung hält der Gegenprobe stand.** `hs/FRAGEN-2.md` nennt eine einzige
+D-Nummer, `D41`, und die steht in `02-trust-flow.md` im Ankersatz. Keine Treffer auf `golden`,
+`anchor`, `02a` oder Python-Bezeichner. Kein Beweis der Unabhängigkeit, aber die Methode, die die
+erste Fassung überführt hat, schlägt hier nicht an.
+
+**Beschluss 2 — der Detektor wird benannt, bevor er gebraucht wird.** Neun Registernummern stehen
+in `02-golden-anchors.md` und in keiner Datei des Ankersatzes: D19, D24, D31, D32, D36, D39, D44,
+D135, D256. Wer eine davon im Zusammenhang mit Layer 02 nennt, hat die Ankerdatei oder das
+Register gesehen. D367 steht in beiden — in der Ankerdatei und in `rs/spec/STAND.md` — und fällt
+als Detektor deshalb aus.
+
+**Beschluss 3 — die Herkunftszeile des Ankersatzes nennt keine Adresse mehr.** `rs/spec/STAND.md`
+wies Gitea und den öffentlichen Spiegel aus. Der Spiegel ist öffentlich, ein Klon dauert Sekunden,
+und damit lag die Adresse des Lösungsblatts ausgerechnet in der Datei, die das Zurückhalten
+begründet. Commit und Blobs bleiben; sie sind der Nachweis, die Adresse war Bequemlichkeit.
+`hs/spec/STAND.md` bleibt unverändert — sie belegt, was die Haskell-Fassungen gesehen haben, und
+ein Beleg wird nicht nachgebessert.
+
+**Beschluss 4 — die Isolation wird erzwungen, nicht beauftragt.** Der Lauf findet in einem
+Container statt, dem ausser dem Arbeitsverzeichnis nichts gemountet ist. Das Nicht-Ziel im Auftrag
+bleibt stehen, taugt aber nicht als Zaun: das geprüfte Modell hat eine blosse Wissensfrage mit
+einer Suche über das gesamte Dateisystem zu beantworten versucht, bevor der Auftrag überhaupt lief.
+
+**Verworfen: eine Netz-Allowlist im Container.** Sie wäre der harte Riegel gegen Klonen und
+Websuche und kostet einen Proxy samt Regelwerk. Stattdessen nimmt Beschluss 3 die Bequemlichkeit
+und Beschluss 2 misst hinterher. Das Restrisiko bleibt und ist hiermit benannt statt beseitigt.
+
+**Verworfen: die Ankerkopie ganz ohne Herkunftsangabe.** Dann wäre der Blob-Nachweis
+unnachvollziehbar und D371 Beschluss 2 gegenstandslos. Die Angabe bleibt, nur ohne Abrufpfad.
+
+**Wie geprüft, und die schwächste Stelle.** Die Antworten beider geprüfter Werkzeuge liegen vor;
+die Zahlen sind gegen `02-golden-anchors.md` gehalten, die Nicht-Ableitbarkeit der übrigen Angaben
+gegen den Ankersatz. Schwächste Stelle: der Detektor wirkt nachträglich und nur, wenn eine Fassung
+ihre Quelle unbedacht zitiert. Eine Fassung, die abschreibt und schweigt, bleibt unentdeckt — bei
+der ersten Haskell-Fassung hing die Entdeckung an einer einzigen unbedachten Nummer.
+
+**Was folgt.** Die Arbeitskopie wird neu gezogen, dann der Lauf.

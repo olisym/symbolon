@@ -4,7 +4,7 @@ Diese Kopie ist der eingefrorene Anker für die Rust-Fassung von Layer 02 — di
 dieses Layers nach zwei Haskell-Fassungen (D367, D368, D371, D382, D383). Sie ist keine
 Arbeitskopie. Wer sie verschiebt, braucht einen Registereintrag.
 
-- Quelle: `git.h.error13.de/oli/symbolon`, gespiegelt auf `github.com/olisym/symbolon`
+- Quelle: das Hauptrepositorium dieses Projekts; die Adresse steht bewusst nicht hier
 - Commit: `15d091e`
 - Datei: `01-claim-atom.md`, Blob: `41016c8a5c8fb87cb113f85e70b1501eda5defa8`
 - Datei: `02-trust-flow.md`, Blob: `2de75f7f357c47777bb5e61ebc0d25e6515185cc`

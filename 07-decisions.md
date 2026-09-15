@@ -15256,3 +15256,74 @@ weil dieses Profil eigens dafür gebaut wurde.
 **Was folgt.** Die Ankerkopie unter `hs/spec/` trägt beide Änderungen nicht; das ist die seit
 D375 laufende Divergenz und für eine dritte Fassung nachzuziehen. Danach die Sprachwahl, deren
 Massstab jetzt feststeht.
+
+### D382 — Die dritte Fassung wird in Rust gebaut, und D370s Rust-Zeile war ein Lesefehler
+
+**Anlass.** D380 Beschluss 1 stellt O63 vor die Sprachwahl, D381 hat O63 geschlossen. Damit ist
+die Wahl fällig. Prüfregel 15 verlangt den Literaturcheck davor; der letzte stammt aus D370 und
+ist nachgeprüft worden, statt übernommen.
+
+**Gemessen — `petgraph`.** `algo::ford_fulkerson` ist generisch über
+`G::EdgeWeight: Sub + PositiveMeasure`, und `PositiveMeasure` ist für `u8`, `u16`, `u32`, `u64`,
+`u128` und `usize` implementiert, daneben für `f32`/`f64`. Ganzzahlige Kapazitäten sind damit
+keine Anpassung, sondern der dokumentierte Normalfall — das Beispiel der Bibliothek rechnet
+selbst mit `u8`. Seit 0.8 steht daneben ein eigenes `maximum_flow`-Modul mit Dinic. Lizenz MIT
+oder Apache-2.0.
+
+**Der Befund dazu ist unangenehm.** `ford_fulkerson` kam mit petgraph 0.6.5 am 6. Mai 2024 —
+lange vor D370. Die Bibliothekslage hat sich nicht geändert; der Check hat die meistgenutzte
+Graphbibliothek der Sprache nicht erfasst und Rust an `rs-graph` (GPL-3) und zwei
+Float-Bibliotheken ausgeschlossen. Prüfregel 15 wurde formal erfüllt und inhaltlich verfehlt.
+Daraus folgt keine neue Regel — die Regel war richtig und hat sogar funktioniert, nur eine Runde
+zu spät. Was folgt, ist die Korrektur an D370s Tabelle und der Satz, dass ein Literaturcheck,
+der die Treffer einer Suche abarbeitet, über die nicht getroffenen nichts aussagt.
+
+**Gemessen — der übrige Stapel.** Signatur: `ed25519-dalek` 3.0.0 vom Juli 2026, BSD-3-Clause,
+gepflegt, einmal formal kryptografisch geprüft — dieselbe Lage wie `crypton` bei Haskell, gedeckt
+durch D370 Beschluss 1. Hash: `sha2` aus RustCrypto, MIT oder Apache-2.0. CBOR: drei gepflegte
+Crates mit deterministischer Kodierung, darunter `cbor2` (MIT, RFC 8949 §4.2.1) und `ciborium`
+(kanonisch nach der älteren Regel RFC 7049 §3.9).
+
+**Die Kanonisierungsfrage ist gegenstandslos, und das ist gemessen.** Die beiden Regeln
+unterscheiden sich in der Ordnung der Map-Schlüssel — bytewise gegen Länge zuerst. `01 §3` Regel 1
+schreibt uint-Keys vor, und für einbytige uints fallen beide Ordnungen zusammen. Die Wahl der
+Crate ist damit eine Frage des Auftrags und keine der Korrektheit.
+
+**Beschluss 1 — Rust.** Alle vier Kriterien aus D370 sind gleichzeitig erfüllt: ganzzahliger
+Max-Flow aus einer Bibliothek, kein Float im Solver (K1), Apache-verträgliche Lizenz, und
+zusätzlich der begrenzte Standardtyp aus D374 Beschluss 3. Der Punkt ist das *zusätzlich*: das
+Typkriterium und die Bibliothekslage zogen nach D370 gegeneinander, und sie tun es nicht mehr.
+
+**D380 Beschluss 2 wird gegenstandslos, bevor er gewirkt hat.** Er hat das Typkriterium von
+notwendig auf wünschenswert gesetzt, weil es die Bibliothekslage kostete. Es kostet sie nicht.
+Der Beschluss bleibt in der Sache richtig — Zahlbereich und Überlauf sind gerechnet und brauchen
+keine Fassung, die sie vorführt —, aber er entscheidet nichts mehr.
+
+**Beschluss 2 — `u64` als Kapazitätstyp.** `PositiveMeasure` trägt nur vorzeichenlose Typen, und
+Kapazitäten sind nichtnegativ. Aus dem gelesenen Ausschnitt nimmt `ford_fulkerson`
+`PositiveMeasure::max()` als Startwert der Engpasssuche; der Sentinel muss deshalb unter
+`u64::MAX` bleiben. Nach D381 ist das eine Frage der Realisierung und keine der Spec — die
+Fassung trägt ihre Begründung selbst.
+
+**Beschluss 3 — die Ankerkopie kommt vor dem Auftrag.** `hs/spec/` steht auf dem alten
+Ankercommit und trägt weder `TZ-02` noch den `§4`-Absatz aus D375 noch die beiden Änderungen aus
+D381. Eine Rust-Fassung, die darauf zeigt, misst denselben veralteten Text wie ihre beiden
+Vorgänger und könnte die `∞`-Lücke ein drittes Mal reproduzieren — als Messergebnis wertlos, weil
+die Lücke inzwischen geschlossen ist.
+
+**Verworfen: eine dritte Haskell-Fassung.** D374 Beschluss 3 nennt vier Grössen, die zwei
+Sprachen messen sollen; in derselben Sprache misst die dritte Fassung davon keine.
+
+**Verworfen: OCaml.** Nach D370 tragfähig und bleibt es. Rust ist vorzuziehen, weil BSD-, MIT-
+und Apache-Lizenzen die Linking-Analyse ersparen, die LGPL verlangt, und weil der begrenzte Typ
+hier im Interface des Solvers steht statt neben ihm.
+
+**Wie geprüft, und die schwächste Stelle.** Versionsdaten, Lizenzen und Trait-Implementierungen
+aus der jeweiligen Paket- oder Dokumentationsquelle gelesen, das Erscheinungsdatum von
+`ford_fulkerson` aus den Release-Notes. Schwächste Stelle: das `maximum_flow`-Modul ist jung, und
+das Changelog nennt einen kürzlich behobenen Absturz in `ford_fulkerson` auf `StableGraph`. Für
+MaR unkritisch — die Graphen sind klein und `Graph` ist der Typ der Wahl —, aber „etabliert" gilt
+für petgraph als Ganzes und nicht für dieses Modul. Zweite: dass die Kanonisierungsregeln bei
+uint-Keys zusammenfallen, ist argumentiert und nicht an Testvektoren nachgewiesen.
+
+**Was folgt.** Die neue Ankerkopie, dann der Auftrag für die dritte Fassung.

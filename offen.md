@@ -378,6 +378,10 @@ Nach D378 steht das Profil des Falltests: `FALL-02`, drei Sprossen auf einem Gra
 Überzeichnung, Erwartungen abgeleitet statt gesetzt. Offen ist der Lauf gegen beide vorliegenden
 Fassungen und danach die Sprachwahl.
 
+Nach D380 ist der Lauf durch und nach D382 die Sprache gewählt: Rust mit `petgraph`. Offen sind
+jetzt die neue Ankerkopie — sie muss `TZ-02`, den `§4`-Absatz aus D375 und beide Änderungen aus
+D381 tragen — und danach der Auftrag. Die Zustandshälfte ist weiterhin von keiner Fassung gelesen.
+
 ### O63 Der INF-Sentinel hängt am Bestand, nicht an der Kalibrierung — erledigt (D381)
 
 `02a §2.8` normiert die Bedingung statt der Formel; die Referenzbelegung und die gepinnten Werte

@@ -15570,3 +15570,58 @@ Tabellenspalte greift. Die belastbare Zahl liefert erst das Werkzeug; bis dahin 
 der Spitzenplätze eine Vermutung.
 
 **Was folgt.** Der Werkzeugauftrag, dann `rs/AUFTRAG.md`.
+
+### D388 — Die Messfläche der dritten Fassung: drei Vektorsätze, gesetzte Schnittseite, `inf`-Zeile
+
+**Anlass.** Ankerkopie (D383) und Ordnung der Fragenlisten (D374 Beschluss 4, erfüllt mit D385
+bis D387) stehen. Der Auftrag für die Rust-Fassung übernimmt das Haskell-Muster; vier Stellen
+weichen ab und werden hier entschieden, bevor die Datei entsteht.
+
+**Beschluss 1 — Eingabe sind alle drei Vektorsätze, zwanzig Profile.** `TP-02` mit acht, `TZ-02`
+mit neun, `FALL-02` mit drei. Die Haskell-Fassungen haben nur `TP-02` gesehen; `TZ-02` ist seit
+D376 vorbereitet und von keiner Fassung gelesen, und in `TP-02` trägt jede Zustandszeile `active`
+(D374). Eine Fassung, die `revoked`, `superseded` und `expired` nie zu Gesicht bekommt, hat die
+Zustandshälfte von Layer 02 nicht geprüft, sondern nur nicht gebraucht.
+
+**Beschluss 2 — die Schnittseite wird vorgegeben, nicht der Fassung überlassen.** D375 Beschluss 1
+verlangt das ausdrücklich. Der Auftrag schreibt die Form aus — quellseitig, gedruckt werden die
+Identitäten mit interner Kante im Schnitt, sortiert nach Bytes, leere Zeile zulässig, gerechnet
+für `simultan` —, ohne die zurückgehaltene Datei zu nennen, aus der sie stammt. Beide
+Haskell-Fassungen haben hier geraten und verschieden geraten; der Vergleich ihrer Schnittzeilen
+war wertlos.
+
+**Beschluss 3 — eine neue Ausgabezeile `inf`.** Sie nennt den Zahlwert, mit dem die Fassung
+unbeschränkte Kanten belegt, oder `inf keiner`, wenn sie keinen materialisiert. HS2s Abweichung
+in D380 war allein am simultanen Endwert sichtbar und musste auf den Sentinel zurückgerechnet
+werden. Der Wert ist keine Ankerzahl und verrät nichts; er macht die Belegung sichtbar, statt sie
+aus dem Ergebnis zu erschliessen.
+
+**Beschluss 4 — Bibliotheken und Zahltyp stehen im Auftrag, nicht zur Wahl.**
+`petgraph::algo::ford_fulkerson` auf `Graph`, ausdrücklich nicht auf `StableGraph` und nicht das
+jüngere `maximum_flow`-Modul; `ed25519-dalek`, `sha2`, `ciborium`. Kapazitätstyp `u64` (D382
+Beschluss 2, D374 Beschluss 3), ohne Ausweichen auf `u128` oder Bignum, auch nicht als
+Zwischenrechnung. Ein Überlauf ist zu melden, nicht zu umgehen — sonst misst der Lauf die
+Findigkeit der Fassung statt die Tragfähigkeit des Typs.
+
+**Beschluss 5 — die Fragenliste trägt die Adresse als Pflichtfeld** in der Form aus D385
+Beschluss 1. Damit entfällt für diese Liste die Zuordnung von Hand (D386 Beschluss 3).
+
+**Verworfen: nur `TP-02` geben, wie bei den Haskell-Fassungen.** Hielte die drei Läufe
+vergleichbar und wiederholte die Lücke, die D374 benannt hat. Die Vergleichbarkeit ist ohnehin
+dahin — `rs/spec/STAND.md` führt die beiden Kästen auf, die der Haskell-Anker nicht trug.
+
+**Verworfen: die Schnittseite weiter offenlassen und die Wahl in die Fragenliste zwingen.** Das
+war D372 Beschluss 3 und hat zweimal dieselbe Frage erzeugt statt einer Antwort.
+
+**Verworfen: `u128` zulassen, wenn `u64` bei `FALL-02` nicht reicht.** Bequem und es macht den
+Falltest gegenstandslos: gemessen wird, ob der Normtext in einem begrenzten Standardtyp
+implementierbar ist, nicht ob er in irgendeinem Typ implementierbar ist.
+
+**Wie geprüft, und die schwächste Stelle.** Die Feldstruktur der drei Dateien ist gelesen und ist
+gleich; `t_exp` ist in keiner mehr vorhanden (D374 Beschluss 2), der Auftrag nennt es deshalb
+nicht mehr. Schwächste Stelle: mit Beschluss 2 und dem D381-Kasten im Ankersatz sind zwei der
+Stellen, an denen die Haskell-Fassungen auseinanderliefen, für diese Fassung vorentschieden. Der
+Lauf misst an diesen Stellen, ob die Vorgabe trägt, und nicht mehr, ob der Text sie hergibt.
+
+**Was folgt.** Das Arbeitsverzeichnis anlegen, Ankerkopie und Vektoren hineinkopieren, dann der
+Lauf.

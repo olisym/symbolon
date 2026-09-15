@@ -322,6 +322,6 @@ und `hs/FRAGEN-2.md` zu Layer 02 —, die Rust-Liste folgt.
 
 Die Listen bleiben unverändert, wie sie geschrieben wurden (D384 Beschluss 1). Die Ordnung
 entsteht daneben: `fragen-adressen §1` ordnet jedem Eintrag seine Stelle zu, und daraus wird
-`fragen-index.md` erzeugt, sortiert nach Adresse, mit einer Spalte je Fassung (D385, D386).
+`fragen-index §1` erzeugt, sortiert nach Adresse, mit einer Spalte je Fassung (D385, D386).
 
 Neue Fragenlisten tragen die Adresse als Pflichtfeld je Eintrag; für sie entfällt die Zuordnung.

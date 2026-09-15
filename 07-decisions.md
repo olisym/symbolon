@@ -15528,3 +15528,45 @@ steht. Der Index nennt deshalb die Adresse und nicht die Begründung — wer zwe
 Eintrag.
 
 **Was folgt.** `fragen-adressen.md`, dann der Werkzeugauftrag, dann `rs/AUFTRAG.md`.
+
+### D387 — Der Fragen-Index ist eine Matrix, und er wird geprüft, nicht bei jedem Lauf geschrieben
+
+**Anlass.** D385 Beschluss 2 legt `fragen-index.md` fest, sortiert nach Adresse, mit einer Spalte
+je Fassung. Vor dem Werkzeugauftrag sind zwei Dinge zu entscheiden, die dort offen sind: was in
+den Zellen steht, und wann die Datei entsteht.
+
+**Beschluss 1 — die Matrix.** Eine Zeile je Adresse, eine Spalte je Fassung, in der Zelle die
+Eintragsnummern dieser Fassung, eine Spalte `Σ` mit der Zahl der Nennungen. Keine Titel. Der Index
+ist ein Wegweiser in die Listen und kein Ersatz für sie; mit Titeln wäre er eine vierte Fassung
+desselben Textes, die still veraltet.
+
+**Beschluss 2 — Mehrfachadressen zählen unter jeder ihrer Adressen.** Ein Eintrag mit
+`01 §3 / 01 §6` erscheint in beiden Zeilen. Anders wäre die Frage „welche Stelle hat wie viele
+Fassungen stolpern lassen" für jede zweitgenannte Stelle falsch beantwortet. Folge: `Σ` zählt
+Nennungen, nicht Einträge, und die Summe über alle Zeilen ist grösser als die Zahl der Einträge.
+Der Kopf der Datei nennt beide Zahlen, damit niemand die Spalte addiert und sich wundert.
+
+**Beschluss 3 — die Ordnung.** Layer-Kürzel numerisch (`01` vor `02` vor `02a`), darin Abschnitte
+nach ihren Zahlkomponenten (`§3` vor `§3.1` vor `§10`), Anhänge nach den Abschnitten desselben
+Layers. Danach `AUFTRAG`, zuletzt `WERKZEUG` (D385 Beschluss 4).
+
+**Beschluss 4 — `make check` prüft den Index, es schreibt ihn nicht.** Ein generiertes Artefakt,
+das bei jedem Prüflauf neu geschrieben wird, macht den Arbeitsbaum schmutzig und lässt eine
+Abweichung als Dateiänderung durchgehen statt als Befund. `tools/check_fragen.py` prüft ohne
+Argument und erzeugt nur mit `--schreiben`. Weicht die Datei von der Zuordnung ab, ist das ein
+Befund wie jeder andere.
+
+**Verworfen: nach Adresse gruppierte Abschnitte mit Titeln.** Angenehmer zu lesen und teurer zu
+halten: die Titel stünden doppelt im Repositorium, und die Kopie veraltet, sobald jemand eine
+Liste anfasst. Die Matrix verweist, statt zu wiederholen.
+
+**Verworfen: den Eintrag nur unter seiner ersten Adresse führen.** Billiger zu erzeugen und es
+verfälscht genau die Zahl, für die der Index gebaut wird.
+
+**Wie geprüft, und die schwächste Stelle.** Die Zuordnung liegt seit `1219b2e` im Baum, die
+Verteilung ist überschlägig gemessen — der dichteste Punkt ist `AUFTRAG`, vor `01 §6` und `01 §3`.
+Schwächste Stelle: diese Vorabzählung erfasst nur erstgenannte Adressen, weil sie auf die
+Tabellenspalte greift. Die belastbare Zahl liefert erst das Werkzeug; bis dahin ist die Reihenfolge
+der Spitzenplätze eine Vermutung.
+
+**Was folgt.** Der Werkzeugauftrag, dann `rs/AUFTRAG.md`.

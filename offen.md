@@ -378,23 +378,7 @@ Nach D378 steht das Profil des Falltests: `FALL-02`, drei Sprossen auf einem Gra
 Überzeichnung, Erwartungen abgeleitet statt gesetzt. Offen ist der Lauf gegen beide vorliegenden
 Fassungen und danach die Sprachwahl.
 
-### O63 Der INF-Sentinel hängt am Bestand, nicht an der Kalibrierung
+### O63 Der INF-Sentinel hängt am Bestand, nicht an der Kalibrierung — erledigt (D381)
 
-Aus D378 Befund 1 und D379. `02a §2.8` bestimmt INF als Summe aller endlichen Kapazitäten plus
-eins; die Summe wächst mit dem vorgelegten Claim-Bestand. Offen ist, ob eine engere Schranke
-normiert wird — der in D379 skizzierte Kandidat hängt nur an Ankerzahl und Kalibrierung — und ob
-das Schnittargument dafür bei mehreren Ankern, bei direkten Anker-nach-Ziel-Kanten und im
-Einheitslauf trägt.
-
-Stolperdraht: `FALL-02` pinnt drei INF-Werte. Jede Änderung an §2.8 zieht diese Zusicherungen mit
-und entwertet den Vergleich mit Fassungen, die auf dem alten Sentinel gelaufen sind. Die
-Reihenfolge ist deshalb festgelegt: erst der Lauf, dann dieser Posten.
-
-**Fortgeschrieben nach D380.** Die Reihenfolgebedingung ist erfüllt — der Lauf gegen beide
-Fassungen liegt vor. Gerechnet ist ausserdem, dass der Kandidat für alle drei Sprossen in int64
-trägt, während `02a §2.8` bei R2 und R3 überläuft; der Abstand beträgt knapp Faktor vier. Neu
-benannt ist eine Bedingung, ohne die der Kandidat nicht vollständig ist: `infinity()` begründet
-den Einheitslauf über `INF > |edges| >= maxflow`, also muss eine Schranke über die
-Ankerkapazitäten die Kantenzahl ausdrücklich mit aufnehmen. Offen bleibt das Schnittargument bei
-mehreren Ankern und bei direkten Anker-nach-Ziel-Kanten. D380 Beschluss 1 stellt diesen Posten
-vor die Sprachwahl.
+`02a §2.8` normiert die Bedingung statt der Formel; die Referenzbelegung und die gepinnten Werte
+bleiben unverändert.

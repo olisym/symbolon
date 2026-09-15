@@ -173,7 +173,13 @@ teil.
   Kante des Ankers muss auf dem Pfad liegen, sonst gilt der Satz aus `§4` für einen
   über-committeten Anker nicht (Vektor A′ in T-02.1b: `48` statt `16`).
 - **Super-Sink** `t_in → T*` mit ∞ für jedes Ziel `t` (K3).
-- ∞ wird als `INF = sum(alle endlichen Kapazitäten) + 1` realisiert, nie als `float('inf')`.
+- ∞ ist ein endlicher Sentinel, nie `float('inf')`. Normativ ist die Bedingung, nicht die Formel:
+  `INF` MUSS echt grösser sein als jeder in beiden Läufen (`§4`) erreichbare Flusswert. Die
+  Referenz realisiert `INF = sum(alle endlichen Kapazitäten) + 1`; das ist hinreichend ohne
+  eigenen Beweis und bleibt die Belegung, gegen die die Vektorsätze gepinnt sind. Eine engere
+  Realisierung ist zulässig und trägt ihre Begründung selbst; hinreichend ist
+  `max(Σ_{a ∈ Anker} C(0), |E⁺|) + 1`, weil die interne Ankerkante nach dem Punkt oben auf jedem
+  Pfad liegt (`02 §4`) und im Einheitslauf jeder Pfad mindestens eine Vouch-Kante trägt.
 
 Fehler `ValueError`, wenn `anchors ∩ targets ≠ ∅` — die Frage ist nicht wohldefiniert.
 

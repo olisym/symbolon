@@ -284,6 +284,13 @@ die Schranke gilt daher erst recht. ∎
 > während `Grenze` nicht leer ist. Wer beides gleichsetzt, liest aus einer leeren Schnittmenge
 > fälschlich einen fehlenden Engpass.
 
+> **∞ ist ein Sentinel, kein Wert.** Die Kanten an `S*` und `T*` tragen keine echte Kapazität und
+> dürfen den Fluss nicht binden. Eine Implementierung realisiert sie als endliche Zahl, die jeden
+> erreichbaren Flusswert übersteigt; ein festes Literal leistet das nicht, sobald `C₀` gross genug
+> ist, und der Fluss fällt dann still zu klein aus. Die Herleitung oben liefert die Schranke mit:
+> der Anker liegt auf jedem Pfad, also genügt die Summe der `C(a)` über die Anker. Die
+> Ausgestaltung steht in `02a §2.8`.
+
 Hinge die Quelle an `a_out`, wäre der Satz **falsch**: drei Kanten mit `n = D` von einem
 Anker mit `C₀ = 16, D = 4` tragen je `⌊4·16/4⌋ = 16` und simultan 48 gegen eine behauptete
 Schranke von 16. Die Anbindung an `a_in` ist kein Konventionsdetail, sondern die

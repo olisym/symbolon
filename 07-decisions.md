@@ -15182,3 +15182,77 @@ simultanen Flusswert erschlossen und nicht direkt beobachtet — der Schluss ist
 `2^63` in der Leiter selbst bricht; `FALL-02` endet bei `2^62`.
 
 **Was folgt.** O63, mit der Einheitslauf-Bedingung als Teil des Kandidaten.
+
+### D381 — Der INF-Sentinel: normiert wird die Bedingung, nicht die Formel
+
+**Anlass.** O63, freigegeben durch D380 Beschluss 1. Die Frage war, ob die engere Schranke aus
+D379 normiert wird. Beim Nachlesen der beiden Textstellen verschob sich die Frage.
+
+**Gemessen — der Kandidat ist kein Kandidat, sondern ein Korollar.** `02 §4` beweist die
+simultane Schranke mit dem Satz, dass jeder Pfad von der Quelle nach `T*` einen ehrlichen
+Grenzknoten passiert, **einschliesslich des Ankers selbst**, dessen Durchsatz durch seine interne
+Kante gedeckelt ist. Die Ankermenge ist damit selbst ein Schnitt, und `maxflow ≤ Σ C(0)` über die
+Anker folgt aus einem Satz, der seit langem im Layer steht. `02a §2.8` normiert dieselbe
+Voraussetzung ein zweites Mal: `S* → a_in`, ausdrücklich nicht `a_out`. Das in D379 als
+unbewiesen abgelegte Schnittargument war bereits zweimal aufgeschrieben.
+
+**Gemessen — die drei Gegenfälle aus O63.** Bei mehreren Ankern trägt die Summe über sie. Bei
+einer direkten Anker-nach-Ziel-Kante trägt sie ebenfalls: die Senke hängt an `t_in` und nicht an
+`t_out` (`§2.8`, K3), das Ziel ist ungespalten, und der Pfad passiert weiterhin die interne
+Ankerkante. Eine Identität, die Anker und Ziel zugleich wäre, ergäbe einen Pfad aus zwei
+`∞`-Kanten und damit einen Flusswert in Höhe des Sentinels — dieser Fall ist durch `§2.8`
+ausgeschlossen und in `flow.py` als `ValueError` erzwungen. Im **Einheitslauf** greift der Deckel
+nicht: dort trägt die interne Ankerkante `∞` (K4), und die Schranke ist die Zahl der Vouch-Kanten,
+die im Einheitslauf je Kapazität 1 tragen.
+
+**Der Fork, und warum er anders liegt als in D379 gedacht.** Beide Formeln haben denselben
+Mangel: sie stehen als Realisierung im Normtext. Die engere bringt zusätzlich Beweislast mit, die
+still brechen kann — der Docstring von `infinity()` sagt das über die bestehende Kette selbst:
+sie bricht, falls der `cap >= 1`-Filter je gelockert wird. Eine Formel gegen die andere zu
+tauschen, hätte die Beweislast erhöht und die Schwelle nur um knapp Faktor vier verschoben.
+
+**Beschluss 1 — `02a §2.8` normiert die Bedingung.** `INF` muss echt grösser sein als jeder in
+beiden Läufen erreichbare Flusswert; das ist die Anforderung. Die Referenz behält die Summe aller
+endlichen Kapazitäten plus eins, weil sie ohne eigenen Beweis hinreichend ist. Eine engere
+Realisierung ist zulässig und trägt ihre Begründung selbst; die hinreichende Form wird genannt,
+samt der Einheitslauf-Hälfte, damit niemand sie beim Nachbauen verliert.
+
+**Was das kostet und was es spart.** Die drei in `FALL-02` gepinnten INF-Werte bleiben
+unverändert, weil die Referenz ihre Realisierung behält. Der Stolperdraht aus D379 und O63 —
+jede Änderung an §2.8 entwerte den Vergleich mit den gelaufenen Fassungen — löst sich damit auf,
+statt umgangen zu werden. Der Preis ist, dass INF-Werte zwischen Fassungen nicht mehr
+vergleichbar sind; sie waren es nie als normative Grösse, sondern nur als Nebenwirkung einer
+Formel, die zufällig überall dieselbe war.
+
+**Beschluss 2 — `02 §4` bekommt den Satz, der HS2 gefehlt hat.** Beide Haskell-Fassungen bauten
+aus `02` allein, und `§4` verlangt `∞`-Kanten ohne ein Wort über ihre Realisierung. Der Kasten
+sagt jetzt, dass diese Kanten nicht binden dürfen und ein festes Literal das bei grossem `C₀`
+nicht leistet. Das ist keine Ausgabevorschrift im Sinne von D375 Beschluss 1, sondern eine
+Aussage über die Voraussetzung des Satzes: bindet die `∞`-Kante, gilt die bewiesene Schranke
+nicht mehr.
+
+**Korrektur an D380.** Dort steht, `02 §4` lasse die Darstellung offen und HS2 habe eine
+Entscheidung getroffen, die der Text ihr überlässt. Für `§4` stimmt das; für das Gesamtwerk nicht,
+denn `02a §2.8` legte die Formel fest. HS2 hat nicht eine offene Stelle gefüllt, sondern eine
+Vorschrift nicht gesehen, die ausserhalb ihres Ankersatzes lag. Der Befund bleibt derselbe, seine
+Zurechnung ändert sich: die Lücke lag zwischen zwei Layern, nicht im Normtext.
+
+**Verworfen: die engere Formel als neue Realisierung normieren.** Sie verschiebt die
+int64-Schwelle um knapp Faktor vier, hebt sie nicht auf, und macht den Normtext von einem Beweis
+abhängig, der bei einer Änderung am Kantenfilter still bricht. Wer sie braucht, darf sie nehmen.
+
+**Verworfen: `02a §2.8` unverändert lassen.** Dann bliebe eine Realisierungsvorschrift normativ,
+die in keinem begrenzten Standardtyp implementierbar ist, sobald `C₀` über `2^61` liegt — gemessen
+in D378 und D379. Das schlösse eine dritte Fassung in einem begrenzten Typ faktisch aus, ohne dass
+diese Folge je beschlossen worden wäre.
+
+**Wie geprüft, und die schwächste Stelle.** Beide Textstellen im Wortlaut gelesen, nicht zitiert
+aus dem Gedächtnis; `build_flow_graph`, `infinity` und die Eingangsprüfung in `flow.py` gelesen;
+`node_cap` für Anker auf `capacity(params, 0)` zurückgeführt. Schwächste Stelle: die Bedingung
+„grösser als jeder erreichbare Flusswert" ist im Normtext eine Anforderung ohne Prüfverfahren.
+Eine Fassung kann sie verletzen, ohne dass ein Ankersatz das zeigt — `FALL-02` zeigt es, aber nur
+weil dieses Profil eigens dafür gebaut wurde.
+
+**Was folgt.** Die Ankerkopie unter `hs/spec/` trägt beide Änderungen nicht; das ist die seit
+D375 laufende Divergenz und für eine dritte Fassung nachzuziehen. Danach die Sprachwahl, deren
+Massstab jetzt feststeht.

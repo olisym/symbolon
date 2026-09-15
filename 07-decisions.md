@@ -15100,3 +15100,85 @@ Ankern noch bei einer direkten Anker-nach-Ziel-Kante durchgespielt. Genau diese 
 O63; sie ist hier nicht getan.
 
 **Was folgt.** Erst der Lauf gegen beide Fassungen, dann O63.
+
+### D380 — FALL-02 gegen beide Fassungen: die Lücke ist beobachtet, das Typkriterium wiegt leichter
+
+**Anlass.** D377 Beschluss 2 macht die Sprachwahl vom Ergebnis des Falltests abhängig, D379 legt
+die Reihenfolge fest: erst der Lauf, dann O63. Der Lauf ist durch — `FALL-02` gegen beide
+vorliegenden Haskell-Fassungen, unveränderte Eingabe, Vorhersage vor dem Lauf fixiert.
+
+**Gemessen — achtzehn Werte je Fassung.** HS1 (`infOf xs = 1 + sum xs`, `Integer`) trifft alle
+drei Sprossen in jedem Wert. HS2 (`inf = 1000000000000000000`, `Integer`) trifft R1 und R2
+vollständig und weicht auf R3 in genau einer Zahl ab:
+
+| | Referenz simultan | HS1 | HS2 |
+| --- | --- | --- | --- |
+| R1 | 288230376151711744 | trifft | trifft |
+| R2 | 864691128455135232 | trifft | trifft |
+| R3 | 1152921504606846976 | trifft | 1000000000000000000, Schnitt leer |
+
+Die Vorhersage aus dem Sitzungsstart ist damit in beiden Hälften eingetroffen, ohne dass ein
+Ankerwert nachgezogen wurde.
+
+**Der Ertrag liegt in dem, was nicht abwich.** Auf R3 sind die drei Einzelabfragen in beiden
+Fassungen korrekt — 576460752303423488, 288230376151711744, 288230376151711744. Der grösste
+Einzelfluss liegt unter dem Literal, erst die Summe läuft dagegen. Die Kapazitätsleiter rechnet
+in beiden Fassungen bis `2^62` ohne Abweichung; die Divergenz sitzt allein in der Darstellung von
+`∞`. Damit ist die Bedingung aus D377 Beschluss 2 wörtlich eingetreten: die verwundbare Stelle
+ist die Sentinel-Kodierung und nicht die Leiter.
+
+**Gemessen — die engere Schranke trägt in int64, die normierte nicht.** Der Kandidat aus D379 ist
+bei einem Anker `C(0) + 1`:
+
+| | `02a §2.8` | in int64 | D379-Kandidat | in int64 |
+| --- | --- | --- | --- | --- |
+| R1 | 4467570830351532033 | trägt | 1152921504606846977 | trägt |
+| R2 | 13402712491054596097 | überläuft | 3458764513820540929 | trägt |
+| R3 | 17870283321406128129 | überläuft | 4611686018427387905 | trägt |
+
+Faktor durchgehend 3.88. Der Kandidat ist damit für diesen Falltest rechnerisch tragend und nicht
+mehr nur skizziert — **unter einer Bedingung, die er mitführen muss**: der Docstring von
+`infinity()` begründet den Einheitslauf getrennt über `INF > |edges| >= maxflow`. Eine Schranke,
+die nur über die Ankerkapazitäten geht, muss die Kantenzahl ausdrücklich mit aufnehmen, sonst
+bricht die Kette dort still. Das verschiebt die int64-Schwelle um knapp Faktor vier; es hebt sie
+nicht auf.
+
+**Beschluss 1 — O63 wird vor der Sprachwahl entschieden.** Eine dritte Fassung in einer Sprache
+mit begrenztem Standardtyp würde an `02a §2.8` genau die Lücke messen, die O63 schliessen soll.
+Wird zuerst normiert, misst sie den Normtext; wird nicht normiert, reproduziert sie einen
+Überlauf, der hier bereits gerechnet ist. Beides ist eine Antwort, aber nur die erste ist eine
+Messung.
+
+**Beschluss 2 — das Typkriterium fällt von notwendig auf wünschenswert.** D374 Beschluss 3 nennt
+vier Dinge, die zwei Sprachen messen sollen: Zahlbereich, Rundung, Sortierstabilität, Überlauf.
+Zahlbereich und Überlauf sind nach D378, D379 und diesem Eintrag gerechnet und brauchen keine
+Fassung mehr, die sie vorführt. Rundung und Sortierstabilität sind unberührt — und für sie genügt
+eine andere Sprache, kein anderer Typ. Damit wiegt D370s Bibliothekslage — GPL-3 bei Rusts
+einziger ganzzahlgenerischer Bibliothek, keine etablierte in Go, `double` in JGraphT — schwerer
+als das Typkriterium, das die Auswahl bisher geführt hat.
+
+**Verworfen: die Sprache jetzt wählen.** Beschluss 1 stellt O63 davor, und O63 kann den Massstab
+noch einmal verschieben: hält der Kandidat samt Einheitslauf-Bedingung, kostet ein begrenzter Typ
+für dieses Profil nichts mehr.
+
+**Verworfen: HS2 als fehlerhaft führen.** `02 §4` verlangt Kanten unendlicher Kapazität und sagt
+nichts über ihre Darstellung. Die Fassung hat eine Entscheidung getroffen, die der Text ihr
+überlässt — dieselbe Lage wie beim Schnitt in D375. Was ihr Ergebnis belegt, ist die Lücke im
+Text, nicht ein Defekt der Fassung.
+
+**Zwei Nebenbefunde, beide bekannt.** HS1 kann `FALL-02` nicht unverändert lesen: `FileProfile`
+verlangt `t_exp`, das D374 Beschluss 2 aus dem Exporter entfernt hat. Das ist der dort benannte
+Preis, kein Drift. `Main.hs` bindet das Feld an `_unusedFileTExp` und verwertet es nicht; die
+Eingabe wurde um den Wert aus HS1s eigener Ankerkopie ergänzt und die Ergänzung durch Rückrechnen
+auf den Originalhash als einzige Änderung nachgewiesen. Die Schnittmengen beider Fassungen
+lauten in allen drei Sprossen Anker, Rumpfknoten und CAROL — die D375-Lesart, hier wiederholt.
+
+**Wie geprüft, und die schwächste Stelle.** Beide Läufe im Operator-Baum, HS1 über `git archive`
+aus `00bo-hs` statt über einen Checkout, die Eingabe für beide Fassungen hashgleich zur
+Repositoriumsdatei. Verglichen wurde gegen die Zusicherungen in `tests/trust/test_fall02.py`.
+Schwächste Stelle: **keine der beiden Fassungen gibt INF aus.** Die Kodierung von HS2 ist aus dem
+simultanen Flusswert erschlossen und nicht direkt beobachtet — der Schluss ist eng, weil genau
+`10^18` erscheint, aber er bleibt ein Schluss. Ebenso ungemessen: ob eine Fassung oberhalb von
+`2^63` in der Leiter selbst bricht; `FALL-02` endet bei `2^62`.
+
+**Was folgt.** O63, mit der Einheitslauf-Bedingung als Teil des Kandidaten.

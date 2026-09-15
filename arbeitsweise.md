@@ -310,3 +310,18 @@ Wurzel verlässt (D314).
 Es gibt kein Verfahren, das erzwingt, dass die Datei geschrieben wird. Fällt sie aus, startet
 die nächste Sitzung blind. Mechanisch schliessen lässt sich das nicht, weil eine Sitzung im
 Repositorium kein Gegenstand ist.
+
+---
+
+## 11. Die Fragenlisten
+
+Jede Zweitfassung führt eine Fragenliste: jede Stelle, an der der Text mehrdeutig, unvollständig
+oder widersprüchlich war, mit der gewählten und der verworfenen Lesart. Sie ist das Ergebnis der
+Fassung, nicht ihr Nebenprodukt. Drei liegen vor — `go/FRAGEN.md` zu Layer 01, `hs/FRAGEN-1.md`
+und `hs/FRAGEN-2.md` zu Layer 02 —, die Rust-Liste folgt.
+
+Die Listen bleiben unverändert, wie sie geschrieben wurden (D384 Beschluss 1). Die Ordnung
+entsteht daneben: `fragen-adressen §1` ordnet jedem Eintrag seine Stelle zu, und daraus wird
+`fragen-index.md` erzeugt, sortiert nach Adresse, mit einer Spalte je Fassung (D385, D386).
+
+Neue Fragenlisten tragen die Adresse als Pflichtfeld je Eintrag; für sie entfällt die Zuordnung.

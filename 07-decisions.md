@@ -15422,3 +15422,64 @@ Dateipfad ohne Commit dieses Repositoriums. Der Import friert einen Stand ein un
 dass es der Stand ist, der zum gemeldeten Lauf gehört.
 
 **Was folgt.** Die Ordnung nach Spec-Abschnitt (D374 Beschluss 4), dann `rs/AUFTRAG.md`.
+
+### D385 — Die Ordnung der Fragenlisten: eine Adresse je Eintrag, ein Index daneben
+
+**Anlass.** D374 Beschluss 4 verlangt eine feste Ordnung nach Spec-Abschnitt, bevor eine dritte
+Fassung startet. D384 hat die beiden fehlenden Listen lesbar gemacht und ihren Inhalt ausdrücklich
+unangetastet gelassen. Beides zugleich geht nur, wenn die Ordnung nicht in den Listen entsteht.
+
+**Gemessen — dieselbe Information, drei Träger.** `go/FRAGEN.md`: 22 Einträge, Adresse im Titel,
+Felder Offen, Lesart, Verworfen, Heute. `hs/FRAGEN-1.md`: 27 Einträge, Adresse im Titel mit
+vorangestelltem Layer, dieselben Felder ohne Heute. `hs/FRAGEN-2.md`: 19 Einträge, Titel **ohne**
+Adresse, dafür ein eigenes Feld `Spec:` je Eintrag und die Felder Frage, Lesart, Verworfen. Keine
+zwei Listen tragen die Adresse am selben Ort.
+
+**Gemessen — nicht jede Frage zeigt auf die Spec.** In `hs/FRAGEN-1.md` tragen sieben von
+siebenundzwanzig Titeln keine Spec-Stelle: vier nennen den Auftrag, einer die Bibliothek, zwei
+nichts. In `hs/FRAGEN-2.md` nennen drei von neunzehn Einträgen als Quelle allein die
+Auftragsdatei — Hex gegen Labels, `include_flagged`, Sortierung der Ausgabezeilen. Das sind keine
+Befunde am Normtext, sondern an meinen Aufträgen und an der Sprache.
+
+**Beschluss 1 — die kanonische Adresse.** `<Quelle> <Stelle>`. Quelle ist das Layer-Kürzel wie im
+Register (`01`, `02`, `02a`, …), oder `AUFTRAG` für Fragen, die allein die Auftragsdatei aufwirft,
+oder `WERKZEUG` für sprach- und bibliotheksbedingte. Stelle ist `§N`, `§N.M` oder `Anhang X.N`.
+Mehrere Stellen mit `/` getrennt, die engste zuerst; sortiert wird nach der ersten.
+
+**Beschluss 2 — die Ordnung entsteht als Index, nicht durch Umschreiben.** `fragen-index.md` in
+der Wurzel, erzeugt aus allen Listen, sortiert nach Adresse, mit einer Spalte je Fassung. Die
+Listen bleiben, wie sie sind (D384 Beschluss 1). Ein Index neben dem Beleg lässt sich neu
+erzeugen; ein umgeschriebener Beleg nicht wiederherstellen.
+
+**Beschluss 3 — Altlisten werden erschlossen, neue tragen die Adresse selbst.** Für die drei
+vorhandenen Listen gilt je eine Extraktionsregel — Titelpräfix bei `go/FRAGEN.md` und
+`hs/FRAGEN-1.md`, das Feld `Spec:` bei `hs/FRAGEN-2.md` — dazu eine benannte Ausnahmeliste für
+Einträge ohne Adresse. Jede künftige Fragenliste trägt die Adresse als Pflichtfeld in der von
+Beschluss 1 festgelegten Form, damit keine Regel nötig ist; der Rust-Auftrag schreibt das vor.
+
+**Beschluss 4 — die Trennung Spec, AUFTRAG und WERKZEUG ist der halbe Ertrag.** Der Index sortiert
+`AUFTRAG` hinter die Spec-Adressen und `WERKZEUG` zuletzt. Eine Fassung, die vor allem den Auftrag
+befragt, misst nicht den Normtext, sondern die Qualität des Auftrags — eine brauchbare Rückmeldung,
+die in einer nach laufender Nummer geordneten Liste unsichtbar bleibt.
+
+**Verworfen: die Listen auf ein gemeinsames Schema umschreiben.** Die naheliegende Lesart von D374
+Beschluss 4, und sie widerspricht D384 Beschluss 1 einen Commit später. Ein Beleg, der im selben
+Zug gesichert und umgeschrieben wird, ist nicht als das gesichert, was er war.
+
+**Verworfen: den Index von Hand führen.** Achtundsechzig Einträge sind einmal machbar und bei der
+vierten Fassung wieder fällig — genau die Handarbeit, deren Nichtskalieren D374 Beschluss 4
+begründet.
+
+**Verworfen: den Index unter `tools/` oder in einem Sprachverzeichnis.** Er gehört keiner Fassung
+und ist kein Code. `tools/` stellte ihn neben seinen Erzeuger, ein Sprachverzeichnis ordnete ihn
+einer der Fassungen zu, die er gerade vergleicht.
+
+**Wie geprüft, und die schwächste Stelle.** Einträge gezählt, Adressträger je Liste gegrept, die
+Bindungsregel in `check_specs.py` nachgelesen statt erinnert: eine Wurzeldatei gilt als gebunden,
+wenn eine andere gebundene Wurzeldatei sie nennt, und Ungebundenheit ist Meldung, kein Befund
+(D314 Beschluss 4). Schwächste Stelle: die Extraktionsregeln sind an den drei vorliegenden Listen
+geprüft und an nichts sonst. Jede weitere Altliste bräuchte ihre eigene — deshalb steht die
+Pflichtangabe in Beschluss 3.
+
+**Was folgt.** Der Werkzeugauftrag für `tools/check_fragen.py` und `fragen-index.md`, danach
+`rs/AUFTRAG.md`.

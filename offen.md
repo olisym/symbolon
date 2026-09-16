@@ -409,3 +409,31 @@ Anhänge stehen als dritte Überschriftenebene unter einer zweiten; der Parser s
 die zweite. Ob sich die Prüfung erweitern lässt, ohne die Bereichsform aus D228 zu brechen, ist
 nicht gemessen. Mit der Erweiterung fiele auch die Frage an, ob die Adressform aus D385
 Beschluss 1 auf die kürzere Zitatform gezogen wird.
+
+### O65 Was eine Gruppe ohne wirksame Vouches ist, steht nirgends
+
+Die Rust-Fassung druckt in `Z7` und `Z8` Gruppen der Form `gruppe I J 0 0`: beide Zahlen sind das
+Maximum über eine leere Menge, weil jeder Vouch der Gruppe abgelaufen ist. Ob Layer 02 eine solche
+Gruppe überhaupt kennt — ob sie eine Budgetzeile erzeugt, ob sie in der Ausgabe erscheint —, ist
+in keiner Spec-Stelle entschieden. Die Fassung hat entschieden, ohne die Stelle als Frage zu
+erkennen; in `rs/FRAGEN.md` steht dazu nichts.
+
+Daneben, aus demselben Lauf: `Anhang C` sagt nirgends, was die Zeile `bytes` enthält. Gemessen ist
+es durchgehend der Core ohne `σ` (`TV1` trägt `a9` bei neun Schlüsseln, `NV1` trägt `a7` bei
+sieben), aber weder `C.0` noch eine Legende hält das fest. Eine Fassung hat daraus bereits einen
+Widerspruch gelesen, der keiner ist (D390 Befund 4).
+
+Beides sind Textlücken, keine Rechenfehler. Was die Gruppe betrifft, ist vor der Entscheidung zu
+klären, welche Antwort die Referenzimplementierung heute gibt.
+
+### O66 Selbstgetragene Adressen erscheinen in keinem Index
+
+`tools/check_fragen.py` liest die Adressen ausschliesslich aus `fragen-adressen.md`. D385
+Beschluss 3 und D386 Beschluss 3 verlangen zugleich, dass neue Fragenlisten die Adresse als
+Pflichtfeld selbst tragen — und genau die werden dann nicht gelesen. `rs/FRAGEN.md` hat dreizehn
+Einträge mit wohlgeformter Adresse und steht in keiner Zeile des Index.
+
+Zu entscheiden ist, ob das Werkzeug beide Quellen liest oder ob die Zuordnungsdatei einen
+Verweis-Eintrag je selbsttragender Liste bekommt. Die erste Form ist die einfachere und bricht
+D386 Beschluss 2 nicht: gelesen wird eine Adresse, die in der Liste steht, nicht eine aus ihrem
+Titel geratene.

@@ -15687,3 +15687,65 @@ ihre Quelle unbedacht zitiert. Eine Fassung, die abschreibt und schweigt, bleibt
 der ersten Haskell-Fassung hing die Entdeckung an einer einzigen unbedachten Nummer.
 
 **Was folgt.** Die Arbeitskopie wird neu gezogen, dann der Lauf.
+
+### D390 — Abnahme der Rust-Fassung: acht von acht, und zwei stille Anpassungen
+
+**Das Ergebnis zuerst.** Alle acht Profile aus `TP-02` treffen die Ankerwerte: Einzelabfragen,
+simultaner Fluss und die Disjunktheitszahl, einschliesslich des Tests aus `02-golden-anchors §5`,
+wonach `A′` simultan 16 und nicht 48 liefert. Die Fassung hat die Ankerdatei nie gesehen. Bei
+`FALL-02` decken sich alle drei Sprossen mit der ersten Haskell-Fassung; `R3` liefert simultan
+`2^60`, den Wert, den HS2 in D380 verfehlt hat. Die neue `inf`-Zeile zeigt in jeder Sprosse die
+Referenzformel, `R3` also `2^62 + 1` — `u64` trägt sie, wie D382 Beschluss 2 angenommen hat.
+
+**`TZ-02` ist erstmals gerechnet und hat keine Gegenprobe.** Neun Profile, für die keine Anker
+vorliegen. Die Ausgabe ist damit kein geprüftes Ergebnis, sondern der erste Datenpunkt.
+
+**Die Kontaminationsprobe ist negativ.** Keine der neun Nummern aus D389 Beschluss 2 erscheint in
+`rs/FRAGEN.md`; der einzige Treffer auf Fremdbegriffe ist `02a §2.8`, und der steht in
+`rs/spec/STAND.md`. Der Lauf fand in einem Container statt, dem ausser dem Arbeitsverzeichnis
+nichts gemountet war (D389 Beschluss 4).
+
+**Beschluss 1 — der Lauf ist angenommen.** `rs/FRAGEN.md` liegt seit `b9cb9b9` im Baum, dreizehn
+Einträge, alle mit Adresse in der Form aus D385 Beschluss 1.
+
+**Befund 1 — an zwei Stellen ist die Fassung kein Zeuge, und das war vorhergesagt.** Ihr Eintrag 1
+zitiert den `∞`-Kasten wörtlich und leitet die Schranke daraus ab, statt sie zu finden; die
+Schnittseite stand im Auftrag. D383 und D388 Beschluss 2 haben beides benannt. Was der Lauf an
+diesen Stellen zeigt, ist, dass die Reparatur trägt — nicht, dass der Text sie hergibt.
+
+**Befund 2 — eine Entscheidung ohne Eintrag.** In `Z7` und `Z8` druckt die Fassung Gruppen der
+Form `gruppe I J 0 0`: Gruppen, deren Vouches sämtlich abgelaufen sind, mit dem Maximum über eine
+leere Menge. Ob Layer 02 eine solche Gruppe kennt, ist in keiner Spec-Stelle entschieden und in
+`rs/FRAGEN.md` nicht vermerkt. Die erste Fassung, die je abgelaufene Claims gesehen hat, ist im
+ersten Profil darüber gestolpert, ohne es zu bemerken. Das wird O65.
+
+**Befund 3 — Saturierung statt Meldung.** Eintrag 1 nennt im Nebensatz, der Sentinel werde
+„saturierend auf `u64::MAX`" gerechnet. Genau das verbietet das Nicht-Ziel: ein Überlauf ist zu
+melden, nicht abzufangen. Bei `R3` tritt er nicht ein, die Messung ist unbeschädigt — die
+Entscheidung hätte trotzdem angehalten und gemeldet gehört statt still eingebaut zu werden.
+
+**Befund 4 — Eintrag 13 ist widerlegt, und die Stelle stimmt trotzdem.** Die Fassung meldet, die
+`bytes`-Zeilen negativer Vektoren in `Anhang C` trügen einen Map-Header, der zur Eintragszahl
+nicht passe. Gemessen: `TV1` trägt `a9` bei neun Core-Schlüsseln, `NV1` trägt `a7` bei sieben.
+`bytes` ist durchgehend die Kodierung des Core, `σ` steht in einer eigenen Zeile daneben. Es gibt
+keine Uneinheitlichkeit. Nur definiert das niemand: weder `C.0` noch eine Legende sagt, was
+`bytes` enthält. Die Fassung hat die Lücke gefunden, falsch diagnostiziert und die Spec-Bytes für
+ihre eigenen Tests korrigiert, statt anzuhalten. Das wird ebenfalls O65 zugeordnet, soweit es die
+Legende betrifft.
+
+**Beschluss 2 — künftige Aufträge verlangen für jede Abweichung von einer Spec-Angabe einen
+eigenen Eintrag.** Befund 3 und Befund 4 sind beide in Nebensätzen anderer Einträge gelandet. Ein
+Auftrag, der „melden, nicht anpassen" verlangt, muss auch sagen, wo gemeldet wird; sonst zählt
+der Nebensatz als Meldung und niemand liest ihn als das, was er ist.
+
+**Befund 5 — D386 Beschluss 3 hat die Datenquelle nicht mitgedacht.** `tools/check_fragen.py`
+liest Adressen ausschliesslich aus `fragen-adressen.md`. Die Rust-Liste trägt sie selbst, wie es
+derselbe Beschluss verlangt, und erscheint deshalb in keinem Index. Das wird O66.
+
+**Wie geprüft, und die schwächste Stelle.** Die Ausgabe ist gegen `02-golden-anchors §3` und `§5`
+gehalten, die Byte-Vektoren gegen `Anhang C.1` und `C.5` nachgerechnet, der Detektor auf die
+Fragenliste angewandt. Schwächste Stelle: geprüft ist damit `TP-02`. `FALL-02` stützt sich auf die
+Übereinstimmung mit einer einzigen anderen Fassung, und `TZ-02` steht allein. Die Gegenprobe der
+Referenzimplementierung gegen `TZ-02` ist noch nicht gelaufen.
+
+**Was folgt.** Die Gegenprobe für `TZ-02`, dann O65 und O66.

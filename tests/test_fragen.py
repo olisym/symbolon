@@ -114,7 +114,7 @@ def test_verfaelschter_index_ist_befund(
 
 
 def test_ueberschrift_ohne_adresszeile_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -123,10 +123,14 @@ def test_ueberschrift_ohne_adresszeile_ist_befund(
     assert _ADDR_1 in text
     ziel.write_text(text.replace(_ADDR_1 + "\n", "", 1), encoding="utf-8")
     assert main([]) == 1
+    assert (
+        "Überschrift ohne Adresszeile in `rs/FRAGEN.md`: 1"
+        in capsys.readouterr().out
+    )
 
 
 def test_mehr_als_eine_adresszeile_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -137,10 +141,14 @@ def test_mehr_als_eine_adresszeile_ist_befund(
         text.replace(_ADDR_1, _ADDR_1 + "\n" + _ADDR_1, 1), encoding="utf-8"
     )
     assert main([]) == 1
+    assert (
+        "mehr als eine Adresszeile in `rs/FRAGEN.md` Nr. 1"
+        in capsys.readouterr().out
+    )
 
 
 def test_adresszeile_vor_erster_ueberschrift_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -152,10 +160,14 @@ def test_adresszeile_vor_erster_ueberschrift_ist_befund(
         encoding="utf-8",
     )
     assert main([]) == 1
+    assert (
+        "Adresszeile vor der ersten Überschrift in `rs/FRAGEN.md`"
+        in capsys.readouterr().out
+    )
 
 
 def test_nicht_wohlgeformte_zelle_in_liste_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -167,10 +179,14 @@ def test_nicht_wohlgeformte_zelle_in_liste_ist_befund(
         encoding="utf-8",
     )
     assert main([]) == 1
+    assert (
+        "Adresse nicht wohlgeformt in `rs/FRAGEN.md` Nr. 1"
+        in capsys.readouterr().out
+    )
 
 
 def test_tabelle_und_marker_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -183,10 +199,14 @@ def test_tabelle_und_marker_ist_befund(
         encoding="utf-8",
     )
     assert main([]) == 1
+    assert (
+        "Abschnitt `go/FRAGEN.md` hat Tabelle und Marker"
+        in capsys.readouterr().out
+    )
 
 
 def test_weder_tabelle_noch_marker_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -197,10 +217,14 @@ def test_weder_tabelle_noch_marker_ist_befund(
         text.replace("Adressen: in der Liste.\n", "", 1), encoding="utf-8"
     )
     assert main([]) == 1
+    assert (
+        "Abschnitt `rs/FRAGEN.md` hat weder Tabelle noch Marker"
+        in capsys.readouterr().out
+    )
 
 
 def test_fragenliste_ohne_abschnitt_ist_befund(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: object, capsys: object
 ) -> None:
     _baum_kopieren(tmp_path)
     monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
@@ -208,3 +232,4 @@ def test_fragenliste_ohne_abschnitt_ist_befund(
     extra.parent.mkdir()
     extra.write_text("## 1. Test\n", encoding="utf-8")
     assert main([]) == 1
+    assert "Fragenliste ohne Abschnitt: xx/FRAGEN.md" in capsys.readouterr().out

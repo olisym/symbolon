@@ -1,7 +1,8 @@
 # Fragen-Index
 
-Erzeugt aus `fragen-adressen §1` durch `tools/check_fragen.py --schreiben`. Nicht von Hand
-ändern — was hier falsch steht, wird in der Zuordnung korrigiert.
+Erzeugt aus `fragen-adressen.md` und den dort angemeldeten Listen durch
+`tools/check_fragen.py --schreiben`.
+Nicht von Hand ändern — was hier falsch steht, wird in der Zuordnung korrigiert.
 
 Einträge: 81. Nennungen: 110. Adressen: 27. Die Summe der Spalte `Σ` ist `110` und nicht
 `81`: ein Eintrag mit mehreren Adressen steht in jeder seiner Zeilen (D387 Beschluss 2).

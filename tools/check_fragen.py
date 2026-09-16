@@ -313,9 +313,9 @@ def index_text(listen: list[Liste]) -> str:
     zeilen = [
         "# Fragen-Index",
         "",
-        "Erzeugt aus `fragen-adressen §1` durch `tools/check_fragen.py --schreiben`. "
-        "Nicht von Hand",
-        "ändern — was hier falsch steht, wird in der Zuordnung korrigiert.",
+        "Erzeugt aus `fragen-adressen.md` und den dort angemeldeten Listen durch",
+        "`tools/check_fragen.py --schreiben`.",
+        "Nicht von Hand ändern — was hier falsch steht, wird in der Zuordnung korrigiert.",
         "",
         f"Einträge: {eintraege}. Nennungen: {nennungen}. Adressen: {n_adressen}. "
         f"Die Summe der Spalte `Σ` ist `{nennungen}` und nicht",

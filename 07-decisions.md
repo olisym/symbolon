@@ -16379,3 +16379,60 @@ selbst lesen.
 
 **Was folgt.** Der Werkzeuglauf für den Test aus Beschluss 3.
 
+### D401 — O64: Anhangsverweise werden geprüft, in beiden Zitatformen
+
+**Anlass.** O64: Verweise auf Anhänge laufen durch `check_specs`, ohne dass geprüft wird, ob der
+Anhang existiert.
+
+**Gemessen — die Anhänge.** `01` ist die einzige Layer-Datei mit Buchstabenanhängen: `## Anhang A`
+bis `## Anhang C`, darunter Unterabschnitte der Form `### B.1` und `### C.13`. `06` hat einen Anhang
+ohne Buchstaben.
+
+**Gemessen — die Verweise.** `check_specs` prüft Abschnittsverweise in den Markdown-Dateien der
+Wurzel ausser Register und Sitzungsstart, die als Historie ausgenommen sind, und in allen
+Python-Dateien ausser `.venv`. Dort stehen 35 Anhangsverweise, 34 in Markdown und einer in Python;
+33 lösen auf. Die zwei übrigen sind die erfundenen Beispiele im Text von O64 selbst. Mit dem
+Register sind es 55. Keiner nutzt eine Bereichsform. Zwei Zitatformen kommen vor, beide mit
+Kurzform-Namen davor, auch mit Backtick hinter dem Namen: mit dem Wort `Anhang` und Buchstabe,
+gegebenenfalls mit Nummer, und ohne das Wort als Buchstabe, Punkt, Nummer. Die Form mit
+Paragraphenzeichen prüft `check_specs` bereits.
+
+**Gemessen — die Vermutung aus O64 trifft nicht zu.** Der Parser sammelt nicht nur die zweite Ebene:
+`HEADING_NUM` liest Ebene 2 bis 4 und kennt die Unterabschnitte der Anhänge. Es fehlen die
+Buchstaben selbst, weil die Anhangsüberschrift keine Nummer trägt.
+
+**Beschluss 1 — beide Zitatformen werden geprüft.** Kurzform-Name, optional Backtick, dann entweder
+`Anhang` mit Buchstabe und optionaler Nummer, oder Buchstabe, Punkt, Nummer ohne das Wort. Ein
+einzelner Buchstabe ohne `Anhang` wird nicht geprüft: er ist von gewöhnlichem Text nicht zu
+unterscheiden.
+
+**Beschluss 2 — was als vorhanden gilt.** Ein Buchstabe, wenn die Zieldatei eine Überschrift `##
+Anhang` mit diesem Buchstaben trägt. Ein Buchstabe mit Nummer, wenn die Überschriftennummer
+existiert oder mit ihr und einem Punkt beginnt, wie bei Abschnitten (D209). Der Befund nennt den
+Verweis so, wie er zitiert ist. Register und Sitzungsstart bleiben ausgenommen wie bei den
+Abschnitten; aufgelöste Anhangsverweise zählen zu den aufgelösten Verweisen.
+
+**Beschluss 3 — keine Vereinheitlichung der Zitatform.** O64 fragte, ob die Adressform aus D385
+Beschluss 1 auf die kürzere Form gezogen wird. Nein: sind beide Formen geprüft, ist die Wahl
+gleichgültig, und ein Umschreiben träfe das Register, das Historie ist.
+
+**Beschluss 4 — keine Bereichsform.** Es gibt keinen Anhangsverweis dieser Art. Entsteht einer, wird
+sein erster Teil geprüft und sein zweiter nicht; die Erweiterung kommt mit dem ersten Vorkommen.
+
+**Beschluss 5 — O64 ist erledigt, die Umsetzung folgt als Werkzeuglauf.** Die erfundenen Beispiele
+in O64 entfallen mit der Schliessform; sonst wären sie die ersten Befunde der neuen Prüfung.
+Erwartet nach dem Lauf: 33 geprüfte Anhangsverweise, kein Befund, und in der Zeile für die
+Python-Dateien ein aufgelöster Verweis mehr als vorher.
+
+**Verworfen: die Anhangsformen in das Muster für Abschnittsverweise einbauen.** Das Muster trägt die
+Bereichsform aus D228 und die Zählung der aufgelösten Abschnittsverweise; eine Erweiterung änderte
+beide, ohne dass ein Anhangsverweis sie braucht. Ein eigenes Muster lässt beide unverändert.
+
+**Wie geprüft, und die schwächste Stelle.** Die Überschriften aus `01` gelesen, die Verweise mit
+einem eigenen Muster über `SPECS` ohne die Ausnahmen und über `python_sources()` gezählt und je
+Treffer gegen die Überschriften gehalten. Schwächste Stelle: das Muster der Messung und das der
+Umsetzung sind getrennt geschrieben. Weicht die Zahl 33 nach dem Lauf ab, ist eines von beiden
+falsch, und welches, zeigt erst der Vergleich der Trefferlisten.
+
+**Was folgt.** Der Werkzeuglauf.
+

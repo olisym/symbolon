@@ -394,21 +394,9 @@ Nach D388 steht der Auftrag in `rs/AUFTRAG.md`: drei Vektorsätze, vorgegebene S
 `02a §2.8` normiert die Bedingung statt der Formel; die Referenzbelegung und die gepinnten Werte
 bleiben unverändert.
 
-### O64 Anhangsverweise werden nicht auf Existenz geprüft
+### O64 Anhangsverweise werden nicht auf Existenz geprüft — erledigt (D401)
 
-An `fragen-adressen.md` gemessen: eine erfundene Abschnittsnummer meldet `check_specs.py` als
-unbekannten Abschnitt — die Adresszellen laufen also durch die Zitatprüfung, ohne dass jemand das
-eingerichtet hätte. Ein erfundener Anhang läuft durch, in der Zitatform `01 D.7` ebenso wie als
-`01 Anhang D.7`. Die Prüfung aus D229 und D233 deckt Abschnitte, nicht Anhänge.
-
-Das betrifft nicht nur die Zuordnung. Jeder Anhangsverweis in jeder Spec-Datei ist ungeprüft; von
-den vierundzwanzig Adressen aus `1219b2e` sind sechs betroffen. Sie sind von Hand gegen
-`01-claim-atom.md` gehalten worden und existieren sämtlich.
-
-Anhänge stehen als dritte Überschriftenebene unter einer zweiten; der Parser sammelt offenbar nur
-die zweite. Ob sich die Prüfung erweitern lässt, ohne die Bereichsform aus D228 zu brechen, ist
-nicht gemessen. Mit der Erweiterung fiele auch die Frage an, ob die Adressform aus D385
-Beschluss 1 auf die kürzere Zitatform gezogen wird.
+`check_specs` prüft beide Zitatformen gegen die Anhangsüberschriften (Werkzeuglauf nach D401).
 
 ### O65 Was eine Gruppe ohne wirksame Vouches ist, steht nirgends — erledigt (D396)
 

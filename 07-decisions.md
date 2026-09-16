@@ -16330,3 +16330,52 @@ verwirft `--rm`.
 
 **Was folgt.** O68, entschieden gegen `02 §11.4` Schritt 2.
 
+### D400 — O68: gelesen wird das Budget-Set, `VOUCH_WITHOUT_TEXP` nur bei gültigem `n`
+
+**Anlass.** O68 (D394): welche Vouches die Ableitung liest und damit einen Vermerk tragen können,
+stand nirgends. D397 und D398 haben die Frage aus `02a §2.10` nach `02 §11.4` Schritt 2 verlegt und
+dort offen gelassen. Zu entscheiden mit eigener Begründung, nicht aus dem Code übernommen.
+
+**Gemessen.** `build_groups` liest `v` nur an Vouch-Claims des Scopes im Budget-Set, also Zustand in
+`BUDGET_STATES` und Prädikat erfüllt. Scheitert das Lesen, geht es vor der `t_exp`-Prüfung weiter.
+Daraus folgen zwei Beobachtungen. Ein abgelaufener Vouch mit defektem `v` trägt keinen Vermerk; das
+ist ungetestet, denn `test_no_vouch_without_texp_on_expired_vouch` prüft einen gültigen Vouch mit
+`t_exp`, der ohnehin keinen `VOUCH_WITHOUT_TEXP` bekäme. Ein Vouch ohne `t_exp` mit defektem `v`
+trägt nur den Lesefehler; das ist in `test_vouch_without_texp.py` gepinnt. `05` nennt heute keinen
+Vermerk.
+
+**Beschluss 1 — gelesen wird das Budget-Set.** `02 §10` bestimmt jeden Vermerk über seine Wirkung
+auf Budget-Set und Kante. Ausserhalb des Budget-Sets sind beide Wirkungen bereits null; ein Vermerk
+dort beschriebe nichts, was die Auswertung ändert. Das Aktiv-Set allein wäre zu eng: ein
+widerrufener oder supersedierter Vouch bindet Budget, und sein Lesefehler entzieht ihm genau dieses
+Budget — das ist eine Wirkung und braucht ihren Vermerk.
+
+**Beschluss 2 — `VOUCH_WITHOUT_TEXP` fällt nur an einem Vouch mit gültigem `n`.** Seine
+Wirkungszeile in `02 §10` lautet „bleibt, bindet unbegrenzt". Scheitert das Lesen von `v`, bindet
+der Claim nichts, und der Vermerk sagte über ihn etwas Falsches. Er trägt allein den Vermerk seines
+Lesefehlers.
+
+**Beschluss 3 — der Code bleibt.** Er entspricht beiden Beschlüssen. Ein Test für den abgelaufenen
+Vouch mit defektem `v` folgt als Werkzeuglauf, mit Rücknahmeprobe am Budget-Filter vor dem Lesen.
+
+**Verworfen: alle gespeicherten Vouches des Scopes lesen.** Die Lesevermerke hingen dann nicht von
+`now` ab, sondern nur vom Bestand. Die Vermerkmenge wüchse aber mit der gesamten Historie
+abgelaufener Vouches, `TrustResult` trüge Befunde ohne Wirkung, und die Unabhängigkeit von `now` ist
+ohnehin nicht zu haben, weil `OVERCOMMITTED_AUTHOR` und `SUBGRANULAR_VOUCH` an `now` hängen (`02
+§7`, D362).
+
+**Verworfen: nur das Aktiv-Set lesen.** Siehe Beschluss 1: der Lesefehler eines Budget bindenden,
+nicht aktiven Vouch hat Wirkung.
+
+**Verworfen: beide Vermerke unabhängig voneinander setzen.** Der Einwand trägt: die Pflicht aus `02
+§6.2` ist verletzt, gleich ob `v` lesbar ist. Er verlangte aber einen Vermerk ohne Wirkungszeile,
+und `02 §10` kennt keinen.
+
+**Wie geprüft, und die schwächste Stelle.** `groups.py` vollständig gelesen, die Tests zu
+`VOUCH_WITHOUT_TEXP` gelesen, `05` gegrept. Schwächste Stelle: die Begründung behandelt Vermerke als
+Diagnose der Rechnung, nicht als Aussage über den Bestand. Ein späterer Layer, der Vermerke als
+Beweismittel gegen Autoren liest, fände Lesefehler abgelaufener Vouches nicht; er müsste den Bestand
+selbst lesen.
+
+**Was folgt.** Der Werkzeuglauf für den Test aus Beschluss 3.
+

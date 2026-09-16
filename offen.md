@@ -423,13 +423,9 @@ Selbsttragende Listen werden angemeldet und aus sich gelesen, mit Vollständigke
 Neu gefasst mit Wirkungsspalte; der Widerspruch im Schlusssatz ist aufgelöst.
 
 
-### O68 Welche Vouches überhaupt einen Vermerk bekommen, steht nirgends
+### O68 Welche Vouches überhaupt einen Vermerk bekommen, steht nirgends — erledigt (D400)
 
-`build_groups` dekodiert nur Claims im Budget-Set, und ein Vouch mit defektem `v` wird vor der
-`t_exp`-Prüfung übersprungen. Ein abgelaufener Vouch mit defektem `v` bleibt also ohne Vermerk, und
-`UNPARSABLE_VOUCH_PAYLOAD` und `VOUCH_WITHOUT_TEXP` fallen nie am selben Claim. `02a §2.10` Schritt
-2 nennt keinen Budget-Filter vor dem Dekodieren. Keine Zahl ändert sich, aber die Vermerksmenge ist
-Teil von `TrustResult`. Zu entscheiden mit eigener Begründung, nicht aus dem Code übernommen (D394).
+Gelesen wird das Budget-Set; `VOUCH_WITHOUT_TEXP` nur bei gültigem `n` (`02 §10`, `02 §11.4`).
 
 ### O69 `02a` trägt überholte Stellen, und niemand hat sie gezählt — erledigt (D399)
 

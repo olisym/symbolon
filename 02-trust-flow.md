@@ -734,6 +734,13 @@ aber nicht kanonisch kodiert — `NON_CANONICAL_V`; `n` liegt ausserhalb von `1 
 bei der Gruppenbildung übersprungen, nicht zurückgewiesen, und bleibt gespeichert. Die übrigen
 Mitglieder seiner Gruppe sind davon unberührt.
 
+**Gelesen wird, was beitragen könnte.** Die Vermerke dieses Abschnitts sind über ihre Wirkung auf
+Budget und Kante bestimmt. Die Ableitung liest `v` deshalb nur an Vouches im Budget-Set (`§11.4`
+Schritt 2): ausserhalb trägt ein Vouch ohnehin nichts bei, und ein Vermerk über ihn beschriebe
+keine Wirkung. Aus demselben Grund fällt `VOUCH_WITHOUT_TEXP` nur an einem Vouch mit gültigem `n`.
+Scheitert das Lesen von `v`, bindet der Claim nichts, und die Wirkung „bindet unbegrenzt" träfe
+nicht zu; er trägt allein den Vermerk seines Lesefehlers (D400).
+
 **Fehlendes `t_exp`: ein Vermerk ohne Wirkung.** `VOUCH_WITHOUT_TEXP` ist kein Dekodierfall; er
 liest `t_exp`, nicht `v`. Die Pflicht aus `§6.2` wird beobachtet, nicht durchgesetzt (D119). Der
 Vouch bleibt im Budget-Set und bindet dort unbegrenzt (`§3.1`), und er trägt seine Kante, wenn er
@@ -798,8 +805,9 @@ kein Vermerk nach §10: fehlerhaft ist nicht der Bestand, sondern die Frage.
 Die Reihenfolge ist ergebnisrelevant und daher normativ:
 
 1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren.
-2. Das Gewicht `v` der Vouch-Claims des Scopes lesen (§3.1) → `n` oder ein Vermerk nach §10.
-   Welche Vouch-Claims gelesen werden und damit einen Vermerk tragen können, ist offen (O68).
+2. Das Gewicht `v` der Vouch-Claims des Scopes im Budget-Set lesen (§3.1) → `n` oder ein Vermerk
+   nach §10. Ein Vouch ausserhalb des Budget-Sets wird nicht gelesen und trägt keinen Vermerk
+   (D400).
 3. Gruppen `(I, J, N)` bilden → `n_budget`, `n_kante` (§3.1).
 4. Budget je Autor prüfen → `OVERCOMMITTED_AUTHOR`.
 5. Flags anwenden (`include_flagged`, §8) → Kantenkandidaten.

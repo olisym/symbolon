@@ -431,17 +431,9 @@ Referenz filtert sie mit dem `E⁺`-Filter weg. In `TP-02` Profil E sind es vier
 Es ist dieselbe Entscheidung an einer zweiten Zeilenart — ob eine Struktur ohne Wirkung überhaupt
 erscheint.
 
-### O66 Selbstgetragene Adressen erscheinen in keinem Index
+### O66 Selbstgetragene Adressen erscheinen in keinem Index — erledigt (D395)
 
-`tools/check_fragen.py` liest die Adressen ausschliesslich aus `fragen-adressen.md`. D385
-Beschluss 3 und D386 Beschluss 3 verlangen zugleich, dass neue Fragenlisten die Adresse als
-Pflichtfeld selbst tragen — und genau die werden dann nicht gelesen. `rs/FRAGEN.md` hat dreizehn
-Einträge mit wohlgeformter Adresse und steht in keiner Zeile des Index.
-
-Zu entscheiden ist, ob das Werkzeug beide Quellen liest oder ob die Zuordnungsdatei einen
-Verweis-Eintrag je selbsttragender Liste bekommt. Die erste Form ist die einfachere und bricht
-D386 Beschluss 2 nicht: gelesen wird eine Adresse, die in der Liste steht, nicht eine aus ihrem
-Titel geratene.
+Selbsttragende Listen werden angemeldet und aus sich gelesen, mit Vollständigkeitsprobe.
 
 ### O67 `02 §10` nennt zu jedem Vermerk das Subjekt und zu keinem die Wirkung — erledigt (D394)
 

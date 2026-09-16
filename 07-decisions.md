@@ -16106,3 +16106,90 @@ entscheidet; beide betreffen dieselbe Funktion.
 
 **Was folgt.** O69 als Messung, O68 als Entscheidung.
 
+### D397 — O69: `02a` wird als normativer Text aufgelöst; was nur dort steht, geht nach `02`
+
+**Anlass.** O69 verlangte zu messen, wie viele Stellen in `02a-maxflow-prompt.md` von späteren
+Entscheidungen überholt sind, und erst dann über Nachziehen, Einfrieren oder Einzelvermerke zu
+entscheiden.
+
+**Gemessen — die Fläche.** 46 Registereinträge nach D40 berühren Stellen, die `02a` behandelt; 25
+davon verweisen auf `02a`, 21 nur auf `02` (`tools/register_index.py`, Stand `e2a5913`). Ausserhalb
+von `02a` nennen 42 Dateien den Namen: das Register 101-mal, `offen.md` 11-mal, Produktivcode unter
+`symbolon/trust/` 20-mal über elf Abschnitte, dazu Tests, Werkzeuge, `02-golden-anchors.md`,
+`02b-*`, `06`, `01`, `01a`, `pruefregeln.md` und die Isolatkopien unter `go/`, `hs/`, `rs/`.
+
+**Gemessen — `02a` wurde nicht eingefroren, sondern im Einzelfall nachgezogen.** D135, D356, D369
+und D381 haben `02a` geändert, zuletzt am 15. September. D394 (verworfene Alternative 2) und D396
+Beschluss 1 haben so begründet, als gäbe es eine Praxis des Nichtnachziehens. Die gab es nicht. Die
+Entscheidungen bleiben in der Sache, ihre Begründung ist durch diesen Eintrag ersetzt: nachgezogen
+wurde bisher, und genau das hat die Lücken erzeugt, weil jeder Nachzug nur die Stelle fand, an der
+er ansetzte.
+
+**Gemessen — der Fehler läuft in beide Richtungen.** Der Sentinel-Kasten in `02 §4` sagt, die Summe
+der `C(a)` über die Anker genüge, und verweist für die Ausgestaltung auf `02a §2.8`. D381 hat dort
+die hinreichende Schranke auf `max(Σ C(0), |E⁺|) + 1` präzisiert, weil im Einheitslauf die interne
+Ankerkante `INF` trägt und der Fluss durch `|E⁺|` begrenzt ist. `02` wurde nicht nachgezogen. Die
+Rust-Fassung hat die Schranke aus `02` umgesetzt; ihre Ergebnisse stimmen in allen drei Sätzen, was
+die Lücke nicht schliesst, sondern nur zeigt, dass kein Profil sie erreicht. Zwei Texte zum selben
+Gegenstand veralten nicht gleichmässig, sondern abwechselnd.
+
+**Beschluss 1 — Weg C.** Jeder Gegenstand hat genau einen normativen Text, und das ist `02`.
+Verworfen sind das vollständige Nachziehen (A: zwei Texte bleiben, der Aufwand kehrt wieder) und das
+blosse Einfrieren (B: es entwertet die Normen, die nur in `02a` stehen, und 20 Codeverweise zeigten
+auf Text, der sich selbst für nachrangig erklärt). Entschieden von Oli.
+
+**Beschluss 2 — `02a` bleibt in der Wurzel und geht nicht nach `archiv/`.** Das war im Vorschlag
+anders und ist vor dem ersten Zug gemessen worden. `02a` steht in `LAYER_FILES` unter der Kurzform
+`02a`, und das Register zitiert es 101-mal in dieser Form. Nach D219 ist eine Kurzform ohne Datei
+ein Befund; das Register ist Historie und wird nicht umgeschrieben. `02a` bleibt deshalb als
+historischer Auftrag stehen, mit Kopfvermerk und einem Verweis je verschobenem Abschnitt auf die
+`02`-Stelle. Seine Überschriften bleiben unverändert, damit jeder Registerverweis weiter auflöst.
+Gebunden bleibt die Datei über das Register; normativ ist sie nicht mehr, sobald kein Code auf sie
+zeigt.
+
+**Beschluss 3 — die Abschnittskarte.** Gemessen gegen den Wortlaut von `02`:
+
+| `02a` | Inhalt | in `02` | Zug |
+|---|---|---|---|
+| `§0` | ganzzahlig, `now` als Parameter, Determinismus einschliesslich `cut` und Vermerken | nur „exakte Integer-Arithmetik" in `§3.1` | nach `02` |
+| `§1` | Modul-Layout | — | historisch |
+| `§2.1` | Parameterbereiche | `§3` teilweise | nach `02`, Bereiche vervollständigen |
+| `§2.2` | einmal runden, keine Kurzform | `§3`, `§8` | abgedeckt |
+| `§2.3` | Dekodieren von `v` | `§3.1`, `§10` (D394) | abgedeckt |
+| `§2.4`, `§2.5`, `§2.9` | Aggregation, Kantenkapazität, Über-Commitment | `§3.1` (D396) | abgedeckt |
+| `§2.6` | Aktiv-Set ausdrücklich `ACTIVE`, `MALFORMED` in keiner Menge | Prädikat in `§3.1`, beide Sätze fehlen | nach `02` |
+| `§2.7` | BFS über `E⁺`, schichtweise | `§3` | abgedeckt |
+| `§2.8` | `a_in`, `INF`-Bedingung (D381), Anker und Ziele überlappen | `a_in` in `§3`; `§4` unvollständig | nach `02` |
+| `§2.10` | Auswertungsreihenfolge, normativ | nur Verweis aus `§10` | nach `02` |
+| `§3` | `cut` quellseitig, leeres `cut`, `include_flagged` | `include_flagged` in `§8`; `cut`-Form fehlt | `cut` nach `02` |
+| `§4` | zwei Läufe, Einheitskapazitäten, Filter sicherheitsrelevant | `§8` bis auf den letzten Punkt | Rest nach `02` |
+| `§5` | Vermerke und Subjekte | `§10` (D394) | abgedeckt |
+| `§6`, `§7`, `§8` | Nicht-Ziele, Testplan, Abnahme | Zahlen in `02-golden-anchors.md` | historisch |
+
+**Beschluss 4 — die Zugfolge.** Erstens ein Splice nach `02`: ein neuer Abschnitt für
+Auswertungsreihenfolge, Rechenregeln, `cut` und den Fehlerfall; die Korrektur des Sentinel-Kastens
+in `§4`; die zwei fehlenden Sätze in `§3.1`; im selben Commit der Kopfvermerk und die
+Abschnittsverweise in `02a`, damit es keinen Zwischenstand mit zwei normativen Fassungen gibt.
+Zweitens die Spec-Dateien ausser `02` und `02a` (`02-golden-anchors.md`, `02b-*`, `06`, `01`, `01a`,
+`pruefregeln.md`) vom Supervisor. Drittens ein Werkzeuglauf, der Code, Tests und Werkzeuge nach
+einer Umhängetabelle `02a §x → 02 §y` umstellt; die Tabelle wird aus dem Splice abgeleitet, nicht
+vorab geschrieben. Das Register, `offen.md`, archivierte Sitzungsstarts und die Isolatkopien unter
+`go/`, `hs/`, `rs/` werden nicht angefasst.
+
+**Beschluss 5 — Abschluss und Probe.** O69 ist erledigt, wenn ausserhalb der unangetasteten Orte aus
+Beschluss 4 kein Verweis `02a §` mehr steht. Die Probe dafür ist ein `grep`, keine Zählung von Hand.
+O68 wird danach gegen `02` entschieden und nicht mehr gegen `02a §2.10`.
+
+**Verworfen: `02a` aus `LAYER_FILES` nehmen und die Registerverweise als historisch ausnehmen.** Das
+bräuchte eine Ausnahme in `check_specs.py` für genau eine Datei. Die Überschriften stehen zu lassen
+kostet nichts und hält jede Adresse prüfbar.
+
+**Wie geprüft, und die schwächste Stelle.** Die Fläche per `grep` und `register_index.py`, die Karte
+als Wortsuche in `02` je Norm, die Bindung aus `bound_root_files` und `check_section_refs` gelesen.
+Schwächste Stelle: die Karte ist eine Suche nach Formulierungen. Eine Norm aus `02a`, die in `02`
+mit ganz anderen Worten steht, könnte als „fehlt" gezählt sein, und eine, die ähnlich klingt, aber
+anders sagt, als „abgedeckt". Der Splice liest deshalb jede Zeile der Karte im Wortlaut nach, bevor
+er schreibt.
+
+**Was folgt.** Der Splice nach `02` mit den Verweisen in `02a`.
+

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Prüft die Zuordnung der Fragenlisten und den Index (D384, D385, D386, D387).
+"""Prüft die Zuordnung der Fragenlisten und den Index (D384, D385, D386, D387, D395).
 
-Liest die Adressen aus ``fragen-adressen.md``; extrahiert keine (D386 Beschluss 2).
+Liest die Adressen aus ``fragen-adressen.md`` oder, bei Markerzeile, aus der Liste
+selbst (D395 Beschluss 1); extrahiert keine (D386 Beschluss 2).
 Ohne Argument nur prüfen; ``--schreiben`` erzeugt ``fragen-index.md`` (D387 Beschluss 4).
 """
 
@@ -23,6 +24,9 @@ ADDR_PART = re.compile(
 ADDR_CELL = re.compile(rf"^{ADDR_PART.pattern}(?: / {ADDR_PART.pattern})*$")
 SUFFIX = re.compile(r"-(\d+)$")
 LAYER = re.compile(r"^(\d+)([a-z]?)$")
+ADDR_ZEILE = re.compile(r"^- \*\*Adresse:\*\* (.+)$")
+FRAGEN_DATEI = re.compile(r"^FRAGEN(?:-\d+)?\.md$")
+MARKER = "Adressen: in der Liste."
 
 
 class Liste(NamedTuple):
@@ -86,21 +90,86 @@ def _ist_trenner(zellen: list[str]) -> bool:
     return bool(zellen) and all(z and set(z) <= set("-:") for z in zellen)
 
 
+def zeilen_aus_liste(pfad: str) -> tuple[list[tuple[int, str]], list[str]]:
+    """Adresszeilen einer selbsttragenden Liste (D395 Beschluss 2)."""
+    probleme: list[str] = []
+    zeilen: list[tuple[int, str]] = []
+    ziel = ROOT / pfad
+    if not ziel.is_file():
+        return zeilen, probleme
+    letzte: int | None = None
+    anzahl: dict[int, int] = {}
+    koepfe: list[int] = []
+    for zeile in ziel.read_text(encoding="utf-8").splitlines():
+        kopf = LIST_HEADING.match(zeile)
+        if kopf is not None:
+            letzte = int(kopf.group(1))
+            koepfe.append(letzte)
+            continue
+        fund = ADDR_ZEILE.fullmatch(zeile)
+        if fund is None:
+            continue
+        zelle = fund.group(1)
+        if letzte is None:
+            probleme.append(
+                f"Adresszeile vor der ersten Überschrift in `{pfad}`: {zeile}"
+            )
+            continue
+        anzahl[letzte] = anzahl.get(letzte, 0) + 1
+        if anzahl[letzte] > 1:
+            probleme.append(
+                f"mehr als eine Adresszeile in `{pfad}` Nr. {letzte}"
+            )
+            continue
+        if not adresse_wohlgeformt(zelle):
+            probleme.append(
+                f"Adresse nicht wohlgeformt in `{pfad}` Nr. {letzte}: `{zelle}`"
+            )
+        zeilen.append((letzte, zelle))
+    ohne = [nr for nr in koepfe if anzahl.get(nr, 0) == 0]
+    if ohne:
+        probleme.append(
+            "Überschrift ohne Adresszeile in `"
+            + pfad
+            + "`: "
+            + ", ".join(str(n) for n in ohne)
+        )
+    return zeilen, probleme
+
+
 def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
-    """Abschnitte und Tabellen aus ``fragen-adressen.md`` (D386 Beschluss 1)."""
+    """Abschnitte aus ``fragen-adressen.md``: Tabelle oder Marker (D395 Beschluss 1, 3)."""
     probleme: list[str] = []
     listen: list[Liste] = []
     pfad: str | None = None
     zeilen: list[tuple[int, str]] | None = None
     in_tabelle = False
+    hat_tabelle = False
+    hat_marker = False
 
     def ablegen() -> None:
-        nonlocal pfad, zeilen, in_tabelle
+        nonlocal pfad, zeilen, in_tabelle, hat_tabelle, hat_marker
         if pfad is not None and zeilen is not None:
+            if hat_tabelle == hat_marker:
+                if hat_tabelle:
+                    probleme.append(
+                        f"Abschnitt `{pfad}` hat Tabelle und Marker"
+                    )
+                    zeilen = []
+                else:
+                    probleme.append(
+                        f"Abschnitt `{pfad}` hat weder Tabelle noch Marker"
+                    )
+            elif hat_marker:
+                gelesen, extra = zeilen_aus_liste(pfad)
+                probleme.extend(extra)
+                zeilen = gelesen
             listen.append(Liste(pfad, zeilen))
         pfad = None
         zeilen = None
         in_tabelle = False
+        hat_tabelle = False
+        hat_marker = False
 
     for zeile in text.splitlines():
         if zeile.startswith("## "):
@@ -114,11 +183,15 @@ def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
             continue
         if pfad is None or zeilen is None:
             continue
+        if zeile == MARKER:
+            hat_marker = True
+            continue
         if not in_tabelle:
             if not zeile.startswith("|"):
                 continue
             if _zellen(zeile)[:2] == ["Nr", "Adresse"]:
                 in_tabelle = True
+                hat_tabelle = True
             continue
         if not zeile.startswith("|"):
             in_tabelle = False
@@ -138,6 +211,24 @@ def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
 
     ablegen()
     return listen, probleme
+
+
+def vollstaendigkeit_pruefen(listen: list[Liste]) -> list[str]:
+    """FRAGEN-Dateien ausserhalb ``archiv/`` ohne Abschnitt (D395 Beschluss 4)."""
+    genannt = {liste.pfad for liste in listen}
+    probleme: list[str] = []
+    for kind in sorted(ROOT.iterdir()):
+        if not kind.is_dir() or kind.name == "archiv":
+            continue
+        for datei in sorted(kind.iterdir()):
+            if not datei.is_file():
+                continue
+            if FRAGEN_DATEI.fullmatch(datei.name) is None:
+                continue
+            rel = f"{kind.name}/{datei.name}"
+            if rel not in genannt:
+                probleme.append(f"Fragenliste ohne Abschnitt: {rel}")
+    return probleme
 
 
 def nummern_befunde(nummern: list[int], name: str) -> list[str]:
@@ -252,7 +343,7 @@ def index_text(listen: list[Liste]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Prüft die Zuordnung; mit ``--schreiben`` entsteht der Index (D387 Beschluss 4)."""
+    """Prüft die Zuordnung; mit ``--schreiben`` entsteht der Index (D387 Beschluss 4, D395)."""
     args = sys.argv[1:] if argv is None else argv
     schreiben = "--schreiben" in args
     quelle = ROOT / "fragen-adressen.md"
@@ -261,6 +352,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     listen, probleme = listen_aus(quelle.read_text(encoding="utf-8"))
     probleme += zuordnung_pruefen(listen)
+    probleme += vollstaendigkeit_pruefen(listen)
     erwartet = index_text(listen)
     ziel = ROOT / "fragen-index.md"
     if schreiben:

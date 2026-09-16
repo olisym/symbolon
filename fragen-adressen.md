@@ -99,3 +99,7 @@ Kontaminiert (D374); siehe den Vorbehalt in `hs/FRAGEN-STAND.md`.
 | 17 | 02 §3.1 / 02 §10 |
 | 18 | 02 §4 / 02 §8 |
 | 19 | 01 §6 / 01 Anhang B.1 |
+
+## 4. `rs/FRAGEN.md` — Layer 02, Rust-Fassung
+
+Adressen: in der Liste.

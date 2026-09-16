@@ -220,6 +220,7 @@ SHORT_NAME = re.compile(r"0[0-8][a-z]?$")
 APPENDIX_REF = re.compile(
     r"(?<![A-Za-z0-9.-])(0[0-8][a-z]?)`? "
     r"(?:Anhang ([A-Z])(?:\.(\d+(?:\.\d+)*))?|([A-Z])\.(\d+(?:\.\d+)*))"
+    r"(?![A-Za-z0-9]|\.\d)"
 )
 
 # Überschriften der Form "## Anhang <Buchstabe>" (D401 Beschluss 2).

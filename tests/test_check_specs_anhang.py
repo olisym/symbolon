@@ -83,3 +83,16 @@ def test_anhang_a_aus_01_mit_wort() -> None:
     n, problems = check_section_refs(_ref("01", "Anhang A"), layer_headings())
     assert n == 1
     assert problems == []
+
+
+def test_anhang_buchstabe_als_wortanfang_nicht_erkannt() -> None:
+    headings = {"01": frozenset({"A", "B", "C", "B.1", "B.2", "C.13"})}
+    text = " ".join(
+        [
+            _ref("01", "Anhang Babel"),
+            _ref("01", "B.2x"),
+        ]
+    )
+    n, problems = check_section_refs(text, headings)
+    assert n == 0
+    assert problems == []

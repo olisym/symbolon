@@ -410,26 +410,9 @@ die zweite. Ob sich die Prüfung erweitern lässt, ohne die Bereichsform aus D22
 nicht gemessen. Mit der Erweiterung fiele auch die Frage an, ob die Adressform aus D385
 Beschluss 1 auf die kürzere Zitatform gezogen wird.
 
-### O65 Was eine Gruppe ohne wirksame Vouches ist, steht nirgends
+### O65 Was eine Gruppe ohne wirksame Vouches ist, steht nirgends — erledigt (D396)
 
-Die Rust-Fassung druckt in `Z7` und `Z8` Gruppen der Form `gruppe I J 0 0`: beide Zahlen sind das
-Maximum über eine leere Menge, weil jeder Vouch der Gruppe abgelaufen ist. Ob Layer 02 eine solche
-Gruppe überhaupt kennt — ob sie eine Budgetzeile erzeugt, ob sie in der Ausgabe erscheint —, ist
-in keiner Spec-Stelle entschieden. Die Fassung hat entschieden, ohne die Stelle als Frage zu
-erkennen; in `rs/FRAGEN.md` steht dazu nichts.
-
-Daneben, aus demselben Lauf: `Anhang C` sagt nirgends, was die Zeile `bytes` enthält. Gemessen ist
-es durchgehend der Core ohne `σ` (`TV1` trägt `a9` bei neun Schlüsseln, `NV1` trägt `a7` bei
-sieben), aber weder `C.0` noch eine Legende hält das fest. Eine Fassung hat daraus bereits einen
-Widerspruch gelesen, der keiner ist (D390 Befund 4).
-
-Beides sind Textlücken, keine Rechenfehler. Was die Gruppe betrifft, ist vor der Entscheidung zu
-klären, welche Antwort die Referenzimplementierung heute gibt.
-
-Nach D393 gehören auch Kanten mit `cap 0` in diese Frage: die Rust-Fassung druckt sie, die
-Referenz filtert sie mit dem `E⁺`-Filter weg. In `TP-02` Profil E sind es vier, in `TZ-02` weitere.
-Es ist dieselbe Entscheidung an einer zweiten Zeilenart — ob eine Struktur ohne Wirkung überhaupt
-erscheint.
+Gruppe besteht nur mit einem Mitglied im Budget-Set; `cap 0` war Auftrag; Legende in `C.0`.
 
 ### O66 Selbstgetragene Adressen erscheinen in keinem Index — erledigt (D395)
 
@@ -447,3 +430,12 @@ Neu gefasst mit Wirkungsspalte; der Widerspruch im Schlusssatz ist aufgelöst.
 `UNPARSABLE_VOUCH_PAYLOAD` und `VOUCH_WITHOUT_TEXP` fallen nie am selben Claim. `02a §2.10` Schritt
 2 nennt keinen Budget-Filter vor dem Dekodieren. Keine Zahl ändert sich, aber die Vermerksmenge ist
 Teil von `TrustResult`. Zu entscheiden mit eigener Begründung, nicht aus dem Code übernommen (D394).
+
+### O69 `02a-maxflow-prompt.md` trägt überholte Stellen, und niemand hat sie gezählt
+
+Drei sind belegt: `§2.3` kennt zwei von drei Dekodierlagen (D394), `§5` kennt zwei Vermerke nicht
+(D207), `§2.4` lässt leere Gruppen zu (D396). `02a` ist gebunden, weil Code auf ihn zeigt, und sein
+Vorbehalt „wenn die Spec etwas anderes sagt, gilt die Spec" verdeckt jede weitere Abweichung, bis
+eine Fassung auf sie stösst. Zu messen mit `tools/register_index.py`: welche Entscheidungen nach
+`02a` Stellen berühren, die `02a` behandelt. Erst danach zu entscheiden, ob `02a` nachgezogen,
+eingefroren oder mit einem Vermerk je Stelle versehen wird.

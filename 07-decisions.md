@@ -16031,3 +16031,78 @@ nicht still heraus — das ist beabsichtigt, aber nicht erprobt.
 
 **Was folgt.** Werkzeugauftrag auf `00bw-o66`, dann O65.
 
+### D396 — O65: drei Nullstrukturen, verschiedene Ursachen, zwei Korrekturen an eigenen Einträgen
+
+**Anlass.** O65 fasst zusammen, was die Rust-Fassung ausgibt und die Referenz nicht: Gruppen mit
+`0 0`, Budgetzeilen mit Summe null, Kanten mit `cap 0`. Dazu kommt die fehlende Legende für
+`bytes` in `01 Anhang C`. Vor der Entscheidung war zu klären, wo die Referenz filtert und warum.
+
+**Gemessen — die Referenz filtert an zwei Stellen, nicht an einer.** `build_groups` nimmt nur
+Claims aus dem Budget-Set auf. Eine Gruppe, deren Mitglieder alle abgelaufen sind, entsteht nicht,
+und `n_budget` ist nie 0; die Budgetzeile je Autor ist deshalb nie null. `bfs_capacities` legt eine
+Kante nur an, wenn ihr Autor erreicht ist und `cap ≥ 1` gilt. Das ist ein Filter und nicht zwei:
+für einen unerreichbaren Autor ist `C = 0` und damit `cap = 0`. O65 nennt einen „`E⁺`-Filter" für
+alle drei Zeilenarten; für Gruppen und Budget ist das falsch.
+
+**Gemessen — die Kanten sind keine Textlücke.** `02 §3` definiert `E⁺ = { e ∈ E : cap(e) ≥ 1 }` und
+`C(x) = 0` für unerreichbare Knoten; `02 §2` sagt, eine Gruppe ohne gültige Belegung erzeuge keine
+Kante. Eine Kante mit `cap 0` gibt es im Flussgraphen nicht. Der Anlass liegt in `rs/AUFTRAG.md`
+unter „Schnittstelle": dort steht, für unerreichbare Autoren seien `d` und `C` als `inf` zu
+drucken. Eine Kante des Flussgraphen kann keinen unerreichbaren Autor haben. Der Satz setzte also
+Kanten voraus, die nach dem Normtext nicht existieren, und die Fassung hat sie gedruckt. Die Ursache
+ist der Auftrag; die Fassung hat die Stelle nicht als Frage erkannt, deshalb steht sie in keiner
+Liste und nicht unter `AUFTRAG` im Index.
+
+**Gemessen — die Gruppe ist eine Textlücke.** `02 §3.1` bildet Gruppen aus „mehreren Vouches
+derselben Identität" und bestimmt `n_budget` als Maximum über die Mitglieder im Budget-Set. Über
+den Fall, dass diese Menge leer ist, sagt der Text nichts. `02a §2.4` sagt „0, wenn leer" und
+unterstellt damit, eine solche Gruppe bestehe fort. Die Rust-Fassung liest wie `02a`, ohne `02a` zu
+kennen; die Referenz folgt ihrem eigenen Prompt an dieser Stelle nicht. Keine Zahl ändert sich,
+weil eine Gruppe mit `0 0` weder Budget bindet noch eine Kante trägt.
+
+**Beschluss 1 — eine Gruppe besteht, solange ein Mitglied im Budget-Set liegt.** Eingefügt in den
+Aggregationskasten von `02 §3.1`. Die Begründung steht schon im Text, nur an anderer Stelle: die
+Out-Degree-Schranke zählt Gruppen im Budget-Set und leitet „höchstens `D` Subjekte" aus `n ≥ 1` und
+`Σn ≤ D` her. Eine Gruppe mit `n_budget = 0` bräche die Prämisse, ohne eine Zahl zu ändern. Das
+entscheidet gegen `02a §2.4` und für die Referenz. `02a` wird nicht nachgezogen; D394, verworfene
+Alternative 2, gilt.
+
+**Beschluss 2 — `rs/AUFTRAG.md` bleibt, der Satz gilt als Befund über den Auftrag.** Wie D392
+Beschluss 1: der Auftrag gehört zum Beleg. Ein künftiger Auftrag beschreibt die `kante`-Zeile als
+Kante aus `E⁺`, mit endlichem `d` und `C`, und nennt keinen Fall, den der Normtext ausschliesst.
+
+**Gemessen — D390 Befund 4 war an zwei Vektoren gemessen und dann verallgemeinert.** D390 schreibt,
+`bytes` sei in `Anhang C` durchgehend der Core ohne `σ`, geprüft an `TV1` und `NV1`. Über alle 35
+`bytes`-Zeilen gemessen stimmt das für `C.1` bis `C.12`. In `C.13` bis `C.15` ist `bytes` die
+Wire-Form: `NV14` bis `NV30` tragen `σ` unter Schlüssel 9, `NV19` hat Restbytes, `NV31` ist eine
+Liste. Die Rust-Fassung hatte in Eintrag 13 die umgekehrte Verallgemeinerung gezogen: sie sah
+Wire-Form bei späteren Vektoren und las sie in `NV1`, `NV4`, `NV5` hinein, wo Header und
+Schlüsselzahl übereinstimmen. Beide Lesarten haben an einem Teil gemessen und für das Ganze
+gesprochen. Zurückgenommen wird das Wort „durchgehend" aus D390 und die gleichlautende Angabe in
+O65.
+
+**Beschluss 3 — die Legende hängt am Vektor, nicht am Abschnitt.** Gemessen trägt die Regel
+ausnahmslos: jeder der 35 Vektoren mit eigener Zeile `σ` hat `bytes` als Core, jeder ohne sie als
+Wire-Form. Eingefügt in `01 Anhang C.0`. Eine Regel nach Abschnittsnummer wäre kürzer und veraltete
+mit dem ersten eingeschobenen Vektor.
+
+**Verworfen: die Nullstrukturen als reine Ausgabefrage im Auftrag regeln.** Für die Kanten stimmt
+das, für die Gruppe nicht: dort war der Normtext offen und `02a` hat ihn anders gefüllt als der
+Code. Eine Ausgaberegel hätte den Widerspruch zwischen Prompt und Referenz stehen lassen.
+
+**Verworfen: `bytes` in `C.13` bis `C.15` in `wire` umbenennen.** Sauberer, aber ein Eingriff in
+Vektortext, auf den `tests/` und Prüfwerkzeuge zeigen, für eine Unterscheidung, die die Legende
+ohne Änderung eines Vektors trägt.
+
+**Gemessen — `02a` trägt jetzt drei belegte überholte Stellen.** `§2.3` kennt zwei der drei
+Dekodierlagen (D394), `§5` kennt `NON_CANONICAL_V` und `VOUCH_WITHOUT_TEXP` nicht (D207), `§2.4`
+lässt leere Gruppen zu (hier). Das war im Sitzungsstart als ungemessen geführt. Es wird O69.
+
+**Wie geprüft, und die schwächste Stelle.** `build_groups` und `bfs_capacities` gelesen,
+`02 §2`, `§3` und `§3.1` im Wortlaut; alle `bytes`-Zeilen von `Anhang C` maschinell dekodiert und
+gegen die `σ`-Zeile gehalten. Schwächste Stelle: Beschluss 1 ist gegen den Code geprüft, aber kein
+Test pinnt, dass eine vollständig abgelaufene Gruppe fehlt. Das bleibt, bis O68 die Vermerksmenge
+entscheidet; beide betreffen dieselbe Funktion.
+
+**Was folgt.** O69 als Messung, O68 als Entscheidung.
+

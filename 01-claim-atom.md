@@ -812,6 +812,13 @@ h_prev_genesis(BOB)   = SHA-256(DOM_ID_GEN ‖ BOB)
                       = d507038f3b07c8642b65e9b3cf559204d9ad7aa0a3faee674d4284a5d9e43abe
 ```
 
+**Was `bytes` enthält, hängt davon ab, ob der Vektor eine eigene Zeile `σ` trägt.** Trägt er
+sie, ist `bytes` die kanonische Kodierung des Core und `σ` die Signatur darüber; der Map-Header
+zählt dann die Core-Schlüssel und nicht `σ`. Trägt er sie nicht, ist `bytes` die Wire-Form, so wie
+sie beim Verifizierer ankommt — mit `σ` unter Schlüssel 9, und bei negativen Vektoren absichtlich
+defekt: zusätzliche Schlüssel, Restbytes, eine Liste statt einer Map. Die Unterscheidung hängt am
+Vektor und nicht an der Abschnittsnummer (D396).
+
 ### C.1 TV1 — Genesis-Vouch (Alice → Bob), `v` und `t_exp` gesetzt
 
 ```

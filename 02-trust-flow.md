@@ -128,6 +128,12 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 > sonst wäre die bloße Erneuerung eines Vouch ein selbst-validierender Beweis gegen den
 > eigenen Autor (§6.2), und zwei aktive Vouches auf dasselbe Subjekt trügen doppelte
 > Kapazität bei einfachem Budget.
+>
+> **Eine Gruppe besteht, solange mindestens eines ihrer Mitglieder im Budget-Set liegt.** Sind alle
+> abgelaufen, gibt es sie nicht mehr — auch nicht als Gruppe mit `n_budget = 0`. Daraus folgt
+> `n_budget ≥ 1` für jede Gruppe und `Σ_J n_budget ≥ 1` für jeden Autor, der eine hat. Die
+> Out-Degree-Schranke weiter unten zählt Gruppen und setzt `n ≥ 1` voraus; eine Gruppe mit `0`
+> bräche die Herleitung, ohne eine Zahl zu ändern (D396).
 
 > **Welches Gruppenmitglied die Kante benennt.** `kante_claim_id` — der Träger von
 > `SUBGRANULAR_VOUCH` — ist die kleinste `claim_id` unter den Gruppenmitgliedern mit

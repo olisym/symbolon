@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from symbolon.trust import TrustParams
@@ -24,33 +26,33 @@ def _params(**overrides: object) -> TrustParams:
 
 @pytest.mark.parametrize("field", FIELDS)
 def test_type_float_abgelehnt(field: str) -> None:
-    with pytest.raises(ValueError, match=field):
+    with pytest.raises(ValueError, match=rf"^{re.escape(field)} must be int$"):
         _params(**{field: float(getattr(PARAMS, field))})
 
 
 @pytest.mark.parametrize("field", FIELDS)
 def test_type_bool_abgelehnt(field: str) -> None:
-    with pytest.raises(ValueError, match=field):
+    with pytest.raises(ValueError, match=rf"^{re.escape(field)} must be int$"):
         _params(**{field: True})
 
 
 def test_c0_null_abgelehnt() -> None:
-    with pytest.raises(ValueError, match="C0 must be > 0"):
+    with pytest.raises(ValueError, match=r"^C0 must be > 0$"):
         _params(C0=0)
 
 
 def test_gamma_num_null_abgelehnt() -> None:
-    with pytest.raises(ValueError, match="gamma_num must satisfy 0 < gamma_num < gamma_den"):
+    with pytest.raises(ValueError, match=r"^gamma_num must satisfy 0 < gamma_num < gamma_den$"):
         _params(gamma_num=0)
 
 
 def test_gamma_num_gleich_gamma_den_abgelehnt() -> None:
-    with pytest.raises(ValueError, match="gamma_num must satisfy 0 < gamma_num < gamma_den"):
+    with pytest.raises(ValueError, match=r"^gamma_num must satisfy 0 < gamma_num < gamma_den$"):
         _params(gamma_num=PARAMS.gamma_den)
 
 
 def test_d_null_abgelehnt() -> None:
-    with pytest.raises(ValueError, match="D must be >= 1"):
+    with pytest.raises(ValueError, match=r"^D must be >= 1$"):
         _params(D=0)
 
 

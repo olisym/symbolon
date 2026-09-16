@@ -22,8 +22,9 @@ Zweck: normative Testvektoren für `02a-maxflow`. Alle Werte exakt, ganzzahlig, 
 
 ## 0. Festgelegte Konventionen
 
-Diese acht Punkte waren in der Spec offen und sind hier entschieden. Sie gehören als
-Spec-Nachzug in `02 §2`/`§3`/`§4`/`§8`, nicht nur in dieses Dokument.
+Die Punkte K1–K8 waren in der Spec offen und sind hier entschieden. Sie gehören als
+Spec-Nachzug in `02 §2`/`§3`/`§4`/`§8`, nicht nur in dieses Dokument. K9 gehört ausdrücklich
+nicht in `02` (D375) und ist hier normativ (D398).
 
 | ID | Frage | Entscheidung |
 |---|---|---|
@@ -35,6 +36,7 @@ Spec-Nachzug in `02 §2`/`§3`/`§4`/`§8`, nicht nur in dieses Dokument.
 | K6 | Out-Degree | `wirksame Out-Degree(I) ≤ min(D, C(I))`, gezählt in **Subjekten** (Gruppen im Budget-Set), nicht in Claims. |
 | K7 | Mehrere Claims auf dasselbe Subjekt | Aggregation je `(I, J, N)`: `n_budget = max n` über das Budget-Set, `n_kante = max n` über das Aktiv-Set. **Maximum, nicht Summe.** |
 | K8 | BFS-Kantenset | `E⁺ = { e ∈ Aktiv-Set : cap(e) ≥ 1 }`. Kanten ohne Durchsatz verleihen keine Position. |
+| K9 | Ausgabeform des Schnitts | `cut` ist der **quellseitige** minimale Schnitt des Flusslaufs: die im Residualgraphen von `S*` erreichbaren Knoten bestimmen ihn eindeutig. Ausgegeben werden die Identitäten, deren interne Kante im Schnitt liegt (`x_in` erreichbar, `x_out` nicht), aufsteigend nach Bytes. Besteht der Schnitt nur aus Vouch-Kanten, ist `cut` leer — kein Fehler, sondern: hier bindet eine Beziehung, keine Person (`02 §4`). Referenzschnittstelle, nicht Layer-Semantik (D375). |
 
 ---
 
@@ -172,6 +174,22 @@ interne Kante des Ankers ohnehin, weil nur eine Kante genutzt wird.
 
 *Test:* `simultan(A′) == 16` und `simultan(A′) == Σ_h C(h)`. Eine Implementierung, die 48 liefert,
 hat die Quelle an `a_out` gehängt.
+
+### Anker 3c — Schnitt (K9)
+
+Simultane Abfrage `ALICE → {g₁,g₂,g₃}`, Flusslauf, `include_flagged = True`:
+
+| Var | `cut` | bindend |
+|---|---|---|
+| **A** | `(CAROL,)` | interne Kante CAROL, `C = 4` |
+| **B** | `()` | die drei Vouch-Kanten `CAROL→gᵢ`, je `cap = 1`; keine interne Kante |
+| **F** | `(CAROL,)` | interne Kante CAROL, `C = 4`; die Vouch-Kanten tragen zusammen ebenfalls `4` |
+| **A′** | `(ALICE,)` | interne Kante ALICE, `C = 16` |
+
+B ist der Vektor für den leeren Schnitt: `Σ_{h ∈ Grenze} C(h) = 4`, und der Schnitt enthält
+trotzdem keinen Knoten (`02 §4`). F ist der Vektor für die Eindeutigkeit: zwei minimale Schnitte
+gleicher Kapazität, K9 wählt den quellseitigen, und dort ist CAROLs interne Kante die erste
+gesättigte.
 
 ### Angreifer-Optimum (bei festem `|S| = 3`)
 

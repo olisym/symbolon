@@ -1,5 +1,10 @@
 # Prompt `02a-maxflow` — Trust-Flow-Solver (MaR Layer 02)
 
+> **Nicht mehr normativ (D397, D398).** Dieser Auftrag ist historisch. Jede Norm, die er
+> enthielt, steht in `02-trust-flow.md`, die Ausgabeform des Schnitts in
+> `02-golden-anchors.md` (K9). Unter jeder Überschrift steht, wo. Die Überschriften bleiben
+> unverändert, damit die Registerverweise weiter auflösen.
+
 Revision 2 — gegen den Spec-Stand nach dem Nachzug D28–D40. Tool-agnostisch, läuft in Cursor
 oder Claude Code.
 
@@ -10,6 +15,8 @@ Fassung nach dem Nachzug; gegen den alten Stand ist er falsch.
 ---
 
 ## 0. Rolle und Regeln
+
+> Gilt: `02 §11.1`. Branch, Abhängigkeiten und Layer-01-Sperre historisch.
 
 Du implementierst Schicht 02 der Referenzimplementierung von *Mensch als Republik*.
 
@@ -34,6 +41,8 @@ Du implementierst Schicht 02 der Referenzimplementierung von *Mensch als Republi
 
 ## 1. Modul-Layout
 
+> Historisch.
+
 Neu anzulegen, alles unterhalb von `symbolon/trust/`:
 
 ```
@@ -57,6 +66,8 @@ Aus der Spec übernommen. Wenn die Spec etwas anderes sagt, gilt die Spec.
 
 ### 2.1 Parameter
 
+> Gilt: `02 §11.2`.
+
 ```python
 @dataclass(frozen=True, slots=True)
 class TrustParams:
@@ -67,6 +78,8 @@ class TrustParams:
 ```
 
 ### 2.2 Kapazität
+
+> Gilt: `02 §3`, `02 §8`.
 
 ```
 C(d) = (C0 * gamma_num**d) // gamma_den**d          für endliches d
@@ -81,6 +94,8 @@ gamma_den**d` zusammenziehen — doppelte Rundung. Gegenbeispiel `C₀ = D = 16,
 n = 9`: korrekt `3`, Kurzform `4`.
 
 ### 2.3 Vouch-Gewicht (D37)
+
+> Gilt: `02 §3.1`, `02 §10`.
 
 Der `v`-Payload eines `nuc:N/vouch@1`-Claims ist kanonisches CBOR:
 
@@ -105,6 +120,8 @@ Richtung, in verschiedene Richtungen.
 
 ### 2.4 Aggregation je `(I, J, N)` — D40 ⚠️ neu
 
+> Gilt: `02 §3.1`.
+
 Mehrere Vouch-Claims derselben Identität auf dasselbe Subjekt im selben Scope bilden **eine**
 Gruppe. Pro Gruppe zwei Zahlen:
 
@@ -124,11 +141,15 @@ Kanten: je Paar `(I, J)` genau eine.
 
 ### 2.5 Kantenkapazität
 
+> Gilt: `02 §3.1`.
+
 ```
 cap(I → J) = (n_kante * C(d(I))) // D
 ```
 
 ### 2.6 Zwei Mengen (§3.1, D38)
+
+> Gilt: `02 §3.1`.
 
 | Menge | Inhalt | Verwendung |
 |---|---|---|
@@ -150,6 +171,8 @@ Prüfe `state == State.ACTIVE` **explizit**; übernimm nicht `trust_usable`. Sie
 
 ### 2.7 BFS mit Kapazitätsfilter (K8, D36)
 
+> Gilt: `02 §3`.
+
 `d(x)` ist die kürzeste Pfadlänge über dem **wirksamen** Kantenset
 `E⁺ = { e ∈ Aktiv-Set : cap(e) ≥ 1 }`.
 
@@ -166,6 +189,8 @@ Kanten mit `cap == 0` erzeugen `SUBGRANULAR_VOUCH` und nehmen weder an der BFS n
 teil.
 
 ### 2.8 Knoten-Splitting und Super-Knoten ⚠️ geändert
+
+> Gilt: `02 §3`, `02 §4`, `02 §11.3`.
 
 - Jeder Knoten `x` wird zu `x_in → x_out` mit Kapazität `C(d(x))`.
 - Vouch-Kante wird zu `I_out → J_in` mit `cap(I→J)`.
@@ -185,11 +210,15 @@ Fehler `ValueError`, wenn `anchors ∩ targets ≠ ∅` — die Frage ist nicht 
 
 ### 2.9 Über-Commitment (D4)
 
+> Gilt: `02 §3.1`, `02 §10`.
+
 Für jede Identität `I` und den angefragten Scope: `Σ_J n_budget(I, J, scope)` über alle Gruppen.
 `> D` ⇒ `OVERCOMMITTED_AUTHOR` für `I`. **Autor-Flag, kein Claim-Reject** — dieselbe Bauform wie
 Equivocation: alle Claims bleiben gültig und gespeichert.
 
 ### 2.10 Auswertungsreihenfolge
+
+> Gilt: `02 §11.4`.
 
 Die Reihenfolge ist ergebnisrelevant und daher normativ:
 
@@ -208,6 +237,10 @@ deshalb ist die Kette azyklisch, obwohl Schritt 5 den Graphen und damit die Dist
 ---
 
 ## 3. Öffentliche API
+
+> Gilt: `include_flagged` in `02 §8`, Determinismus in `02 §11.1`, Schnitt in
+> `02-golden-anchors.md` (K9). Signatur und `classify_all` historisch; massgeblich ist die
+> Klassifikation nach `01 §6`.
 
 ```python
 def trust(
@@ -264,6 +297,8 @@ wären das `O(E²)` Ed25519-Verifikationen.
 
 ## 4. Solver
 
+> Gilt: `02 §8`, Determinismus in `02 §11.1`.
+
 Dinic. Einmal implementieren, zwei Kapazitätsbelegungen darauf:
 
 | Lauf | interne Kanten | interne Kanten **der Anker** | Vouch-Kanten | liefert |
@@ -290,6 +325,8 @@ Einfügereihenfolge, Einfügereihenfolge aus der sortierten Kantenliste.
 
 ## 5. Findings
 
+> Gilt: `02 §10`, `02 §3.1`.
+
 ```python
 class TrustFinding(str, Enum):
     OVERCOMMITTED_AUTHOR      = "OVERCOMMITTED_AUTHOR"       # Σ n_budget > D
@@ -314,6 +351,8 @@ Keine Exceptions für Findings. Nichts davon bricht einen Aufruf ab.
 
 ## 6. Ausdrücklich nicht in diesem Schritt
 
+> Historisch.
+
 - **Zweck-Filter (`§2`, `v`-Key `1`).** Kodierung ist erst mit `03`/`05` festgelegt. Nicht
   erfinden, kein Parameter, kein Platzhalter — Key `1` wird gelesen und verworfen wie jeder
   andere Zusatz-Key.
@@ -325,6 +364,8 @@ Keine Exceptions für Findings. Nichts davon bricht einen Aufruf ab.
 ---
 
 ## 7. Tests
+
+> Historisch. Die Zahlen stehen in `02-golden-anchors.md`.
 
 Alle Zahlen wörtlich aus `02-golden-anchors.md`. Übernimm sie als Literale; **generiere keine
 Erwartungswerte aus dem eigenen Code** — das würde die Kopplung an die Spec durch eine Kopplung
@@ -525,6 +566,8 @@ Findings meldet als der mit `True`, hat die Reihenfolge aus §2.10 verletzt.
 ---
 
 ## 8. Abnahme
+
+> Historisch.
 
 1. `pytest -q` grün, alle bestehenden Layer-01-Tests weiterhin enthalten.
 2. Kein Import von `time`, `datetime`, `random`, `fractions`, `decimal`, `numpy`, `networkx`.

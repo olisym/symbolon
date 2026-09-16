@@ -158,8 +158,18 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 
 | Menge | Inhalt | Verwendung |
 |---|---|---|
-| **Aktiv-Set** | nicht widerrufen, nicht abgelaufen | Kantensatz für den Fluss (§2) |
-| **Budget-Set** | nicht abgelaufen (**widerrufen, supersediert und `pending` eingeschlossen**), aggregiert je `(I, J, N)` über `max n` | Prüfung `Σ n_budget ≤ D` |
+| **Aktiv-Set** | Zustand `active` nach Atom-Spec §6 — verkettet, zeitlich gültig, nicht widerrufen, nicht supersediert | Kantensatz für den Fluss (§2) |
+| **Budget-Set** | nicht abgelaufen nach dem Prädikat oben, gleich in welchem Zustand (**`revoked`, `superseded`, `pending`, `equivocation-flagged` und `time-regression-flagged` eingeschlossen**), aggregiert je `(I, J, N)` über `max n` | Prüfung `Σ n_budget ≤ D` |
+
+**Aktiv heisst der Zustand.** Das Aktiv-Set prüft den Zustand `active` ausdrücklich und
+übernimmt kein abgeleitetes Merkmal, das denselben Sachverhalt zu tragen scheint. Stimmen beide
+nicht überein, gilt der Zustand.
+
+**Das Prädikat ist die Definition, die Aufzählung seine ausgerechnete Form.** Weicht die Liste
+der eingeschlossenen Zustände vom Prädikat ab, gilt das Prädikat. Eine frühere Aufzählung liess
+`equivocation-flagged` weg, der Code folgte ihr, und Equivocation wurde zum Budget-Reset (D135).
+Beide Mengen enthalten nur gespeicherte Claims; ein `malformed` Claim wird nach Atom-Spec §6
+abgewiesen und erreicht diese Schicht nicht (D398).
 
 **`pending` bindet Budget.** Ein Vouch, dessen Vorgänger in der Autorenkette noch fehlt, trägt
 keine Kante bei (§2), gehört aber ins **Budget-Set**: Er ist signiert, und der
@@ -293,9 +303,14 @@ die Schranke gilt daher erst recht. ∎
 > **∞ ist ein Sentinel, kein Wert.** Die Kanten an `S*` und `T*` tragen keine echte Kapazität und
 > dürfen den Fluss nicht binden. Eine Implementierung realisiert sie als endliche Zahl, die jeden
 > erreichbaren Flusswert übersteigt; ein festes Literal leistet das nicht, sobald `C₀` gross genug
-> ist, und der Fluss fällt dann still zu klein aus. Die Herleitung oben liefert die Schranke mit:
-> der Anker liegt auf jedem Pfad, also genügt die Summe der `C(a)` über die Anker. Die
-> Ausgestaltung steht in `02a §2.8`.
+> ist, und der Fluss fällt dann still zu klein aus. **Normativ ist die Bedingung:** ∞ MUSS echt
+> grösser sein als jeder Flusswert, der in einem der beiden Läufe (dieser Abschnitt und `§8`)
+> erreichbar ist. Im Flusslauf liegt die interne Kante des Ankers auf jedem Pfad, dort genügt
+> `Σ_{a ∈ Anker} C(a)`. Im Einheitslauf trägt sie selbst ∞ und bindet nicht; dort begrenzt
+> `|E⁺|` den Fluss, weil Anker und Ziele disjunkt sind (`§11.3`) und jeder Pfad deshalb
+> mindestens eine Vouch-Kante mit Kapazität 1 trägt. Hinreichend für beide Läufe ist
+> `max(Σ_{a ∈ Anker} C(a), |E⁺|) + 1` (D381). Die Summe aller endlichen Kapazitäten des
+> Flusslaufs `+ 1` ist ebenfalls hinreichend; gegen diese Belegung sind die Vektorsätze gepinnt.
 
 Hinge die Quelle an `a_out`, wäre der Satz **falsch**: drei Kanten mit `n = D` von einem
 Anker mit `C₀ = 16, D = 4` tragen je `⌊4·16/4⌋ = 16` und simultan 48 gegen eine behauptete
@@ -584,6 +599,9 @@ Der *Mechanismus* ist festgelegt; die *Werte* sind Interpretation (A2):
   Bürgen sind ein Bürge. Die Vouch-Kanten tragen `1` und nicht ∞: zwei knotendisjunkte Pfade
   teilen nie eine Kante, die Kappung ist daher verlustfrei — und ohne sie liefert der Solver bei
   einer direkten Anker→Ziel-Kante keinen Pfadwert, sondern den ∞-Sentinel (D42).
+  Beide Läufe arbeiten auf demselben Kantensatz `E⁺` (§3). Deshalb ist der Kapazitätsfilter für
+  diesen Lauf sicherheitsrelevant: mit `1` auf jeder Vouch-Kante wäre eine Kante mit `cap = 0`
+  sonst von einer vollwertigen nicht zu unterscheiden.
   **Endpunkte werden nicht gespalten:** die internen Kanten der Anker
   tragen ∞, die des Ziels liegt ohnehin nicht auf dem Pfad (§4). Sonst wäre die Zahl von
   einem einzelnen Anker aus trivial 1. Wirkung: eine Koalition, die über *einen*
@@ -703,8 +721,8 @@ wenn das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`).
 | `NON_CANONICAL_V` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1` |
 | `INVALID_VOUCH_WEIGHT` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1`, D3 |
 | `VOUCH_WITHOUT_TEXP` | `claim_id` des Vouch | bleibt, bindet unbegrenzt | unverändert | `§6.2`, D119 |
-| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` | bleibt | nicht in `E⁺` | `02a §2.7` |
-| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** | unverändert | bei `include_flagged = False` keine | `02a §3`, D39 |
+| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` | bleibt | nicht in `E⁺` | `§3` |
+| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** | unverändert | bei `include_flagged = False` keine | `§8`, D39 |
 
 **Unlesbares Gewicht: drei Vermerke, eine Wirkung.** `UNPARSABLE_VOUCH_PAYLOAD`,
 `NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` entstehen beim Lesen von `v`, in der Reihenfolge aus
@@ -727,7 +745,7 @@ ihm die Kante zu entziehen wäre eine Sanktion, die nirgends beschlossen ist.
 weil `⌊n_kante·C_author/D⌋` auf null fällt: sie nimmt weder an der Distanzberechnung noch am Fluss
 teil. Als Adresse dient die `claim_id` des Mitglieds mit `n == n_kante`, bei Gleichstand die
 lexikographisch kleinste. Damit ist der Vermerk deterministisch, auch wenn mehrere Claims dasselbe
-`n` tragen (`02a §5`).
+`n` tragen (`§3.1`).
 
 **`OVERCOMMITTED_AUTHOR` ist die Ausnahme, und sie ist nicht am Typ erkennbar.** Sein Subjekt ist
 ein öffentlicher Schlüssel, kein `claim_id`. Beide sind 32 Byte; wer `subject` pauschal im Speicher
@@ -740,4 +758,56 @@ tragen die Gruppen des Autors keine Kante — dieselbe Wirkung wie bei `EQUIVOCA
 **Der Vermerk entsteht vor dem Aufbau des Graphen, nicht danach.** Die Budgetprüfung liest nur das
 Budget-Set und keine Kapazität; bei `include_flagged = False` entscheidet ihr Ergebnis, welche
 Kanten die Distanzberechnung überhaupt sieht. `SUBGRANULAR_VOUCH` fällt erst dort. Die Reihenfolge
-ist normativ (`02a §2.10`).
+ist normativ (`§11.4`).
+
+---
+
+## 11. Auswertung: Rechenregeln, Anfrage, Reihenfolge
+
+Dieser Abschnitt nimmt die Normen auf, die bis D397 nur im Implementierungsauftrag `02a` standen.
+Er ändert keine Rechnung dieser Schicht. Er legt fest, was eine Auswertung einhalten muss, damit
+zwei Verifizierer über demselben Bestand mit denselben Argumenten dieselbe Antwort erhalten.
+
+### 11.1 Rechenregeln
+
+- **Ganzzahlig.** Kapazitäten, Gewichte, Flusswerte und der ∞-Sentinel (§4) sind ganze Zahlen.
+  Es gibt keine Gleitkomma- und keine Bruchrechnung; jede Division rundet ganzzahlig ab, und
+  `C(x)` wird einmal am Ende gerundet (§3).
+- **`now` ist Parameter.** Die Auswertung liest keine Uhr. `now` wird übergeben und ist die
+  subjektive Verifizierer-Zeit aus §6.2. Eine Auswertung, die die Systemuhr liest, ist nicht
+  wiederholbar und damit nicht nachprüfbar.
+- **Deterministisch.** Zwei Auswertungen über denselben Bestand mit denselben Argumenten liefern
+  dieselben Ergebnisse, Schnitt und Vermerke eingeschlossen. Wo die Reihenfolge einer Menge ein
+  Ergebnis berühren kann, wird vorher sortiert. Die Ausgabeform des Schnitts normiert diese
+  Schicht nicht (§4); die Referenzform steht in `02-golden-anchors.md` §0, Konvention K9 (D375,
+  D398).
+
+### 11.2 Parameterbereiche
+
+`C₀`, `γ = γ_num/γ_den` und `D` sind ganze Zahlen mit `C₀ ≥ 1`, `0 < γ_num < γ_den` und `D ≥ 1`.
+Ausserhalb dieser Bereiche gibt es keine Auswertung. Woher die Werte kommen, regelt §8.1.
+
+### 11.3 Die Anfrage
+
+Anker und Ziele einer Anfrage sind disjunkt. Überschneiden sie sich, ist die Frage nicht
+wohldefiniert, und die Auswertung weist die Anfrage zurück, statt einen Wert zu liefern. Das ist
+kein Vermerk nach §10: fehlerhaft ist nicht der Bestand, sondern die Frage.
+
+### 11.4 Auswertungsreihenfolge
+
+Die Reihenfolge ist ergebnisrelevant und daher normativ:
+
+1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren.
+2. Das Gewicht `v` der Vouch-Claims des Scopes lesen (§3.1) → `n` oder ein Vermerk nach §10.
+   Welche Vouch-Claims gelesen werden und damit einen Vermerk tragen können, ist offen (O68).
+3. Gruppen `(I, J, N)` bilden → `n_budget`, `n_kante` (§3.1).
+4. Budget je Autor prüfen → `OVERCOMMITTED_AUTHOR`.
+5. Flags anwenden (`include_flagged`, §8) → Kantenkandidaten.
+6. Breitensuche über `E⁺`, schichtweise → `d`, `C`, `cap`, `SUBGRANULAR_VOUCH` (§3).
+7. Flussgraph bauen: Knoten-Splitting, `S*`, `T*` (§3, §4).
+8. Max-Flow zweimal: Flusslauf (§4) und Einheitslauf (§8).
+
+Schritt 4 vor 5 vor 6: das Autor-Flag hängt nur am Budget-Set, nie an Kapazitäten oder Distanzen.
+Deshalb ist die Kette azyklisch, obwohl Schritt 5 den Kantensatz und damit die Distanzen ändert.
+`OVERCOMMITTED_AUTHOR` ist deshalb unabhängig von `include_flagged`; `SUBGRANULAR_VOUCH` ist es
+nicht, weil er an `d` hängt und `d` am gefilterten Kantensatz.

@@ -16193,3 +16193,84 @@ er schreibt.
 
 **Was folgt.** Der Splice nach `02` mit den Verweisen in `02a`.
 
+### D398 — O69 Zug 1: vier Abweichungen der Abschnittskarte, der Splice nach `02`
+
+**Anlass.** D397 Beschluss 3 verlangte, vor dem Splice jede Zeile der Abschnittskarte im Wortlaut
+gegen `02` nachzulesen. Gelesen wurden `02a` und `02` vollständig, dazu `symbolon/trust/groups.py`,
+`params.py`, `graph.py`, `verifier.py` und D375.
+
+**Gemessen — die Karte trägt in zehn von vierzehn Zeilen.** Vier Abweichungen:
+
+1. **`cut` nach `02` widerspricht D375 Beschluss 1.** D375 hat entschieden, dass `02` die
+   Ausgabeform des Schnitts nicht normiert, und `02 §4` sagt es in eigenen Worten. Die Wortsuche hat
+   „fehlt" gezählt, wo der Text das Gegenteil beschliesst — die schwächste Stelle aus D397,
+   eingetreten. `02-golden-anchors.md` enthält kein `cut`; die vier Schnittprüfungen in
+   `tests/trust/test_anchors.py` stammen aus `02a §7`, das die Karte historisch nennt. Nach Weg C
+   hätte die Form keinen Ort.
+2. **Die Mengentabelle in `02 §3.1` wiederholt die D135-Klasse.** Die Budget-Set-Zeile zählt
+   widerrufen, supersediert und `pending` auf und lässt `equivocation-flagged` und
+   `time-regression-flagged` weg; die Aktiv-Set-Zeile nennt Supersede und `pending` nicht. Der
+   massgebliche Satz steht im Kasten über der Tabelle, die Regel, dass er vor der Aufzählung gilt,
+   nur in `02a §2.6`. Der Code (`BUDGET_STATES`) folgt dem Satz. Der Satz „`MALFORMED` in keiner
+   Menge" ist leer: `malformed` wird nach `01 §6` abgewiesen und nicht gespeichert und hat keinen
+   Enum-Member. `linked` entsteht nur ohne `now` und ist in der Auswertung unerreichbar.
+3. **Schritt 2 aus `02a §2.10` entschiede O68.** „Vouch-Claims des Scopes sammeln, `v` dekodieren"
+   legt fest, welche Claims gelesen werden und damit einen Vermerk tragen können.
+4. **Ein Satz aus `02a §7` (T-02.8) gilt nicht allgemein.** Die Befunde änderten sich nicht, wenn
+   `include_flagged` kippt. Für `OVERCOMMITTED_AUTHOR` stimmt das; `SUBGRANULAR_VOUCH` hängt an `d`,
+   und `d` am gefilterten Kantensatz. Ob eine Ankervariante den Unterschied erreicht, ist nicht
+   gemessen.
+
+Nachgerechnet und abgedeckt: die `INF`-Schranke nach D381 (siehe Beschluss 4). In `02` fehlte von
+den Parameterbereichen nur `D ≥ 1`. `TrustParams` prüft Bereiche, aber nicht den Typ; der
+Genesis-Pfad prüft ihn.
+
+**Beschluss 1 — die Ausgabeform des Schnitts geht nach `02-golden-anchors.md`, D375 bleibt.** Als
+Konvention K9 in `§0`, dazu die vier Werte als Anker 3c. Der Grund aus D375 gilt weiter: `02`
+spricht über Schranken, die Knotenliste ist Referenzschnittstelle. Die Ankerdatei ist der Ort
+gepinnter Ausgänge, und die Schnittwerte stehen damit erstmals gegen einen Anker statt nur im Test.
+Anker 3c ist von Hand nachgerechnet; in F tragen die drei Vouch-Kanten zusammen dieselbe Kapazität
+wie CAROLs interne Kante, und erst die quellseitige Wahl macht den Wert eindeutig. Entschieden von
+Oli.
+
+**Beschluss 2 — die Mengentabelle in `02 §3.1` wird zustandsbasiert.** Das Aktiv-Set ist der Zustand
+`active` nach `01 §6`, ausdrücklich und nicht über ein abgeleitetes Merkmal. Das Budget-Set ist das
+Prädikat aus dem Kasten, gleich in welchem Zustand; die genannten Zustände sind seine ausgerechnete
+Form, und bei Abweichung gilt das Prädikat. Der `MALFORMED`-Satz wird durch „nur gespeicherte
+Claims" ersetzt.
+
+**Beschluss 3 — `02 §11` nimmt auf, was nur in `02a` stand.** `§11.1` Rechenregeln aus `02a §0` und
+der Determinismus aus `§4`, `§11.2` Parameterbereiche aus `§2.1`, `§11.3` die Disjunktheit von
+Ankern und Zielen aus `§2.8`, `§11.4` die Auswertungsreihenfolge aus `§2.10`. Schritt 2 ist neutral
+gefasst und verweist auf O68; Abweichung 4 ist als Folge der Reihenfolge ausgesprochen. Ein neuer
+Abschnitt statt Einfügungen in `§3`, damit keine bestehende Nummer wandert. Ganzzahligkeit ist Norm
+aus `02a §0` und geht mit; dass `TrustParams` den Typ nicht prüft, ist ein Befund für Zug 3 und
+keine Änderung der Norm.
+
+**Beschluss 4 — der Sentinel-Kasten in `02 §4` nennt Bedingung und Schranke.** Normativ ist, dass ∞
+jeden in beiden Läufen erreichbaren Flusswert übersteigt; hinreichend ist `max(Σ_{a ∈ Anker} C(a),
+|E⁺|) + 1` (D381). Nachgerechnet: im Flusslauf liegt die interne Ankerkante auf jedem Pfad; im
+Einheitslauf trägt sie ∞, und weil Anker und Ziele disjunkt sind, trägt jeder Pfad mindestens eine
+Vouch-Kante mit Kapazität 1. Die Referenzbelegung (Summe aller endlichen Kapazitäten des Flusslaufs
+`+ 1`, `graph.py`) ist ebenfalls hinreichend. Der Satz aus `02a §4`, dass der Filter für den
+Einheitslauf sicherheitsrelevant ist, geht nach `§8` zur Einheitsbelegung und nicht, wie im
+Sitzungsstart vorgesehen, nach `§3.1`: er gehört zu der Belegung, die ihn nötig macht.
+
+**Beschluss 5 — `02a` trägt Kopfvermerk und je Abschnitt einen Verweis.** Überschriften unverändert.
+Die Verweise sind zugleich die Umhängetabelle für Zug 3. `02 §10` verweist nicht mehr auf `02a`.
+
+**Verworfen: die Form nach `02`, D375 Beschluss 1 aufgehoben.** Hielte Weg C mit einem Ort weniger,
+erweiterte aber einen Schrankenlayer um eine Ausgabevorschrift. Der Grund, aus dem D375 sie
+ausgeschlossen hat, ist nicht entfallen.
+
+**Verworfen: Schritt 2 so übernehmen, wie `02a` ihn formuliert.** Er entschiede O68 durch Abschrift.
+
+**Wie geprüft, und die schwächste Stelle.** Karte gegen Wortlaut, Mengen gegen `groups.py` und
+`verifier.py`, Anker 3c gegen die Zusicherungen in `test_anchors.py` und von Hand, Splice im
+Supervisor-Klon mit `splice_run.py` und `make check`. Schwächste Stelle: die Zeilen, die die Karte
+„abgedeckt" nennt, sind im Wortlaut gelesen, aber nicht gegen den Code gemessen. Abweichung 2 zeigt,
+dass „abgedeckt" im Text eine Aufzählung verbergen kann, die der Code nicht teilt.
+
+**Was folgt.** Zug 2 (Spec-Dateien ausser `02` und `02a`), dann Zug 3 nach den Verweisen in `02a`,
+einschliesslich der Typprüfung in `TrustParams`.
+

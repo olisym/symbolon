@@ -15859,3 +15859,45 @@ gelesen. Schwächste Stelle: geprüft ist damit `TZ-02`. Derselbe Vergleich für
 `FALL-02` ist noch nicht gelaufen, und die Nullzeilen aus Klasse 1 würden ihn genauso verrauschen.
 
 **Was folgt.** Der Vergleich über die beiden übrigen Sätze, dann O65 und O67.
+
+### D393 — `TP-02` und `FALL-02` decken sich, und der Sentinelwert ist ergebnisneutral
+
+**Gemessen — `TP-02`.** Keine rechnende Zeile weicht ab. Übrig bleiben vier Kanten mit `cap 0` in
+Profil E, die die Rust-Fassung druckt und die Referenz wegfiltert — dieselbe Umfangsfrage wie die
+Nullgruppen aus D392, nur an der Kantenzeile. Die acht Profile waren bereits gegen die Anker
+geprüft (D390); der Vergleich bestätigt das ein zweites Mal gegen eine unabhängig gebaute Ausgabe.
+
+**Gemessen — `FALL-02` deckt sich vollständig.** Der Diff über alle drei Sprossen ist leer, sobald
+die `inf`-Zeile nach D391 Beschluss 4 herausfällt. Zustände, Gruppen, Budgets, Kanten, Einzel- und
+Simultanflüsse, Disjunktheit und Schnitt stimmen Zeichen für Zeichen.
+
+**Und die `inf`-Zeilen trennen sich dabei maximal.** Die Referenz summiert über alle endlichen
+Kapazitäten und liegt bei `R3` auf `17870283321406128129`; die Rust-Fassung summiert über die Anker
+und liegt auf `4611686018427387905`. Ein Faktor von beinahe vier, und jede Ergebniszeile stimmt
+trotzdem.
+
+**Damit ist D381 gemessen und nicht mehr nur argumentiert.** Der Ebenenwechsel dort — die Norm ist
+die Bedingung, nicht die Formel — sagt voraus, dass zwei verschiedene Belegungen dieselben
+Ergebnisse liefern, solange beide jeden erreichbaren Flusswert übersteigen. Genau das steht jetzt
+als Messung da, über drei Profile mit Kapazitäten bis `2^62`. Umgekehrt zeigt D380, was passiert,
+wenn eine Belegung die Bedingung verletzt: dort wich genau eine Zahl ab.
+
+**Gemessen — die Referenzformel steht in `u64` am Rand.** `u64::MAX` ist
+`18446744073709551615`, die Referenzbelegung bei `R3` `17870283321406128129`. Die Luft beträgt
+rund `2^59`. Eine weitere Sprosse mit doppeltem `C₀` brächte die Referenzformel in einem
+begrenzten Standardtyp zum Überlauf; die engere Belegung der Rust-Fassung bliebe weit darunter.
+Das ist kein Mangel der Referenz — sie rechnet in Python und kennt keine Schranke —, aber es ist
+der Grund, warum D381 die engere Realisierung zulässt, jetzt mit Zahlen statt mit einem Argument.
+
+**Beschluss — der Zeilenvergleich über alle drei Sätze gilt als abgeschlossen.** Es bleiben genau
+zwei Divergenzen: die Umfangsfrage der Nullzeilen (O65, um die `cap 0`-Kanten erweitert) und die
+Kantenwirkung von `VOUCH_WITHOUT_TEXP` in `Z8` (D392, entschieden).
+
+**Wie geprüft, und die schwächste Stelle.** Beide Ausgaben vollständig erzeugt, `diff` über den um
+`inf` bereinigten Text, die Sentinelwerte einzeln gegen `u64::MAX` gerechnet. Schwächste Stelle:
+Übereinstimmung zwischen Referenz und Fassung bleibt ein Hinweis und kein Beweis (D391). Sie ist
+hier stark, weil die Fassung den Ankersatz ohne die Ankerdatei gelesen hat — aber beide könnten
+dieselbe Stelle gleich falsch lesen, und bei `TZ-02` war genau eine Stelle dabei, an der sie es
+verschieden getan haben.
+
+**Was folgt.** O65 und O67.

@@ -426,6 +426,11 @@ Widerspruch gelesen, der keiner ist (D390 Befund 4).
 Beides sind Textlücken, keine Rechenfehler. Was die Gruppe betrifft, ist vor der Entscheidung zu
 klären, welche Antwort die Referenzimplementierung heute gibt.
 
+Nach D393 gehören auch Kanten mit `cap 0` in diese Frage: die Rust-Fassung druckt sie, die
+Referenz filtert sie mit dem `E⁺`-Filter weg. In `TP-02` Profil E sind es vier, in `TZ-02` weitere.
+Es ist dieselbe Entscheidung an einer zweiten Zeilenart — ob eine Struktur ohne Wirkung überhaupt
+erscheint.
+
 ### O66 Selbstgetragene Adressen erscheinen in keinem Index
 
 `tools/check_fragen.py` liest die Adressen ausschliesslich aus `fragen-adressen.md`. D385

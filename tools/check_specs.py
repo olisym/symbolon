@@ -213,13 +213,34 @@ SECTION_REF = re.compile(
 )
 SHORT_NAME = re.compile(r"0[0-8][a-z]?$")
 
+# Anhangsverweise: Kurzform-Name, optional Backtick, Leerzeichen, dann entweder
+# "Anhang" mit Grossbuchstabe und optionaler Nummer oder Grossbuchstabe, Punkt,
+# Nummer ohne das Wort. Ein einzelner Buchstabe ohne "Anhang" wird nicht erkannt.
+# Dateinamen- und Bereichsformen sind bewusst nicht enthalten (D401 Beschluss 4).
+APPENDIX_REF = re.compile(
+    r"(?<![A-Za-z0-9.-])(0[0-8][a-z]?)`? "
+    r"(?:Anhang ([A-Z])(?:\.(\d+(?:\.\d+)*))?|([A-Z])\.(\d+(?:\.\d+)*))"
+)
+
+# Überschriften der Form "## Anhang <Buchstabe>" (D401 Beschluss 2).
+APPENDIX_HEADING = re.compile(r"^## Anhang ([A-Z])", re.M)
+
 
 def layer_headings() -> dict[str, frozenset[str]]:
-    """Überschriftennummern der Ebene 2–4 je Layer-Datei und je Wurzel-Stamm (D209, D221)."""
+    """Überschriftennummern der Ebene 2–4 je Layer-Datei und je Wurzel-Stamm (D209, D221).
+
+    Dazu die Buchstaben der Überschriften ``## Anhang <Buchstabe>`` (D401
+    Beschluss 2). Die Buchstaben tragen keine Ziffer und kollidieren nicht mit
+    den Überschriftennummern.
+    """
     result: dict[str, frozenset[str]] = {}
     for name in SPECS:
         text = read(ROOT / name)
-        nums = frozenset() if text is None else frozenset(HEADING_NUM.findall(text))
+        if text is None:
+            nums = frozenset()
+        else:
+            nums = frozenset(HEADING_NUM.findall(text))
+            nums |= frozenset(APPENDIX_HEADING.findall(text))
         result[name.removesuffix(".md")] = nums
     for prefix, name in LAYER_FILES.items():
         result[prefix] = result[name.removesuffix(".md")]
@@ -243,10 +264,15 @@ def check_section_refs(
     Stamm einer Wurzel-``.md``-Datei, sonst übergangen. Ein Kurzform-Name
     ohne Tabelleneintrag ist ein Befund (D219). Ein fehlender Dateistamm
     ist keiner. Ein Bereich ``NAME §A–§B`` bindet beide Nummern an denselben
-    Namen (D228). Rückgabe: Zahl der aufgelösten Verweise, Befunde.
+    Namen (D228). Dazu Anhangsverweise: Kurzform-Name, dann ``Anhang`` mit
+    Buchstabe und optionaler Nummer oder Buchstabe, Punkt, Nummer (D401).
+    Ein Buchstabe allein zählt, wenn die Zieldatei ``## Anhang`` mit diesem
+    Buchstaben trägt; ein Buchstabe mit Nummer über ``heading_covers``.
+    Rückgabe: Zahl der aufgelösten Verweise, Befunde.
     """
     unknown_names: dict[str, int] = {}
     counts: dict[str, int] = {}
+    appendix_counts: dict[str, int] = {}
     n_resolved = 0
     for match in SECTION_REF.finditer(text):
         name = match.group(1)
@@ -266,6 +292,25 @@ def check_section_refs(
             n_resolved += 1
             ref = f"{name} §{section}"
             counts[ref] = counts.get(ref, 0) + 1
+    for match in APPENDIX_REF.finditer(text):
+        name = match.group(1)
+        if name not in headings:
+            unknown_names[name] = unknown_names.get(name, 0) + 1
+            n_resolved += 1
+            continue
+        word = match.group(2) is not None
+        letter = match.group(2) if word else match.group(4)
+        number = match.group(3) if word else match.group(5)
+        ref = f"{name} Anhang {letter}" if word else f"{name} {letter}"
+        if number is not None:
+            ref += f".{number}"
+        n_resolved += 1
+        if number is None:
+            covered = letter in headings[name]
+        else:
+            covered = heading_covers(f"{letter}.{number}", headings[name])
+        if not covered:
+            appendix_counts[ref] = appendix_counts.get(ref, 0) + 1
     problems: list[str] = []
     for name in sorted(unknown_names):
         problems.append(f"unbekannter Zitiername: {name} ({unknown_names[name]}x)")
@@ -276,6 +321,10 @@ def check_section_refs(
             problems.append(
                 f"verweist auf unbekannten Abschnitt: {ref} ({counts[ref]}x)"
             )
+    for ref in sorted(appendix_counts):
+        problems.append(
+            f"verweist auf unbekannten Anhang: {ref} ({appendix_counts[ref]}x)"
+        )
     return n_resolved, problems
 
 

@@ -437,3 +437,19 @@ Zu entscheiden ist, ob das Werkzeug beide Quellen liest oder ob die Zuordnungsda
 Verweis-Eintrag je selbsttragender Liste bekommt. Die erste Form ist die einfachere und bricht
 D386 Beschluss 2 nicht: gelesen wird eine Adresse, die in der Liste steht, nicht eine aus ihrem
 Titel geratene.
+
+### O67 `02 §10` nennt zu jedem Vermerk das Subjekt und zu keinem die Wirkung
+
+Die Tabelle sagt, welches Objekt ein Vermerk benennt, nicht was mit ihm geschieht. Bei
+`UNPARSABLE_VOUCH_PAYLOAD`, `NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` ist das Objekt aus der
+Sache heraus unbrauchbar — ohne dekodierbares `v` gibt es kein `n` und damit keine Kante. Bei
+`VOUCH_WITHOUT_TEXP`, `SUBGRANULAR_VOUCH` und `OVERCOMMITTED_AUTHOR` wirkt das Objekt weiter, auf
+je eigene Weise. Der einleitende Satz „legt Vermerke ab und rechnet weiter" gilt der Ableitung,
+nicht dem vermerkten Objekt; wo der Unterschied liegt, steht nirgends.
+
+Die Rust-Fassung hat daraus gelesen, ein Vouch ohne `t_exp` trage keine Kante (D392). Das ist
+falsch und war lesbar.
+
+Zu ergänzen ist je Vermerk: ob das Objekt im Budget-Set bleibt, ob es eine Kante trägt, und worauf
+sich der Vermerk bezieht. Die drei Dekodierfälle brauchen dafür `02a §2.3`; die Ergänzung ist erst
+zu schreiben, wenn diese Stelle im Wortlaut gelesen ist.

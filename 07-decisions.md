@@ -15804,3 +15804,58 @@ Beweis — beide können denselben Satz gleich falsch lesen, und bei zwei unabh�
 Übereinstimmung stark, bei einer gemeinsamen Quelle nichts wert.
 
 **Was folgt.** Der Werkzeugauftrag für den Drucker, dann der Vergleich über alle drei Sätze.
+
+### D392 — `TZ-02` im Zeilenvergleich: eine echte Divergenz, und sie liegt bei der Rust-Fassung
+
+**Anlass.** `TZ-02` war von keiner Fassung gelesen worden (D376) und von der Rust-Fassung erstmals
+gerechnet (D390). Mit `tools/ref_block.py` ist der Vergleich ein `diff` geworden.
+
+**Gemessen — zwei Klassen, und nur eine zählt.** Die erste ist reiner Ausgabeumfang: die
+Rust-Fassung druckt Gruppen mit `0 0`, Budgetzeilen mit Summe null und Kanten mit `cap 0`, die
+Referenz filtert sie weg. Keine dieser Zeilen trägt zu einer Zahl bei. Das ist O65.
+
+**Gemessen — die zweite Klasse ist eine Rechendivergenz in `Z8`.** Für die Gruppe `CAROL → g₁`
+liefert die Referenz `n_kante = 1`, die Rust-Fassung `n_kante = 0`; beide setzen `n_budget = 1`.
+Die Wirkung geht bis ins Ergebnis: `fluss` auf `g₁` ist 1 gegen 0, `simultan` 3 gegen 2. Der
+kantentragende Claim ist derselbe, der in beiden Ausgaben den Vermerk `VOUCH_WITHOUT_TEXP` trägt.
+Die Rust-Fassung entzieht ihm die Kante und hat das als Eintrag 6 ihrer Fragenliste festgehalten;
+die Referenz vermerkt und rechnet weiter.
+
+**Der Text entscheidet, und zwar gegen die Rust-Fassung.** `§3.1` sagt im Kasten, fehlendes
+`t_exp` binde unbegrenzt. `§6.2` sagt, ein Vouch ohne `t_exp` binde Budget unbefristet und
+unwiderruflich. `§10` beginnt mit dem Satz, die Ableitung werfe keine Ausnahmen, sondern lege
+Vermerke ab und rechne weiter. An keiner Stelle wird der Kante etwas entzogen. Die Lesart der
+Referenz ist die richtige.
+
+**Beschluss 1 — die Divergenz wird nicht in der Fassung korrigiert.** `rs/` bleibt, wie es
+gebaut wurde. Es ist der Beleg dafür, wie der Text gelesen werden konnte, und ein nachgebesserter
+Beleg belegt nichts mehr (D384 Beschluss 1, derselbe Grund).
+
+**Gemessen — die Lücke ist schmaler als der Fehler, aber sie ist da.** `§10` nennt zu jedem der
+sechs Vermerke das Subjekt und zu keinem die Wirkung. Bei dreien ist das Objekt aus der Sache
+heraus unbrauchbar: ohne dekodierbares `v` gibt es kein `n` und damit keine Kante. Bei den anderen
+dreien trägt der Vouch weiter. Dass „rechnet weiter" die Ableitung meint und nicht das vermerkte
+Objekt, steht nirgends — und genau dort hat die Rust-Fassung eine Sanktion gelesen, wo eine
+Meldung steht.
+
+**Beschluss 2 — `§10` bekommt zu jedem Vermerk seine Wirkung.** Was mit dem vermerkten Objekt
+geschieht: ob es im Budget-Set bleibt, ob es eine Kante trägt, ob es den Autor betrifft statt den
+Claim. Die Ausgestaltung braucht den Dekodierpfad aus `02a §2.3` und wird als eigener Zug gemacht;
+das wird O67.
+
+**Verworfen: die Referenz auf die Rust-Lesart ziehen.** Sie wäre die strengere Regel — ein Vouch,
+der eine Pflicht verletzt, trägt nichts bei. Sie widerspricht aber drei Stellen des Normtextes,
+und keine davon ist mehrdeutig. Eine Implementierung nach der Spec zu ändern, weil eine Fassung
+sie anders gelesen hat, kehrte die Beweislast um.
+
+**Verworfen: den Befund als reinen Lesefehler abzulegen.** Die Fassung hat die Stelle als Frage
+erkannt, entschieden und den Eintrag geschrieben — genau das, was der Auftrag verlangt. Dass die
+Entscheidung falsch war, ist das Ergebnis; dass die Frage entstehen konnte, ist der Mangel.
+
+**Wie geprüft, und die schwächste Stelle.** Der Diff lief über beide vollständigen Ausgaben, die
+`inf`-Zeile nach D391 Beschluss 4 herausgefiltert; die strittige Gruppe ist in der Referenz einzeln
+aufgeschlüsselt und der kantentragende Claim benannt; die drei Normstellen sind im Wortlaut
+gelesen. Schwächste Stelle: geprüft ist damit `TZ-02`. Derselbe Vergleich für `TP-02` und
+`FALL-02` ist noch nicht gelaufen, und die Nullzeilen aus Klasse 1 würden ihn genauso verrauschen.
+
+**Was folgt.** Der Vergleich über die beiden übrigen Sätze, dann O65 und O67.

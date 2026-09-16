@@ -180,8 +180,10 @@ def test_nicht_wohlgeformte_zelle_in_liste_ist_befund(
     )
     assert main([]) == 1
     assert (
-        "Adresse nicht wohlgeformt in `rs/FRAGEN.md` Nr. 1"
-        in capsys.readouterr().out
+        capsys.readouterr().out.count(
+            "Adresse nicht wohlgeformt in `rs/FRAGEN.md` Nr. 1"
+        )
+        == 1
     )
 
 

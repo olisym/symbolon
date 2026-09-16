@@ -121,10 +121,6 @@ def zeilen_aus_liste(pfad: str) -> tuple[list[tuple[int, str]], list[str]]:
                 f"mehr als eine Adresszeile in `{pfad}` Nr. {letzte}"
             )
             continue
-        if not adresse_wohlgeformt(zelle):
-            probleme.append(
-                f"Adresse nicht wohlgeformt in `{pfad}` Nr. {letzte}: `{zelle}`"
-            )
         zeilen.append((letzte, zelle))
     ohne = [nr for nr in koepfe if anzahl.get(nr, 0) == 0]
     if ohne:

@@ -15981,3 +15981,53 @@ einem Dekodierfall ist keiner benannt.
 **Was folgt.** O66 und O65. O68 vor der nächsten Fassung, weil ein Zeilenvergleich über Vermerke
 genau dort rauschen würde.
 
+### D395 — O66: selbsttragende Fragenlisten werden in der Zuordnung angemeldet und aus sich gelesen
+
+**Anlass.** `tools/check_fragen.py` liest Adressen nur aus den Tabellen in `fragen-adressen.md`.
+D386 Beschluss 3 verlangt, dass neue Listen ihre Adresse selbst tragen. `rs/FRAGEN.md` tut das mit
+dreizehn Einträgen und fehlt deshalb im Index. O66 nennt zwei Formen: das Werkzeug liest beide
+Quellen, oder die Zuordnung bekommt Verweiszeilen.
+
+**Gemessen.** `rs/FRAGEN.md` hat 13 Überschriften der Form `## <n>.` und 13 Zeilen
+`- **Adresse:** …`, alle nach D385 Beschluss 1 wohlgeformt. Die drei Adressen, die nur `rs/` nennt —
+`01 §5.1`, `01 Anhang C.5`, `01 Anhang C.10` — bestehen in `01-claim-atom.md`. Mit `rs/` im Index,
+abgeleitet über `matrix_von` aus dem Bestand: Spalten `go`, `hs1`, `hs2`, `rs`; 81 Einträge, 110
+Nennungen, 27 Adressen. Versioniert sind fünf Dateien mit `FRAGEN` im Namen; `hs/FRAGEN-STAND.md`
+ist keine Fragenliste.
+
+**Beschluss 1 — beide Quellen, ein Verzeichnis.** `fragen-adressen.md` bleibt die einzige Stelle,
+die aufzählt, welche Dateien Fragenlisten sind. Eine selbsttragende Liste bekommt dort einen
+Abschnitt in der bestehenden Kopfform, ohne Tabelle, mit genau der Zeile `Adressen: in der Liste.`
+Das Werkzeug liest die Adressen dann aus der Liste. Die Adresse steht nur an einem Ort, und der ist
+die Liste (D386 Beschluss 2).
+
+**Beschluss 2 — die Lesart der selbsttragenden Liste.** Eine Zeile `- **Adresse:** <zelle>` gehört
+zur letzten vorangehenden Überschrift `## <n>.`. Befund ist: eine Überschrift ohne Adresszeile, eine
+Überschrift mit mehr als einer, eine Adresszeile vor der ersten Überschrift, eine nicht wohlgeformte
+Zelle. Die Nummernprüfung aus `nummern_befunde` gilt unverändert.
+
+**Beschluss 3 — ein Abschnitt hat genau eine Quelle.** Tabelle und Markerzeile zugleich, oder
+keines von beiden, ist ein Befund. Eine stille Vorrangregel verdeckte genau den Fall, den O66
+beschreibt.
+
+**Beschluss 4 — Vollständigkeitsprobe.** Jede Datei `<verzeichnis>/FRAGEN.md` oder
+`<verzeichnis>/FRAGEN-<n>.md` ausserhalb von `archiv/` braucht einen Abschnitt in
+`fragen-adressen.md`; fehlt er, ist das ein Befund. Das Muster schliesst `FRAGEN-STAND.md` aus, weil
+dort keine Ziffer steht. Ohne diese Probe wäre O66 beim nächsten Lauf wieder möglich, nur an einer
+anderen Datei.
+
+**Verworfen: die Listen per Muster finden und das Verzeichnis abschaffen.** Das Muster träfe
+Stand- und Hilfsdateien; die Entscheidung, was eine Fragenliste ist, rückte vom Text in einen
+Dateinamen. Das Muster taugt als Probe gegen das Verzeichnis, nicht als dessen Ersatz.
+
+**Verworfen: Verweiszeilen mit abgeschriebener Adresse in der Zuordnung.** Zwei Orte für dieselbe
+Adresse, und die Kopie veraltet still, sobald die Liste korrigiert wird.
+
+**Wie geprüft, und die schwächste Stelle.** Die Kennzahlen stammen aus den Funktionen des
+bestehenden Werkzeugs, angewandt auf eine im Supervisor-Klon zusammengesetzte Liste, nicht aus
+einer Zählung von Hand. Schwächste Stelle: die Lesart aus Beschluss 2 ist an genau einer Liste
+gemessen. Eine künftige Fassung, die das Feld anders einrückt oder fettet, fällt als Befund auf und
+nicht still heraus — das ist beabsichtigt, aber nicht erprobt.
+
+**Was folgt.** Werkzeugauftrag auf `00bw-o66`, dann O65.
+

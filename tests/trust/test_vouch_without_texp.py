@@ -124,3 +124,52 @@ def test_no_vouch_without_texp_on_expired_vouch() -> None:
     )
     assert not any(f.kind == TrustFinding.VOUCH_WITHOUT_TEXP for f in findings)
     assert groups == {}
+
+
+def test_no_payload_finding_on_expired_vouch() -> None:
+    scope = scope_id("payload-expired")
+    alice, bob = Identity("payload-exp-A"), Identity("payload-exp-B")
+    claim = alice.vouch_raw(bob, v=b"\xff", scope=scope, t=1, t_exp=NOW - 1)
+    store = store_with(claim)
+    classifications = classify_all(store, NOW)
+    cid = claim_id(claim)
+    assert classifications[cid].state == State.EXPIRED
+    groups, findings = build_groups(
+        store.all_claims(), classifications, scope, PARAMS.D, NOW
+    )
+    assert findings == ()
+    assert groups == {}
+
+
+def test_payload_finding_on_unexpired_vouch() -> None:
+    scope = scope_id("payload-unexpired")
+    alice, bob = Identity("payload-unexp-A"), Identity("payload-unexp-B")
+    claim = alice.vouch_raw(bob, v=b"\xff", scope=scope, t=1, t_exp=T_EXP)
+    store = store_with(claim)
+    classifications = classify_all(store, NOW)
+    cid = claim_id(claim)
+    groups, findings = build_groups(
+        store.all_claims(), classifications, scope, PARAMS.D, NOW
+    )
+    assert findings == (
+        Finding(kind=TrustFinding.UNPARSABLE_VOUCH_PAYLOAD, subject=cid),
+    )
+    assert groups == {}
+
+
+def test_payload_finding_on_revoked_vouch() -> None:
+    scope = scope_id("payload-revoked")
+    alice, bob = Identity("payload-rev-A"), Identity("payload-rev-B")
+    claim = alice.vouch_raw(bob, v=b"\xff", scope=scope, t=1, t_exp=T_EXP)
+    revoke = alice.revoke(claim, t=2)
+    store = store_with(claim, revoke)
+    classifications = classify_all(store, NOW)
+    cid = claim_id(claim)
+    assert classifications[cid].state == State.REVOKED
+    groups, findings = build_groups(
+        store.all_claims(), classifications, scope, PARAMS.D, NOW
+    )
+    assert findings == (
+        Finding(kind=TrustFinding.UNPARSABLE_VOUCH_PAYLOAD, subject=cid),
+    )
+    assert groups == {}

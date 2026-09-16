@@ -1,4 +1,4 @@
-"""Vektorsatz FALL-02 gegen fall02.py (02a §2.2, 02a §2.8)."""
+"""Vektorsatz FALL-02 gegen fall02.py (02 §3, 02 §4)."""
 
 from __future__ import annotations
 

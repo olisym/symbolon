@@ -89,9 +89,9 @@ def test_bootstrap_m3_all_subgranular() -> None:
     )
     subgranular = [f for f in r.findings if f.kind == TrustFinding.SUBGRANULAR_VOUCH]
     # 02a-maxflow-prompt.md sagt "17 x SUBGRANULAR_VOUCH" (eines je betroffenem Neuling).
-    # SUBGRANULAR_VOUCH ist aber pro Gruppe (I, J, N) definiert (02a §5), und bei m=3 vouchen
+    # SUBGRANULAR_VOUCH ist aber pro Gruppe (I, J, N) definiert (02 §10), und bei m=3 vouchen
     # alle 3 Gruender fuer jeden Neuling separat -> 3 Gruppen je Neuling, 3*17=51 Findings.
-    # Wir folgen der Gruppen-Definition aus 02a §5, nicht der Ueberschlagszahl im Fliesstext.
+    # Wir folgen der Gruppen-Definition aus 02 §10, nicht der Ueberschlagszahl im Fliesstext.
     affected_newcomers = {f.subject for f in subgranular}
     assert len(subgranular) == 51
     assert len(affected_newcomers) == 51  # je Gruppe eine eigene claim_id

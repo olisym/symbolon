@@ -1,6 +1,6 @@
 """Geteilte Ableitungsstufe zwischen 02 §4 (trust) und 02 §5 (rank) (02b §2, D49).
 
-Reine Extraktion aus dem, was vorher in flow.py::trust() inline stand (02a §2.10 Schritte
+Reine Extraktion aus dem, was vorher in flow.py::trust() inline stand (02 §11.4 Schritte
 1-6): classify_all -> Gruppen -> Budget/OVERCOMMITTED_AUTHOR -> Flag-Anwendung -> BFS über
 E+. trust() baut darauf den Knoten-Split und Dinic; rank() (02b) rechnet direkt auf den
 E+-Kanten, ohne Split (D49: kein Knoten-Splitting, das Budget-Set spielt für 02 §5 keine Rolle

@@ -1,4 +1,4 @@
-"""FALL-02 gegen die Referenz (02a §2.2, 02a §2.8, 02a §3)."""
+"""FALL-02 gegen die Referenz (02 §3, 02 §4, 02-golden-anchors.md §0 K9)."""
 
 from __future__ import annotations
 
@@ -86,7 +86,7 @@ def test_infinity_sentinel(profil: str) -> None:
 
 
 def test_inf_signed_int64_threshold() -> None:
-    """R1 passt in int64, R2 und R3 nicht (02a §2.8)."""
+    """R1 passt in int64, R2 und R3 nicht (02 §4)."""
     infs: dict[str, int] = {}
     for profil in PROFILES:
         g = build(profil)

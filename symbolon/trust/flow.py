@@ -1,4 +1,4 @@
-"""Öffentliche API: trust() (02a §3, 02a §2.10)."""
+"""Öffentliche API: trust() (02 §4, 02 §8, 02 §11)."""
 
 from __future__ import annotations
 

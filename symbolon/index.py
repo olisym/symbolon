@@ -1,4 +1,4 @@
-"""classify_all: schneller Zwilling von verifier.classify (02a §3, classify_all; D86/D87).
+"""classify_all: schneller Zwilling von verifier.classify (02 §11.4 Schritt 1, 01 §6; D86/D87).
 
 structural_check läuft genau einmal pro core/revoke@1- bzw. core/supersede@1-Claim
 (Index-Aufbau), statt einmal pro Kandidat-Suche innerhalb jedes classify()-Aufrufs.
@@ -116,7 +116,7 @@ def classify_all(
     now: int,
     policy: NucleusPolicy | None = None,
 ) -> dict[bytes, Classification]:
-    """Ein Durchlauf über den Store; klassifiziert jeden Claim (02a §3, D87/D91).
+    """Ein Durchlauf über den Store; klassifiziert jeden Claim (02 §11.4, D87/D91).
 
     ``policy`` gilt nur für ``nuc:``-Claims mit ``N == policy.scope``; alle übrigen
     werden mit ``policy=None`` klassifiziert. Wirft nie wegen fremdem Scope (PR-INV-12).

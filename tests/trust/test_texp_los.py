@@ -1,4 +1,4 @@
-"""t_exp-lose Buergschaften im Budget-Set (D364, 02a §2.6, 02 §6.2, D135, D119)."""
+"""t_exp-lose Buergschaften im Budget-Set (D364, 02 §3.1, 02 §6.2, D135, D119)."""
 
 from __future__ import annotations
 
@@ -30,9 +30,9 @@ def _szenario(
     now_far = 40000
     now_before_exp = t_exp_carol - 1
     now_after_exp = t_exp_carol + 1
-    # C(d) nach 02a §2.2, einmal am Ende gerundet; d(ALICE) = 0.
+    # C(d) nach 02 §3, einmal am Ende gerundet; d(ALICE) = 0.
     c_alice = (PARAMS.C0 * PARAMS.gamma_num**0) // (PARAMS.gamma_den**0)
-    # cap(ALICE → BOB) nach 02a §2.5; keine Kurzform (02a §2.2).
+    # cap(ALICE → BOB) nach 02 §3.1; keine Kurzform (02 §8).
     expected = (n * c_alice) // PARAMS.D
     assert n + n > PARAMS.D
     assert expected > 0

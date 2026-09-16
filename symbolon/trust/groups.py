@@ -1,4 +1,4 @@
-"""Gruppenbildung (I, J, N) -> n_budget, n_kante (02a §2.4, D40/K7)."""
+"""Gruppenbildung (I, J, N) -> n_budget, n_kante (02 §3.1, D40/K7)."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class Group:
 
 
 def _decode_weight(v: bytes | None, D: int) -> tuple[int | None, TrustFinding | None]:
-    """n aus v dekodieren (02a §2.3). None-Rückgabe zusammen mit Finding heißt: kein Beitrag."""
+    """n aus v dekodieren (02 §3.1). None-Rückgabe zusammen mit Finding heißt: kein Beitrag."""
     if v is None:
         return D, None
     try:
@@ -69,13 +69,13 @@ def _is_scope_vouch(claim: Claim, scope: bytes) -> bool:
 
 def _in_budget_set(claim: Claim, classification: Classification, now: int) -> bool:
     """state in {ACTIVE,REVOKED,SUPERSEDED,PENDING,EQUIVOCATION_FLAGGED} UND nicht abgelaufen
-    (02a §2.6, D135). Equivocation ist kein Lebenszyklus-Akt; der Ueber-Commitment-Beweis
+    (02 §3.1, D135). Equivocation ist kein Lebenszyklus-Akt; der Ueber-Commitment-Beweis
     beruht auf Signaturen, nicht auf Aktivitaet.
 
     classify() aus Layer 01 prueft REVOKED/SUPERSEDED/PENDING *vor* der Ablauf-Prüfung
     (Prioritaet in der Zustandsmaschine) -- ein einmal widerrufener oder supersedierter
     Claim bleibt daher fuer immer in diesem State und wird nie zu State.EXPIRED, selbst
-    wenn t_exp laengst verstrichen ist. Das Budget-Set aus 02a §2.6 verlangt aber genau
+    wenn t_exp laengst verstrichen ist. Das Budget-Set aus 02 §3.1 verlangt aber genau
     diesen Austritt ueber t_exp (Golden Anchors T-02.2, Schritt S2). Also wird die
     Ablauf-Bedingung hier unabhaengig von Layer 1s State erneut geprueft.
     """
@@ -93,7 +93,7 @@ def build_groups(
     D: int,
     now: int,
 ) -> tuple[dict[tuple[bytes, bytes], Group], tuple[Finding, ...]]:
-    """Vouch-Claims des Scopes sammeln, v dekodieren, zu Gruppen aggregieren (02a §2.10 Schritte 2-3)."""
+    """Vouch-Claims des Scopes sammeln, v dekodieren, zu Gruppen aggregieren (02 §11.4 Schritte 2-3)."""
     findings: list[Finding] = []
     members: dict[tuple[bytes, bytes], list[tuple[bytes, int, State]]] = {}
 

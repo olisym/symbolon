@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FALL-02 als sprachneutrale Eingabe (02a §2.2, 02a §2.8)."""
+"""FALL-02 als sprachneutrale Eingabe (02 §3, 02 §4)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Trust-Findings: eigene Enum, kein Claim-Reject (02a §5)."""
+"""Trust-Findings: eigene Enum, kein Claim-Reject (02 §10)."""
 
 from __future__ import annotations
 

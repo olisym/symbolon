@@ -1,4 +1,4 @@
-"""Dinic Max-Flow-Solver, generisch über hashbare Knoten (02a §4)."""
+"""Dinic Max-Flow-Solver, generisch über hashbare Knoten (02 §4, 02 §8)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""T-02.7 — Payload-Randfaelle (02a §2.3); V-CANON — Kanonizität von v (02c / 02 §3.1)."""
+"""T-02.7 — Payload-Randfaelle (02 §3.1); V-CANON — Kanonizität von v (02c / 02 §3.1)."""
 
 from __future__ import annotations
 
@@ -153,7 +153,7 @@ def test_v_canon_e2e() -> None:
 
 
 def test_n_is_not_int() -> None:
-    """v[0] ist keine Ganzzahl: UNPARSABLE_VOUCH_PAYLOAD (02a §2.3, D287)."""
+    """v[0] ist keine Ganzzahl: UNPARSABLE_VOUCH_PAYLOAD (02 §3.1, D287)."""
     assert _decode_weight(cbor_canon.encode({0: "x"}), 4) == (
         None,
         TrustFinding.UNPARSABLE_VOUCH_PAYLOAD,

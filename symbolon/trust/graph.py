@@ -1,4 +1,4 @@
-"""Aktiv-Set/Budget-Kanten -> BFS mit Kapazitätsfilter -> Knoten-Split-Graph (02a §2.7, 02a §2.8)."""
+"""Aktiv-Set/Budget-Kanten -> BFS mit Kapazitätsfilter -> Knoten-Split-Graph (02 §3, 02 §4)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def node_out(identity: bytes) -> tuple[str, bytes]:
 
 
 def capacity(params: TrustParams, d: int | None) -> int:
-    """C(d) = ⌊C0 · γ^d⌋; C(∞) = 0 (02a §2.2). Einmal am Ende gerundet."""
+    """C(d) = ⌊C0 · γ^d⌋; C(∞) = 0 (02 §3). Einmal am Ende gerundet."""
     if d is None:
         return 0
     return (params.C0 * params.gamma_num**d) // (params.gamma_den**d)
@@ -49,7 +49,7 @@ def bfs_capacities(
     groups: dict[tuple[bytes, bytes], Group],
     params: TrustParams,
 ) -> BfsResult:
-    """02a §2.7/K8: E+ = {e in Aktiv-Set : cap(e) >= 1}, ein Durchlauf, schichtweise."""
+    """02 §3/K8: E+ = {e in Aktiv-Set : cap(e) >= 1}, ein Durchlauf, schichtweise."""
     adjacency: dict[bytes, list[bytes]] = {}
     for author, subject in groups:
         if groups[(author, subject)].n_kante <= 0:
@@ -104,11 +104,11 @@ def bfs_capacities(
 
 
 def infinity(bfs_result: BfsResult) -> int:
-    """INF = Summe aller endlichen Kapazitäten + 1 (02a §2.8), nie float('inf').
+    """INF = Summe aller endlichen Kapazitäten + 1 (02 §4), nie float('inf').
 
     Wird aus dem Flusslauf berechnet und fuer beide Laeufe (Fluss und Einheitskapazitaet)
     verwendet. Das traegt auch im Einheitslauf: jede Kante in bfs_result.edges hat per
-    Filter (E+, 02a §2.7/K8) cap >= 1, also gilt |edges| <= Summe der cap-Werte < INF, und
+    Filter (E+, 02 §3/K8) cap >= 1, also gilt |edges| <= Summe der cap-Werte < INF, und
     maxflow im Einheitslauf ist durch die Anzahl der Kanten beschraenkt -- also INF >
     |edges| >= maxflow. Diese Kette bricht still, falls der cap>=1-Filter je gelockert
     wird (dann koennte eine Kante mit cap==0 in bfs_result.edges landen).
@@ -126,7 +126,7 @@ def build_flow_graph(
     *,
     unit_capacities: bool,
 ):
-    """Split-Graph mit S*/T* (K3, K4); zwei Belegungen je nach unit_capacities (02a §4)."""
+    """Split-Graph mit S*/T* (K3, K4); zwei Belegungen je nach unit_capacities (02 §8)."""
     solver = solver_cls()
     identities = set(bfs_result.node_capacity) | anchors | targets
 
@@ -157,7 +157,7 @@ def build_flow_graph(
 
 
 def source_side_cut(solver, identities: frozenset[bytes]) -> tuple[bytes, ...]:
-    """Quellseitiger Schnitt: Identitäten, deren interne Kante im Schnitt liegt (02a §3)."""
+    """Quellseitiger Schnitt: Identitäten, deren interne Kante im Schnitt liegt (02-golden-anchors.md §0, K9)."""
     reachable = solver.reachable_from(SOURCE)
     return tuple(
         sorted(

@@ -52,7 +52,7 @@ class Identity:
         t_exp: int | None = None,
         extra: dict[int, object] | None = None,
     ) -> Claim:
-        """n=None => v abwesend (Default n=D, 02a §2.3)."""
+        """n=None => v abwesend (Default n=D, 02 §3.1)."""
         if n is None:
             v = None
         else:

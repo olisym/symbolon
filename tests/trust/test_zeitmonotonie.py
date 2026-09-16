@@ -1,4 +1,4 @@
-"""Zeitmonotonie des Trust-Werts (D362, 02a §2.6, 02 §7)."""
+"""Zeitmonotonie des Trust-Werts (D362, 02 §3.1, 02 §7)."""
 
 from __future__ import annotations
 
@@ -30,9 +30,9 @@ def _szenario() -> tuple[
         alice.vouch(carol, n=n, scope=scope, t=1, t_exp=t_exp_carol),
     )
     nows = (t_exp_carol - 1, t_exp_carol + 1, t_exp_bob + 1)
-    # C(d) nach 02a §2.2, einmal am Ende gerundet; d(ALICE) = 0.
+    # C(d) nach 02 §3, einmal am Ende gerundet; d(ALICE) = 0.
     c_alice = (PARAMS.C0 * PARAMS.gamma_num**0) // (PARAMS.gamma_den**0)
-    # cap(ALICE → BOB) nach 02a §2.5; keine Kurzform (02a §2.2).
+    # cap(ALICE → BOB) nach 02 §3.1; keine Kurzform (02 §8).
     expected_mid = (n * c_alice) // PARAMS.D
     # 2n > D und n <= D gelten durch die Wahl von n fuer jedes D >= 1 und sind
     # nicht zu pruefen. Die Konstruktion haengt daran, dass die Kante ueberhaupt

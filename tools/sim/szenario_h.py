@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Szenario H: zwei Zeitregime unter divergenten Uhren (01 §2 Feld 6, 04 §3.1, 02a §2.6, D350).
+"""Szenario H: zwei Zeitregime unter divergenten Uhren (01 §2 Feld 6, 04 §3.1, 02 §3.1, D350).
 
 Wegwerf-Treiber. Drei unabhängige Läufe, kein geteilter Kontext.
 now wird in _beobachte durchgereicht; die Lage ohne setzt now=None, ohne welt.py

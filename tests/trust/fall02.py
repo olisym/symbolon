@@ -1,4 +1,4 @@
-"""Falltest FALL-02 (02a §2.2, 02a §2.8, 02a §3): ein Graph, drei C0."""
+"""Falltest FALL-02 (02 §3, 02 §4, 02-golden-anchors.md §0 K9): ein Graph, drei C0."""
 
 from __future__ import annotations
 

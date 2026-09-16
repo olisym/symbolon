@@ -1,4 +1,4 @@
-"""Trust-Flow-Parameter (02a §2.1) und Herleitung aus dem Genesis (02 §8.1, D147)."""
+"""Trust-Flow-Parameter (02 §11.2) und Herleitung aus dem Genesis (02 §8.1, D147)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from symbolon.domains import DOM_NUC_GEN
 
 @dataclass(frozen=True, slots=True)
 class TrustParams:
-    """γ = gamma_num/gamma_den, C(d) = ⌊C0 · γ^d⌋ (einmal am Ende gerundet, 02a §2.2)."""
+    """γ = gamma_num/gamma_den, C(d) = ⌊C0 · γ^d⌋ (einmal am Ende gerundet, 02 §3)."""
 
     C0: int
     gamma_num: int
@@ -19,6 +19,14 @@ class TrustParams:
     D: int
 
     def __post_init__(self) -> None:
+        if type(self.C0) is not int:
+            raise ValueError("C0 must be int")
+        if type(self.gamma_num) is not int:
+            raise ValueError("gamma_num must be int")
+        if type(self.gamma_den) is not int:
+            raise ValueError("gamma_den must be int")
+        if type(self.D) is not int:
+            raise ValueError("D must be int")
         if self.C0 <= 0:
             raise ValueError("C0 must be > 0")
         if not (0 < self.gamma_num < self.gamma_den):

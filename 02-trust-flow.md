@@ -683,38 +683,55 @@ Policy-Knöpfe und bleiben Feld von `RelaxParams` neben dem hergeleiteten `base`
 
 ---
 
-## 10. Vermerke und ihre Subjekte
+## 10. Vermerke, ihre Subjekte und ihre Wirkung
 
 Die Ableitung wirft keine Ausnahmen für schadhafte Eingaben; sie legt Vermerke ab und rechnet
-weiter. Ein Vermerk benennt in seinem `subject` das zurückgewiesene Objekt — notfalls gröber, wenn
-das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`).
+weiter. **Der Satz gilt der Ableitung, nicht dem vermerkten Objekt.** Was mit dem Objekt geschieht,
+ist je Vermerk verschieden, und es folgt nie aus dem Vermerk selbst, sondern aus der Stelle, die
+ihn begründet. Ein Vermerk benennt in seinem `subject` das betroffene Objekt — notfalls gröber,
+wenn das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`).
 
-| Vermerk | Subjekt |
-|---|---|
-| `UNPARSABLE_VOUCH_PAYLOAD` | `claim_id` des Vouch |
-| `NON_CANONICAL_V` | `claim_id` des Vouch |
-| `INVALID_VOUCH_WEIGHT` | `claim_id` des Vouch |
-| `VOUCH_WITHOUT_TEXP` | `claim_id` des Vouch |
-| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` |
-| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** |
+| Vermerk | Subjekt | Budget-Set | Kante | Grundlage |
+|---|---|---|---|---|
+| `UNPARSABLE_VOUCH_PAYLOAD` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1`, D3 |
+| `NON_CANONICAL_V` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1` |
+| `INVALID_VOUCH_WEIGHT` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1`, D3 |
+| `VOUCH_WITHOUT_TEXP` | `claim_id` des Vouch | bleibt, bindet unbegrenzt | unverändert | `§6.2`, D119 |
+| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` | bleibt | nicht in `E⁺` | `02a §2.7` |
+| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** | unverändert | bei `include_flagged = False` keine | `02a §3`, D39 |
 
-Die vier ersten Lagen entstehen beim Dekodieren von `v` (`02a §2.3`): `v` ist nicht dekodierbar,
-ist kein Map, führt den Schlüssel 0 nicht oder trägt dort keinen nichtnegativen `int` — das ergibt
-`UNPARSABLE_VOUCH_PAYLOAD`; `v` dekodiert, ist aber nicht kanonisch kodiert — `NON_CANONICAL_V`;
-`n` liegt ausserhalb von `1 ≤ n ≤ D` — `INVALID_VOUCH_WEIGHT`; der Vouch trägt kein `t_exp` —
-`VOUCH_WITHOUT_TEXP`. `SUBGRANULAR_VOUCH` entsteht beim Aufbau des Graphen, wenn die
-Kantenkapazität `⌊n_kante·C_author/D⌋` auf null fällt. `OVERCOMMITTED_AUTHOR` entsteht danach,
-wenn die Summe der Budgets eines Autors `D` überschreitet.
+**Unlesbares Gewicht: drei Vermerke, eine Wirkung.** `UNPARSABLE_VOUCH_PAYLOAD`,
+`NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` entstehen beim Lesen von `v`, in der Reihenfolge aus
+`§3.1`: der Rundlauf geht der Kanonizität voraus, die Kanonizität der Form, die Form dem
+Wertebereich. `v` ist nicht dekodierbar oder scheitert im Rundlauf, ist keine Map, führt den
+Schlüssel 0 nicht oder trägt dort keinen `uint` — `UNPARSABLE_VOUCH_PAYLOAD`; `v` dekodiert, ist
+aber nicht kanonisch kodiert — `NON_CANONICAL_V`; `n` liegt ausserhalb von `1 ≤ n ≤ D` —
+`INVALID_VOUCH_WEIGHT`. Ohne gültiges `n` hat der Claim nichts, das er beitragen könnte: er wird
+bei der Gruppenbildung übersprungen, nicht zurückgewiesen, und bleibt gespeichert. Die übrigen
+Mitglieder seiner Gruppe sind davon unberührt.
+
+**Fehlendes `t_exp`: ein Vermerk ohne Wirkung.** `VOUCH_WITHOUT_TEXP` ist kein Dekodierfall; er
+liest `t_exp`, nicht `v`. Die Pflicht aus `§6.2` wird beobachtet, nicht durchgesetzt (D119). Der
+Vouch bleibt im Budget-Set und bindet dort unbegrenzt (`§3.1`), und er trägt seine Kante, wenn er
+im Aktiv-Set liegt. Ihn aus dem Budget-Set zu nehmen gäbe Budget frei, und das darf nur die Uhr;
+ihm die Kante zu entziehen wäre eine Sanktion, die nirgends beschlossen ist.
+
+**`SUBGRANULAR_VOUCH` betrifft eine Gruppe, nicht einen Claim.** Die Gruppe bleibt im Budget-Set,
+`n_budget` zählt voll. Ihre Kante liegt im Aktiv-Set, aber nicht im wirksamen Kantenset `E⁺`,
+weil `⌊n_kante·C_author/D⌋` auf null fällt: sie nimmt weder an der Distanzberechnung noch am Fluss
+teil. Als Adresse dient die `claim_id` des Mitglieds mit `n == n_kante`, bei Gleichstand die
+lexikographisch kleinste. Damit ist der Vermerk deterministisch, auch wenn mehrere Claims dasselbe
+`n` tragen (`02a §5`).
 
 **`OVERCOMMITTED_AUTHOR` ist die Ausnahme, und sie ist nicht am Typ erkennbar.** Sein Subjekt ist
 ein öffentlicher Schlüssel, kein `claim_id`. Beide sind 32 Byte; wer `subject` pauschal im Speicher
-nachschlägt, greift genau dort ins Leere. Der Grund ist derselbe wie überall sonst: das
-zurückgewiesene Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vouch
-ist der überzählige — erst ihre Summe verletzt das Budget.
+nachschlägt, greift genau dort ins Leere. Der Grund ist derselbe wie überall sonst: das betroffene
+Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vouch ist der
+überzählige — erst ihre Summe verletzt das Budget. Alle Claims des Autors bleiben gültig, und die
+Budgetrechnung ändert sich durch den Vermerk nicht. Bei `include_flagged = False`, dem Default,
+tragen die Gruppen des Autors keine Kante — dieselbe Wirkung wie bei `EQUIVOCATION_FLAGGED`.
 
-**`SUBGRANULAR_VOUCH` betrifft eine Gruppe, nicht einen Claim.** Als Adresse dient die `claim_id`
-des Mitglieds mit `n == n_kante`, bei Gleichstand die lexikographisch kleinste. Damit ist der
-Vermerk deterministisch, auch wenn mehrere Claims dasselbe `n` tragen (`02a §5`).
-
-Ein Claim mit einem der vier Dekodier-Vermerke trägt nichts zum Fluss bei; er wird übersprungen,
-nicht zurückgewiesen.
+**Der Vermerk entsteht vor dem Aufbau des Graphen, nicht danach.** Die Budgetprüfung liest nur das
+Budget-Set und keine Kapazität; bei `include_flagged = False` entscheidet ihr Ergebnis, welche
+Kanten die Distanzberechnung überhaupt sieht. `SUBGRANULAR_VOUCH` fällt erst dort. Die Reihenfolge
+ist normativ (`02a §2.10`).

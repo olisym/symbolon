@@ -443,18 +443,15 @@ Verweis-Eintrag je selbsttragender Liste bekommt. Die erste Form ist die einfach
 D386 Beschluss 2 nicht: gelesen wird eine Adresse, die in der Liste steht, nicht eine aus ihrem
 Titel geratene.
 
-### O67 `02 §10` nennt zu jedem Vermerk das Subjekt und zu keinem die Wirkung
+### O67 `02 §10` nennt zu jedem Vermerk das Subjekt und zu keinem die Wirkung — erledigt (D394)
 
-Die Tabelle sagt, welches Objekt ein Vermerk benennt, nicht was mit ihm geschieht. Bei
-`UNPARSABLE_VOUCH_PAYLOAD`, `NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` ist das Objekt aus der
-Sache heraus unbrauchbar — ohne dekodierbares `v` gibt es kein `n` und damit keine Kante. Bei
-`VOUCH_WITHOUT_TEXP`, `SUBGRANULAR_VOUCH` und `OVERCOMMITTED_AUTHOR` wirkt das Objekt weiter, auf
-je eigene Weise. Der einleitende Satz „legt Vermerke ab und rechnet weiter" gilt der Ableitung,
-nicht dem vermerkten Objekt; wo der Unterschied liegt, steht nirgends.
+Neu gefasst mit Wirkungsspalte; der Widerspruch im Schlusssatz ist aufgelöst.
 
-Die Rust-Fassung hat daraus gelesen, ein Vouch ohne `t_exp` trage keine Kante (D392). Das ist
-falsch und war lesbar.
 
-Zu ergänzen ist je Vermerk: ob das Objekt im Budget-Set bleibt, ob es eine Kante trägt, und worauf
-sich der Vermerk bezieht. Die drei Dekodierfälle brauchen dafür `02a §2.3`; die Ergänzung ist erst
-zu schreiben, wenn diese Stelle im Wortlaut gelesen ist.
+### O68 Welche Vouches überhaupt einen Vermerk bekommen, steht nirgends
+
+`build_groups` dekodiert nur Claims im Budget-Set, und ein Vouch mit defektem `v` wird vor der
+`t_exp`-Prüfung übersprungen. Ein abgelaufener Vouch mit defektem `v` bleibt also ohne Vermerk, und
+`UNPARSABLE_VOUCH_PAYLOAD` und `VOUCH_WITHOUT_TEXP` fallen nie am selben Claim. `02a §2.10` Schritt
+2 nennt keinen Budget-Filter vor dem Dekodieren. Keine Zahl ändert sich, aber die Vermerksmenge ist
+Teil von `TrustResult`. Zu entscheiden mit eigener Begründung, nicht aus dem Code übernommen (D394).

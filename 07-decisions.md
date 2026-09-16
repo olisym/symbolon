@@ -15901,3 +15901,83 @@ dieselbe Stelle gleich falsch lesen, und bei `TZ-02` war genau eine Stelle dabei
 verschieden getan haben.
 
 **Was folgt.** O65 und O67.
+
+### D394 — O67: `02 §10` bekommt die Wirkung, und D392 hat den Satz übersehen, der `rs/` trägt
+
+**Anlass.** O67 verlangte, `02a §2.3` im Wortlaut zu lesen, bevor `§10` eine Wirkungsspalte bekommt.
+Gelesen wurden dazu `§10` vollständig, `§3.1`, `§6.2`, `02a §2.3` bis `§2.10`, `02a §3` und `§5`
+sowie `trust/groups.py` und `trust/derive.py`.
+
+**Gemessen — `§10` widerspricht sich selbst, und D392 hat nur die eine Hälfte gelesen.** Der
+Schlusssatz von `§10` lautete: ein Claim mit einem der **vier** Dekodier-Vermerke trage nichts zum
+Fluss bei und werde übersprungen. Zwei Absätze davor zählt derselbe Abschnitt `VOUCH_WITHOUT_TEXP`
+ausdrücklich zu diesen vier. Der Text sagte also wörtlich, was die Rust-Fassung gebaut hat. D392
+stützt sich auf den **einleitenden** Satz von `§10` und schreibt, an keiner Stelle werde der Kante
+etwas entzogen. Das ist falsch; die Stelle stand im selben Abschnitt.
+
+**Beschluss 1 — das Ergebnis von D392 bleibt, seine Begründung wird korrigiert.** Die Referenz
+rechnet richtig. Tragend ist aber nicht die Eindeutigkeit des Textes, sondern D119: dort ist
+`VOUCH_WITHOUT_TEXP` ausdrücklich **ohne Wirkung** beschlossen, mit Begründung. `§3.1` und `§6.2`
+stützen das, der Schlusssatz von `§10` widersprach ihm. Zurückgenommen werden der Satz aus D392,
+keine der drei Stellen sei mehrdeutig, und der Satz aus O67, die Lesart der Rust-Fassung sei falsch
+und lesbar gewesen. Die Fassung ist einem wörtlichen Satz des Normtextes gefolgt. Der Mangel liegt
+im Text, und er war grösser als die dort beschriebene Lücke: nicht eine fehlende Spalte, sondern ein
+Widerspruch.
+
+**Beschluss 2 — `rs/` bleibt unverändert.** D392 Beschluss 1 gilt weiter, jetzt mit mehr Gewicht:
+die Fassung belegt nicht, wie der Text missverstanden, sondern wie er gelesen werden konnte.
+
+**Gemessen — drei weitere Fehler in `§10`, alle aus demselben Commit (`65ab37d`).**
+
+- `§10` schrieb alle vier Dekodierlagen `02a §2.3` zu. `02a §2.3` kennt zwei:
+  `UNPARSABLE_VOUCH_PAYLOAD` und `INVALID_VOUCH_WEIGHT`. `NON_CANONICAL_V` steht in `02 §3.1`,
+  `VOUCH_WITHOUT_TEXP` in D119 — und ist gar kein Dekodierfall, weil er `t_exp` liest und nicht `v`.
+  Dass `02a §5` beide Vermerke nicht kennt, war seit D207 bekannt; dass `§10` den Verweis trotzdem
+  auf `02a` setzt, nicht.
+- `§10` liess `OVERCOMMITTED_AUTHOR` **nach** dem Graphaufbau entstehen. `02a §2.10` setzt die
+  Budgetprüfung als Schritt 4 vor die BFS in Schritt 6, und die Reihenfolge ist dort als normativ
+  erklärt; `derive.py` folgt ihr. Sie ist auch nicht beliebig: bei `include_flagged = False`
+  bestimmt das Flag, welche Kanten die BFS sieht.
+- `§10` nannte die Kantenwirkung des Autor-Flags nicht. Sie steht nur in `02a §3` (D39).
+
+**Beschluss 3 — `§10` wird neu gefasst, nicht ergänzt.** Titel „Vermerke, ihre Subjekte und ihre
+Wirkung". Die Tabelle trägt je Vermerk Subjekt, Budget-Set, Kante und Grundlage. Der einleitende
+Satz bekommt die Präzisierung, dass er der Ableitung gilt und nicht dem Objekt, und dass eine
+Wirkung nie aus dem Vermerk selbst folgt, sondern aus der begründenden Stelle. Der widersprüchliche
+Schlusssatz entfällt; an seine Stelle tritt ein Absatz je Wirkungsklasse. Die falsche
+Quellenzuordnung und die falsche Reihenfolge sind korrigiert. O67 ist damit erledigt.
+
+**Beschluss 4 — die Wirkungsspalte beschreibt, sie beschliesst nichts Neues.** Jede Zeile ist mit
+einer bestehenden Stelle belegt: `§3.1` und D3 für die drei Dekodierfälle, `§6.2` und D119 für
+`t_exp`, `02a §2.7` für die Granularität, `02a §3` und D39 für das Autor-Flag. Gegen den Code
+geprüft: `build_groups` überspringt die drei Dekodierfälle mit `continue` und bildet die Gruppe bei
+fehlendem `t_exp` trotzdem; `derive.py` filtert bei `include_flagged = False` die Gruppen geflaggter
+Autoren vor `bfs_capacities`. Keine Zeile der Tabelle verlangt eine Codeänderung.
+
+**Gemessen, nicht entschieden — welche Claims überhaupt einen Vermerk bekommen.** `build_groups`
+dekodiert nur Claims im Budget-Set: ein abgelaufener Vouch mit defektem `v` erzeugt keinen Vermerk.
+Und ein Vouch mit defektem `v` wird vor der `t_exp`-Prüfung übersprungen: er trägt nie zugleich
+`VOUCH_WITHOUT_TEXP`. `02a §2.10` Schritt 2 nennt „Vouch-Claims des Scopes sammeln, `v` dekodieren"
+ohne Budget-Filter und liest sich eher so, als würde jeder Vouch des Scopes dekodiert. Beides ändert
+keine Zahl, aber die Vermerksmenge ist Teil von `TrustResult` und damit beobachtbar. Das wird O68
+und wird hier bewusst nicht in `§10` festgeschrieben: es wäre eine Norm, deren einziger Grund wäre,
+dass der Code es so tut.
+
+**Verworfen: nur die fehlende Spalte ergänzen und den Schlusssatz stehen lassen.** Das hätte den
+Widerspruch mit einer vierten Stelle eingerahmt statt ihn aufzulösen.
+
+**Verworfen: `02a §2.3` und `§5` im selben Zug nachziehen.** `02a` ist ein Prompt, auf den Code
+zeigt, und sein eigener Vorbehalt „wenn die Spec etwas anderes sagt, gilt die Spec" hält die
+Abweichung aus. Die Frage, welche Stellen in `02a` überholt sind, ist als Messung offen und wird
+nicht an einer Einzelstelle vorweggenommen.
+
+**Wie geprüft, und die schwächste Stelle.** Alle genannten Normstellen im Wortlaut, beide Codepfade
+gelesen, `check_specs.py` und `offen.py` im Supervisor-Klon auf dem Splice. Schwächste Stelle: die
+Wirkungszeilen sind gegen Text und Referenzcode geprüft, nicht gegen einen Test, der jede Zeile
+einzeln rot werden liesse. Für `VOUCH_WITHOUT_TEXP` gibt es ihn (`test_vouch_without_texp.py`), für
+die Kantenwirkung des Autor-Flags `T-02.8`; für die Unberührtheit der übrigen Gruppenmitglieder bei
+einem Dekodierfall ist keiner benannt.
+
+**Was folgt.** O66 und O65. O68 vor der nächsten Fassung, weil ein Zeilenvergleich über Vermerke
+genau dort rauschen würde.
+

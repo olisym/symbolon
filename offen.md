@@ -431,11 +431,6 @@ Neu gefasst mit Wirkungsspalte; der Widerspruch im Schlusssatz ist aufgelöst.
 2 nennt keinen Budget-Filter vor dem Dekodieren. Keine Zahl ändert sich, aber die Vermerksmenge ist
 Teil von `TrustResult`. Zu entscheiden mit eigener Begründung, nicht aus dem Code übernommen (D394).
 
-### O69 `02a-maxflow-prompt.md` trägt überholte Stellen, und niemand hat sie gezählt
+### O69 `02a` trägt überholte Stellen, und niemand hat sie gezählt — erledigt (D399)
 
-Drei sind belegt: `§2.3` kennt zwei von drei Dekodierlagen (D394), `§5` kennt zwei Vermerke nicht
-(D207), `§2.4` lässt leere Gruppen zu (D396). `02a` ist gebunden, weil Code auf ihn zeigt, und sein
-Vorbehalt „wenn die Spec etwas anderes sagt, gilt die Spec" verdeckt jede weitere Abweichung, bis
-eine Fassung auf sie stösst. Zu messen mit `tools/register_index.py`: welche Entscheidungen nach
-`02a` Stellen berühren, die `02a` behandelt. Erst danach zu entscheiden, ob `02a` nachgezogen,
-eingefroren oder mit einem Vermerk je Stelle versehen wird.
+`02a` ist historisch; Normen in `02 §11` und K9, Verweise in Spec und Code umgehängt (D397, D398).

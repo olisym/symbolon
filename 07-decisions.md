@@ -16274,3 +16274,59 @@ dass „abgedeckt" im Text eine Aufzählung verbergen kann, die der Code nicht t
 **Was folgt.** Zug 2 (Spec-Dateien ausser `02` und `02a`), dann Zug 3 nach den Verweisen in `02a`,
 einschliesslich der Typprüfung in `TrustParams`.
 
+### D399 — O69 erledigt: Zug 2 und 3, zwei Fehler im Auftrag, der Containerlauf am Referenzrepo
+
+**Anlass.** D397 Beschluss 5 schliesst O69, sobald ausserhalb von Register, `offen.md`, `archiv/`
+und den Isolaten unter `go/`, `hs/`, `rs/` kein Verweis `02a §` mehr steht. Zug 1 ist D398, Zug 2
+ist `f4ef586`, Zug 3 ist `0935a74` und `cb10a07`.
+
+**Gemessen — der Abschluss.** Der `grep` über Markdown- und Python-Dateien findet `02a §` nur noch
+in `sitzungsstart-00bw.md`, der Übergabe dieser Sitzung, die mit ihrer Fortschreibung nach `archiv/`
+geht. In `02a` selbst steht keiner. `check_specs` löst 410 Python-Verweise auf, 872 Tests sind grün.
+
+**Gemessen — Zug 2 war kleiner als die Liste in D397.** D397 nannte `02-golden-anchors.md`, `02b-*`,
+`06`, `01`, `01a` und `pruefregeln.md` aus einer Namenssuche. Einen Verweis `02a §` trugen nur zwei
+Stellen, Anker 5c und Prüfregel 18; beide zeigen jetzt auf `02 §3.1`. In `06` und `01` waren die
+Treffer Hex-Hashes, die `02a` enthalten, in `02b` und `01a` Namensnennungen ohne Abschnitt.
+
+**Gemessen — zwei Fehler im Auftrag für Zug 3, beide vom Supervisor.** Das Werkzeug hat beide
+richtig gemeldet und nicht angepasst.
+
+1. Die erwarteten 409 Python-Verweise waren nur mit Teil A probegefahren. Der Docstring der neuen
+   Testdatei aus Teil B trägt einen weiteren; richtig ist 410.
+2. Die Rücknahmeprobe verlangte, dass die Typfälle den Feldnamen in der Meldung prüfen. Ein `bool`
+   für `gamma_den` verletzt zwingend den Bereich, und die Bereichsmeldung enthält `gamma_den`: der
+   Test blieb ohne Typprüfung grün. Nachgebessert im zweiten Commit, die Typmeldung lautet `<feld>
+   must be int` und wird verankert geprüft. Eigene Rücknahmeprobe im Supervisor-Klon: acht rot, fünf
+   grün. Das ist die Werkzeugnotiz aus D395 zum zweiten Mal in einer Sitzung, diesmal im Auftrag
+   statt im Lauf; ein Befundtest prüft die Meldung, die nur sein Befund erzeugt.
+
+**Beschluss 1 — O69 ist erledigt.** `02a` ist historischer Auftrag mit Kopfvermerk und Verweisen,
+seine Normen stehen in `02` und in `02-golden-anchors.md` K9. Die Kopfzeile des Postens nennt die
+Kurzform statt des Dateinamens, weil sie mit dem Zusatz „erledigt" die Zeilengrenze überschritte.
+
+**Beschluss 2 — Werkzeugläufe am Referenzrepositorium laufen im Container `mar-sym-box`, getrennt
+vom Isolat.** Das Image baut auf `mar-rs-box` auf und ergänzt Python, `venv`, `git` und `make`. Der
+Lauf hat ein eigenes opencode-Datenvolume, weil opencode dort seine Sitzungen ablegt: im Volume der
+isolierten Fassungen läge sonst Referenzinhalt, und das ist der Kanal aus D389 in umgekehrter
+Richtung. Übernommen wird nur `auth.json`. Das `.venv` des Containers liegt in einem eigenen Volume
+über `/work/.venv`, weil das des Hosts auf dessen Interpreter zeigt. Der Lauf hat die uid des Hosts,
+damit neue Dateien und Commits nicht `root` gehören. Der Auftrag wird nur lesend ausserhalb des
+Repositoriums eingehängt, weil eine Wurzeldatei ohne Bindung ein Befund von `check_specs` ist. Die
+Abhängigkeiten werden direkt installiert: ein editable install scheitert an der automatischen
+Paketsuche über `go`, `hs`, `rs` und `archiv`.
+
+**Verworfen: Container und Volume des Rust-Laufs wiederverwenden.** Spart eine Anmeldung und öffnet
+den Kanal, den D389 geschlossen hat.
+
+**Verworfen: den Auftrag in die Wurzel legen.** `check_specs` meldet ihn als ungebunden.
+
+**Wie geprüft, und die schwächste Stelle.** Teil A: die Tabelle unabhängig auf `f4ef586` angewendet
+und mit dem Branch Byte für Byte verglichen, alle 18 Dateien gleich. `params.py`: ausser der Tabelle
+nur die acht Zeilen der Typprüfung. Dazu `check_specs`, Testlauf und eigene Rücknahmeprobe im
+Supervisor-Klon. Schwächste Stelle: dass opencode Sitzungen nur unter dem eingehängten Datenpfad
+ablegt, ist aus dem Rust-Lauf übernommen und nicht gemessen. Was ausserhalb der Volumes liegt,
+verwirft `--rm`.
+
+**Was folgt.** O68, entschieden gegen `02 §11.4` Schritt 2.
+

@@ -15749,3 +15749,58 @@ Fragenliste angewandt. Schwächste Stelle: geprüft ist damit `TP-02`. `FALL-02`
 Referenzimplementierung gegen `TZ-02` ist noch nicht gelaufen.
 
 **Was folgt.** Die Gegenprobe für `TZ-02`, dann O65 und O66.
+
+### D391 — Der Referenzdrucker, und was ein Zeilenvergleich nicht entscheidet
+
+**Anlass.** `TZ-02` ist von der Rust-Fassung erstmals gerechnet und hat keine Gegenprobe (D390).
+O65 fragt, welche Antwort die Referenz auf Gruppen ohne wirksame Vouches gibt. Beides verlangt
+dieselbe Sache: die Referenz in der Blockform der Aufträge, Zeile für Zeile vergleichbar.
+
+**Gemessen — es fehlt nur ein Drucker.** `symbolon/trust/` trägt `build_groups`, `bfs_capacities`,
+`build_flow_graph`, `source_side_cut`, `infinity` und `derive`. Alles, was die Blockform braucht,
+ist vorhanden und wird heute nur anders zusammengesetzt ausgegeben.
+
+**Gemessen — die `inf`-Zeile wird abweichen, und zwar richtig.** `infinity` summiert in der
+Referenz über alle endlichen Kapazitäten, Knoten wie Kanten. Die Rust-Fassung summiert über die
+Anker. D381 lässt genau das zu: die Bedingung ist, dass `INF` jeden erreichbaren Flusswert
+übersteigt, und die Referenz behält ihre Belegung, während eine engere zulässig ist und ihre
+Begründung selbst trägt. Wer den Diff ohne diese Notiz liest, hält eine erfüllte Norm für einen
+Fehler.
+
+**Beschluss 1 — `tools/ref_block.py`.** Nimmt eine Vektordatei, druckt je Profil den Block in der
+Form, die die Aufträge verlangen. Damit steht die Ausgabeform einmal im Repositorium statt in
+jeder Auftragsdatei neu, und jede künftige Fassung wird zu einem `diff` statt zu einer
+Handprüfung.
+
+**Beschluss 2 — der Drucker ist kein Orakel.** Er druckt, was die Referenz heute rechnet, nicht
+was richtig ist. Weicht eine Fassung ab, ist zu klären, wer die Spec besser liest — nicht, wo die
+Fassung von der Referenz abweicht. Andernfalls wird die Referenz zum Anker, und der ganze Zweck
+der Zweitfassungen fällt weg: sie prüfen den Text, nicht die Übereinstimmung mit Python.
+
+**Beschluss 3 — die Ausgabe einer Fassung wird als Beleg abgelegt.** `rs/AUSGABE.txt`, neben
+`rs/FRAGEN.md` und aus demselben Grund (D384 Beschluss 1): ohne sie ist der Vergleich nur
+nachvollziehbar, solange der Container steht. Unverändert, wie gedruckt.
+
+**Beschluss 4 — die `inf`-Zeile steht ausserhalb des Zeilenvergleichs.** Sie misst die Belegung
+einer Fassung, nicht ihr Ergebnis, und wird einzeln bewertet: erfüllt sie die Bedingung aus D381,
+ist sie richtig, auch wenn sie von der Referenz abweicht.
+
+**Verworfen: ein Wegwerfskript für diesen einen Vergleich.** D311 Beschluss 1 erlaubt das für
+Szenarien. Hier kommt derselbe Vergleich bei jeder weiteren Fassung wieder, und O65 verlangt ihn
+erneut, sobald die Gruppenfrage entschieden ist.
+
+**Verworfen: den Vergleich in `make check` hängen.** Er bräuchte eine eingefrorene Referenzausgabe,
+und die wäre ein zweiter Ankersatz neben `02-golden-anchors.md` — mit allen Nachzugspflichten und
+ohne den Belegwert. Der Vergleich bleibt ein Zug, kein Dauerlauf.
+
+**Verworfen: `infinity` in der Referenz auf die engere Formel ziehen.** Machte den Diff sauberer
+und verwechselte eine Realisierung mit der Norm. D381 hat die Ebene gewechselt, damit genau das
+nicht passiert.
+
+**Wie geprüft, und die schwächste Stelle.** Die Bausteine sind in `symbolon/trust/` einzeln
+nachgesehen, `infinity` im Wortlaut gelesen. Schwächste Stelle: der Drucker erbt jeden Fehler der
+Referenz, ohne ihn zu zeigen. Stimmen Referenz und Fassung überein, ist das ein Hinweis und kein
+Beweis — beide können denselben Satz gleich falsch lesen, und bei zwei unabhängigen Lesarten ist
+Übereinstimmung stark, bei einer gemeinsamen Quelle nichts wert.
+
+**Was folgt.** Der Werkzeugauftrag für den Drucker, dann der Vergleich über alle drei Sätze.

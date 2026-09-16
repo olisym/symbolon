@@ -324,7 +324,7 @@ selbst ab, womit `Σ n_budget` dort auf 0 fällt. Verglichen wird nur die eine M
 | | 2001 | g₁, g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
 | | 10**6 | g₁, g₂, g₃ | g₁, g₂, g₃ | **3** | 1 |
 
-**Ableitung.** `02a §2.6` kennt genau einen Austritt aus dem Budget-Set, und der hängt an
+**Ableitung.** `02 §3.1` kennt genau einen Austritt aus dem Budget-Set, und der hängt an
 `t_exp`. Fehlt es, gibt es keinen — die Zeile ist in `now` konstant. D135 hält `REVOKED` im
 Budget-Set, also ändert der Widerruf am Budget nichts; er senkt nur `n_kante` auf 0 und damit
 das Aktiv-Set. Genau deshalb sind die beiden unteren Blöcke in ihrer Budgetspalte identisch und

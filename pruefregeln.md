@@ -60,7 +60,7 @@ in D122 nannte einen Helfer; das Verbot hat fünf gefunden.
 
 **18. Aufzählung gegen Satz.** Steht in einer Spec eine Bedingung als Satz **und** als
 ausgerechnete Aufzählung, gilt der Satz, und die Aufzählung wird als abgeleitet markiert (so in
-`02a §2.6`). Aufzählungen verlieren beim Wandern still ihren Geltungsbereich — D77, D83, D87,
+`02 §3.1`, D398). Aufzählungen verlieren beim Wandern still ihren Geltungsbereich — D77, D83, D87,
 D91, D130, D135 sind alle diese Form. Ein allgemeiner Satz erbt den Geltungsbereich der
 Aufzählung, die ihm vorausgeht; Prosabedingungen gehen abgeleiteten Aufzählungen vor.
 Zusatz: dasselbe gilt für einen Satz, der einen älteren **ersetzt**. Wer eine Bedingung neu

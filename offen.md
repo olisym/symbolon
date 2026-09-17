@@ -292,17 +292,9 @@ Repositorium `mar-go` wird archiviert, nicht umbenannt oder gelöscht (D330).
 Falsche Passung: löst Capability-Widerruf, nicht wirtschaftliche Durchsetzung. Die
 D313-Frage ist stattdessen durch den gemessenen Lauf 00as beantwortet. Aus D326.
 
-### O60 Budget-Set und Kantensatz lösen Zeitunsicherheit in entgegengesetzte Richtungen
+### O60 Budget-Set und Kantensatz lösen Zeitunsicherheit gegenläufig — erledigt (D402)
 
-Aus D355. Konservativ heißt für den Kantensatz „als abgelaufen behandeln" und für das
-Budget-Set „als nicht abgelaufen behandeln" — dieselbe Unsicherheit, entgegengesetzte
-Auflösung, beide in `_in_budget_set` (`trust/groups.py:63`). Ein Punkt-`now` lässt beide
-zusammenfallen; die Frage ist heute nicht gestellt, nicht beantwortet. Vorbedingung für jede
-Fassung mit unscharfer Zeit.
-
-Gemessen ist die Lage inzwischen (D362): schon mit einem Punkt-`now` ist der Trust-Wert nicht
-monoton in der Zeit — an einer `t_exp`-Kante springt das Autor-Flag und mit ihm der Wert.
-Die Richtungsfrage bleibt offen, aber sie wird nicht erst bei unscharfer Zeit scharf.
+Gegenläufigkeit harmlos; getrennt sind lokaler Vermerk und signierter Beweis (`02 §3.1`).
 
 ### O61 Soll ein uhrloser Knoten Vertrauen gewähren können?
 
@@ -418,3 +410,11 @@ Gelesen wird das Budget-Set; `VOUCH_WITHOUT_TEXP` nur bei gültigem `n` (`02 §1
 ### O69 `02a` trägt überholte Stellen, und niemand hat sie gezählt — erledigt (D399)
 
 `02a` ist historisch; Normen in `02 §11` und K9, Verweise in Spec und Code umgehängt (D397, D398).
+
+### O70 Der Uhrversatz-Fall aus D402 ist ungepinnt
+
+Gemessen wurde er im Supervisor-Klon, nicht im Baum: eine Autorin, deren Bürgschaften nach ihren
+signierten Zahlen nacheinander laufen, trägt bei nachlaufender Verifizierer-Uhr den Vermerk
+`OVERCOMMITTED_AUTHOR`. Kein Test hält das fest, und kein Test hält fest, dass der Beweis nach
+`02 §3.1` in derselben Lage **nicht** besteht. Der zweite Teil ist heute nirgends implementiert;
+solange das so bleibt, ist der Prüffall ein reiner Spec-Fall.

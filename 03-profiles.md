@@ -230,8 +230,10 @@ Frage: **bindet dieses Verdikt?** (§2.4)
   Signaturen, gleiches `(I, h_prev)`, verschiedene `claim_id` (Atom-Spec §4). Es braucht
   **kein** Verdikt; der Slash läuft **mechanisch** in der ökonomischen Schicht.
 - **Über-Commitment** (`Σw > 1` im Scope, Trust-Flow-Spec §3.1): ebenfalls selbst-validierend,
-  ebenfalls mechanisch. **Nicht zu verwechseln mit ungedeckter Emission** (§3.3.4), die genau
-  das nicht ist.
+  ebenfalls mechanisch — aber **nur in der signaturbasierten Fassung**: `Σ n > D` bei gemeinsamem
+  Geltungspunkt `max tᵢ ≤ min t_expᵢ`. Der lokale Vermerk `OVERCOMMITTED_AUTHOR` (Trust-Flow-Spec
+  §10) ist das **nicht**; er liest die subjektive Verifizierer-Zeit und löst keinen Slash aus
+  (D402). **Nicht zu verwechseln mit ungedeckter Emission** (§3.3.4), die genau das nicht ist.
 - **Subjektiver Fehler** („nicht geliefert", „Regel gebrochen"): oracle-abhängig, **braucht**
   ein Verdikt (§2.2). Erst das Verdikt triggert den Slash — und nur, wenn es bindet (§2.4).
 
@@ -523,9 +525,9 @@ Mehr IOUs auszustellen, als man decken kann, ist in einer Partition möglich und
 Reputation und Trust-Flow; Settlement läuft sozial über die Trust-Schicht. Kein Konsens nötig.
 
 **Auditierbar ist nicht selbst-validierend.** Über-Commitment (§2.3) trägt die Deckungsgrenze
-`Σn ≤ D` und ist damit mechanisch nachrechenbar; ungedeckte Emission hat keine solche Grenze.
-Es gibt daher **keinen mechanischen Slash und keinen Stufe-3-Auslöser** aus diesem Titel
-(Enforcement-Spec §3).
+`Σn ≤ D` und ist aus signierten Zahlen mechanisch nachrechenbar; ungedeckte Emission hat keine
+solche Grenze. Es gibt daher **keinen mechanischen Slash und keinen Stufe-3-Auslöser** aus diesem
+Titel (Enforcement-Spec §3).
 
 Eine Schranke `Σ amount ≤ credit_limit(I)` aus der Verfassung wurde erwogen und verworfen. Der
 Grund ist nicht der Aufwand — die Prüfung wäre in genau dem Sinn bedeutungsblind, in dem

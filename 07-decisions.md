@@ -16436,3 +16436,85 @@ falsch, und welches, zeigt erst der Vergleich der Trefferlisten.
 
 **Was folgt.** Der Werkzeuglauf.
 
+### D402 — O60: zwei Prädikate für Über-Commitment, lokaler Vermerk und signierter Beweis
+
+**Die Frage aus O60/D355.** Kantensatz und Budget-Set lösen dieselbe Zeitunsicherheit
+entgegengesetzt auf — die Kante behandelt im Zweifel als abgelaufen, das Budget als nicht
+abgelaufen. Welche Richtung ist richtig?
+
+**Erster Befund: die Frage ist an der falschen Grenze gestellt.** Bei einem Intervall
+`now ∈ [lo, hi]` heisst die konservative Auflösung für die Kante `hi ≤ t_exp` und für das Budget
+`lo ≤ t_exp`. Aus der ersten folgt die zweite, also bleibt `Aktiv-Set ⊆ Budget-Set` und damit
+`n_kante ≤ n_budget` für jedes Intervall erhalten. Die Gegenläufigkeit ist kein Widerspruch,
+sondern dasselbe Muster, das `02 §3.1` beim unlesbaren `n` bereits ausdrücklich führt: „Beides ist
+die sichere Richtung, in verschiedene Richtungen." Dieser Teil von O60 ist damit erledigt, ohne
+dass eine Richtung gewählt werden müsste.
+
+**Zweiter Befund: der Konflikt sitzt im Budget-Set selbst.** Es bedient zwei Verbraucher mit
+entgegengesetzten sicheren Seiten.
+
+| Verbraucher | Wirkung eines falschen „rein" | sichere Seite |
+|---|---|---|
+| Autor-Flag, lokal (`include_flagged = False`) | Unter-Vertrauen, heilt mit der Uhr | rein |
+| Über-Commitment-Beweis (`03 §2.3`, mechanischer Slash) | Falschbeschuldigung, bleibt | raus |
+
+D355 hat für das Budget-Set nur den ersten gesehen. Der zweite steht unter derselben Zusage wie
+das unlesbare `n`: nie eine Verletzung erfinden.
+
+**Gemessen.** TP-02 (`C0 = 16`, `γ = 1/2`, `D = 4`). ALICE bürgt nacheinander: BOB mit `n = 3`,
+`t = 100`, `t_exp = 200`, danach CAROL mit `n = 3`, `t = 300`, `t_exp = 1000`. Nach ihren eigenen
+signierten Zahlen hat sie nie beide gleichzeitig gebunden. Anker ALICE, Ziel CAROL:
+
+| `now` | `include_flagged = False` | `include_flagged = True` |
+|---|---|---|
+| 150 | 0, Vermerk `OVERCOMMITTED_AUTHOR` | 12, Vermerk `OVERCOMMITTED_AUTHOR` |
+| 250 | 12, kein Vermerk | 12, kein Vermerk |
+
+Ein Verifizierer mit nachlaufender Uhr vermerkt Über-Commitment gegen eine ehrliche Autorin. Der
+Vermerk hängt an `now`, und `now` steht nach D350/D354 ausserhalb der Kollision. `03 §2.3` nannte
+ihn trotzdem selbst-validierend und mechanisch slashbar. Das war die eigentliche Lücke, und sie
+tritt schon bei einem Punkt-`now` auf, nicht erst bei einem Intervall.
+
+**Beschluss: zwei Prädikate, je eines pro Verbraucher.**
+
+1. **Der lokale Vermerk bleibt `now`-basiert** (`Σ_J n_budget > D` über das Budget-Set gegen
+   `now`). Er wirkt allein über `include_flagged` und löst keinen Slash aus.
+2. **Der slashbare Beweis wird `now`-frei:** signierte Vouches von `I` in `N`, aggregiert je
+   `(I, J, N)` über `max n`, mit `Σ n > D` und gemeinsamem Geltungspunkt `max tᵢ ≤ min t_expᵢ`;
+   ein fehlendes `t_exp` zählt als unbegrenzt.
+
+Zu jedem Beweis gibt es einen Auswertungszeitpunkt, an dem auch der Vermerk fällt (`now = max tᵢ`);
+umgekehrt gilt das nicht. Die Beweismenge liegt damit innerhalb dessen, was lokal auffällt — evtl.
+nicht erkannt, nie erfunden. Der Beweis ist ein Widerspruch zwischen signierten Zahlen und damit
+die Bauform aus D354; gegen Rückdatierung trägt ihn die Kettenmonotonie aus D353.
+
+**Warum das Flag nicht ebenfalls signaturbasiert wird.** Weil `01` kein `t ≤ now` prüft, wirkt ein
+Vouch mit vordatiertem `t` sofort als Kante. Ein rein signaturbasiertes Flag sähe die Überzeichnung
+dann nicht, und der Wert liefe in die gefährliche Richtung (Über-Vertrauen, `02 §7`). Das lokale
+Flag fängt genau diesen Fall. Nebenwirkung: die Nicht-Monotonie in `now` aus D362 bleibt bestehen —
+sie wäre mit einem signaturbasierten Flag verschwunden, aber zu diesem Preis.
+
+**Getragene Grenze.** Vorlauf-Datierung entgeht dem Beweis. Sie kostet den Autor die Datierung
+jedes späteren Claims derselben Kette und bleibt lokal sichtbar, aber sie ist nicht beweisbar. Das
+ist dieselbe offene Hauptfrage wie beim vierten Weg in `offen O61`.
+
+**Verworfen — Vermerk und Beweis gleichsetzen.** Erzeugt Falschbeschuldigungen aus Uhrversatz,
+gegen `02 §3.1`.
+
+**Verworfen — `03 §2.3` auf „auditierbar" herabstufen.** Billiger, aber nach `08 §2.2` die
+Gegenrichtung: Enthaltung statt Kollision. Die Deckungsgrenze `Σ n ≤ D` ist vorhanden und
+nachrechenbar; sie wegzugeben, weil eine Auswertungszeit im Weg stand, wäre ein Verlust ohne Not.
+
+**Verworfen — Intervall-`now` jetzt bauen.** Bleibt zurückgestellt wie in D355. O60 war die
+Vorbedingung dafür und ist beantwortet, aber die Intervallfassung kostet eine Signaturänderung in
+`derive()` und `flow()` und gehört zu O61.
+
+**Fläche.** Spec-only. `02 §3.1` (der tragende Absatz, jetzt zwei normative Kästen), `02 §7`
+(Vermerk am D362-Absatz), `02 §10` (der Vermerk ist nicht der Beweis), `03 §2.3` und `03 §3.3.4`.
+Kein Code: die Ableitung kennt nur das Flag, und `05 §3` führt Über-Commitment nicht als
+Stufe-3-Auslöser. Eine Implementierung des Beweises ist damit nicht fällig; wer sie baut, baut sie
+neben der Ableitung, nicht in ihr.
+
+**Wie gemessen, und die schwächste Stelle.** Der Supervisor hat im eigenen Klon bei `d50457b`
+gegen den Modulcode gemessen, ausserhalb der Testreihe, mit `tests/helpers.Identity`. Das ist keine
+Abnahme. Der Fall ist ungepinnt und läuft als `offen O70`.

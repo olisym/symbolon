@@ -197,11 +197,42 @@ ist die **Deklaration selbst der Einsatz** — hohes Vertrauen lässt sich nicht
 Ein erfolgreicher Vouch bringt dem Bürgen umgekehrt **keine** Kapazitätsprämie (§1): der Ertrag
 liegt in der Beziehung, nicht in der Metrik.
 
-**Über-Commitment ist selbst-validierend.** Liegen mehrere signierte Vouches derselben Identität im
-selben Scope mit `Σw > 1` vor, ist das ein unabhängig nachrechenbarer Beweis — dieselbe Klasse
-wie Equivocation (Atom-Spec §4), mechanisch slashbar, ohne Verdikt. Bei Teilwissen ist das
-beobachtete `Σw` zu klein: eine Verletzung wird möglicherweise **nicht erkannt**, aber nie eine
-erfunden.
+**Über-Commitment: zwei Prädikate, zwei Verbraucher.** Das Budget-Set bedient zwei Fragen, und
+ihre sicheren Seiten sind entgegengesetzt. Der lokale Vermerk entscheidet, ob eine Auswertung den
+Kanten dieses Autors folgt — falsch gesetzt kostet er Vertrauen, das mit der Uhr zurückkommt. Der
+Beweis trifft den Bond — falsch gesetzt ist er eine Falschbeschuldigung, und die bleibt. Deshalb
+sind es zwei Prädikate und nicht eines (D402).
+
+> **Normativ — der lokale Vermerk.** Gilt `Σ_J n_budget(I, N) > D` über das Budget-Set gegen
+> `now`, trägt `I` den Vermerk `OVERCOMMITTED_AUTHOR` (§10). Er ist eine Aussage über die eigene
+> Auswertung: er liest `now`, und `now` ist lokal und subjektiv (§6.2). Seine Wirkung endet bei
+> `include_flagged` (§8).
+
+> **Normativ — der slashbare Beweis.** Ein Über-Commitment-Beweis gegen `I` im Scope `N` besteht
+> aus signierten Vouches von `I`, aggregiert je `(I, J, N)` über `max n` wie oben, mit
+> `Σ_J n > D` und einem gemeinsamen Geltungspunkt: `max tᵢ ≤ min t_expᵢ`, wobei ein fehlendes
+> `t_exp` als unbegrenzt zählt. Der Beweis liest **kein** `now`. Nur er ist selbst-validierend
+> und mechanisch slashbar, ohne Verdikt — dieselbe Klasse wie Equivocation (Atom-Spec §4,
+> Profile-II §2.3).
+
+Der Beweis ist ein Widerspruch zwischen signierten Zahlen: der Autor hat selbst bezeugt, wann er
+gehandelt hat und worauf er sich binden wollte. Das ist die Bauform aus D354 und erfüllt damit
+`08 §2.2`, wo der Vermerk es nicht kann. Rückdatierung kauft nichts, weil `t` entlang der
+Autorenkette monoton ist (Atom-Spec §6, D353).
+
+**Die beiden Mengen fallen nicht zusammen.** Zu jedem Beweis gibt es einen Auswertungszeitpunkt,
+an dem auch der Vermerk fällt — `now = max tᵢ`. Umgekehrt gilt das nicht: zwei Bürgschaften, die
+nach den signierten Zahlen nacheinander liefen, liegen bei einer nachlaufenden Verifizierer-Uhr
+gleichzeitig im Budget-Set und erzeugen den Vermerk gegen einen ehrlichen Autor (§7). Das ist der
+Grund für die Trennung, und es tritt schon bei einem Punkt-`now` auf.
+
+Bei Teilwissen ist das beobachtete `Σ n` zu klein: eine Verletzung wird möglicherweise **nicht
+erkannt**, aber nie eine erfunden. Das gilt für beide Prädikate.
+
+**Getragene Grenze.** Wer sein `t` vordatiert, entgeht dem Beweis, obwohl er die Kapazität
+tatsächlich gleichzeitig einsetzt — die Kettenmonotonie erfasst Rückdatierung, nicht Vorlauf. Er
+bleibt dem lokalen Vermerk ausgesetzt, und jeder spätere Claim derselben Kette erbt sein
+vordatiertes `t`. Die allgemeine Gegenrichtung ist offen (`offen O61`).
 
 **Unlesbares oder ungültiges `n`.** Ist `v` keine CBOR-Map, fehlt der Key `0`, ist sein Wert
 kein `uint`, oder liegt `n` außerhalb `[1, D]`, trägt dieser Vouch **keine Kante** und
@@ -556,7 +587,9 @@ Toleranz.
   deshalb keine Decke gegen jede Form von Über-Vertrauen — hier ist `t_exp` die Ursache.
   Zwei ehrliche Knoten mit Uhrversatz rechnen verschieden, und der mit der vorlaufenden
   Uhr sieht mehr. Gilt bei `include_flagged = False`, dem Default; bei `True` ist der
-  Wert monoton fallend.
+  Wert monoton fallend. Derselbe Uhrversatz setzt den Vermerk `OVERCOMMITTED_AUTHOR` auch
+  gegen einen Autor, der nach seinen eigenen signierten Zahlen nie über-committet war —
+  weshalb der Vermerk lokal bleibt und der slashbare Beweis ohne `now` auskommt (§3.1).
 - **Die andere gefährliche Richtung:** ein fehlender *Widerruf* (nicht eine fehlende
   Bürgschaft). Hast du den Vouch, aber sein `revoke` steckt in einer Partition, dann
   **über**-vertraust du. Drei gestaffelte Abwehren:
@@ -759,8 +792,10 @@ ein öffentlicher Schlüssel, kein `claim_id`. Beide sind 32 Byte; wer `subject`
 nachschlägt, greift genau dort ins Leere. Der Grund ist derselbe wie überall sonst: das betroffene
 Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vouch ist der
 überzählige — erst ihre Summe verletzt das Budget. Alle Claims des Autors bleiben gültig, und die
-Budgetrechnung ändert sich durch den Vermerk nicht. Bei `include_flagged = False`, dem Default,
-tragen die Gruppen des Autors keine Kante — dieselbe Wirkung wie bei `EQUIVOCATION_FLAGGED`.
+Budgetrechnung ändert sich durch den Vermerk nicht. **Der Vermerk ist nicht der Beweis:** er liest
+`now` und wirkt nur lokal; slashbar ist allein das signaturbasierte Prädikat aus `§3.1`. Bei
+`include_flagged = False`, dem Default, tragen die Gruppen des Autors keine Kante — dieselbe
+Wirkung wie bei `EQUIVOCATION_FLAGGED`.
 
 **Der Vermerk entsteht vor dem Aufbau des Graphen, nicht danach.** Die Budgetprüfung liest nur das
 Budget-Set und keine Kapazität; bei `include_flagged = False` entscheidet ihr Ergebnis, welche

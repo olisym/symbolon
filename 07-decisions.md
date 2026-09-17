@@ -16518,3 +16518,125 @@ neben der Ableitung, nicht in ihr.
 **Wie gemessen, und die schwächste Stelle.** Der Supervisor hat im eigenen Klon bei `d50457b`
 gegen den Modulcode gemessen, ausserhalb der Testreihe, mit `tests/helpers.Identity`. Das ist keine
 Abnahme. Der Fall ist ungepinnt und läuft als `offen O70`.
+### D403 — `LINKED` ist im Trust-Pfad unerreichbar; die Lücke liegt im Prädikat
+
+**Anlass.** Der O61-Vorschlag „Weg 5" (uhrlos auswerten, statt an der Signatur `now: int`
+abzuweisen) warf die Frage auf, ob `LINKED` in die Zustandsaufzählung des Budget-Sets gehört —
+und ob das eine eigene Lücke ist, unabhängig von O61.
+
+**Befund 1 — `LINKED` kann heute in Layer 02 nicht ankommen.** Beide Implementierungen setzen den
+Zustand ausschliesslich im Zweig `temporal is None` (`verifier.py`, `index.py`), und `temporal`
+ist genau dann unbestimmt, wenn `t_exp` gesetzt und `now` nicht übergeben ist. `derive()` verlangt
+`now: int`. Die Aufzählung in `02 §3.1` ist damit erschöpfend über die erreichbaren Zustände. Das
+ist **nicht** die Lage von D135: dort fehlte `equivocation-flagged` in der Aufzählung und trat
+trotzdem auf, weshalb der Code der Aufzählung folgte und Equivocation zum Budget-Reset wurde.
+
+**Befund 2 — die Lücke liegt eine Ebene tiefer.** „Nicht abgelaufen ist ein Prädikat, kein
+Zustand" (D41) schweigt zum unentscheidbaren Fall: `now ≤ t_exp` ist ohne `now` weder wahr noch
+falsch. Genau das ist die Frage, die O60 für das Intervall gestellt und D402 für die zwei
+Verbraucher getrennt beantwortet hat — hier in ihrer entarteten Form, dem Intervall von minus bis
+plus unendlich (D355).
+
+**Befund 3, gemessen — die naive Durchreichung kehrt die Richtung um.** TP-02 (`C0 = 16`,
+`γ = 1/2`, `D = 4`), Anker A, Ziel B. Bestand: eine unbefristete Bürgschaft A→B mit `n = 2` und
+eine ablaufende A→C mit `n = 3`, `t_exp = 100`. Erwartete Kantenkapazität `n · C(0) // D = 8`.
+
+| Budget-Set im uhrlosen Fall | `now = 50` | `now = 200` | uhrlos |
+|---|---|---|---|
+| `LINKED` nicht enthalten (`BUDGET_STATES` unverändert) | 0, `OVERCOMMITTED_AUTHOR` | 8 | **8** |
+| `LINKED` enthalten | 0, `OVERCOMMITTED_AUTHOR` | 8 | **0**, `OVERCOMMITTED_AUTHOR` |
+
+Wer `now = None` bloss durchreicht, lässt befristete Vouches als `LINKED` aus dem Budget-Set
+fallen. Der uhrlose Knoten sieht dann **mehr** als der Knoten mit Uhr — die zweite gefährliche
+Richtung aus D118, diesmal aus fehlender Zeit statt aus fehlenden Claims. Erst mit `LINKED` im
+Budget-Set ist die uhrlose Sicht eine Teilmenge jeder Uhr-Sicht; in einem zweiten Bestand mit
+befristeter Zwischenkante (A→B unbefristet, B→D mit `t_exp = 800`) wurde kein Gegenbeispiel
+gefunden: Uhr 8 / 0 / 0 bei `now` 500 / 900 / 2000, uhrlos 0.
+
+**Beschluss: keine Norm, kein Zustand in der Aufzählung.** Solange `derive()` `now: int`
+verlangt, wäre beides Vorratsnormativität für einen unbeobachtbaren Fall, und ein Test dafür liefe
+nur gegen einen gepatchten Aufruf. Die beiden Sätze — `now = None` im Prädikat und `LINKED` in der
+Aufzählung — gehören zusammen und werden zusammen mit O61 entschieden, oder gar nicht.
+
+**Verworfen — als Wiederholung von D135 behandeln.** Die Bauform sieht gleich aus, die Lage ist
+es nicht: D135 betraf einen erreichbaren Zustand. Eine Aufzählung um einen unerreichbaren Wert zu
+ergänzen macht sie nicht sicherer, sondern verdeckt, dass die eigentliche Entscheidung im
+Prädikat aussteht.
+
+**Verworfen — die Signatur jetzt auf `now: int | None` öffnen.** Das ist billig (D364: die
+Mechanik kommt bei fehlendem `t_exp` ohne `now` aus) und genau deshalb gefährlich: ohne den
+zweiten Satz aus Befund 3 öffnet es die Richtung Über-Vertrauen.
+
+**Was das für O61 ändert.** Der Satz aus dem Vorschlag, die uhrlose Auswertung sei eine Teilmenge
+der Uhr-Auswertung, gilt nicht unbedingt, sondern nur unter dem zweiten Satz. Ebenso die
+Behauptung, die Knappheit erledige die Einhegung: gemessen verliert ein Autor uhrlos auch seine
+unbefristete Kante, sobald eine abgelaufene Bürgschaft sein Budget mitbesetzt — die Wirkung trifft
+nicht nur den, der uhrlos empfangen will.
+
+**Wie gemessen, und die schwächste Stelle.** Supervisor-Klon bei `9822b16`, ausserhalb der
+Testreihe, mit einem Patch auf `_in_budget_set` statt mit gebautem Code; TP-02, `include_flagged =
+False`. Das ist keine Abnahme. Dass `LINKED` nur aus `now = None` entsteht, ist dagegen aus beiden
+Quellen gelesen und nicht erschlossen.
+### D404 — O61 geschlossen: ein uhrloser Knoten belastet, er gewährt nicht
+
+**Die Frage aus O61.** Soll ein Knoten ohne Uhr Vertrauen gewähren können? `01 §6` verneint es
+heute für jeden Claim mit `t_exp`, und `derive()` verneint es pauschal über die Signatur
+`now: int`. Drei Wege standen offen, D363 hat zwei davon geschlossen und einen vierten eröffnet,
+D364 hat den dritten umgedreht.
+
+**Der fünfte Weg, und warum er nicht trägt.** Aus D402 folgte ein Vorschlag, der ohne neuen
+Zeitmechanismus auskommt: `now = None` durchreichen und die bereits normierte sichere Richtung
+anwenden — befristete Vouches sind uhrlos unentscheidbar, tragen also keine Kante, bleiben aber im
+Budget-Set (D403). Der Vorschlag ist technisch billig und normativ sauber. Er nützt nur nichts.
+
+`02 §8` macht `Σw ≤ 1` zum Default; ein Nukleus darf lockerer oder strenger setzen, nicht
+abschalten, und ein schweigender Nukleus trägt die Regel (D119). Damit gilt `02 §6.2` in jedem
+praktischen Scope: ein Vouch MUSS `t_exp` tragen. Für einen uhrlosen Verifizierer ist dann **kein
+einziger** Vouch zeitlich entscheidbar, und sein Wert ist strukturell 0. Positiv wird er
+ausschliesslich über Bürgschaften mit `VOUCH_WITHOUT_TEXP` — also über die, welche die Pflicht
+verletzen, die `02 §6.2` aufstellt und D119 bewusst nur beobachtet statt durchsetzt. Und das sind
+nach D364 zugleich die schlechtesten: sie binden Budget unbegrenzt, kein Widerruf befreit, und
+Abwehr 1 aus `02 §7` greift bei ihnen nie. Eine Fähigkeit, die genau dann trägt, wenn die Norm
+verletzt wurde, prämiert den Verstoß.
+
+Der zweite Zweig von `02 §6.2` rettet das nicht. Eine Policy-Maximallaufzeit macht `t_exp` aus `t`
+ableitbar, aber der Ablaufvergleich braucht weiterhin `now`.
+
+**Beschluss: nein.** Ein Knoten ohne Uhr gewährt kein Vertrauen. `01 §6` bleibt unverändert, und
+`now: int` in `derive()` und `flow()` ist keine vergessene Auslassung, sondern die richtige Form:
+die Vorsichtsantwort aus Layer 01, auf Layer 02 in der Signatur ausgedrückt. Der Nebenbefund aus
+D355 („Trust ist uhr-**pflichtig**, und zwar auf Typebene") ist damit kein Mangel mehr, sondern
+die getroffene Entscheidung.
+
+**Was uhrlos sehr wohl geht, und es ist nicht wenig.** Signaturprüfung, Verkettung, Equivocation —
+und seit D402 der Über-Commitment-Beweis, der ausschliesslich signierte Zahlen liest. Ein uhrloser
+Knoten kann also **belasten, aber nicht gewähren**. Das ist keine Notlösung, sondern die Bauform
+aus `08 §2.2`: Kollisionen brauchen keine Uhr, Gewährung schon. Wer ohne Uhr rechnet, kann
+nachweisen, dass jemand sich überbunden oder gegabelt hat; er kann nur niemandem Kapazität
+zusprechen.
+
+**Die Frage zerfällt, und die zweite Hälfte bleibt.** Der Knoten ganz ohne Uhr ist der seltene
+Fall. Der reale Fall der unterbrochenen Zustellung ist der Knoten mit **grober oder driftender**
+Uhr, und für ihn steht D355 mit dem zurückgestellten Intervall-`now`. Dessen Vorbedingung war O60,
+und die ist seit D402 beantwortet. Der Strang wird als `offen O71` geführt, nicht als Rest von
+O61.
+
+**Verworfen — Weg 4 (untere Schranke aus dem `t` empfangener Claims).** Er kehrt die Richtung auf
+Über-Vertrauen um (`02 §7` Abwehr 1), hängt an der offenen Abgrenzung gegen D78, braucht
+persistenten lokalen Zustand und lässt fremde Wall-Clock beim Empfänger über Gültigkeit
+entscheiden. Er bleibt in D363 dokumentiert; wieder aufgenommen wird er nur, wenn O71 zeigt, dass
+das Intervall allein nicht reicht.
+
+**Verworfen — Weg 5 bauen und die Prämie hinnehmen.** Der Gewinn wäre ein Wert, der nur aus
+regelwidrigen Bürgschaften stammt, bei einem Preis von zwei normativen Sätzen, vier Signaturen und
+einem Ankersatz, der eine uhrlose Variante mitführen müsste.
+
+**Verworfen — `02 §6.2` zum Reject härten, um den Prämien-Effekt zu beseitigen.** Das ist die
+Entscheidung, die D119 bereits anders getroffen hat, und sie verschöbe den Prüfumfang des
+speicherlosen Geräts aus `01 §6`. Der Effekt verschwindet ohnehin mit diesem Beschluss.
+
+**Die schwächste Stelle.** Der Beschluss stützt sich darauf, dass die Budgetregel nicht
+abschaltbar ist. `02 §8` sagt „lockerer oder strenger", nicht „aus", und `02 §6.2` knüpft die
+`t_exp`-Pflicht an „Scopes mit Budgetregel" — die Formulierung lässt einen Scope ohne sie
+sprachlich zu, obwohl keine Stelle einen beschreibt. Beschriebe ihn je eine Fassung, käme O61
+zurück, und zwar genau in Gestalt von Weg 3.

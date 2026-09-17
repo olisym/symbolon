@@ -296,31 +296,9 @@ D313-Frage ist stattdessen durch den gemessenen Lauf 00as beantwortet. Aus D326.
 
 Gegenläufigkeit harmlos; getrennt sind lokaler Vermerk und signierter Beweis (`02 §3.1`).
 
-### O61 Soll ein uhrloser Knoten Vertrauen gewähren können?
+### O61 Soll ein uhrloser Knoten Vertrauen gewähren können? — erledigt (D404)
 
-Aus D361. `01 §6` beantwortet die Lage heute vollständig: ohne vertraute Zeitquelle ist die
-`t_exp`-Gültigkeit unentscheidbar, der Claim wird für trust-gewährende Zwecke nicht herangezogen.
-Das ist kohärent, aber es heißt, dass ein Knoten ohne Uhr gar nichts gewähren kann. Drei Wege
-stehen offen: eine signierte Zeit-Attestierung von einer vertrauten Quelle (`VISION.md §5`,
-D350), der Wechsel auf die Verfügbarkeitsseite nach Raytime (gegen `01 §6`), oder Scopes ohne
-`t_exp` (von der Budgetregel ausgeschlossen). D354 trägt nur im zweiten und dritten Zweig etwas
-bei. Stolperdraht: das erste Profil, das einen Prämissen-Key deklariert — bis dahin ist die
-Vertagung kostenlos.
-
-Nach D363 stehen die drei Wege anders. Die signierte Zeit-Attestierung löst die Frage nicht:
-`VISION.md §5` räumt selbst ein, dass ein nicht erreichbarer Zeitdienst der Offline-Fall ist, und
-der partitionierte Knoten ist genau dieser Fall. Raytime setzt eine zentrale vertraute Zeitquelle
-voraus, die es nach D350 nicht geben soll. Hinzu kommt ein vierter Weg, den die Liste nicht
-kannte: die untere Zeitschranke aus dem `t` empfangener signierter Claims nachziehen. Er kehrt
-die Richtung auf Über-Vertrauen um, braucht persistente lokale Zustandsführung, und seine
-Hauptfrage ist offen — D353 macht nur Rückdatierung unbestreitbar, nicht Vorlauf, und D78 hat
-verwandte Wirkung zwischen Autoren schon einmal verworfen.
-
-Nach D364 ist Weg 3 nicht zu bauen, sondern einzuhegen: `t_exp`-lose Bürgschaften wirken heute
-voll, sind ohne `now` auswertbar und verlassen das Budget-Set nie, auch nicht durch Widerruf.
-Was den uhrlosen Knoten davon trennt, ist die Signatur `now: int` in `derive()`. Der Weg ist
-damit billig zu öffnen und teuer zu begrenzen; die Einhegung hängt am zweiten Zweig von
-`02 §6.2`.
+Nein; uhrlos kann ein Knoten belasten, nicht gewähren (`02 §6.2`, D402, D404).
 
 ### O62 Zweitimplementierung für Layer 02
 
@@ -418,3 +396,13 @@ signierten Zahlen nacheinander laufen, trägt bei nachlaufender Verifizierer-Uhr
 `OVERCOMMITTED_AUTHOR`. Kein Test hält das fest, und kein Test hält fest, dass der Beweis nach
 `02 §3.1` in derselben Lage **nicht** besteht. Der zweite Teil ist heute nirgends implementiert;
 solange das so bleibt, ist der Prüffall ein reiner Spec-Fall.
+
+### O71 Intervall-`now` für den Knoten mit grober Uhr
+
+Aus D404. Der reale Fall der unterbrochenen Zustellung ist nicht der Knoten ohne Uhr, sondern der
+mit driftender oder grober. D355 hat das Intervall-`now` zurückgestellt, weil es eine normative
+Entscheidung über die Richtung in zwei Mengen verlangte; die ist mit D402 getroffen. Zu klären
+ist, wo das Intervall herkommt, ob es als Parameter oder als Zustand des Verifizierers geführt
+wird, und was eine Auswertung zurückgibt, deren Anfrage im Intervall kippt — ein Wert mit
+Kennzeichnung, zwei Werte, oder eine Enthaltung.
+

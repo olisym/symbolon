@@ -16640,3 +16640,43 @@ abschaltbar ist. `02 §8` sagt „lockerer oder strenger", nicht „aus", und `0
 `t_exp`-Pflicht an „Scopes mit Budgetregel" — die Formulierung lässt einen Scope ohne sie
 sprachlich zu, obwohl keine Stelle einen beschreibt. Beschriebe ihn je eine Fassung, käme O61
 zurück, und zwar genau in Gestalt von Weg 3.
+### D405 — O70 erledigt: der Uhrversatz-Fall ist gepinnt
+
+**Der Lauf.** Containerlauf am Referenzrepo, Branch `o70-uhrversatz-pin`, ein Commit `7e316f2`,
+fast-forward nach `main`. Neu ist `tests/trust/test_uhrversatz.py` mit drei Fällen; `symbolon/`
+bleibt unberührt. Stand danach: 885 Tests, `check_specs` bei 162 Dateien und 424 Verweisen.
+
+**Was der Test hält.** Eine Autorin bürgt zuerst für BOB (`t = 1`, `t_exp = 10`), danach für CAROL
+(`t = 11`, `t_exp = 12`); nach ihren signierten Zahlen laufen die Bürgschaften nacheinander. Bei
+`now = 9` liegen beide im Budget-Set, `Σ n_budget > D`, und der Vermerk
+`OVERCOMMITTED_AUTHOR` trägt ihren öffentlichen Schlüssel — obwohl der zweite Vouch nach der Uhr
+des Verifizierers noch gar nicht abgegeben wurde. Die Kontrolle mit `t = 5` hat überlappende
+Intervalle und erzeugt denselben Vermerk: der Vermerk liest `t` nicht. Der dritte Fall hält fest,
+dass die Wirkung am Flag hängt und nicht am Ablauf. `n` und der erwartete Kapazitätswert sind aus
+`PARAMS` abgeleitet; die Zeitpunkte sind Literale, weil die Staffelung die Konstruktion ist, und
+der Test behauptet sie (`max t > min t_exp`), statt sie vorauszusetzen.
+
+**Der signaturbasierte Beweis bleibt ungebaut** (D403). Auch keine Testhilfe, die ihn nachrechnet:
+das wäre eine erste Implementierung ohne Norm und ohne zweiten Zeugen.
+
+**Der Befund der Abnahme, und er ist verallgemeinerbar.** Die erste Fassung bestand die
+Rücknahmeprobe nur zur Hälfte: mit der Mutation in `_in_budget_set` wurde Prüffall 1 rot,
+Prüffall 3 blieb grün. Das Werkzeug meldete es als „Beobachtung zur Schärfe der Probe". Es war
+mehr: der Fall hiess `test_wirkung_ist_flagwirkung_nicht_ablauf`, behauptete aber nur, dass ein
+Wert zurückkommt. „Geflaggt, Flag ignoriert" und „gar nicht geflaggt" erzeugen dieselbe
+Zusicherung, und die Mutation verschob den Fall still von der ersten Lage in die zweite. Nach der
+Nachbesserung — beide Fälle behaupten zusätzlich den Vermerk, `02 §10` und `§11.4` stellen ihn
+ausdrücklich unabhängig von `include_flagged` — trifft die Probe genau die Fälle 1 und 3.
+
+Daraus der **Prüfregel-Kandidat**: Ein Test, den seine eigene Rücknahmeprobe nicht rot bekommt,
+prüft nicht, was sein Name sagt. Die Probe ist damit nicht nur Beleg für den Regressionstest,
+sondern Beleg für die Benennung — und ein Fall, der grün bleibt, ist ein Befund, keine Nuance.
+
+**Zweiter Befund, kleiner.** `now` lag in der ersten Fassung auf `t_exp` des ersten Vouch. Gültig
+nach `01 §6`, aber der Fall hätte nebenbei die Grenzkonvention `now ≤ t_exp` mitgeprüft und wäre
+bei deren Änderung aus einem fremden Grund rot geworden. Auf `t_exp - 1` gezogen.
+
+**Zum Auftrag.** Die Rückfrage des Werkzeugs zu den Zeit-Literalen war berechtigt gestellt und
+durch den Auftrag beantwortet: abgeleitet werden Erwartungswerte, nicht die Konstruktion. Beide
+Auftragszahlen trafen zu (885 Tests, 162 Dateien); die Verweiszahl war bewusst nicht vorgegeben,
+weil sie an den Docstrings hängt, die erst im Lauf entstehen.

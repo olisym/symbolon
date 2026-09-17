@@ -389,13 +389,9 @@ Gelesen wird das Budget-Set; `VOUCH_WITHOUT_TEXP` nur bei gültigem `n` (`02 §1
 
 `02a` ist historisch; Normen in `02 §11` und K9, Verweise in Spec und Code umgehängt (D397, D398).
 
-### O70 Der Uhrversatz-Fall aus D402 ist ungepinnt
+### O70 Der Uhrversatz-Fall aus D402 ist ungepinnt — erledigt (D405)
 
-Gemessen wurde er im Supervisor-Klon, nicht im Baum: eine Autorin, deren Bürgschaften nach ihren
-signierten Zahlen nacheinander laufen, trägt bei nachlaufender Verifizierer-Uhr den Vermerk
-`OVERCOMMITTED_AUTHOR`. Kein Test hält das fest, und kein Test hält fest, dass der Beweis nach
-`02 §3.1` in derselben Lage **nicht** besteht. Der zweite Teil ist heute nirgends implementiert;
-solange das so bleibt, ist der Prüffall ein reiner Spec-Fall.
+Drei Fälle in `tests/trust/test_uhrversatz.py`; der Beweis bleibt ungebaut (D403).
 
 ### O71 Intervall-`now` für den Knoten mit grober Uhr
 

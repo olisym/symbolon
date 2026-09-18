@@ -28,11 +28,12 @@ FENSTER_VALUE = 6
 FENSTER_VALUE_MAX = 8
 
 
-def _run(g, now):
+def _run(g, now, *, target=None):
+    subject = g.DAVE if target is None else target
     return trust(
         g.store(),
         anchors=frozenset({g.ALICE.pub}),
-        targets=frozenset({g.DAVE.pub}),
+        targets=frozenset({subject.pub}),
         scope=g.scope,
         now=now,
         params=PARAMS,
@@ -80,6 +81,17 @@ def test_fenster_vermerke_vom_minimum_punkt() -> None:
     fenster = _run(g, FENSTER)
     assert punkt.findings == _overcommitted_bob(g)
     assert fenster.findings == ()
+
+
+def test_gleichstand_kleinster_zeitpunkt() -> None:
+    """Bei mehreren Minimalstellen gilt der kleinste Zeitpunkt (02 §11.1)."""
+    g = build()
+    an_500 = _run(g, NOW_500, target=g.ERIN)
+    an_601 = _run(g, NOW_601, target=g.ERIN)
+    fenster = _run(g, FENSTER, target=g.ERIN)
+    assert an_500.value == an_601.value
+    assert fenster.findings == an_500.findings
+    assert fenster.findings != an_601.findings
 
 
 @pytest.mark.parametrize("now", PUNKTE)

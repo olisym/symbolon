@@ -363,3 +363,9 @@ entschieden werden müsste.
 Aus D354, D361, eingetragen mit D412. Darf eine abhängige Aussage die Zeitgrenze ihrer Prämisse
 überschreiten? Die Vorbedingung aus D361 ist seit D404 erfüllt. Stolperdraht: das erste Profil,
 das in `03 §1.3` einen Prämissen-Key deklariert.
+
+### O75 Die öffentliche README nennt Zahlen, die driften
+
+Aus D413. 797 Tests und „mehr als 320" Registereinträge, ohne Rust- und Haskell-Fassung, die
+Szenariophase als laufend. Offen ist die Form: Zahlen streichen oder gegen den Stand prüfen.
+Fällig vor der Nachprüfung des Restack-Antrags Mitte Oktober.

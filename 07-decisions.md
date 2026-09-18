@@ -17077,3 +17077,64 @@ Sitzung trägt, hat eine O-Nummer oder einen Registereintrag, auf den er zeigt. 
 hier.
 
 **Was folgt.** Nichts gebaut, kein Lauf.
+
+### D413 — O9: Anhang C wird als Ganzes an `vectors_01.json` gebunden
+
+**Die Lücke.** Anhang C trägt die Testvektoren als normativen Text. Gebunden ist die Vektordatei
+an den Generator (`test_vectors_file_matches_build_vectors`), der Spec-Text an die Datei aber
+nur an zwei getippten Stellen: TV1-Core und TV1-`σ`, dazu die claim_ids bis NV12 als getippte
+Tabelle. Für NV13 bis NV32 gibt es keine Bindung. Wer den Generator ändert und die Datei
+nachzieht, bekommt grüne Tests und eine Spec, die still andere Bytes zeigt; die Zeugen in
+`go/`, `rs/` und `hs/` lesen genau diesen Text.
+
+**Vorab gemessen, im Supervisor-Klon auf `24e227c`.** Ein Wegwerf-Parser über Anhang C,
+Eigentümer eines Codeblocks ist die nächste Überschrift, die genau einen Vektor nennt. Ergebnis:
+alle 41 Vektoren der Datei haben genau einen Block, kein Block bleibt ohne Gegenstück, und null
+Abweichungen. Gebunden: 33 Reject-Codes, 22 Wire-Formen, 19 claim_ids, 19 Signaturen, 17
+Core-Kodierungen, dazu 2 `erwartet`-Zeilen in Prosa (NV3, NV32), deren Vektoren in der Datei kein
+`expect_reject` tragen. Die Zahlen decken sich mit der Datei: 33 Vektoren mit `expect_reject`,
+22 mit `wire_bytes`, 19 mit `claim_id`.
+
+**Beschluss 1 — der Test liest die Spec, wie sie ist; `01` bleibt unberührt.** Die Blöcke sind
+uneinheitlich: `bytes =` mit Folgezeilen, eine Kopfzeile mit Doppelpunkt (NV2), nackte Hexzeilen
+(BV1 bis BV3), `erwartet` als Reject oder als Prosa. Die Alternative, Anhang C erst zu
+vereinheitlichen, ändert den teuersten Text der Spec für einen Test und erzeugt sieben weitere
+ungelesene Änderungen für die Zeugen (O73). Die Uneinheitlichkeit ist klein und vollständig
+aufzählbar.
+
+**Beschluss 2 — was `bytes` meint, entscheidet C.0, nicht der Test.** C.0 legt fest: trägt ein
+Vektor eine Zeile `σ`, ist `bytes` die Core-Kodierung, sonst die Wire-Form (D396). Der Test
+wendet diese Regel an. Er vergleicht nie gegen „eines von beiden".
+
+**Beschluss 3 — Vollständigkeit in beide Richtungen, abgeleitet.** Jeder Vektor der Datei hat
+genau einen Block; jeder Hexwert im Block ist einem Feld zugeordnet; jede `claim_id`, jedes
+`sigma`, jede `wire_bytes` und jedes `expect_reject` der Datei erscheint im Text. Eine Prosa-Zeile
+`erwartet` gilt genau dann, wenn der Vektor kein `expect_reject` trägt. Keine getippte Liste
+von Ausnahmen, keine getippte Zahl.
+
+**Beschluss 4 — die Rücknahmeprobe bleibt im Test.** Statt einer einmaligen Probe prüft der Test
+selbst, dass eine je Feldart gezielt verfälschte Kopie des Anhangs Befunde erzeugt, ebenso eine
+Kopie mit gelöschtem Vektorblock. Ein Bindungstest, der eine Verfälschung nicht sieht, fällt
+damit dauerhaft auf, nicht nur am Tag seiner Abnahme.
+
+**Verworfen — die Core-Diagnosenotation (`core = {…}`) binden.** Das verlangt einen Parser für
+eine informelle Notation mit Abkürzungen wie `6530…5557`; die Core-Kodierung daneben ist
+gebunden, und die claim_id bindet sie zusätzlich.
+
+**Verworfen — die getippten TV1-Tests und `GOLDEN` im selben Zug entfernen.** Sie werden
+redundant, sind aber nicht falsch. Entfernen ist eine eigene Entscheidung nach der Abnahme.
+
+**Verworfen — die Prüfung in `tools/check_specs.py`.** Sie braucht die Vektordatei aus `tests/`
+und gehört damit in die Testsuite, nicht in die Verweisprüfung.
+
+**Nebenbefund — die öffentliche README driftet.** Sie nennt 797 Tests und „mehr als 320"
+Registereinträge, kennt weder die Rust- noch die Haskell-Fassung und beschreibt die Szenariophase
+als laufend. Geführt als O75; vor der Nachprüfung des Restack-Antrags Mitte Oktober fällig.
+
+**Wie geprüft, und die schwächste Stelle.** Parser und Zählung im Supervisor-Klon, gegen die
+Datei gegengezählt. Schwächste Stelle: die Eigentümerregel über Überschriften. Ein künftiger
+Block unter einer Sammelüberschrift ohne eigene Unterüberschrift hätte keinen Eigentümer; er
+fiele über die Vollständigkeitsprüfung nur auf, wenn sein Vektor sonst nirgends steht.
+
+**Was folgt.** Ein Werkzeugauftrag für `tests/test_anhang_c_bindung.py`, ohne Änderung an Spec,
+Generator oder Vektordatei.

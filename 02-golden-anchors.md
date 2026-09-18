@@ -397,7 +397,9 @@ anderen Anker:
 
 - **Vermerke vereinigt statt vom Minimum-Punkt genommen.** Liefert `OVERCOMMITTED_AUTHOR`, obwohl
   der zurückgegebene Wert von `601` stammt, wo BOB nach seinen eigenen Zahlen nichts vorzuwerfen
-  ist. Dasselbe gilt für `cut` und `disjoint_paths`: alle vier Grössen kommen aus **einem** Punkt.
+  ist. Dass auch `cut` und `disjoint_paths` aus **einem** Punkt stammen müssen, steht in
+  `02 §11.1`; dieser Anker belegt es **nicht**, weil beide an allen vier Punkten gleich sind
+  (D408).
 - **Gemischte Auswertung** — Kanten gegen `hi`, Budget gegen `lo`. Liefert `0`: BOBs Pfad fällt
   über das Budget von `500`, CAROLs über die Kante von `700`. **Kein Punkt des Fensters trägt
   diesen Wert**, und genau darum ist die Mischung in `02 §11.1` ausgeschlossen.
@@ -405,6 +407,12 @@ anderen Anker:
   ALICE wird geflaggt, und der Wert fällt auf `0` statt `6`. Zöge eine Implementierung die
   Bruchstellen aus dem ganzen Bestand statt aus den Scope-Vouches, käme `651` hinzu; die Zahlen
   blieben gleich, die Zahl der Auswertungen nicht — das trennt dieser Anker nicht, das Leck schon.
+
+**Gleichstand.** Mit **Ziel ERIN statt DAVE** liefern 500 und 601 beide den Wert 0, bei
+verschiedenen Vermerkmengen: 500 trägt `OVERCOMMITTED_AUTHOR`, 601 nichts. Das Fenster
+`[500, 700]` gibt dort die Vermerke von 500 zurück. Die Regel „bei mehreren der kleinste
+Zeitpunkt" aus `02 §11.1` ist an dieser Stelle belegbar und sonst an keiner in diesem Profil
+(D408).
 
 **Herkunft der Zahlen.** Die vier Punktwerte sind gegen die bestehende Implementierung gemessen
 (`eb11f2a`, Punktform); die Fensterzahlen folgen daraus nach der Rechenregel in `02 §11.1` und

@@ -397,11 +397,10 @@ Drei Fälle in `tests/trust/test_uhrversatz.py`; der Beweis bleibt ungebaut (D40
 
 Parameter, exakt über die Bruchstellen, Minimum plus obere Schranke; die Umsetzung läuft als O72.
 
-### O72 Intervall-`now` ist normiert, aber nicht gebaut
+### O72 Intervall-`now` ist normiert, aber nicht gebaut — erledigt (D408)
 
-Aus D406. `02 §11.1` verlangt die Aufzählung der Bruchstellen, das Minimum und die obere
-Schranke; `derive()`, `flow()` und `rank()` nehmen weiter einen Zeitpunkt, und der Ergebnistyp
-trägt keine zweite Zahl. Zu bauen sind die Aufzählung, der erweiterte Ergebnistyp und ein Anker
-für ein echtes Fenster, dazu der Nachweis, dass `lo = hi` die bestehenden Anker unverändert
-lässt. Offen bleibt, ob die Bruchstellen aus dem ganzen Bestand oder nur aus dem Scope kommen.
+Gebaut auf `o72-intervall-now`, gemergt als `8f8b460`; nur `flow.py` berührt, `derive()` und
+`rank()` blieben punktförmig. Die Bruchstellen kommen aus den Scope-Vouches. Nicht gemessen
+blieb `include_flagged = True` über ein Fenster; die Kostenfrage aus D406 bleibt ohne
+Obergrenze.
 

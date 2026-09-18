@@ -16858,3 +16858,64 @@ konstruierbar ist, hier darum, ob die Behauptung ihn von seinem Nachbarzustand t
 **Fläche.** `pruefregeln.md`: zwei Regeln und die Herkunftszeile. Kein Code, keine Spec-Datei,
 kein offener Posten.
 
+### D408 — O72 abgenommen: Intervall-`now` gebaut, drei Korrekturen am eigenen Text
+
+**Der Lauf.** Erstmals Cursor auf dem Host statt des Containers. Die Isolation aus D389 ist die
+Antwort auf die Fremdfassung und nicht auf das Referenzrepo; hier soll das Werkzeug die Spec
+lesen. Erhalten blieben: frischer Thread je Auftrag, Auftrag ausserhalb der Repo-Wurzel (dort
+wäre er nach `check_specs` ungebunden), Branch und Push am Host, kein Merge durch das Werkzeug.
+Gewonnen: `ruff` läuft am Host mit, im Container tat es das nicht. Branch `o72-intervall-now`,
+Basis `dee9afa`, zwei Commits `3e7aec5` und `8f8b460`, gemergt als fast-forward. 885 → 898 Tests.
+
+**Was gebaut wurde.** `trust()` nimmt zusätzlich ein Paar `(lo, hi)`, zählt die Bruchstellen auf,
+lässt die Punktauswertung je Punkt unverändert laufen und gibt das `TrustResult` des
+Minimum-Punktes zurück, erweitert um `value_max`. Nur `symbolon/trust/flow.py` ist berührt.
+
+**Korrektur 1 — die Flächenzeile in D406 war zu weit gegriffen.** Dort stehen die Signaturen von
+`derive()`, `flow()` und `rank()`. Tatsächlich ändert sich nur `flow()`. Die Aufzählung sitzt
+**über** der Ableitung, nicht in ihr, also bleibt die geteilte Ableitungsstufe aus D49
+punktförmig. `rank()` bleibt es ebenfalls, und das ist kein Sparen: die Relaxation ist nach
+`02 §9` keine Schranke, und ein Minimum über Punkte gäbe ihr das Aussehen einer solchen. Die
+Zeile in D406 war eine Schätzung vor dem Lesen des Codes und wird hier berichtigt, nicht dort
+stillschweigend geändert.
+
+**Korrektur 2 — Anker 5d versprach eine Trennung, die er nicht leistet.** Der Satz, dasselbe
+gelte für `cut` und `disjoint_paths`, ist falsch: beide sind an allen vier Punkten gleich (1 und
+leer), also fällt eine Implementierung, die sie vom falschen Punkt nimmt, an diesem Anker nicht
+auf. Allein `findings` trennt. Der Satz wird ersetzt; normativ bleibt `02 §11.1`, belegt ist es
+hier nur zum Teil. Gefunden hat den Mangel der Hinweis des Werkzeugs, der leere Schnitt stehe in
+der Prosa und nicht in der Testliste — ein Bericht über den Lauf, der einen Fehler der Spec
+sichtbar machte.
+
+**Befund der Abnahme — die Gleichstandsregel hing an `min()`.** Der erste Commit setzte sie
+richtig um, aber kein Fall hielt sie: am Ziel DAVE trennen sich die Punkte stets im Wert, also
+kommt es nie zum Gleichstand. Die Regel hing damit allein an der Eigenschaft der
+Standardbibliothek, bei Gleichstand das erste Element zu liefern; eine Umstellung auf die letzte
+Minimalstelle wäre grün geblieben. Nachgebessert im zweiten Commit, gleiches Profil, Ziel ERIN:
+dort liefern 500 und 601 beide den Wert 0 bei verschiedenen Vermerkmengen. Die Erwartung ist
+relational behauptet, nicht getippt, und der Fall hält zusätzlich fest, dass die beiden Punkte
+überhaupt unterscheidbar sind (Prüfregel 62).
+
+**Vier Fenster ausserhalb des Auftrags, in der Abnahme gemessen.**
+
+| Fenster | Punkte | Wert | obere Schranke |
+|---|---|---|---|
+| `[601, 700]` | 601 | 6 | 6 |
+| `[500, 601]` | 500, 601 | 6 | 8 |
+| `[640, 660]` | 640 | 6 | 6 |
+| `[500, 20000]` | 500, 601, 10001 | 0 | 8 |
+
+Das breite Fenster ist der Grenzfall aus D404: jenseits des letzten `t_exp` fällt der Wert auf 0,
+ohne dass etwas bricht. `[640, 660]` belegt die Scope-Filterung der Bruchstellen — der
+Fremdscope-`t_exp` bei 650 erzeugt keinen Punkt.
+
+**Widerlegt.** Die Vermutung, ein schmales Fenster könne die Herkunft der Bruchstellen trennen,
+ist gemessen falsch: bei 640 steht der Wert ohnehin schon bei 6, und ein zusätzlicher Punkt bei
+651 ändert daran nichts. Der entsprechende Satz in Anker 5d bleibt stehen.
+
+**Verhaltensänderung, gemeldet statt still vollzogen.** `now=True` wird jetzt abgelehnt
+(`type(now) is int`, dieselbe Konvention wie in `TrustParams`); zuvor wäre `bool` als
+`int`-Unterklasse durch die Vergleiche gelaufen. Kein bestehender Test trifft das.
+
+**Getragen, nicht behoben.** Die Zahl der Auswertungen hängt am Bestand und hat keine Obergrenze
+(D406). `include_flagged = True` über ein Fenster ist nicht gemessen worden.

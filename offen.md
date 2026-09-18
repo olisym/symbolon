@@ -393,12 +393,15 @@ Gelesen wird das Budget-Set; `VOUCH_WITHOUT_TEXP` nur bei gültigem `n` (`02 §1
 
 Drei Fälle in `tests/trust/test_uhrversatz.py`; der Beweis bleibt ungebaut (D403).
 
-### O71 Intervall-`now` für den Knoten mit grober Uhr
+### O71 Intervall-`now` für den Knoten mit grober Uhr — erledigt (D406)
 
-Aus D404. Der reale Fall der unterbrochenen Zustellung ist nicht der Knoten ohne Uhr, sondern der
-mit driftender oder grober. D355 hat das Intervall-`now` zurückgestellt, weil es eine normative
-Entscheidung über die Richtung in zwei Mengen verlangte; die ist mit D402 getroffen. Zu klären
-ist, wo das Intervall herkommt, ob es als Parameter oder als Zustand des Verifizierers geführt
-wird, und was eine Auswertung zurückgibt, deren Anfrage im Intervall kippt — ein Wert mit
-Kennzeichnung, zwei Werte, oder eine Enthaltung.
+Parameter, exakt über die Bruchstellen, Minimum plus obere Schranke; die Umsetzung läuft als O72.
+
+### O72 Intervall-`now` ist normiert, aber nicht gebaut
+
+Aus D406. `02 §11.1` verlangt die Aufzählung der Bruchstellen, das Minimum und die obere
+Schranke; `derive()`, `flow()` und `rank()` nehmen weiter einen Zeitpunkt, und der Ergebnistyp
+trägt keine zweite Zahl. Zu bauen sind die Aufzählung, der erweiterte Ergebnistyp und ein Anker
+für ein echtes Fenster, dazu der Nachweis, dass `lo = hi` die bestehenden Anker unverändert
+lässt. Offen bleibt, ob die Bruchstellen aus dem ganzen Bestand oder nur aus dem Scope kommen.
 

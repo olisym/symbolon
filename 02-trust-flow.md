@@ -119,6 +119,8 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 > **unabhängig** vom Lebenszyklus-Zustand. Wer sie an einen Zustand „abgelaufen" knüpft,
 > erzeugt einen Deadlock: ein widerrufener Claim erreicht diesen Zustand nie, weil der
 > Widerruf vorrangig ist, und bände sein Budget für immer (D41).
+> Ist `now` ein Intervall (§11.1), gilt das Prädikat je Auswertungspunkt; gemischt
+> wird nicht (D406).
 
 > **Aggregation je `(I, J, N)`.** Mehrere Vouches derselben Identität auf dasselbe Subjekt im
 > selben Scope bilden **eine** Gruppe. Es zählen `n_budget = max n` über die
@@ -537,6 +539,10 @@ Verifizierer-Zeit `now` (Atom-Spec §6): zwei Verifizierer dürfen legitim unein
 Vouch schon abgelaufen ist — die sichere Richtung ist stets Unter-Vertrauen. „Voidet sich
 selbst" meint also *strukturell definiert*, nicht *global synchron*.
 
+**Grobe Uhren.** `now` darf ein Intervall sein (§11.1). Die harte Decke ändert sich dadurch
+nicht: verglichen wird weiterhin `now ≤ t_exp`, nur an mehreren Zeitpunkten. Die legitime
+Uneinigkeit zweier Verifizierer wird damit breiter, nicht anders geartet (D406).
+
 **`t_exp` ist für Vouches verpflichtend.** In Scopes mit Budgetregel (§3.1) MUSS ein Vouch
 `t_exp` tragen, oder die Policy setzt eine Maximallaufzeit als Default — andernfalls bindet er
 Budget unbefristet, und zwar unwiderruflich: ein Widerruf befreit ohne `t_exp` nie, `REVOKED`
@@ -817,17 +823,34 @@ zwei Verifizierer über demselben Bestand mit denselben Argumenten dieselbe Antw
   `C(x)` wird einmal am Ende gerundet (§3).
 - **`now` ist Parameter.** Die Auswertung liest keine Uhr. `now` wird übergeben und ist die
   subjektive Verifizierer-Zeit aus §6.2. Eine Auswertung, die die Systemuhr liest, ist nicht
-  wiederholbar und damit nicht nachprüfbar.
+  wiederholbar und damit nicht nachprüfbar. `now` ist ein Zeitpunkt oder ein Intervall
+  `[lo, hi]`; der Zeitpunkt ist der Fall `lo = hi` (D406).
 - **Deterministisch.** Zwei Auswertungen über denselben Bestand mit denselben Argumenten liefern
   dieselben Ergebnisse, Schnitt und Vermerke eingeschlossen. Wo die Reihenfolge einer Menge ein
   Ergebnis berühren kann, wird vorher sortiert. Die Ausgabeform des Schnitts normiert diese
   Schicht nicht (§4); die Referenzform steht in `02-golden-anchors.md` §0, Konvention K9 (D375,
   D398).
 
+> **Normativ — Auswertung über ein Intervall.** Ein Intervall-`now` bezeichnet **einen**
+> unbekannten Zeitpunkt in `[lo, hi]`, nicht zwei unabhängige. Ausgewertet wird punktförmig
+> an `lo` und an `t_exp + 1` für jedes `t_exp` eines Scope-Vouch mit `lo ≤ t_exp < hi`;
+> innerhalb einer Auswertung gilt überall derselbe Zeitpunkt. Die Aufzählung ist
+> erschöpfend, weil `now` nur in Vergleichen `now ≤ t_exp` vorkommt und das Ergebnis
+> zwischen den Bruchstellen konstant ist. Das Ergebnis der Anfrage ist das **Minimum** über
+> die ausgewerteten Punkte; dazu tritt als zweite Zahl die **obere Schranke**, das Maximum
+> über dieselben Punkte. Gemeldet werden die Vermerke des Punktes, der das Minimum
+> geliefert hat; bei mehreren gilt der kleinste Zeitpunkt (D406).
+
+> **Gemischt wird nicht.** Kanten gegen `hi` und Budget gegen `lo` zu prüfen erhält zwar
+> `Aktiv-Set ⊆ Budget-Set`, rechnet `now` aber als zwei unabhängige Werte und enthält
+> dadurch mehr, als der Bestand hergibt: gemessen ein Wert von 0, wo an jedem Punkt des
+> Fensters 6 oder 8 stand (D406).
+
 ### 11.2 Parameterbereiche
 
 `C₀`, `γ = γ_num/γ_den` und `D` sind ganze Zahlen mit `C₀ ≥ 1`, `0 < γ_num < γ_den` und `D ≥ 1`.
 Ausserhalb dieser Bereiche gibt es keine Auswertung. Woher die Werte kommen, regelt §8.1.
+Ist `now` ein Intervall, sind `lo` und `hi` ganze Zahlen mit `lo ≤ hi` (D406).
 
 ### 11.3 Die Anfrage
 
@@ -837,7 +860,8 @@ kein Vermerk nach §10: fehlerhaft ist nicht der Bestand, sondern die Frage.
 
 ### 11.4 Auswertungsreihenfolge
 
-Die Reihenfolge ist ergebnisrelevant und daher normativ:
+Die Reihenfolge ist ergebnisrelevant und daher normativ. Bei einem Intervall-`now` gilt sie
+je Auswertungspunkt (§11.1):
 
 1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren.
 2. Das Gewicht `v` der Vouch-Claims des Scopes im Budget-Set lesen (§3.1) → `n` oder ein Vermerk

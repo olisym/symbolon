@@ -341,6 +341,77 @@ Austritt falsch bindet, liefe über alle übrigen Anker grün durch (D256 Beschl
 
 ---
 
+### Anker 5d — Intervall-`now` (Profil `TP-UHR`, D406)
+
+Eigenes Profil, weil der Fall zwei disjunkte Pfade mit **verschieden datierten Abläufen**
+braucht; in eine bestehende Variante gebogen wären beide Anker schwerer zu lesen. Parameter wie
+`TP-02` (`C₀ = 16`, `γ = 1/2`, `D = 4`), `include_flagged = False` (§1).
+
+**Bestand.** Scope `N_uhr`, alle `t = 100`:
+
+| Vouch | `n` | `t_exp` |
+|---|---|---|
+| ALICE → BOB | 2 | 10000 |
+| ALICE → CAROL | 2 | 10000 |
+| BOB → DAVE | 3 | 10000 |
+| BOB → ERIN | 3 | 600 |
+| CAROL → DAVE | 4 | 600 |
+
+Dazu **ein Vouch ALICE → ERIN mit `n = 1` und `t_exp = 650` in einem anderen Scope**. Er gehört
+zum Anker und ist kein Beiwerk; was er trennt, steht unten.
+
+Anker ALICE, Ziel DAVE.
+
+**Rechenweg.** `C(ALICE) = 16`, `cap(ALICE→BOB) = ⌊2·16/4⌋ = 8`, ebenso nach CAROL; ALICEs Budget
+im Scope ist `2 + 2 = 4 ≤ 4`. `d(BOB) = d(CAROL) = 1`, also `C = 8`. Daraus
+`cap(BOB→DAVE) = ⌊3·8/4⌋ = 6` und `cap(CAROL→DAVE) = ⌊4·8/4⌋ = 8`. BOBs Budget ist `3 + 3 = 6 > 4`,
+solange `BOB→ERIN` im Budget-Set liegt; CAROLs ist `4 ≤ 4`.
+
+**Punktwerte.**
+
+| `now` | Wert | Vermerke | Grund |
+|---|---|---|---|
+| 500 | 8 | `OVERCOMMITTED_AUTHOR` (BOB) | BOB überzeichnet, seine Kanten fallen; der Weg über CAROL trägt 8 |
+| 600 | 8 | `OVERCOMMITTED_AUTHOR` (BOB) | Grenzfall: `now ≤ t_exp` schliesst 600 ein |
+| 601 | 6 | — | `BOB→ERIN` abgelaufen, BOB frei; `CAROL→DAVE` abgelaufen, dieser Pfad tot |
+| 700 | 6 | — | wie 601 |
+
+`disjoint_paths = 1` an allen vier Punkten. Der Schnitt ist leer: die Engstelle ist eine
+Vouch-Kante, und K9 benennt nur identitätsinterne Kanten.
+
+**Fenster `[500, 700]`.** Bruchstellen sind `t_exp + 1` der **Scope**-Vouches mit
+`500 ≤ t_exp < 700` (`02 §11.1`), also allein `601` — beide `t_exp = 600` fallen auf denselben
+Punkt. Ausgewertet wird an `500` und `601`.
+
+| Grösse | Erwartung |
+|---|---|
+| Wert (Minimum über die Punkte) | **6** |
+| obere Schranke (Maximum) | **8** |
+| Vermerke | **keine** |
+| `disjoint_paths` | 1 |
+
+Der Punktfall ist `lo = hi` und reproduziert die Tabelle darüber unverändert.
+
+**Was dieser Anker trennt.** Drei Implementierungen fallen hier, und keine von ihnen an einem
+anderen Anker:
+
+- **Vermerke vereinigt statt vom Minimum-Punkt genommen.** Liefert `OVERCOMMITTED_AUTHOR`, obwohl
+  der zurückgegebene Wert von `601` stammt, wo BOB nach seinen eigenen Zahlen nichts vorzuwerfen
+  ist. Dasselbe gilt für `cut` und `disjoint_paths`: alle vier Grössen kommen aus **einem** Punkt.
+- **Gemischte Auswertung** — Kanten gegen `hi`, Budget gegen `lo`. Liefert `0`: BOBs Pfad fällt
+  über das Budget von `500`, CAROLs über die Kante von `700`. **Kein Punkt des Fensters trägt
+  diesen Wert**, und genau darum ist die Mischung in `02 §11.1` ausgeschlossen.
+- **Scope-Leck im Budget.** Zählt der Fremdscope-Vouch in ALICEs Budget, ist es `2 + 2 + 1 = 5 > 4`,
+  ALICE wird geflaggt, und der Wert fällt auf `0` statt `6`. Zöge eine Implementierung die
+  Bruchstellen aus dem ganzen Bestand statt aus den Scope-Vouches, käme `651` hinzu; die Zahlen
+  blieben gleich, die Zahl der Auswertungen nicht — das trennt dieser Anker nicht, das Leck schon.
+
+**Herkunft der Zahlen.** Die vier Punktwerte sind gegen die bestehende Implementierung gemessen
+(`eb11f2a`, Punktform); die Fensterzahlen folgen daraus nach der Rechenregel in `02 §11.1` und
+sind zum Zeitpunkt des Drucks von keiner Implementierung erzeugt worden.
+
+---
+
 ## 6. Anker 6 — Einheitskapazitäten, Pfad-Disjunktheit (D19/D24)
 
 Belegung nach K5: alle internen Kanten `= 1`, alle Vouch-Kanten **`= 1`** (D42), **Endpunkte

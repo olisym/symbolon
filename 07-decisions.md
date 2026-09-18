@@ -16961,3 +16961,61 @@ Schwächste Stelle: dass `02 §11` genau das trägt, was `02a` vorwegnahm, ist a
 und nicht Absatz für Absatz verglichen. Das bleibt Arbeit für O73.
 
 **Was folgt.** Nichts aus O73, solange der Stolperdraht nicht auslöst.
+
+### D410 — Zeitaussagen in der Invariantentabelle: INV-9 und INV-10
+
+**Anlass.** Seit `00bf` trägt der Sitzungsstart einen Posten „ungeklärt aus `00be`": die
+Invariantentabelle kennt keine Zeitaussage, und offen war, ob D362 dort eine Zeile braucht und ob
+sie die Nicht-Monotonie festschreibt oder nur die Richtung. Die Tabelle, die damals gemeint war,
+ist `02a §7` (T-02.5) und seit D397 historisch. Die gültige steht in
+`02-golden-anchors.md §8` (INV-1 bis INV-8). Mit D406 ist eine zweite Zeitaussage
+dazugekommen, die dort ebenfalls fehlt.
+
+**Beschluss 1 — die Invarianten bleiben in der Ankerdatei, `02` bekommt keinen Abschnitt.**
+Invarianten sind abgeleitet, nicht beschlossen: jede folgt aus Normtext, der schon in `02` steht.
+D397 hat die Normen aus `02a` nach `02` geholt, nicht die Prüfaussagen. Dass `02` seit D398
+keinen Invariantenabschnitt hat, war deshalb keine Lücke. Der Posten war eine Redaktionsfrage,
+und sie ist hiermit erledigt.
+
+**Beschluss 2 — INV-9 legt die Richtung für `include_flagged = True` fest.** Der Wert steigt dort
+nie mit der Uhr. Für `False` wird keine Invariante geschrieben: eine Nicht-Monotonie ist eine
+Existenzaussage, und die ist mit `02 §7` und `tests/trust/test_zeitmonotonie.py` bereits
+belegt. INV-9 nennt ihre Prämisse ausdrücklich: Gültigkeit hat nur eine obere Zeitgrenze
+(`02 §6.2`, `01 §5.3`). Bekäme sie je eine untere, fiele INV-9. Das ist gewollt, denn so
+kollidiert eine künftige Änderung mit einer bestehenden Aussage, statt still durchzugehen.
+
+**Beschluss 3 — INV-10 macht die Exaktheit aus D406 prüfbar.** Ein weiteres Fenster senkt den
+Wert und hebt die Schranke, in beiden Flag-Varianten. Bei `True` fallen Minimum und Maximum mit
+INV-9 auf die Ränder. Die Aussage ist relational und braucht keine getippte Zahl. Sie trennt die
+exakte Auswertung von einer, die nur die Ränder abtastet — der Fehler, den D406 an der
+gemischten Form gefunden hat, in anderer Gestalt.
+
+**Vorab gemessen, im Supervisor-Klon auf `82d8b05`.** Raster aus dem Bestand: kleinstes `t`,
+jedes `t_exp` und `t_exp + 1`, beide Scopes.
+
+| Fall | Raster | `True` | `False` |
+|---|---|---|---|
+| `TP-UHR`, Ziel DAVE | 100 … 10001 (7 Punkte) | 14 14 6 6 6 6 0 | 8 8 6 6 6 6 0 |
+| `TP-UHR`, Ziel ERIN | dasselbe | 6 6 0 0 0 0 0 | 0 … 0 |
+| D362-Szenario | 1, 10, 11, 20, 21 | 12 12 12 12 0 | 0 0 12 12 0 |
+
+INV-9 hält in allen drei Fällen bei `True`; am D362-Szenario bei `False` meldet derselbe Prüfer
+den Anstieg. INV-10 hat über alle Fensterpaare null Verletzungen, in beiden Varianten, und der
+Randsatz für `True` hält überall. Rücknahmeprobe: wird nur an `lo` und `hi` ausgewertet, zeigt
+INV-10 am D362-Szenario bei `False` 16 verletzte Paare, an den beiden `TP-UHR`-Fällen keines.
+Die Probe trennt also nur an einem der drei Fälle. Das genügt, verlangt aber, dass das
+D362-Szenario im Test bleibt.
+
+**Verworfen: Eigenschaftstest über zufällige Bestände (Hypothesis).** Kein offener Befund
+verlangt ihn, und die drei Fälle decken die beiden Mechanismen, die es gibt: Ablauf einer Kante
+und Ablauf einer Budgetbindung. Ein Generator für gültige Vouch-Bestände wäre eine neue Fläche
+ohne Entscheidung, die an ihr hängt.
+
+**Wie geprüft, und die schwächste Stelle.** INV-9 ist aus `classify` (Widerruf und Supersede vor
+der Zeitprüfung, `core/*` ohne `t_exp`), `_in_budget_set` und INV-3 hergeleitet und an drei Fällen
+gemessen. Schwächste Stelle: die Herleitung setzt voraus, dass `now` im Trust-Pfad nur über
+`classify_all` und das Budget-Set eingeht. Gelesen ist das an `derive.py`, `groups.py` und
+`flow.py`, nicht an jeder Stelle, die ein künftiger Zug hinzufügt. INV-9 ist genau die Aussage,
+die das dann meldet.
+
+**Was folgt.** Ein Werkzeugauftrag für `tests/trust/test_zeitinvarianten.py`, ohne Codeänderung.

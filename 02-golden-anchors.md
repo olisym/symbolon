@@ -597,6 +597,32 @@ ist konstruktiv so und kein Defekt.
 *Test:* je Variante beide Läufe; Budget- und Payload-Befunde byte-gleich, Flusswerte nach der
 Tabelle in §1 (A: `4/4/4` gegen `0/0/0`, D: `3/3/3` gegen `1/1/1`, C und F unverändert).
 
+**INV-9 — Bei `include_flagged = True` steigt der Wert nie mit der Uhr (D362, D410).** Für
+`now₁ ≤ now₂` gilt `trust(now₂).value ≤ trust(now₁).value`. Gültigkeit hat nur eine obere
+Zeitgrenze, `t_exp` (`02 §6.2`), und Widerruf und Supersede sind zeitlos (`01 §5.3`). Mit
+wachsender Uhr verlassen Vouches also das Aktiv-Set, und keiner tritt ein: der Kantensatz
+schrumpft, `n_kante` sinkt oder bleibt, und INV-3 trägt den Rest. Das Budget-Set schrumpft
+ebenfalls, wirkt bei `True` aber auf keine Kante.
+Bei `include_flagged = False` gilt INV-9 **nicht** (`02 §7`, D362): läuft eine Bürgschaft ab, kann
+das Autor-Flag fallen und alle Kanten des Autors zurückbringen. Festgeschrieben ist die Richtung
+für `True`, nicht die Nicht-Monotonie für `False`; die steht als Folge in `02 §7`.
+*Test:* Punktwerte über einem Zeitraster aus dem Bestand (kleinstes `t`, jedes `t_exp` und
+`t_exp + 1`), für `TP-UHR` mit den Zielen DAVE und ERIN und für das D362-Szenario. Befundtest:
+derselbe Prüfer meldet am D362-Szenario bei `False` den Anstieg.
+⚠️ INV-9 hängt an der Prämisse, dass kein Claim mit der Zeit gültig wird. Bekäme die Gültigkeit je
+eine untere Zeitgrenze, fällt INV-9 — und der Test ist dann die erste Stelle, die es sagt.
+
+**INV-10 — Ein weiteres Fenster senkt den Wert und hebt die Schranke (D406, D410).** Für Fenster
+`W ⊆ W′` gilt `value(W′) ≤ value(W)` und `value_max(W′) ≥ value_max(W)`, und stets
+`value ≤ value_max`. Das gilt in beiden Flag-Varianten, weil die Auswertung nach `02 §11.1` exakt
+ist: Minimum und Maximum über `W′` sind Minimum und Maximum der Wertfunktion über einer Obermenge.
+Bei `include_flagged = True` folgt mit INV-9 zusätzlich `value(W) = value(hi)` und
+`value_max(W) = value(lo)`.
+*Test:* alle Fensterpaare über demselben Raster, beide Varianten. Rücknahmeprobe: nur `lo` und
+`hi` auswerten statt der Bruchstellen. Der Test wird am D362-Szenario bei `False` rot, weil ein
+Fenster um beide Abläufe den Zwischenwert verpasst. INV-10 prüft die Exaktheit aus D406, ohne dass
+eine Zahl getippt wird.
+
 ---
 
 ## 9. Effizienzhinweise für `02a`

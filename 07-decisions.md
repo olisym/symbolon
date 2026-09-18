@@ -16919,3 +16919,45 @@ ist gemessen falsch: bei 640 steht der Wert ohnehin schon bei 6, und ein zusätz
 
 **Getragen, nicht behoben.** Die Zahl der Auswertungen hängt am Bestand und hat keine Obergrenze
 (D406). `include_flagged = True` über ein Fenster ist nicht gemessen worden.
+
+### D409 — O62 geschlossen, O73 eröffnet: der zweite Zeuge liest einen überholten Text
+
+**Anlass.** Der Sitzungsstart `00bz` nannte als nächsten Schritt, für O62 die Sprachfrage
+vorzubereiten. Der Satz stand wörtlich schon in `00by`. Die Frage ist seit D370 und D382
+entschieden, der Lauf seit D390 abgenommen, der Zeilenvergleich seit D393 abgeschlossen, und die
+Folgeposten O65 bis O69 sind geschlossen. `offen.md` führte O62 weiter als offen, mit einem
+letzten Absatz aus D388 („Offen ist der Lauf"). Der Posten war erledigt, und niemand hatte ihn
+geschlossen.
+
+**Beschluss 1 — O62 ist erledigt.** Drei Fassungen sind gebaut (zwei in Haskell, eine in Rust),
+die Flusshälfte ist über alle acht Profile bestätigt (D374), die Zustandshälfte ist mit `TZ-02`
+gelesen (D392), und die einzige echte Divergenz hat einen Widerspruch im Normtext aufgedeckt, der
+in D394 aufgelöst ist. Das ist der Zweck, den D367 der Zweitfassung gegeben hat.
+
+**Beschluss 2 — O73 wird eröffnet.** Gemessen: der Rust-Anker steht auf `15d091e`
+(`rs/spec/STAND.md`, Blob `2de75f7` gegen `git show` bestätigt). Seither ist `02-trust-flow.md` in
+sechs Commits geändert worden, aus D394, D396, D398, D400, D402 und D406; `01-claim-atom.md` in
+einem, aus D396 (die `bytes`-Legende in `C.0`). Gegen den Anker sind das 240 Diff-Zeilen in `02` und
+ein neuer `§11`. Keine Fassung hat diesen Text gelesen.
+
+**Beschluss 3 — jetzt keine weitere Fassung.** Keine offene Entscheidung hängt derzeit an einem
+zweiten Zeugen. Ein Lauf ohne Entscheidung, die er ändern kann, wird nicht gemacht. Der
+Stolperdraht aus O62 geht geschärft an O73 über: der erste Befund, der an einer der sechs
+Änderungen hängt und ohne zweiten Zeugen entschieden werden müsste.
+
+**Die Frage, die O73 vor jedem Auftrag trägt.** D368 Beschluss 3 hält `02a` zurück, weil es die
+Mehrdeutigkeiten vorwegnimmt, deren Auffinden der Zweck ist. Seit D397 ist `02a` als normativer
+Text aufgelöst, und was nur dort stand, steht in `02 §11`. Eine Fassung auf heutigem Anker liest
+also, was den bisherigen Fassungen bewusst vorenthalten war. Die Regel ist unverändert, ihre
+Wirkung nicht. Vor dem nächsten Auftrag ist zu entscheiden, ob die Diät neu gefasst wird oder ob
+die Verschiebung hingenommen und im `STAND.md` benannt wird. Das ist nicht hier entschieden.
+
+**Prüfregel-Kandidat, keine Regel.** Der nächste Schritt eines Sitzungsstarts wird gegen
+`offen.md` und das Ende des Registers geprüft, bevor er fortgeschrieben wird. Einmal begründet.
+
+**Wie geprüft, und die schwächste Stelle.** Gelesen wurden D368, D390 bis D394, der Posten O62
+und `rs/spec/STAND.md`; die Commitzählung ist `git log 15d091e..HEAD` über beide Dateien.
+Schwächste Stelle: dass `02 §11` genau das trägt, was `02a` vorwegnahm, ist aus D397 gefolgert
+und nicht Absatz für Absatz verglichen. Das bleibt Arbeit für O73.
+
+**Was folgt.** Nichts aus O73, solange der Stolperdraht nicht auslöst.

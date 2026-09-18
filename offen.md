@@ -300,64 +300,9 @@ Gegenläufigkeit harmlos; getrennt sind lokaler Vermerk und signierter Beweis (`
 
 Nein; uhrlos kann ein Knoten belasten, nicht gewähren (`02 §6.2`, D402, D404).
 
-### O62 Zweitimplementierung für Layer 02
+### O62 Zweitimplementierung für Layer 02 — erledigt (D409)
 
-Aus D367. Beschlossen ist, dass sie kommt, und dass sie einen eigenen Anker liest (D302). Offen
-ist der Umfang: die Gruppenbildung nach `02a §2.4` mit Budget- und Aktiv-Set ist die Stelle, an
-der D362, D364 und Anker 5c hängen, und sie ist ohne den Max-Flow-Solver prüfbar. Der Solver
-selbst wäre die grössere Fläche und der teurere Bau. Offen ist ebenso die Sprache; Prüfregel 15
-verlangt den Literaturcheck vor der Wahl, und die Go-Fassung bindet nichts, weil ihr Umfang ein
-anderer ist. Stolperdraht: der erste Layer-02-Befund, der ohne zweiten Zeugen entschieden werden
-müsste.
-
-Nach D368 steht der Umfang: `classify_all`, Gruppen- und Budgetstufe, Graphbau nach `02a §2.8`;
-der Max-Flow kommt aus einer Bibliothek. Der Ankersatz ist `01-claim-atom.md` und
-`02-trust-flow.md` mit eigener `STAND.md`; `02-golden-anchors.md` und `02a` werden
-zurückgehalten. Offen bleibt die Sprache — Prüfregel 15 verlangt den Literaturcheck vor der
-Wahl. Offen bleibt ebenso, wann die Ankerkopie angelegt wird; bis dahin ist nichts eingefroren.
-
-Nach D382 ist die Sprache Rust, nach D383 liegt der Anker in `rs/spec/` auf dem Kopf
-zum Zeitpunkt der Kopie und trägt gegenüber `hs/spec/` zwei Kästen mehr in `02 §4`
-(D375, D381). Offen ist der Auftrag `rs/AUFTRAG.md`.
-
-Nach D370 steht die Sprache: Haskell, mit `fgl` (`Data.Graph.Inductive.Query.MaxFlow`, nicht
-`MaxFlow2`) und `crypton` (nicht `ed25519`). Offen bleibt allein, wann die Ankerkopie angelegt
-und der Auftrag geschrieben wird; bis dahin ist nichts eingefroren.
-
-Nach D371 steht der Anker: `hs/spec/` mit `01-claim-atom.md`, `02-trust-flow.md` und einer
-`STAND.md`, die den Ankercommit, beide Blob-Hashes und die Zurückhaltung von
-`02-golden-anchors.md` und `02a` benennt. Offen bleibt allein der Auftrag.
-
-Nach D372 steht die Messfläche: `tests/vectors/vectors_02_tp02.json` als Eingabe, die gestufte
-Ausgabe als Schnittstelle, das Flag im Auftrag gesetzt, die Schnittseite offen gelassen. Offen
-bleibt der Lauf.
-
-Nach D374 ist die Flusshälfte bestätigt: zwei unabhängig gebaute Fassungen liefern über alle acht
-Profile dieselben Werte wie die Referenz, unter Abzug des in D373 ausgewiesenen Lecks. Die
-Zustandshälfte ist ungemessen — `TP-02` trägt ausschliesslich `active`. Nächster Schritt ist ein
-Vektorsatz aus Anker 5, nicht eine dritte Fassung.
-
-Nach D375 ist der Schnitt der erste gemessene Befund der Zweitfassung: `02` normiert die
-Ausgabeform nicht, beide Fassungen weichen gleich von der Referenz ab, `§4` bekommt die
-Unterscheidung. Der Zustands-Vektorsatz steht weiter aus.
-
-Nach D376 steht `TZ-02`: neun Profile, achtzehn geprüfte Ankerwerte, `revoked`, `superseded` und
-`expired` beobachtbar. Offen sind die Sprachwahl für die dritte Fassung und eine neue Ankerkopie,
-die `TZ-02` und den D375-Absatz mitführt.
-
-Nach D377 geht der Falltest zum Kapazitätsbereich der Sprachwahl voraus. Danach erst die
-Ankerkopie, die `TZ-02` und den D375-Absatz mitführt.
-
-Nach D378 steht das Profil des Falltests: `FALL-02`, drei Sprossen auf einem Graphen ohne
-Überzeichnung, Erwartungen abgeleitet statt gesetzt. Offen ist der Lauf gegen beide vorliegenden
-Fassungen und danach die Sprachwahl.
-
-Nach D380 ist der Lauf durch und nach D382 die Sprache gewählt: Rust mit `petgraph`. Offen sind
-jetzt die neue Ankerkopie — sie muss `TZ-02`, den `§4`-Absatz aus D375 und beide Änderungen aus
-D381 tragen — und danach der Auftrag. Die Zustandshälfte ist weiterhin von keiner Fassung gelesen.
-
-Nach D388 steht der Auftrag in `rs/AUFTRAG.md`: drei Vektorsätze, vorgegebene Schnittseite,
-`inf`-Zeile, `u64` ohne Ausweichen. Offen ist der Lauf.
+Drei Fassungen, Fluss- und Zustandshälfte gelesen; der Überhang geht an O73.
 
 ### O63 Der INF-Sentinel hängt am Bestand, nicht an der Kalibrierung — erledigt (D381)
 
@@ -404,3 +349,11 @@ Gebaut auf `o72-intervall-now`, gemergt als `8f8b460`; nur `flow.py` berührt, `
 blieb `include_flagged = True` über ein Fenster; die Kostenfrage aus D406 bleibt ohne
 Obergrenze.
 
+### O73 Der zweite Zeuge liest einen überholten Text
+
+Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in sechs Commits
+geändert (D394, D396, D398, D400, D402, D406) und `01-claim-atom.md` in einem (D396), darunter der
+ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D368 hält `02a`
+zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie beschlossen.
+Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne zweiten Zeugen
+entschieden werden müsste.

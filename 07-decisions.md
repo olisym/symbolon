@@ -17138,3 +17138,37 @@ fiele über die Vollständigkeitsprüfung nur auf, wenn sein Vektor sonst nirgen
 
 **Was folgt.** Ein Werkzeugauftrag für `tests/test_anhang_c_bindung.py`, ohne Änderung an Spec,
 Generator oder Vektordatei.
+
+### D414 — O9 abgenommen; die Lieferregeln für Befehlsblöcke stehen in `arbeitsweise.md`
+
+**Der Lauf.** Cursor am Host, frischer Thread, Branch `o9-anhang-c-bindung` auf `1faae6c`, ein
+Commit `2dec43e`. Berührt ist allein `tests/test_anhang_c_bindung.py`, 324 Zeilen, 7 Tests;
+911 → 918. Blob im Spiegel `803bd76`, gleich dem Bericht.
+
+**Abnahme am Branch, nicht am Bericht.** Die gemeldeten Zahlen decken sich mit der Vorabmessung
+aus D413: 41 Vektoren, 17 Core-Kodierungen, 22 Wire-Formen, je 19 claim_ids und Signaturen,
+33 Reject-Codes. Die Rücknahmeprobe des Werkzeugs (Regel 4 umgekehrt) ergab 36 Befunde, das sind
+NV14 bis NV31 je zweimal, wie aus der Zuordnung zu erwarten. Im Supervisor-Klon unabhängig
+verfälscht, und zwar gezielt nicht am ersten Vorkommen, das die eingebauten Proben treffen: eine
+Hexziffer mitten in NV25, die zweite Zeile der Signatur von NV32, der Code von NV29, die
+`erwartet`-Zeile von NV14 als Prosa, der ganze Block von NV31, ein fremdes Label in NV20, eine
+Hexzeile hinter TV2. Jede Verfälschung liefert mindestens einen Befund, der den Vektor nennt.
+
+**Zwei Schwächen, beide nicht blockierend.** `test_fehlender_block_nennt_vektor` prüft den Namen
+als Teilstring; heute trifft die Probe TV1, bei NV1 fände der Test den Namen auch in `NV10`. Und
+eine Label-Zeile mit Nicht-Hexwert wird ohne Befund verworfen; die Rückrichtung fängt das für
+alle Feldarten ausser `core_bytes`, und dort ist die fehlende Pflicht in D413 gewollt.
+
+**Beschluss 1 — O9 ist geschlossen.** Die getippten TV1-Tests und `GOLDEN` in
+`tests/test_vectors_01.py` sind jetzt redundant. Sie bleiben, bis ein Anlass sie berührt.
+
+**Beschluss 2 — die Lieferregeln für Befehlsblöcke kommen nach `arbeitsweise.md §5`.** Gelebt
+seit mehreren Sitzungen, aber nur in Sitzungsstarts und Chatverläufen festgehalten: Lieferungen
+über `/tmp` mit Hashprüfung und abschliessendem `rm`, `git --no-pager`, Prüfungen vor jeder
+Änderung, Ausgabe nur, was die Rückantwort braucht. Anlass war eine zweite `(1)`-Datei in `/tmp`,
+die den Hashtest eines Lieferblocks scheitern liess — der Block brach richtig ab, aber das
+Muster war schon einmal aufgetreten. Die Supervisor-Anweisung trägt denselben Wortlaut; sie wird
+von Oli ausserhalb des Repositoriums gepflegt.
+
+**Verworfen — `rm` gleich zu Beginn des Blocks nach dem Hashtest.** Dann ist die Lieferung weg,
+wenn ein späterer Schritt scheitert, und der zweite Anlauf braucht einen neuen Download.

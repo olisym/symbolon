@@ -60,10 +60,9 @@ Wird nicht fortgeschrieben. Jeder weitere Szenariolauf setzt auf `tools/sim/` au
 
 ## B — Verifikationsabschnitt
 
-### O9 Anhang C ist gegen Generatordrift nur teilweise gesichert
+### O9 Anhang C ist gegen Generatordrift nur teilweise gesichert — erledigt (D414)
 
-Für C.1 gibt es einen Test mit getipptem Hex; für C.13 bis C.15 gibt es nichts, was den Spec-Text
-an `vectors_01.json` bindet. Die andere Achse ist seit D295 geschlossen: Datei gegen Generator.
+Ganz Anhang C gebunden, in beide Richtungen, mit dauerhafter Verfälschungsprobe.
 
 ### O10 `UNPARSABLE_V` entsteht bei `ratify@1` nicht
 

@@ -119,6 +119,18 @@ Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
   `echo "== FERTIG =="`. Fehlt die Schlussmarke, ist die Kette abgebrochen — unabhängig davon,
   ob die letzte sichtbare Zeile erfolgreich aussieht.
 - **Keine Ausgabe heisst: der Block ist nicht gelaufen.**
+- **Lieferungen über `/tmp`.** Oli legt gelieferte Dateien in `/tmp` ab. Der Lieferblock prüft
+  zuerst den Hash jeder Lieferung und den Basisstand der Zieldatei, erst dann wird ersetzt.
+  Letzter Job vor `== FERTIG ==` ist `rm` der gelieferten Dateien, in der `and`-Kette: bricht der
+  Block ab, bleiben sie für den zweiten Anlauf liegen. Eine liegengebliebene Altversion lässt den
+  Browser die neue als `name (1).md` ablegen (D414).
+- **`git --no-pager`** vor `diff`, `log` und `show`, sonst wartet `less` auf eine Taste.
+- **Abbruch einplanen.** Prüfungen stehen vor jeder Änderung (Hash, Branch, Basis-Commit,
+  Basis-Hash der Zieldatei), damit eine gescheiterte Prüfung nichts halb Geändertes hinterlässt.
+  `git push` und der Merge nach `main` stehen als eigener Befehl ausserhalb des Blocks.
+- **Nur ausgeben, was die Rückantwort braucht.** Erfolgreiche Zwischenschritte schweigen,
+  Zählungen und Prüfsummen erscheinen als eine Zeile. `git diff` für die Abnahme bleibt
+  vollständig.
 - **`string`-Kommandos in einer `and`-Kette sind eine Falle.** `string trim`, `string match` und
   `string replace` liefern Status 1, wenn sie nichts zu tun hatten. Kommandosubstitution entfernt
   Whitespace bereits selbst.

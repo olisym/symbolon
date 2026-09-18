@@ -17041,3 +17041,39 @@ Anstieg des D362-Szenarios zwischen 10 und 11. Der Auftrag war ungenau, die Lesa
 
 **Was folgt.** Nichts. Die Zeitaussagen aus D362 und D406 stehen in der Invariantentabelle und
 sind gebaut.
+
+### D412 — Zwei Stränge lebten nur in Sitzungsstarts; die Gabel aus D354 wird O74
+
+**Der Befund.** Beim Prüfen des nächsten Schritts aus `00ca` gegen `offen.md` (Kandidat aus
+D409) fand sich die „Gabel F2" nicht: benannt in `sitzungsstart-00be.md` als „Verschachtelung als
+Norm gegen Schnittmenge bei der Auswertung", seither in jedem Sitzungsstart fortgeschrieben, aber
+weder als O-Posten noch unter diesem Namen im Register. Der Kandidat aus D409 greift dort nicht:
+er prüft einen Schritt gegen die Liste, und ein Posten, der nie auf die Liste kam, besteht die
+Prüfung. Der Name kollidiert zudem mit `F2` aus `00` (Drei-Objekt-Modell).
+
+**Beschluss 1 — die Gabel wird `offen O74`.** Stolperdraht ist, was D361 bereits benannt hat: das
+erste Profil, das in `03 §1.3` einen Prämissen-Key deklariert. Vorher kann kein Claim eine
+Verschachtelung verletzen, und die Vertagung kostet nichts. Das Kürzel „F2" entfällt; künftige
+Sitzungsstarts zitieren O74.
+
+**Was sich seit D361 geändert hat.** D361 hängte die Frage, ob sich die Kollisionsklasse lohnt, an
+O61. D404 hat O61 geschlossen: ein uhrloser Knoten belastet, er gewährt nicht. Prämissennennung ist
+ein Belastungsmechanismus, die Vorbedingung ist damit in die Richtung erfüllt, die D354 braucht.
+D402 hat die Bauform aus D354 zudem einmal gebaut, als Über-Commitment-Beweis über eigene Vouches
+des Autors, ohne Prämissennennung. Das stützt D354s dritte offene Frage (trägt die Mechanik über
+`t_exp` hinaus), entscheidet die Gabel aber nicht.
+
+**Beschluss 2 — die Übertragung auf unterbrochene Zustellung ist eine Richtung, kein Posten.** Ein
+O-Posten ist nach `offen.md` eine Vermutung über eine Lücke; die Übertragung auf LoRa/Reticulum
+ist ein Arbeitsprogramm. Sie bekommt keine O-Nummer. Ihr fester Ort ist dieser Eintrag, mit den
+Anschlusspunkten D345, D346, D350, D353, D361, D362, D363, D404, D406, damit die Liste nicht
+weiter nur in Sitzungsstarts wandert. Sitzungsstarts zitieren D412.
+
+**Verworfen — die Richtung in `VISION.md` verorten.** `VISION.md` trägt Zweck und Richtung, nicht
+Registernummern als Anschlussliste; die Liste gehört dorthin, wo sie fortgeschrieben wird.
+
+**Prüfregel-Kandidat, nicht übernommen.** Ein Strang, den ein Sitzungsstart über mehr als eine
+Sitzung trägt, hat eine O-Nummer oder einen Registereintrag, auf den er zeigt. Einmal begründet,
+hier.
+
+**Was folgt.** Nichts gebaut, kein Lauf.

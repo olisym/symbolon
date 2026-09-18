@@ -357,3 +357,9 @@ ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D3
 zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie beschlossen.
 Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne zweiten Zeugen
 entschieden werden müsste.
+
+### O74 Verschachtelung als Norm oder Schnittmenge bei der Auswertung
+
+Aus D354, D361, eingetragen mit D412. Darf eine abhängige Aussage die Zeitgrenze ihrer Prämisse
+überschreiten? Die Vorbedingung aus D361 ist seit D404 erfüllt. Stolperdraht: das erste Profil,
+das in `03 §1.3` einen Prämissen-Key deklariert.

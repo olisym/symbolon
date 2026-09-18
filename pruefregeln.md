@@ -367,6 +367,15 @@ annimmt, ist ein Test mit Vektor-Kostüm. Der Andockpunkt ist deshalb ein kinder
 sofern nicht die Geschwisterschaft selbst der Gegenstand ist (NV3), und die Gegenprobe gehört in
 denselben Test: der Nachbar behält seinen Zustand (D358).
 
+**76. Ein Befundtest prüft die Meldung, die nur sein Befund erzeugt.**
+Ein Fall, der einen Befund festhalten soll, behauptet den Vermerk, den allein dieser Befund
+erzeugt — nicht bloss, dass ein Wert zurückkommt. Zahlen sind mehrdeutig: „geflaggt, Flag
+ignoriert" und „gar nicht geflaggt" liefern dieselbe Zahl, und ein Test, der nur sie behauptet,
+kann zwischen den beiden Lagen nicht unterscheiden; er wird still zum Nachbarn seines eigenen
+Gegenstands. Belegt an einem Fall, dessen Name die Flagwirkung trug und der nur die Rückgabe
+behauptete (D395, D399, D405). Unterschieden von Prüfregel 28: dort geht es darum, ob der
+Weltzustand konstruierbar ist, hier darum, ob die Behauptung ihn von seinem Nachbarn trennt.
+
 ## Bei Rücknahmeproben und Mutanten
 
 **23. Die Rücknahmeprobe setzt an der ungeschützten Seite an.** Behauptet ein Test die
@@ -426,6 +435,15 @@ kanonischen Bytes als Saatbytes, die Familie wurde leer, und der Test blieb übe
 wahr (D304). Zusatz zu Prüfregel 60: dort geht es um den Namen des roten Tests, hier darum, dass er
 überhaupt rot werden kann.
 
+**77. Eine Rücknahmeprobe belegt auch die Benennung, nicht nur den Regressionsschutz.**
+Bleibt ein Test grün, dessen Name die neutralisierte Mechanik trägt, ist das ein Befund und keine
+Nuance: er prüft nicht, was sein Name sagt. Die Probe misst zweierlei — dass die Regression
+gesehen wird, und dass jeder Fall, der sie zu tragen behauptet, sie auch trägt. In `00by` machte
+die Mutation in `_in_budget_set` einen der beiden Fälle rot und einen grün; das Werkzeug meldete
+es als Beobachtung zur Schärfe der Probe, tatsächlich war der grüne Fall falsch benannt (D405).
+Gegenstück zu Prüfregel 60 in der Gegenrichtung: dort muss der rote Test der Träger sein, hier
+muss jeder Träger rot werden. Von Prüfregel 62 unterschieden, die fragt, ob ein Test überhaupt
+rot werden kann.
 
 ## Beim Messen
 
@@ -605,7 +623,8 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 44 und 45 aus D229, 46 aus D232, 47 aus D239, 48 aus D244, 49 aus D245, 50 aus D254, 51 aus D257,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
-69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366.
+69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366,
+76 und 77 aus D407.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

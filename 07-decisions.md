@@ -16823,3 +16823,38 @@ Fassung; **hergeleitet und nicht gemessen** sind die stückweise Konstanz und da
 der Bruchstellen-Aufzählung — sie stützt sich darauf, dass `now` nur in den beiden genannten
 Vergleichen vorkommt, und das ist aus dem Code gelesen, nicht erschlossen. `rank()` (`02b`) ist
 nicht gemessen worden.
+### D407 — Prüfregeln 76 und 77: der Befundtest und die Benennungsprobe
+
+**Anlass.** Beide liefen seit mehreren Sitzungen als Kandidaten in den Sitzungsstarts mit und sind
+jeweils mehr als einmal begründet: der Befundtest aus D395 und D399, die Benennungsprobe aus D405,
+deren Fall zugleich der dritte Beleg für den ersten war. Die Schwelle ist die übliche —
+geschrieben wird nach dem zweiten Befund, nicht nach dem ersten, weil eine Regel aus einem
+Einzelfall von einer Verallgemeinerung nicht zu unterscheiden ist.
+
+**76 — der Befundtest.** Ein Fall, der einen Befund festhält, behauptet den Vermerk, den allein
+dieser Befund erzeugt, und nicht bloss, dass ein Wert zurückkommt. Zahlen sind mehrdeutig:
+„geflaggt, Flag ignoriert" und „gar nicht geflaggt" liefern dieselbe Zahl.
+
+**77 — die Benennungsprobe.** Bleibt unter einer Rücknahmeprobe ein Test grün, dessen Name die
+neutralisierte Mechanik trägt, ist das ein Befund und keine Nuance. Die Probe belegt damit nicht
+nur den Regressionsschutz, sondern auch die Benennung jedes Falls, der die Mechanik zu tragen
+behauptet.
+
+**Warum zwei und nicht eine.** Sie greifen an verschiedenen Stellen — 76 beim Schreiben des Tests,
+77 beim Lesen der Probe —, und beide Richtungen sind belegt. In D405 erfüllte Prüffall 1 die
+zweite und nicht die erste: er wurde rot, behauptete aber nur eine Rückgabe. Ein Test, der den
+Vermerk behauptet, den die Mutation gar nicht berührt, erfüllt umgekehrt die erste und nicht die
+zweite.
+
+**Verworfen — als Zusatz zu 60 und 62 führen.** Prüfregel 60 verlangt, dass der rote Test der
+Träger der Entscheidung ist, 62, dass er überhaupt rot werden kann; beide sehen die Probe von der
+roten Seite. Der Befund aus D405 kommt von der grünen: ein Träger, der grün bleibt. Als Zusatz
+hinge er unter einer Überschrift, die ihn nicht ankündigt, und wäre in einem Prompt nicht
+zitierbar — genau der Grund, aus dem D144 die Nummern 8 und 9 nachträglich vergeben hat.
+
+**Abgegrenzt.** 76 ist nicht Prüfregel 28: dort geht es darum, ob der behauptete Weltzustand
+konstruierbar ist, hier darum, ob die Behauptung ihn von seinem Nachbarzustand trennt.
+
+**Fläche.** `pruefregeln.md`: zwei Regeln und die Herkunftszeile. Kein Code, keine Spec-Datei,
+kein offener Posten.
+

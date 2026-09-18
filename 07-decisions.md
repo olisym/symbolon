@@ -16680,3 +16680,146 @@ bei deren Änderung aus einem fremden Grund rot geworden. Auf `t_exp - 1` gezoge
 durch den Auftrag beantwortet: abgeleitet werden Erwartungswerte, nicht die Konstruktion. Beide
 Auftragszahlen trafen zu (885 Tests, 162 Dateien); die Verweiszahl war bewusst nicht vorgegeben,
 weil sie an den Docstrings hängt, die erst im Lauf entstehen.
+### D406 — O71: Intervall-`now` exakt über die Bruchstellen, ein Minimum und eine obere Schranke
+
+**Die Frage aus O71.** Der reale Fall der unterbrochenen Zustellung ist der Knoten mit grober oder
+driftender Uhr (D404). Drei Teilfragen standen offen: woher das Intervall kommt, ob es als
+Parameter oder als Zustand des Verifizierers geführt wird, und was eine Auswertung zurückgibt,
+deren Antwort innerhalb des Intervalls wechselt.
+
+**Zwei davon sind keine Entscheidungen.** `02 §11.1` sagt: `now` ist Parameter, die Auswertung
+liest keine Uhr, und zwei Auswertungen über demselben Bestand mit denselben Argumenten liefern
+dieselben Ergebnisse. Das Intervall erbt den Satz. Ein persistenter Verifizierer-Zustand bräche
+ihn, also **Parameter**. Woher die Breite kommt, ist aus demselben Grund nicht Sache des
+Protokolls: sie ist die Unsicherheit der eigenen Uhr, und die kennt allein der Aufrufer. Die
+Ableitung aus dem `t` empfangener Claims ist als Weg 4 in D404 bereits verworfen.
+
+**Erster Befund — die naheliegende Auswertung ist die falsche.** Naheliegend war, die konservative
+Richtung je Menge zu wählen: Kante gegen `hi` (`hi ≤ t_exp`), Budget gegen `lo` (`lo ≤ t_exp`).
+Das erhält `Aktiv-Set ⊆ Budget-Set` und sieht nach der sauberen Verallgemeinerung von D402 aus. Es
+ist die **monotonicity-based interval extension** der Intervallarithmetik, und sie ist dort eine
+Einschliessung, kein Wert. Der Grund ist das Abhängigkeitsproblem: ein Ausdruck, der dieselbe
+Intervallvariable mehrfach enthält, wird bei naiver Auswertung so gerechnet, als wären die
+Vorkommen unabhängig, und liefert weitere Schranken als der wahre Wertebereich hergibt — das
+Lehrbuchbeispiel ist `[x] - [x] = [-1, 1]` über `[1, 2]` statt `0`.
+
+Genau das läge hier vor. `now` kommt in der Auswertung zweimal vor, fallend im Kantensatz und
+steigend im Budget-Set, aber es ist **ein** unbekannter Wert und nicht zwei. Die Mischung rechnet
+über das Quadrat `[lo, hi]²`, die Wahrheit liegt auf der Diagonale. Welche der beiden Semantiken
+gilt, entscheidet wieder `02 §11.1`: weil `now` ein einmal übergebener Parameter ist und die
+Auswertung keine Uhr liest, gibt es genau einen Zeitpunkt, an dem ausgewertet wird.
+
+**Zweiter Befund — exakt ist billig.** `now` betritt die Auswertung ausschliesslich über Vergleiche
+`now ≤ t_exp`, an zwei Stellen: der zeitlichen Gültigkeit aus Atom-Spec §6 und der Zugehörigkeit
+zum Budget-Set (`02 §3.1`). Also ist die Auswertung als Funktion von `now` **stückweise konstant
+mit Bruchstellen nur an den `t_exp`-Werten**. Die Aufzählung von `lo` und `t_exp + 1` für jedes
+`t_exp` im Fenster liefert das Minimum exakt, nicht als Schranke. Im Normalfall läuft im
+Unsicherheitsfenster kein Vouch ab; dann ist es genau eine Auswertung und kostet nichts.
+
+**Beschluss.**
+
+1. **Form.** Das Intervall ist ein Paar endlicher Ganzzahlen mit `lo ≤ hi`. Kein `None`, kein
+   Unendlich: der uhrlose Knoten bleibt nach D404 draussen, und `∞` ist in `02 §4` als Sentinel
+   belegt.
+2. **Auswertung.** Punktförmig an `lo` und an jeder Bruchstelle im Fenster, jede einzelne in sich
+   konsistent — Kanten und Budget gegen denselben Zeitpunkt. Kein Mischen über Mengen hinweg.
+3. **Rückgabe.** Der Wert ist das **Minimum** über die ausgewerteten Punkte; bei `lo = hi` ist er
+   der heutige. Dazu tritt die **obere Schranke**, das Maximum über dieselben Punkte. Ein Wert und
+   eine zweite Zahl, kein Ersatz des Wertes durch ein Paar.
+4. **Vermerke.** Gemeldet werden die des Punktes, der den Wert geliefert hat. Wird das Minimum an
+   mehreren Punkten angenommen, gilt das kleinste `t` (`02 §11.1` verlangt Determinismus). Die
+   obere Schranke ist eine Zahl, keine Auswertung; ihre Vermerke erscheinen nicht.
+
+**Gemessen.** TP-02 (`C0 = 16`, `γ = 1/2`, `D = 4`), Anker A, Ziel T, zwei disjunkte Pfade,
+Fenster `[500, 700]`. A bürgt für X und Y mit je `n = 2`; X→T mit `n = 3` läuft lang, X→Z mit
+`n = 3` läuft bei 600 ab, Y→T mit `n = 4` läuft bei 600 ab. Bei kleinem `now` ist X überzeichnet
+und sein Pfad tot, bei grossem ist der Pfad über Y abgelaufen.
+
+| `now` | 500 | 550 | 599 | 600 | 601 | 650 | 700 |
+|---|---|---|---|---|---|---|---|
+| Wert | 8 | 8 | 8 | 8 | 6 | 6 | 6 |
+
+Für jeden Punkt des Fensters ist der verteidigbare Wert 8 oder 6; das exakte Minimum ist 6, an
+einer einzigen Bruchstelle. Die gemischte Auswertung liefert **0**. Das Minimum der beiden
+Endpunktläufe liefert 6 und ist hier zufällig richtig — es ist keine Schranke, sondern trifft,
+weil zwischen `lo` und der Bruchstelle nichts geschieht. Bei `lo = hi` reproduziert jede der drei
+Fassungen die heutige Punktauswertung.
+
+**Warum die Lockerheit nicht tragbar ist.** 0 statt 6 ist keine vorsichtige Rundung, sondern der
+ganze Wert, und er trifft genau die Gruppe, für die O71 existiert: den ehrlichen Knoten mit grober
+Uhr. Unter-Vertrauen ist zwar die sichere Richtung (`02 §7`), aber eine Fassung, die aus
+rechnerischer Bequemlichkeit enthält statt aus Unkenntnis, ist die Gegenrichtung zu `08 §2.2` —
+derselbe Einwand, mit dem D355 das Intervall zurückgestellt hat, nur an anderer Stelle.
+
+**Verworfen — die gemischte Einschliessung.** Sie war der eigene erste Vorschlag. Sie rechnet über
+das Quadrat, ist damit unnötig pessimistisch, und der Preis ist nicht gering (gemessen 0 statt 6).
+Ihr einziger Vorteil, zwei Klassifikationsläufe statt `k + 1`, entfällt im Normalfall `k = 0`.
+
+**Verworfen — das Minimum zweier Endpunktläufe.** Der billigste Zug, ganz ohne Änderung an der
+Auswertung, und er ist keine Schranke: die Auswertung ist zwischen den Bruchstellen konstant, aber
+über das Fenster nicht monoton, also kann das Minimum im Inneren liegen. Dass er in der obigen
+Messung trifft, ist Eigenschaft des Bestands und nicht des Verfahrens.
+
+**Verworfen — die Unsicherheit aussitzen.** Spanners Commit-Wait wandelt Uhrenunsicherheit in
+Latenz: es wird gewartet, bis `TT.after(s)` gilt, und eine Ordnung wird nur behauptet, wenn die
+Intervalle disjunkt sind. Das setzt die Schreibseite voraus, die ihre Transaktion verzögern kann.
+Hier steht die Anfrage auf der Leseseite, sie gilt jetzt, und Warten verengt das Fenster nicht,
+sondern verbreitert es, weil die Drift weiterläuft. Was übernommen wird, ist die Form der
+Prädikate: zwei einseitige Aussagen (`sicher abgelaufen`, `sicher gültig`) statt eines
+durchgereichten Intervalltyps.
+
+**Verworfen — das unbegrenzte Intervall.** Es wäre der uhrlose Knoten durch die Hintertür des
+Typs. D404 hat ihn an der Typebene abgewiesen, und der Beschluss bleibt: `01 §6` unverändert,
+Gewährung braucht eine Uhr. Dass ein hinreichend breites Fenster den Wert ohnehin gegen 0 führt,
+ist die Erklärung dazu und nicht ihr Ersatz.
+
+**Verworfen — das reine Paar ohne konservativen Hauptwert.** Es verschöbe die Entscheidung über
+die sichere Richtung in jeden Aufrufer zurück, und genau davon hat D402 sie befreit.
+
+**Verworfen — die Breite statt der oberen Schranke.** Beide sind ineinander umrechenbar, solange
+das Minimum bekannt ist. Die Schranke ist trotzdem die richtige Form: sie ist dieselbe Art Grösse
+wie die Antwort und lässt sich gegen dieselbe Schwelle prüfen, die Breite nicht — sie ist eine
+Aussage über die Uhr, nicht über das Vertrauen. Die Evidenztheorie führt Unsicherheit aus
+demselben Grund durchgängig als Paar von Schranken, untere und obere, nicht als Wert plus
+Streuung. Der Ankersatz hält die Form dauerhaft fest; deshalb die etablierte.
+
+**Verworfen — ein Auswertungs-Vermerk ohne Subjekt.** Er hätte gemeldet, **welcher** Vouch die
+Spanne verursacht, und das ist für einen Betreiber, der zwischen „Uhr stellen" und „Bürgschaft
+erneuern" entscheidet, nicht nichts. Er passt aber nicht in `02 §10`: dort ist jeder Vermerk über
+ein `subject` und eine Wirkung auf Budget und Kante bestimmt. Die Unentscheidbarkeit hat kein
+betroffenes Objekt in diesem Sinne — sie ist eine Eigenschaft der Auswertung, nicht eines Claims,
+und der straddelnde Vouch ist in Ordnung; die Uhr ist es nicht. Die Auskunft ist aus dem Bestand
+rekonstruierbar (die `t_exp` im Fenster), die Einheitlichkeit von `§10` nicht. Ein früher in dieser
+Runde vorgeschlagener Vermerk `TEMPORALLY_UNDECIDABLE` entfällt damit ersatzlos: `Maximum >
+Minimum` sagt dasselbe, und zwar quantitativ.
+
+**Was von aussen gestützt ist und was nicht.** Die Semantik (Diagonale statt Quadrat), die Form
+der Prädikate und die Trennung zwischen dem Halten einer Unsicherheit und ihrem Kollabieren zur
+Entscheidung stehen auf fremder Arbeit — Intervallarithmetik, TrueTime, die credal/pignistic-
+Zweiteilung der Evidenztheorie, wo der Punktwert ausdrücklich eine Schätzung innerhalb eines
+Intervalls ist und die Projektion Information verliert. Dass ein Vermerk hier nicht passt, steht
+allein auf `02 §10` und damit auf der eigenen Bauform. Der Unterschied gehört festgehalten, weil
+eine spätere Runde die zweite Entscheidung ohne neue Literatur umstossen darf und die erste nicht.
+
+**Getragene Grenze — die Kosten hängen am Bestand.** Die Zahl der Auswertungen ist `k + 1` mit `k`
+gleich der Zahl distinkter `t_exp` im Fenster. Wer viele Bürgschaften mit verschiedenen Ablaufzeiten
+ablegt, verteuert die Auswertung jedes Knotens, dessen Fenster sie trifft. Eine Obergrenze wäre ein
+Policy-Knopf nach `02 §8` und wird hier nicht gesetzt: `k` ist durch den Bestand beschränkt, das
+Fenster wählt der Knoten selbst, und wer eine genaue Uhr hat, zahlt nichts. Beisst es je, gehört
+die Grenze nach `§8` und nicht in die Rechenregel.
+
+**Fläche.** `02 §3.1` (das Zeitprädikat bekommt seine Intervallform), `§6.2` (`now` als Intervall
+gegen die harte Decke), `§11.1` (Bruchstellen, Minimum, Determinismus bei mehrfachem Minimum),
+`§11.2` (Parameterbereich `lo ≤ hi`), `§11.4` (die Reihenfolge gilt je Punktauswertung). `§10`
+unverändert. Im Code: die obere Schranke im Ergebnistyp, die Signaturen von `derive()`, `flow()`
+und `rank()`, die Bruchstellen-Aufzählung vor der Auswertungsschleife. Golden Anchors: die
+bestehenden bleiben unverändert, weil `lo = hi` die heutige Rechnung ist; ein neuer Anker deckt das
+echte Fenster.
+
+**Wie gemessen, und die schwächste Stelle.** Supervisor-Klon bei `6fd548b`, ausserhalb der
+Testreihe, mit einem Patch auf `_in_budget_set` statt mit gebautem Code, ein einziger Bestand. Das
+ist keine Abnahme. Gemessen sind die Werte entlang der Diagonale und der Wert der gemischten
+Fassung; **hergeleitet und nicht gemessen** sind die stückweise Konstanz und damit die Exaktheit
+der Bruchstellen-Aufzählung — sie stützt sich darauf, dass `now` nur in den beiden genannten
+Vergleichen vorkommt, und das ist aus dem Code gelesen, nicht erschlossen. `rank()` (`02b`) ist
+nicht gemessen worden.

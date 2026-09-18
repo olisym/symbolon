@@ -10,6 +10,7 @@ from .derive import derive
 from .dinic import Dinic
 from .findings import Finding
 from .graph import SINK, SOURCE, build_flow_graph, infinity, source_side_cut
+from .groups import _is_scope_vouch
 from .params import TrustParams
 
 
@@ -19,9 +20,40 @@ class TrustResult:
     disjoint_paths: int
     cut: tuple[bytes, ...]
     findings: tuple[Finding, ...]
+    value_max: int
 
 
-def trust(
+def _as_interval(now: int | tuple[int, int]) -> tuple[int, int]:
+    """now als [lo, hi]; Zeitpunkt ist der Fall lo = hi (02 §11.1, D406)."""
+    if type(now) is int:
+        return now, now
+    if (
+        type(now) is tuple
+        and len(now) == 2
+        and type(now[0]) is int
+        and type(now[1]) is int
+        and now[0] <= now[1]
+    ):
+        return now[0], now[1]
+    raise ValueError("now must be int or (lo, hi) with lo <= hi")
+
+
+def _break_points(
+    store: ClaimStore, scope: bytes, lo: int, hi: int
+) -> tuple[int, ...]:
+    """Auswertungspunkte eines Fensters [lo, hi] (02 §11.1, D406)."""
+    points = {lo}
+    for claim in store.all_claims():
+        if claim.t_exp is None:
+            continue
+        if not _is_scope_vouch(claim, scope):
+            continue
+        if lo <= claim.t_exp < hi:
+            points.add(claim.t_exp + 1)
+    return tuple(sorted(points))
+
+
+def _trust_at_point(
     store: ClaimStore,
     *,
     anchors: frozenset[bytes],
@@ -29,11 +61,9 @@ def trust(
     scope: bytes,
     now: int,
     params: TrustParams,
-    include_flagged: bool = False,
+    include_flagged: bool,
 ) -> TrustResult:
-    if anchors & targets:
-        raise ValueError("anchors and targets must be disjoint")
-
+    """Punktauswertung, unverändert in ihrer Punktform (02 §11.1, 02 §11.4, D406)."""
     # 1-6. geteilte Ableitung (D49): classify_all -> Gruppen -> Budget -> Flags -> BFS über E+
     derivation = derive(
         store, anchors=anchors, scope=scope, now=now, params=params,
@@ -62,4 +92,44 @@ def trust(
         disjoint_paths=disjoint_paths,
         cut=cut,
         findings=derivation.findings,
+        value_max=value,
+    )
+
+
+def trust(
+    store: ClaimStore,
+    *,
+    anchors: frozenset[bytes],
+    targets: frozenset[bytes],
+    scope: bytes,
+    now: int | tuple[int, int],
+    params: TrustParams,
+    include_flagged: bool = False,
+) -> TrustResult:
+    if anchors & targets:
+        raise ValueError("anchors and targets must be disjoint")
+
+    lo, hi = _as_interval(now)
+    points = _break_points(store, scope, lo, hi)
+    point_results = [
+        _trust_at_point(
+            store,
+            anchors=anchors,
+            targets=targets,
+            scope=scope,
+            now=t,
+            params=params,
+            include_flagged=include_flagged,
+        )
+        for t in points
+    ]
+    # Kleinster value, bei Gleichstand der kleinste Zeitpunkt (02 §11.1, D406).
+    best = min(point_results, key=lambda r: r.value)
+    value_max = max(r.value for r in point_results)
+    return TrustResult(
+        value=best.value,
+        disjoint_paths=best.disjoint_paths,
+        cut=best.cut,
+        findings=best.findings,
+        value_max=value_max,
     )

@@ -17019,3 +17019,25 @@ gemessen. Schwächste Stelle: die Herleitung setzt voraus, dass `now` im Trust-P
 die das dann meldet.
 
 **Was folgt.** Ein Werkzeugauftrag für `tests/trust/test_zeitinvarianten.py`, ohne Codeänderung.
+
+### D411 — INV-9 und INV-10 gebaut und abgenommen
+
+**Der Lauf.** Cursor am Host, frischer Thread, Branch `d410-zeitinvarianten` auf `8ecda9d`, ein
+Commit `bfad736`, gemergt als fast-forward. Berührt ist allein
+`tests/trust/test_zeitinvarianten.py`, 175 Zeilen, 13 Tests; 898 → 911.
+
+**Abnahme am Diff, nicht am Bericht.** Das Raster, die Fensterliste und die vier Testfunktionen
+folgen dem Auftrag. Die Raster sind im Supervisor-Klon nachgelesen und decken sich mit D410
+(`TP-UHR` sieben Punkte, D362-Szenario fünf). Die Rücknahmeprobe ist dort unabhängig
+wiederholt: mit `sorted({lo, hi})` statt der Bruchstellen wird genau
+`test_inv10_fensterinklusion[False-D362]` rot, die übrigen zwölf bleiben grün. Das ist die
+Benennungsprobe nach Prüfregel 77, und sie deckt sich mit der Vorabmessung, nach der nur dieser
+Fall trennt.
+
+**Eine Mehrdeutigkeit im Auftrag, nicht im Code.** „Indexpaare aller Anstiege" liess offen, ob
+Nachbarpaare oder alle `i < j` gemeint sind. Gebaut sind Nachbarpaare. Für die Aussage „steigt an
+keiner Stelle" ist das auf einem sortierten Raster gleichwertig, und der Befundtest sieht den
+Anstieg des D362-Szenarios zwischen 10 und 11. Der Auftrag war ungenau, die Lesart ist richtig.
+
+**Was folgt.** Nichts. Die Zeitaussagen aus D362 und D406 stehen in der Invariantentabelle und
+sind gebaut.

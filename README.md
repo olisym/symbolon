@@ -35,24 +35,31 @@ record.
 ## What exists today
 
 - A layered specification (Layers 00–08): genesis and constitution, a claim/atom layer with a
-  formally verified rejection-code system, trust-flow and governance layers, a scope and
-  purpose layer that defines its own admission criteria.
-- A Python reference implementation, with **797 automated tests** and a decision register of
-  **more than 320 entries**, each with a named justification.
+  closed, exhaustively tested set of rejection codes, trust-flow and governance layers, and a
+  scope layer that defines the criterion for admitting any new mechanism.
+- A Python reference implementation with an automated test suite, and a decision register in
+  which every normative choice carries a named justification and the alternatives it rejected.
 - Layer 01 (the claim/atom layer) has been through an exhaustive mutation-testing campaign:
   over **19,000 generated mutants**, single and paired, across three structural families. Not
   one surviving mutant turned up anything that reading, reasoning, or a rollback probe hadn't
   already found. That's treated as evidence the layer has been read out, not as proof of
   correctness — the distinction matters, and it's recorded as one.
-- A second, independent implementation in Go, built against a frozen copy of the specification
-  without access to the Python code, specifically as a check on whether the specification
-  itself is complete and unambiguous. It has already found spec defects the first
-  implementation's own test suite could not surface.
-- An active scenario phase: rather than continuing to harden a single layer, the project is
-  now running deliberately adversarial comparative scenarios (for example: a shared fund with
-  a named custodian vs. a mutual-obligation model with none) to see where the protocol's
-  guarantees actually hold and where they don't. Findings from this phase go straight into the
-  register; the scenario code itself is throwaway.
+- Independent readings of the specification. Layer 01 was rebuilt in Go from a frozen copy of
+  the spec, without access to the Python code, and found spec defects the reference
+  implementation's own tests could not surface. Layer 02 (trust flow) was rebuilt three times
+  the same way: twice in Haskell, once in Rust. One of the Haskell builds turned out to have
+  seen the repository and is not counted as independent; the register records how that was
+  established. The useful yield of these builds was less their output than their lists of
+  questions to the text, which are kept in `hs/` and `rs/`.
+- Recent work concerns time: what a node can still assert when its clock is missing, coarse,
+  or wrong. The short answer the register arrived at is that a node without a clock can
+  *accuse* — prove that someone contradicted their own signed statements — but cannot *grant*
+  trust. That is groundwork for delay-tolerant transports such as LoRa or Reticulum, not yet an
+  application of them.
+
+This file deliberately carries no test or entry counts: a number nobody checks drifts. The
+current state is what `make check` reports, what the end of `07-decisions.md` says, and what
+the newest `sitzungsstart-*.md` hands on to the next working session (in German).
 
 ## What does *not* exist yet
 
@@ -75,9 +82,14 @@ repository included — is part of how those people might eventually turn up.
 - `symbolon/`, `tests/`, `tools/`: the Python reference implementation, its test
   suite, and the tooling that enforces the review discipline (spec linting, mutation
   campaigns, register consistency checks).
-- `go/`: the independent Go implementation. It's deliberately pinned to a frozen snapshot of
-  the specification — the register explains why that pin, not the repository split, is what
-  actually keeps the two implementations independent.
+- `offen.md`: the list of known open questions, each a guess about a gap rather than a
+  decision. Numbers are never reused, so a reference stays readable after an item is closed.
+- `go/`: the independent Go implementation of Layer 01. It's deliberately pinned to a frozen
+  snapshot of the specification — the register explains why that pin, not the repository
+  split, is what actually keeps the implementations independent.
+- `hs/`, `rs/`: the assignments, frozen spec copies and question lists of the Haskell and Rust
+  builds of Layer 02. The code of those builds is not part of the main line.
+- `archiv/`: earlier session handoffs and working files, kept so that old references resolve.
 
 ## License
 
@@ -90,6 +102,7 @@ the reasoning behind them, are recorded in the register.
 This is currently a one-person project, but it isn't built ad hoc — every change is checked
 against the specification, not just against what compiles. See `docs/METHOD.md` for how that
 actually works day to day.
+
 If you're working on related problems — decentralized coordination, protocols hardened by
 contradiction rather than authority, or you think you might be one of the people the register
 (D237) is waiting for — open an issue, or see `CONTRIBUTING.md`.

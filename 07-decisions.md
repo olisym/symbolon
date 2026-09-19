@@ -17172,3 +17172,40 @@ von Oli ausserhalb des Repositoriums gepflegt.
 
 **Verworfen — `rm` gleich zu Beginn des Blocks nach dem Hashtest.** Dann ist die Lieferung weg,
 wenn ein späterer Schritt scheitert, und der zweite Anlauf braucht einen neuen Download.
+
+### D415 — O75: die README nennt keine wachsenden Zahlen mehr
+
+**Die Drift, gezählt.** Die README nannte 797 Tests und „mehr als 320" Registereinträge (Stand
+bei Abfassung: 918 und 414), kannte als unabhängige Fassung nur Go, beschrieb die Szenariophase
+als laufend, obwohl seit D350 die Zeitfrage die Arbeit trägt, und führte im Verzeichnisplan weder
+`offen.md` noch `hs/`, `rs/` oder `archiv/`. Dazu ein Satz, der nie stimmte: ein „formally
+verified" Ablehnungscode-System. Die Mutationskampagne ist keine formale Verifikation, und die
+README sagt zwei Absätze weiter selbst, sie sei Evidenz und kein Beweis.
+
+**Beschluss 1 — die englische Schale nennt keine Zahl, die mit der Arbeit wächst.** Test- und
+Eintragszahlen fallen weg. Stattdessen verweist die README auf die drei Stellen, die den Stand
+tragen und geprüft werden: `make check`, das Registerende und den jüngsten Sitzungsstart.
+Abgeschlossene Tatsachen dürfen bleiben — die 19.000 Mutanten einer beendeten Kampagne ändern
+sich nicht mehr.
+
+**Beschluss 2 — der Inhalt wird nachgezogen, nicht übersetzt (D329).** Neu: die drei
+Layer-02-Fassungen mit dem Vorbehalt aus D374, die Zeitarbeit in einem Satz („ohne Uhr belasten,
+nicht gewähren", D404) und die fehlenden Verzeichnisse. „Formally verified" fällt.
+
+**Verworfen — die Zahlen behalten und in `check_specs` gegen den Stand prüfen.** Für das
+Registerende ginge das, die Testzahl kennt `check_specs` nicht; die halbe Prüfung liesse die
+andere Hälfte umso sicherer driften. Und jede Prüfung einer Werbezahl ist Fläche ohne
+Entscheidung, die an ihr hängt.
+
+**Verworfen — ein Abschnitt „aktueller Schwerpunkt".** Er driftet mit jeder Sitzung, genau wie
+die Zahlen. Der Satz zur Zeitarbeit steht als erreichte Aussage da, nicht als laufender Fokus.
+
+**Geprüft, nicht geändert.** `docs/METHOD.md` und `CONTRIBUTING.md` nennen Go als Beispiel einer
+unabhängigen Fassung; das ist eine Aussage über eine Methode, keine Bestandsliste, und stimmt.
+Keine der beiden Dateien nennt eine wachsende Zahl.
+
+**Schwächste Stelle.** Die Regel aus Beschluss 1 steht nur hier. Eine künftige Ergänzung der
+README kann wieder eine Zahl einführen, und nichts meldet es. Sollte das passieren, gehört die
+Regel in `check_specs`, nicht noch einmal in einen Registereintrag.
+
+**Was folgt.** Nichts. Die Mitte-Oktober-Prüfung des Restack-Antrags liest die README mit.

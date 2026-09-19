@@ -145,6 +145,8 @@ Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
 - **`grep` ohne `-E` kennt kein `|` als Alternative.** **`grep -c` liefert bei null Treffern
   Status 1**; eine Zählzeile, die null ergeben *darf*, geht auf `| cat`.
 - **`diff a b > datei` bricht die Kette**, weil `diff` bei Unterschieden Status 1 liefert.
+- **`ls` ist beim Operator `eza`.** `-t` heisst dort `--time <FELD>`, nicht „nach Zeit
+  sortieren". Wer die Semantik von GNU-`ls` braucht, schreibt `command ls` (D422).
 - **Kommandosubstitution in doppelten Anführungszeichen wird in fish nicht ausgeführt.** Der Weg,
   der trägt: die Zahlen mit `printf` und Kommandosubstitution **außerhalb** von
   Anführungszeichen in eine Datei schreiben, dann `--header-text "$(cat /tmp/stand.txt)"`.

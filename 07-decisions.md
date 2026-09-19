@@ -17382,3 +17382,16 @@ falschen Leser gerichtet.
 
 **Verworfen — `.cursor/rules/`.** Werkzeugspezifisch. `AGENTS.md` lesen mehrere Werkzeuge, und
 die Werkzeugwahl wechselt (D416).
+
+### D422 — `ls` ist beim Operator `eza`
+
+**Anlass.** Die Messung zu O47 (D421) sollte die jüngsten Aufträge mit `ls -t` sortieren. Beim
+Operator ist `ls` ein `eza`; dort heisst `-t` `--time <FELD>` und verlangt ein Feld, der Aufruf
+brach ab. Der Block lief weiter, weil die Pipe den Status trug, und zwei Abschnitte kamen leer
+zurück — die Marken haben es gezeigt, die Messung war verloren.
+
+**Beschluss.** `arbeitsweise.md §5` bekommt die Regel: wer die Semantik von GNU-`ls` braucht,
+schreibt `command ls`. Das umgeht in fish Funktionen und Aliase.
+
+**Nicht beschlossen.** Keine Liste weiterer Aliase beim Operator. Wer einem Befehl eine
+bestimmte Semantik abverlangt, benennt ihn so, dass kein Alias greift.

@@ -117,7 +117,9 @@ Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
   danach `grep -q '^789 passed' /tmp/x.txt`.
 - **Jeder Block trägt Marken.** Vor jedem Abschnitt ein `echo "== NAME =="`, am Ende ein
   `echo "== FERTIG =="`. Fehlt die Schlussmarke, ist die Kette abgebrochen — unabhängig davon,
-  ob die letzte sichtbare Zeile erfolgreich aussieht.
+  ob die letzte sichtbare Zeile erfolgreich aussieht. Jede Prüfgruppe trägt eine eigene Marke:
+  `HASH` vor den Lieferungen, `BASIS` vor Branch, Commit und Zieldateien. Die Marken stehen mit
+  `and` in der Kette, damit sie mit ihr abbrechen; ein `echo` scheitert nicht von selbst (D418).
 - **Keine Ausgabe heisst: der Block ist nicht gelaufen.**
 - **Lieferungen über `/tmp`.** Oli legt gelieferte Dateien in `/tmp` ab. Der Lieferblock prüft
   zuerst den Hash jeder Lieferung und den Basisstand der Zieldatei, erst dann wird ersetzt.

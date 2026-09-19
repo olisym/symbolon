@@ -17231,3 +17231,57 @@ jetzt einen Gegenstand hat.
 **Verworfen — die Unabhängigkeit von HS2 jetzt herabstufen.** Die Gegenprobe aus D389 schlägt an
 HS2 nicht an, und der Name des Werkzeugs ist kein Befund gegen die Fassung. Er macht eine
 künftige Prüfung möglich, er ersetzt sie nicht.
+
+### D417 — Hygiene: O43, O48 und O49 geschlossen
+
+**O43 — die zwei Verweise zeigen nicht ins Leere, sondern in die Nachbardatei.** Beide nennen die
+Kurzform `03`, gemeint ist beide Male `03-golden-anchors.md`. D89 zitiert die Nummer 11 zusammen
+mit `PR-INV-9`; die Invariante steht in `03-golden-anchors.md §11`, seit der ersten Fassung der
+Datei. D77 nennt die Nummer 5.1 als Ort der Byte-Vektoren gegen die `v`-Kodierungen aus D55. D77
+und die erste Ankerdatei stammen vom selben Tag; die Datei bekam einen ungegliederten
+`03-golden-anchors.md §5`. Eine Überschrift der Form `### 5.1` hat es in keiner der drei
+`03`-Dateien je gegeben, gemessen mit `git log -S` über die Historie. Die Kurzform bindet heute
+über `LAYER_FILES` an `03-profiles.md` (D219); zur Zeit von D77 und D89 gab es die Tabelle nicht.
+Die Einträge bleiben, wie sie sind: das Register beschreibt vergangene Stände (D209).
+
+Die offene Frage aus O43 ist damit auch beantwortet. `check_specs` nimmt `07-decisions.md` und
+`sitzungsstart-*.md` von der Abschnittsprüfung aus (D209), und `sitzungsstart-00ap.md` liegt
+inzwischen in `archiv/`, das die Prüfung gar nicht liest.
+
+**O48 — getragen, nicht gebaut.** Die Grenze aus D209 schlägt in die laute Richtung aus: ein
+Listenpunkt, in Unterabschnittsform zitiert, wird als unbekannter Abschnitt gemeldet und nicht
+still durchgelassen. Der Preis ist ein Blick von Hand, kein falsches Grün. Heute gibt es keinen
+solchen Befund; der einzige bekannte Fall wurde in D209 berichtigt. Eine Unterscheidung bräuchte
+eine eigene Zitierform für Listenpunkte, also eine Erweiterung der Zitiergrammatik aus
+`arbeitsweise.md §8` — ein Fork ohne Anlass. Stolperdraht: der erste Verweis, der einen
+Listenpunkt absichtlich in Unterabschnittsform zitiert. Die Kopfzeile von O48 ist bei der
+Schliessung umformuliert, weil sie mit dem Zusatz über 100 Zeichen lief; der Inhalt ist derselbe.
+
+**O49 — gegenstandslos, solange `main` grün ist.** Die Lücke aus D226 Grenze 1 setzt eine zu
+lange Zeile im Basisstand voraus: nur dann kann ein Splice eine entfernen und eine andere
+einsetzen, ohne dass die Zahl steigt. `check_specs` prüft die Zeilenlänge absolut in jeder
+Markdown-Datei der Wurzel, und Splices haben bisher nur solche getroffen. Bei grünem `main` ist
+die Basiszahl dort null. Jede neue zu lange Zeile hebt sie, und weil die Basismenge leer ist,
+listet der Bericht alle Befunde; die Zeilenverschiebung aus D226 kann nichts falsch ausweisen.
+Gemessen am Stand von D416: zu lange Prosazeilen gibt es nur ausserhalb der Wurzel, zwei in
+`docs/prompts/cursor-prompt-01-atom.md` und eine in `tools/sim/README.md`; keine ist Splice-Ziel.
+Stolperdraht: ein Splice auf eine Datei ausserhalb der Wurzel oder auf einem roten `main`.
+
+**Was nicht geändert wird.** `splice_run.py` und `check_specs.py` bleiben unberührt. D226
+Grenze 2, die unversionierte Datei nach einem Fehlschlag, gehört nicht zu O49 und bleibt benannte
+Grenze.
+
+### D418 — Marken je Prüfgruppe nach `arbeitsweise.md §5`
+
+**Anlass.** Ein Lieferblock brach an der Branchprüfung ab, und die letzte sichtbare Marke war
+`HASH`; gelesen wurde ein Hashfehler. Seither trägt jede Prüfgruppe eine eigene Marke. Die
+Supervisor-Anweisung führt das, `arbeitsweise.md` nicht; der Sitzungsstart zu D416 trug es als
+offene Werkzeugnotiz.
+
+**Beschluss.** Die Markenregel in `arbeitsweise.md §5` bekommt zwei Sätze: `HASH` steht vor der
+Prüfung der Lieferungen, `BASIS` vor der Prüfung von Branch, Commit und Zieldateien; und die
+Marken stehen mit `and` in der Kette, damit sie mit ihr abbrechen — ein `echo` scheitert nicht von
+selbst und hält die Kette nicht auf.
+
+**Nicht beschlossen.** Keine feste Liste weiterer Markennamen. Eine neue Prüfgruppe bekommt ihre
+Marke nach demselben Grundsatz: ein Abbruch muss einer Gruppe zuzuordnen sein.

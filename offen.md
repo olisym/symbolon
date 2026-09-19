@@ -202,16 +202,9 @@ D305 Beschluss 4, solange Stufe 2 keinen Befund erzeugt hat.
 
 ## C — Werkzeug, Prozess, Hygiene
 
-### O43 Zwei Registerverweise zeigen ins Leere
+### O43 Zwei Registerverweise zeigen ins Leere — erledigt (D417)
 
-Zwei Registereinträge nennen Abschnitte in `03`, die es dort nicht gibt: einen mit der Nummer
-5.1 und einen mit der Nummer 11. Bewusst nicht nachgezogen.
-
-Die Nummern stehen hier absichtlich **nicht** in Verweisform. Ein Verweis, dessen ganze Aussage
-ist, dass er ins Leere zeigt, meldet `check_specs` sonst als unbekannten Abschnitt — und genau
-das ist beim ersten Lauf dieser Datei passiert. Ungeklärt bleibt, warum
-`sitzungsstart-00ap.md` dieselben zwei Verweise in Verweisform trägt, ohne dass die Prüfung
-anschlägt.
+Sie zeigen in `03-golden-anchors.md`, nicht ins Leere; die Einträge bleiben, wie sie sind.
 
 ### O44 Die Einlese-Dateien behaupten, NV2 trage keine Drahtbytes
 
@@ -230,13 +223,13 @@ Obwohl git sie ignoriert.
 D218. Mit D316 rückt der Posten näher: `arbeitsweise.md` ist ein Kandidat, aber sie ist für den
 Supervisor geschrieben, nicht für das Werkzeug.
 
-### O48 Die Verweisprüfung kann Listenpunkte nicht von Unterabschnitten unterscheiden
+### O48 Die Verweisprüfung unterscheidet Listenpunkte nicht von Unterabschnitten — erledigt (D417)
 
-D209.
+Getragen: die Grenze meldet laut, nicht still. Stolperdraht in D417.
 
-### O49 Der Harness vergleicht Zeilenzahlen, er identifiziert Zeilen nicht
+### O49 Der Harness vergleicht Zeilenzahlen, er identifiziert Zeilen nicht — erledigt (D417)
 
-D226.
+Gegenstandslos bei grünem `main`. Stolperdraht in D417.
 
 ### O50 `ALWAYS_BOUND` nennt Wurzeldateien namentlich — erledigt (D318)
 

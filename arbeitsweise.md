@@ -16,7 +16,7 @@ Was sich je Sitzung ändert, steht in `sitzungsstart-*.md`. Was offen ist, steht
 - **Der Supervisor** (Chatfenster): prüft gegen die Spec, rechnet Golden Numbers mit, schreibt
   Registereinträge, Prompts und Abnahmen. Schreibt **keinen** Produktivcode.
 - **Das Werkzeug** (Cursor / Claude Code): führt aus. Implementierung, Tests, Refactorings,
-  Messungen, Diagnoseläufe.
+  Messungen, Diagnoseläufe. Seine stehenden Regeln stehen in `AGENTS.md §1–§6` (D421).
 - **Gitea** ist die geteilte Wahrheit. Die Kanäle reden über Commits.
 
 **Der Bericht des Werkzeugs ist nie die Abnahme** (Prüfregel 56). Geprüft wird der Diff, nicht
@@ -61,6 +61,9 @@ bevor eine Position bezogen wird.
 Jeder Prompt enthält: Branch und Basis-Commit, normative Grundlage, den Auftrag, **ausdrückliche
 Nicht-Ziele**, abgeleitete Abnahmekriterien, den Abschluss (ein Commit, kein Merge).
 
+- **Jeder Prompt nennt `AGENTS.md` als geltend** und wiederholt die stehenden Regeln nicht; er
+  nennt nur, was davon abweicht. Die Liste hier ist die Sicht des Supervisors auf dieselben
+  Regeln wie `AGENTS.md §3`. Wer eine Stelle ändert, ändert beide (D421).
 - Kein stiller Scope-Zuwachs. Was nicht im Prompt steht, wird gemeldet, nicht gebaut.
 - **Golden Numbers gehören nicht in den Prompt**, sondern in die Abnahme.
 - Erwartete Werte werden **abgeleitet**, nicht getippt. Eine getippte Menge veraltet still.

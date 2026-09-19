@@ -218,10 +218,9 @@ Archiv, nicht berichtigt; D232 hat das für diese Datei entschieden.
 
 `repomix.config.json` schliesst `.claude/**` aus.
 
-### O47 Es gibt keine Kontextdatei für das Werkzeug
+### O47 Es gibt keine Kontextdatei für das Werkzeug — erledigt (D421)
 
-D218. Mit D316 rückt der Posten näher: `arbeitsweise.md` ist ein Kandidat, aber sie ist für den
-Supervisor geschrieben, nicht für das Werkzeug.
+Es gab eine, unversioniert; ersetzt durch `AGENTS.md`.
 
 ### O48 Die Verweisprüfung unterscheidet Listenpunkte nicht von Unterabschnitten — erledigt (D417)
 

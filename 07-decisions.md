@@ -17327,3 +17327,58 @@ gezogene Kopie liegt hinter `main`, sobald danach gemergt wird.
 **Nicht geändert.** D224 und D325 bleiben, wie sie sind, die Regelnummer bleibt. Der
 Prüfregel-Kandidat aus D415 gilt hier sinngemäss: eine Beschreibung, die eine Zahl aus einem
 anderen Eintrag wiederholt, veraltet mit ihm. Deshalb der Verweis statt der Zahl.
+
+### D421 — O47: `AGENTS.md` ersetzt eine unversionierte `.cursorrules`
+
+**Die Prämisse von O47 war falsch.** Es gab eine Kontextdatei. `.cursorrules` liegt seit dem
+16. Juli im Arbeitsbaum des Operators, 745 Byte, und steht seit `8385c80` in `.gitignore`; das
+Register nannte sie nie. Cursor lädt sie als Projektregel. Ihr Inhalt stammt aus der Zeit vor dem
+Register: das Werkzeug heisst dort „Builder", Rückfragen gehen an einen „Lead Architect", und von
+„melden, nicht anpassen", Nicht-Zielen, Rücknahmeprobe und vollständigem Diff steht nichts darin.
+Der Kanal, vor dem D218 warnt, war damit seit zwei Monaten offen — unversioniert und für den
+Supervisor unsichtbar.
+
+**Der Nutzen ist Abdeckung, nicht Tokens.** Gemessen über die fünfzehn jüngsten Prompts in
+`archiv/`, `00am` bis `00bc`: wörtlich wiederholt sich fast nur die Gliederung, aber die stehenden
+Regeln stehen ungleich darin. Nicht-Ziele in 15, „ein Commit" und `git diff` in 14, Golden Anchors
+in 10, Rücknahmeprobe und `make check` in 8, „melden" und `pytest` in 5 — gezählt als Dateien mit
+Treffer auf das Stichwort, nicht als Wortlaut. Ob eine Regel einen Lauf erreichte, hing daran, ob
+der Supervisor sie diesmal geschrieben hatte. D218 hat den Tokengewinn zu Recht klein genannt; das
+Argument trägt, die Folgerung nicht.
+
+**Beschluss 1 — `AGENTS.md` in der Wurzel, versioniert.** Cursor liest sie nativ, ebenso
+opencode. Claude Code liest nur `CLAUDE.md`; läuft dort wieder ein Auftrag, bekommt es eine
+`CLAUDE.md` mit der einen Zeile `@AGENTS.md`, keine zweite Fassung. Das ist Stolperdraht, nicht
+Beschluss. Gebunden ist die Datei über den Verweis aus `arbeitsweise.md §1`.
+
+**Beschluss 2 — die Härtung gegen den Einwand aus D218.** Eine ständig gelesene Datei ist der
+Kanal für stillen Scope-Zuwachs. Dagegen stehen fünf Eigenschaften, alle in der Datei selbst: sie
+beschränkt und erweitert nie; der Auftrag geht vor, und ein Widerspruch wird gemeldet; sie trägt
+Verfahren, keine Norm und nichts darüber, was gebaut wird; sie ändert sich nur mit
+Registereintrag; sie nennt keine Einzelheit der Implementierung, weil ein Zeugenlauf nach D389 sie
+mitliest. Versioniert ist jede Änderung ein Diff, den der Supervisor sieht — das ist der
+Unterschied zu dem, was vorher lag.
+
+**Beschluss 3 — jeder Prompt nennt `AGENTS.md`.** Ein Satz „Es gilt `AGENTS.md`." statt der
+stehenden Regeln. Das kostet eine Zeile und fängt den Fall, dass ein Werkzeug die Datei nicht von
+selbst lädt. Darüber hinaus nennt ein Prompt nur, was von ihr abweicht.
+
+**Beschluss 4 — `.cursorrules` fällt weg.** Der Operator verschiebt sie aus dem Arbeitsbaum, die
+Zeile in `.gitignore` entfällt. Taucht die Datei wieder auf, steht sie unversioniert im
+`git status`, statt still gelesen zu werden. Übernommen sind aus ihr nur der Satz gegen
+Hilfsfunktionen, Parameter und Abkürzungen ohne Grundlage, jetzt unter „kein stiller
+Scope-Zuwachs", und die Regel, dass Docstrings den Abschnitt nennen.
+
+**Schwächste Stelle.** Die Regeln stehen jetzt zweimal: in `AGENTS.md §3` aus Sicht des Werkzeugs
+und in den Prompt-Regeln von `arbeitsweise.md §2` aus Sicht des Supervisors. Das ist die
+Parallele, die D209 bei Übersichtsdokumenten verworfen hat. Hingenommen, weil die Leser
+verschieden sind und `arbeitsweise.md` für das Werkzeug zu gross ist; beide Stellen verweisen
+aufeinander. Driften sie, gilt `AGENTS.md` für den Lauf und das Register für die Frage, was
+gemeint war.
+
+**Verworfen — `arbeitsweise.md` als Kontextdatei.** Rund 340 Zeilen Supervisordisziplin,
+fish-Regeln und Sitzungsverfahren; das meiste davon ist für das Werkzeug Rauschen oder an den
+falschen Leser gerichtet.
+
+**Verworfen — `.cursor/rules/`.** Werkzeugspezifisch. `AGENTS.md` lesen mehrere Werkzeuge, und
+die Werkzeugwahl wechselt (D416).

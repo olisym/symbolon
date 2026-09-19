@@ -34,7 +34,7 @@ benannte Entscheidung von ihrem Inhalt abhängt — dann aber vollständig, und 
 Das ändert die **Messung**, nicht die Abnahme. Die Abnahme bleibt beim Supervisor und bleibt am
 Diff.
 
-Der öffentliche Spiegel (`github.com/olisym/mensch-als-republik`) wird direkt geklont oder
+Der öffentliche Spiegel (`github.com/olisym/symbolon`, D317) wird direkt geklont oder
 gepullt, wenn eine Entscheidung von einem Dateiinhalt abhängt — der Supervisor tut das selbst.
 Vor dem Lesen steht ein Hash-Abgleich: der geklonte `HEAD` muss den gemeldeten Commit tragen,
 sonst wird neu gepullt, nicht gelesen (D325). Repomix bleibt ein optionales Diagnosewerkzeug,
@@ -188,9 +188,9 @@ Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
 
 ### Die Projektkopie
 
-Nach jedem Push nachgezogen (D224, Prüfregel 43), mit fünf Kaltzahlen im `--header-text`. **Das
-`-o` gehört dazu**, sonst landet `repomix-output.xml` im Arbeitsbaum. Ob der Header in der Datei
-steht, sagt erst ein `grep` auf `user_provided_header`.
+Optional seit D325, gezogen nur für eine Diagnose (D420). Der Kopf trägt die Kaltzahlen aus
+D318 im `--header-text`. **Das `-o` gehört dazu**, sonst landet `repomix-output.xml` im
+Arbeitsbaum. Ob der Header in der Datei steht, sagt erst ein `grep` auf `user_provided_header`.
 
 Aus `/tmp/mar-context.xml` lässt sich der ganze Baum rekonstruieren — geschnitten am `file`-Tag,
 die Newline hinter dem öffnenden und vor dem schliessenden Tag gehören nicht zum Inhalt. **Das

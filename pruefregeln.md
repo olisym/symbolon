@@ -460,8 +460,9 @@ berührt? In D169 hat der Supervisor `_policy(` in einer Kopie von vor dem `00b`
 sechs Aufrufstellen genannt, wo zehn standen; die vier fehlenden hatte `00b` selbst angelegt.
 
 **43. Zwischen Merge und Nachzug ist die Projektkopie kalter Kaffee.**
-Die Kopie wird nach jedem Push nachgezogen, nicht nach jeder Sitzung (D224). Wer davor eine Zahl
-aus der Kopie nennt, sagt dazu, dass sie hinter `main` liegt — sonst ist es eine Behauptung über
+Seit D325 ist die Kopie optional und wird nur für eine Diagnose gezogen (D224, D420). Wer eine
+Zahl aus einer Kopie nennt, die älter ist als der letzte Merge, sagt dazu, dass sie hinter
+`main` liegt — sonst ist es eine Behauptung über
 einen Baum, den es so nicht gibt. Von Hand nachgepatchte Kopien sind der schlechteste Fall: sie
 sehen aktuell aus. In `00u` lief `tools/check_specs.py` vier Merges lang in der Rekonstruktion
 des Supervisors statt in der Fassung des Werkzeugs.

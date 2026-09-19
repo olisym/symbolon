@@ -1,5 +1,5 @@
 {
   "ignore": {
-    "customPatterns": ["07-decisions.md"]
+    "customPatterns": ["07-decisions.md", ".claude/**"]
   }
 }

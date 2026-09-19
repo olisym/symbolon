@@ -17285,3 +17285,45 @@ selbst und hält die Kette nicht auf.
 
 **Nicht beschlossen.** Keine feste Liste weiterer Markennamen. Eine neue Prüfgruppe bekommt ihre
 Marke nach demselben Grundsatz: ein Abbruch muss einer Gruppe zuzuordnen sein.
+
+### D419 — Hygiene: O44, O45 und O46 geschlossen
+
+**O44 und O45 — das Archiv wird nicht nachgezogen.** Beide Posten betreffen Dateien in `archiv/`:
+die Einlese-Dateien zu NV2, deren Aussage über fehlende Drahtbytes seit D291 falsch ist, und
+`00z-anhangsform-prompt.md` mit den fünf um eins zu hohen Zeilenangaben aus D232. Beide
+beschreiben einen vergangenen Lauf und sind als dessen Beschreibung richtig; für den zweiten Fall
+hat D232 das schon so entschieden. Die Posten hielten nur fest, dass eine bekannte Abweichung
+existiert. `check_specs` liest `archiv/` nicht, und ausser dem Register nennt keine Datei der
+Wurzel und kein Python-Modul eine der beiden, gemessen mit `grep` auf `dd6d7fd`. Die Abweichung
+steht in D232, D291 und hier; mehr Gedächtnis braucht sie nicht.
+
+**O46 — die Projektkopie schliesst `.claude/` aus.** `.gitignore` im Repo nennt `.claude/` nicht,
+und repomix nimmt die Datei deshalb mit. Gemessen mit repomix 1.18.0 in einem Probebaum: ohne
+Muster erscheint `settings.local.json` in der Ausgabe, mit `.claude/**` in
+`ignore.customPatterns` nicht. `repomix.config.json` bekommt dieses Muster neben dem Ausschluss
+des Registers aus D322. Der Klon des Spiegels war nie betroffen, er trägt nur versionierte
+Dateien; seit D325 betraf die Lücke nur noch den optionalen Lauf.
+
+**Verworfen — `.claude/` in `.gitignore`.** Das wirkte auf repomix genauso, änderte aber das
+Verhalten von git für eine Datei, die git schon übergeht. Der Befund betrifft die Kopie, also wird
+die Kopie berichtigt.
+
+### D420 — `arbeitsweise.md` und Prüfregel 43 an D317, D318 und D325 nachgezogen
+
+**Befund, beim Lesen für O46.** Drei Stellen beschreiben einen überholten Stand.
+
+1. `arbeitsweise.md` nennt den Spiegel `github.com/olisym/mensch-als-republik`. Der Name ist nach
+   D317 `symbolon`. GitHub leitet den alten Namen um, deshalb fiel es beim Klonen nicht auf.
+2. Der Abschnitt über die Projektkopie in `arbeitsweise.md` beginnt mit „nach jedem Push
+   nachgezogen (D224, Prüfregel 43)" und nennt fünf Kaltzahlen im Kopf, wo D318 sechs festlegt.
+3. Prüfregel 43 sagt, die Kopie werde nach jedem Push nachgezogen (D224). Seit D325 ist sie
+   optional.
+
+**Beschluss.** Die URL wird berichtigt. Der Abschnitt über die Projektkopie beginnt mit „optional
+seit D325" und verweist für den Kopf auf D318, ohne eine Zahl zu nennen. In Prüfregel 43 wird der
+Satz über den Nachzug nach jedem Push ersetzt; der Rest der Regel gilt unverändert, denn jede
+gezogene Kopie liegt hinter `main`, sobald danach gemergt wird.
+
+**Nicht geändert.** D224 und D325 bleiben, wie sie sind, die Regelnummer bleibt. Der
+Prüfregel-Kandidat aus D415 gilt hier sinngemäss: eine Beschreibung, die eine Zahl aus einem
+anderen Eintrag wiederholt, veraltet mit ihm. Deshalb der Verweis statt der Zahl.

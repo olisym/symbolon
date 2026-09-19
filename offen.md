@@ -206,17 +206,17 @@ D305 Beschluss 4, solange Stufe 2 keinen Befund erzeugt hat.
 
 Sie zeigen in `03-golden-anchors.md`, nicht ins Leere; die Einträge bleiben, wie sie sind.
 
-### O44 Die Einlese-Dateien behaupten, NV2 trage keine Drahtbytes
+### O44 Die Einlese-Dateien behaupten, NV2 trage keine Drahtbytes — erledigt (D419)
 
-Seit D291 falsch, bewusst nicht nachgezogen; sie liegen im Archiv.
+Archiv beschreibt vergangene Läufe und wird nicht nachgezogen.
 
-### O45 Die Anhangsform-Datei trägt fünf um eins zu hohe Zeilenangaben
+### O45 Die Anhangsform-Datei trägt fünf um eins zu hohe Zeilenangaben — erledigt (D419)
 
-D232. Sie liegt im Archiv, der Posten bleibt.
+Archiv, nicht berichtigt; D232 hat das für diese Datei entschieden.
 
-### O46 `.claude/settings.local.json` landet in der Projektkopie
+### O46 `.claude/settings.local.json` landet in der Projektkopie — erledigt (D419)
 
-Obwohl git sie ignoriert.
+`repomix.config.json` schliesst `.claude/**` aus.
 
 ### O47 Es gibt keine Kontextdatei für das Werkzeug
 

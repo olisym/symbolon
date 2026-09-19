@@ -17209,3 +17209,25 @@ README kann wieder eine Zahl einführen, und nichts meldet es. Sollte das passie
 Regel in `check_specs`, nicht noch einmal in einen Registereintrag.
 
 **Was folgt.** Nichts. Die Mitte-Oktober-Prüfung des Restack-Antrags liest die README mit.
+
+### D416 — Nachtrag zu D374 und D389: womit die zweite Haskell-Fassung gebaut wurde
+
+**Die Lücke.** D374 Beschluss 3 unterscheidet zwei Achsen, „zwei Modelle in derselben Sprache"
+gegen „zwei Sprachen", und nennt keines der Modelle. D389 korrigiert die Isolation der zweiten
+Fassung auf „dateiseitig isoliert, werkzeugseitig unbelegt", ohne das Werkzeug zu nennen, um das
+es geht. Bemerkt beim Statusbericht in `00cb`: wer die Unabhängigkeitsaussage später prüfen will,
+findet im Register nicht, woran sie hängt.
+
+**Festgehalten, nach Auskunft des Operators.** Die zweite Haskell-Fassung (HS2, `hs/FRAGEN-2.md`)
+lief in opencode mit dem Modell DeepSeek über die API. Das Werkzeug der ersten Fassung ist hier
+nicht festgehalten; der Registerbestand nennt es nicht, und eine Rekonstruktion wäre geraten.
+
+**Was sich damit ändert, und was nicht.** D389 bleibt richtig. opencode legt Sitzungen in einem
+eigenen Datenverzeichnis ab; ob das Verzeichnis beim HS2-Lauf Sitzungen mit Spec-Inhalt trug,
+ist nicht belegt — die Trennung der Datenvolumes je Zweck kam erst mit D389 Beschluss 4 und dem
+Containerlauf aus D399. „Werkzeugseitig unbelegt" bleibt also der Befund. Neu ist nur, dass er
+jetzt einen Gegenstand hat.
+
+**Verworfen — die Unabhängigkeit von HS2 jetzt herabstufen.** Die Gegenprobe aus D389 schlägt an
+HS2 nicht an, und der Name des Werkzeugs ist kein Befund gegen die Fassung. Er macht eine
+künftige Prüfung möglich, er ersetzt sie nicht.

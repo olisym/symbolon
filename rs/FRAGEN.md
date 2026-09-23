@@ -187,3 +187,136 @@ und eine Entscheidung nötig wurde. Reihenfolge ist die des Auffindens beim Bau.
   Restbytes (`MALFORMED_CBOR`) zu werten. Verworfen, weil das den gemeinten Mangel des
   jeweiligen Vektors (Version, `J.tag`, Genesis-Anker) überdeckt hätte und die Signatur
   über dem Core beweist, dass `σ` zur Folge gehört.
+
+# Nachzug
+
+## 14. Änderung: Linking zählt nur den unmittelbaren Vorgänger
+
+- **Adresse:** 01 §6 / 01 Anhang B.1
+- **Vorher:** Ein Claim galt als `linked`, wenn seine ganze Kette bis zum Genesis
+  aufgelöst war (rekursiv bis zum Anker).
+- **Jetzt:** Ein Claim ist `linked`, wenn sein `h_prev` der Genesis-Anker ist oder sein
+  unmittelbarer Vorgänger lokal bekannt ist und vom selben Autor stammt. Der Zustand des
+  Vorgängers (auch `pending`) wirkt nicht stromabwärts.
+- **Grund:** D437: „Es zählt nur der unmittelbare Vorgänger … gleich welchen Zustand `P`
+  selbst hat, auch `pending`.“ Die Zeile zu `linked` in Anhang B.1 wurde entsprechend auf
+  „unmittelbarer Vorgänger bekannt & gültig“ geschärft.
+
+## 15. Änderung: Eine Gruppe ohne Budget-Set-Mitglied verschwindet
+
+- **Adresse:** 02 §3.1
+- **Vorher:** Eine Gruppe `(I, J)` erschien auch dann mit `n_budget = 0`, wenn alle ihre
+  Mitglieder abgelaufen waren.
+- **Jetzt:** Eine Gruppe besteht nur, solange mindestens eines ihrer Mitglieder im
+  Budget-Set liegt. Sind alle abgelaufen, gibt es keine Gruppe — keine `gruppe`-Zeile und
+  kein `budget`-Beitrag des Autors.
+- **Grund:** D396: „Eine Gruppe besteht, solange mindestens eines ihrer Mitglieder im
+  Budget-Set liegt … Daraus folgt `n_budget ≥ 1` für jede Gruppe.“
+
+## 16. Änderung: Vouches ausserhalb des Budget-Sets werden nicht gelesen
+
+- **Adresse:** 02 §10 / 02 §11.4
+- **Vorher:** `v` wurde an jedem Scope-Vouch gelesen und ein Vermerk auch an einem
+  abgelaufenen Vouch gesetzt.
+- **Jetzt:** Nur Vouches im Budget-Set werden gelesen und vermerkt; ein Vouch ausserhalb
+  trägt keinen Vermerk und keinen Beitrag.
+- **Grund:** D400: „Die Ableitung liest `v` … nur an Vouches im Budget-Set … ausserhalb
+  trägt ein Vouch ohnehin nichts bei, und ein Vermerk über ihn beschriebe keine Wirkung.“
+
+## 17. Änderung: `VOUCH_WITHOUT_TEXP` nur bei gültigem `n`
+
+- **Adresse:** 02 §10
+- **Vorher:** `VOUCH_WITHOUT_TEXP` wurde an jedem Vouch ohne `t_exp` gesetzt, auch wenn
+  `v` unlesbar war.
+- **Jetzt:** Scheitert das Lesen von `v`, trägt der Vouch allein den Vermerk seines
+  Lesefehlers; `VOUCH_WITHOUT_TEXP` fällt nur an einem Vouch mit gültigem `n`.
+- **Grund:** D400: „`VOUCH_WITHOUT_TEXP` fällt nur an einem Vouch mit gültigem `n` … er
+  trägt allein den Vermerk seines Lesefehlers.“
+
+## 18. Änderung: `VOUCH_WITHOUT_TEXP` behält seine Kante
+
+- **Adresse:** 02 §10 / 02 §6.2
+- **Vorher:** Ein Vouch ohne `t_exp` trug keine Kante (nur Budget, unbegrenzt).
+- **Jetzt:** Ein Vouch ohne `t_exp` behält seine Kante, sofern er aktiv ist; er bindet
+  Budget weiterhin unbegrenzt.
+- **Grund:** Die Tabelle in §10 führt die Kante für `VOUCH_WITHOUT_TEXP` als
+  „unverändert“, und der Absatz „Fehlendes `t_exp`: ein Vermerk ohne Wirkung“ sagt: „er
+  trägt seine Kante, wenn er im Aktiv-Set liegt“. Die alte Lesart (Eintrag 6) folgte dem
+  früheren §10-Satz „trägt nichts zum Fluss bei“; der heutige Text hat ihn ersetzt.
+
+## 19. Änderung: ∞-Sentinel = max(Σ C(a), |E⁺|) + 1
+
+- **Adresse:** 02 §4
+- **Vorher:** `inf = Σ C(a) + 1` (saturierend).
+- **Jetzt:** `inf = max(Σ C(a), |E⁺|) + 1`, geprüft auf Überlauf.
+- **Grund:** D381 verlangt, dass ∞ beide Läufe übersteigt; im Einheitslauf begrenzt
+  `|E⁺|` den Fluss, nicht `Σ C(a)`. Der Text nennt `max(Σ C(a), |E⁺|) + 1` als hinreichend
+  und zusätzlich die Summe aller endlichen Kapazitäten `+1`; beide sind hinreichend,
+  gewählt wurde die engere D381-Formel.
+
+## 20. Änderung: Der Einheitslauf arbeitet auf E⁺
+
+- **Adresse:** 02 §8
+- **Vorher:** Der Einheitslauf gab jeder Vouch-Kante Kapazität 1, auch einer subgranularen
+  Kante mit `cap = 0`.
+- **Jetzt:** Der Einheitslauf belegt nur Kanten aus `E⁺` (`cap ≥ 1`) mit Kapazität 1;
+  subgranulare Kanten werden ausgeschlossen.
+- **Grund:** D42: „Beide Läufe arbeiten auf demselben Kantensatz `E⁺` … mit 1 auf jeder
+  Vouch-Kante wäre eine Kante mit `cap = 0` sonst von einer vollwertigen nicht zu
+  unterscheiden.“
+
+## 21. Änderung: `SUBGRANULAR_VOUCH` nur für erreichte Autoren
+
+- **Adresse:** 02 §10
+- **Vorher:** `SUBGRANULAR_VOUCH` wurde an jeder Kante mit `cap = 0` gesetzt, auch wenn der
+  Autor unerreichbar war.
+- **Jetzt:** Der Vermerk fällt nur an einer Kante, deren Autor die Breitensuche erreicht
+  hat; ein unerreichbarer Autor mit `C = 0` ist der strukturelle Fall und kein Vermerk.
+- **Grund:** D439: „Der Vermerk setzt einen erreichten Autor voraus … Für einen
+  unerreichbaren Autor ist `C = 0` der strukturelle Fall aus §3 und kein Vermerk.“
+
+## 22. Änderung: Überlauf wird gemeldet statt saturiert
+
+- **Adresse:** AUFTRAG
+- **Vorher:** Der ∞-Sentinel und die allgemeine `C(x)`-Bruchrechnung saturierten auf
+  `u64::MAX`.
+- **Jetzt:** Jede Rechnung, die `u64` sprengt, hält das Programm an und meldet Stelle und
+  beteiligte Werte (geprüfte Addition und Multiplikation). Keine Saturierung, kein
+  Abfangen.
+- **Grund:** AUFTRAG verlangt, einen Überlauf zu melden statt abzufangen; der Nachzug hebt
+  die Saturierung ausdrücklich auf („Keine Saturierung, nirgends. Kein Abfangen eines
+  Überlaufs.“).
+
+## 23. Änderung: Überlappende Anker und Ziele werden zurückgewiesen
+
+- **Adresse:** 02 §11.3
+- **Vorher:** Überlappende Anker/Ziele wurden nicht geprüft; die Auswertung rechnete einen
+  Wert.
+- **Jetzt:** Überschneiden sich Anker und Ziele, weist das Programm die Anfrage zurück
+  (Fehlermeldung, kein Block).
+- **Grund:** §11.3: „Anker und Ziele einer Anfrage sind disjunkt. Überschneiden sie sich …
+  weist die Auswertung die Anfrage zurück, statt einen Wert zu liefern.“
+
+## 24. Änderung: Parameter ausserhalb der Bereiche → keine Auswertung
+
+- **Adresse:** 02 §11.2
+- **Vorher:** Parameter wurden nicht auf ihren Bereich geprüft.
+- **Jetzt:** Liegen `C₀`, `γ_num`, `γ_den` oder `D` ausserhalb `C₀ ≥ 1`,
+  `0 < γ_num < γ_den`, `D ≥ 1`, wird die Anfrage zurückgewiesen.
+- **Grund:** §11.2: „Ausserhalb dieser Bereiche gibt es keine Auswertung.“
+
+## Einträge 1 bis 13
+
+- 1: beantwortet (02 §4) — D381 nennt die Belegung `max(Σ C(a), |E⁺|) + 1` ausdrücklich.
+- 2: beantwortet (01 Anhang B.1) — D278 steht unverändert: `malformed` bleibt kein Klassifikationsergebnis.
+- 3: beantwortet (02 §3.1) — D41 bleibt: der Widerruf ist vorrangig vor dem Ablauf.
+- 4: beantwortet (01 Anhang B.1) — „weiter zu active/neutralisiert“ bleibt; nur die Linked-Bedingung wurde durch D437 geschärft.
+- 5: beantwortet (AUFTRAG) — der Auftrag verlangt weiterhin den anderen Fall (`include_flagged` wirkt nicht).
+- 6: beantwortet (02 §10) — der heutige Text entscheidet anders: ohne `t_exp` bleibt die Kante, nur das Budget bindet unbegrenzt.
+- 7: beantwortet (02 §3.1) — die Tabelle nennt `equivocation-flagged` und `time-regression-flagged` jetzt ausdrücklich im Budget-Set.
+- 8: beantwortet (02 §11.1) — „Deterministisch … wo die Reihenfolge … berühren kann, wird vorher sortiert.“
+- 9: beantwortet (WERKZEUG) — `ford_fulkerson` in `usize`; auf 64-bit bitgleich `u64`, keine Änderung.
+- 10: beantwortet (02 §11.1) — „keine Gleitkomma- und keine Bruchrechnung … `C(x)` wird einmal am Ende gerundet.“
+- 11: beantwortet (01 §6) — der vorgängerunabhängige Konjunkt bleibt benannt.
+- 12: beantwortet (02 §3.1) — „`n_kante` = max n über Aktiv-Set, `n_budget` = max n über Budget-Set.“
+- 13: beantwortet (01 Anhang C.0) — D396 klärt, was `bytes` trägt (eigene σ-Zeile ⇒ Core, sonst Wire-Form).

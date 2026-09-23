@@ -96,29 +96,29 @@ So beschlossen in D119, getragen in `02 §10`; kein Mangel, sondern ein Zustand.
 
 Seit D287 alle drei Erzeugungsstellen getragen; gemessen mit Rücknahmeprobe.
 
-### O18 `RATIFY_WITH_EXPIRY` und der Zeugenpfad tragen die Weitergaberegel ungeprüft
+### O18 `RATIFY_WITH_EXPIRY` und der Zeugenpfad tragen die Weitergabe ungeprüft — erledigt (D435)
 
-D203.
+Zeugenpfad seit längerem gedeckt, `RATIFY_WITH_EXPIRY` mit dem Messauftrag.
 
-### O19 Vergleiche gegen `dedupe_sort` sind für die Reihenfolge zirkulär
+### O19 Vergleiche gegen `dedupe_sort` sind für die Reihenfolge zirkulär — erledigt (D435)
 
-D196.
+Schlüssel in `00 §10` (D429); Prüfer für `02` und `04` gegen den ausgeschriebenen Schlüssel.
 
 ### O20 Vier `Finding`-Klassen, drei `dedupe_sort` — erledigt (D429)
 
 Getrennt gelassen wie in D183; gegen Drift trägt die Ordnungsnorm aus `00 §10`.
 
-### O21 Die Eigenschaftstests zu `INV-04.7` und `INV-04.8` prüfen eine schwächere Aussage
+### O21 Die Tests zu `INV-04.7` und `INV-04.8` prüfen eine schwächere Aussage — erledigt (D435)
 
-Schwächer als sie scheinen. D117.
+Eigenschaftstests über zufällige Folgen; der Vorbehalt selbst war zu eng (D433, D434).
 
 ### O22 Dreifache Kantensumme in `test_deckenelastizitaet.py` — erledigt (D431)
 
 Testcode, ohne Wirkung auf die Aussage; aufgeräumt wird, wenn die Datei ohnehin berührt wird.
 
-### O23 Die Sondierwelt in `test_benennung.py` erzeugt keine Vermerke
+### O23 Die Sondierwelt in `test_benennung.py` erzeugt keine Vermerke — erledigt (D435)
 
-D173.
+Zweite Probe über einer Welt mit Überziehung und Unterkorn; die erste bleibt.
 
 ### O24 `disjoint_paths` bewegt sich nicht — erledigt (D431)
 
@@ -144,9 +144,9 @@ Entschieden in D147, nicht zusammengelegt; beide Fassungen gemessen deckungsglei
 
 Seit D167 und D174 an Epoche 1 gebunden; gemessen mit Rücknahmeprobe, 21 rot.
 
-### O30 Der Beispielnukleus kann Epoche-1- von Epoche-2-Policy nicht unterscheiden
+### O30 Der Beispielnukleus kann Epoche-1- von Epoche-2-Policy nicht unterscheiden — erledigt (D435)
 
-D169, D188.
+Der Prüfer sitzt in der Kettenwelt; der Beispielnukleus bleibt (D430).
 
 ### O31 Eine Schwelle für Autoritätslisten
 

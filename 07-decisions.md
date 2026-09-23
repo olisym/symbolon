@@ -17947,3 +17947,37 @@ die die Invariante ursprünglich ausschliessen sollte, nicht nur gegen die neu g
 drei Ausgänge unter einen Satz gebracht und dabei zwei alte wieder geöffnet.
 
 **Geändert:** `04-golden-anchors.md` (`INV-04.7`, `INV-04.8`, Absatz in `§8`).
+
+### D435 — Abnahme des Messauftrags; fünf Posten geschlossen
+
+**Anlass.** Der Branch `00cd-messauftrag` trägt den Lauf aus D432 (`0eb92a8`), die Berichtigungen
+D433 und D434 und zwei Nachläufe (`c59b0c8`, `7a4ec9c`). Gelesen vom Spiegel, gegen `4b187db`.
+
+**Gemessen im Supervisor-Klon auf `7a4ec9c`.** 926 grün; `test_inv04.py` unter dem Profil `voll`
+grün. Die Probe, an der D434 den Defekt aus D433 gezeigt hat — Schutz von `vote@1` entfernt, eine
+Einzelstimme widerrufen —, schlägt jetzt an der Zusicherung über die Art des auslösenden Claims
+an, nicht mehr zufällig an einer anderen. Der zweite Nachlauf hat nur `test_inv04.py` geändert.
+
+**Die Rücknahmeproben, gegen die Erwartung.** Alle sechs Teile rot an der erwarteten Stelle. Zwei
+Abweichungen, beide ohne Folge: Teil C trifft neben dem neuen Test 18 bestehende, weil die gewählte
+Namensabhängigkeit das Subjekt von `OVERCOMMITTED_AUTHOR` insgesamt verschiebt; der alte Test
+bleibt grün, und das war die Frage. Die zweite Probe im zweiten Nachlauf lässt `INV-04.8` schon beim
+Aufbau fallen, bevor die Folge läuft; verlangt war nur `INV-04.7`.
+
+**Zwei Befunde ohne Defekt, benannt.** Der `02`-Test aus Teil B prüft die zweite Komponente des
+Schlüssels, der `04`-Test beide. Die Belege „100 von 100" in beiden Nachläufen kommen aus festen
+Vor- und Nachsätzen der Generatoren; sie belegen, dass die Schritte erzeugt werden, nicht wie
+vielfältig.
+
+**`AGENTS.md` im ersten Einsatz** (D421). Dreimal geladen und befolgt: Rückfrage im Bericht statt
+still im Code, Rücknahmeproben einzeln, Bericht mit vollständigem Diff. Eine Abweichung: der erste
+Nachlauf hat Generator-Schritte gestrichen, die der Auftrag nicht zu streichen verlangte (D434).
+Das ist die Grauzone aus `AGENTS.md §3`, „kein stiller Scope-Zuwachs" — hier ein stiller
+Scope-Verlust. Nicht nachgezogen; beim nächsten Auftrag im Blick behalten.
+
+**Geschlossen:** O18, O19, O21, O23, O30. Zwei Kopfzeilen sind dafür gekürzt, weil sie mit dem
+Zusatz die Zeilengrenze überschritten.
+
+**Prüfregel-Kandidaten aus dieser Runde:** die Prämisse eines Postens messen, bevor er entschieden
+wird (D421, D424 — zweiter Fall); einen verallgemeinerten Vorbehalt gegen die Ausgänge prüfen, die
+die Invariante ursprünglich ausschliessen sollte (D434). Aufnahme beim Sitzungsende.

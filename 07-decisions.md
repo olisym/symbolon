@@ -18656,3 +18656,40 @@ Abschnitt, den D394, D400 und D439 neu gefasst haben.
   beim nächsten Zug an dieser Datei berichtigt.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O78 in der Schliessform).
+
+### D447 — Sitzungsschluss `00cf`; Prüfregel 80
+
+**Bilanz.** Die Sitzung hat O73 geschlossen und zwei Posten eröffnet und wieder geschlossen:
+
+- O73: Die Rust-Fassung liest den heutigen Text (D441, D442).
+- O77: Das Autor-Flag ist normiert und gebunden (D443, D444).
+- O78: Die Fragenliste kennt zwei Eintragsarten (D445, D446).
+
+Das Ergebnis mit Gewicht ist der Befund aus dem Nachzug. `02` benutzte `equivocation-flagged`
+für einen Claim-Zustand und für eine Eigenschaft des Autors. Keine der beiden Wirkungen war in
+der Referenz gebunden. Gefunden hat das der zweite Zeuge, nicht die Referenz.
+
+**Beschluss 1 — Prüfregel 80 wird übernommen.** Der Kandidat „einen Abschnitt ganz lesen, bevor
+man aus einem Satz darin schliesst" stammt aus D392 und D394 und ist in D442 wieder gerissen, in
+erweiterter Form: Dort fehlte nicht der Rest des Abschnitts, sondern eine andere Datei. Die Regel
+fasst beides. Wer schreibt, der Text sage etwas oder sage es nirgends, liest den ganzen
+Abschnitt und arbeitet die `grep`-Liste über alle Layer-Dateien ab. Das ist der zweite Rückfall
+in denselben Fehler, und der zweite war teurer: Er hat einen Posten mit falscher Prämisse
+eröffnet.
+
+**Berichtigung.** In den Rundenabschlüssen zu D444 und D446 habe ich die offenen Posten mit 16
+und 15 angegeben. Richtig sind 15 und 14: Beide Zählungen haben O73 als offen mitgeführt, obwohl
+D442 ihn geschlossen hatte. Das ist der Kandidat aus D420 in der eigenen Stand-Zeile. Im Register
+stand keine der beiden Zahlen.
+
+**Neuer Prüfregel-Kandidat, nicht übernommen.** Ein Auftrag, der eine frühere Schnittstelle für
+weiter gültig erklärt, übernimmt auch die Befunde über sie. Vorher werden die Registereinträge
+gelesen, die den alten Auftrag zitieren. Der Nachzugsauftrag hat `rs/AUFTRAG.md` für gültig
+erklärt und damit D396 Beschluss 2 übergangen (D442, Klasse 1). Einmal begründet.
+
+**Sitzungsschluss.** `sitzungsstart-00cf.md` löst `sitzungsstart-00ce.md` ab, das nach `archiv/`
+geht (D314). `arbeitsweise.md §11` nennt die vierte Fragenliste; der Satz „die Rust-Liste folgt"
+war seit D390 überholt (D446, Nebenbefund).
+
+**Geändert.** `07-decisions.md`; `pruefregeln.md` (Regel 80 in „Beim Messen", Herkunftszeile);
+`arbeitsweise.md` (`§11`); `sitzungsstart-00cf.md` neu, `sitzungsstart-00ce.md` nach `archiv/`.

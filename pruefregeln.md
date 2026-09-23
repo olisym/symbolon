@@ -528,6 +528,15 @@ des Antrags-Logs gerissen: die Mustersuche fand die Stellen, die ihre Schlagwör
 enthielten, und übersah einen Abschnitt, der keines davon trug; erst ein vollständiges
 Lesen durch ein zweites Werkzeug fand ihn (D349).
 
+**80. Eine Aussage über den Text wird an allem geprüft, was den Gegenstand trägt.** Ob ein Eintrag
+schreibt, der Text sage X, oder er sage X nirgends: Vorher wird der ganze Abschnitt gelesen, aus
+dem der Satz stammt, und die Trefferliste eines `grep` nach dem Gegenstand über alle
+Layer-Dateien wird abgearbeitet. Eine Fehlanzeige ohne diese Liste ist eine Vermutung. D392 hat
+aus einer Hälfte von `02 §10` geschlossen, die andere Hälfte sagte das Gegenteil (D394). D442
+schrieb, das Autor-Flag stehe in keiner Spec-Zeile; `grep equivocation` über `01` hätte `§4` und
+`Anhang B.1` gezeigt (D443). Die Schwester von Prüfregel 68: dort braucht eine Fehlanzeige einen
+zweiten Lauf, hier einen vollständigen ersten.
+
 ## Beim Fahren von Blöcken und Splices
 
 **39. Eine Ausgabe ist keine Bedingung.**
@@ -643,7 +652,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
 69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366,
-76 und 77 aus D407, 78 und 79 aus D436.
+76 und 77 aus D407, 78 und 79 aus D436, 80 aus D447.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

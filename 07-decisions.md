@@ -17910,3 +17910,40 @@ Test 18 weitere, weil sie das Subjekt von `OVERCOMMITTED_AUTHOR` insgesamt versc
 Test sieht sie, der alte nicht, und das war die Frage.
 
 **Geändert:** `04-golden-anchors.md` (`INV-04.7`, `INV-04.8`, Absatz zum Vorbehalt in `§8`).
+
+### D434 — Abnahme des Nachlaufs: der Vorbehalt aus D433 war zu weit gefasst
+
+**Anlass.** Nachlauf auf `00cd-messauftrag`, `c59b0c8`, Basis `a79fa27`. Gegen den Branch vom
+Spiegel gelesen, 926 grün, `check_specs` sauber; der Produktivdiff in `epoch.py` deckt sich mit
+dem Bericht aus dem ersten Lauf.
+
+**Der Defekt liegt in D433, nicht im Lauf.** D433 hat den Vorbehalt als Urheberregel gefasst:
+eine zählende Stimme entwertet nur ein weiterer **Claim** ihres eigenen Autors. Ein Widerruf ist
+ein solcher Claim. Die Regel lässt damit genau den Ausgang zu, gegen den `INV-04.7` geschrieben
+ist — D105 und D107 haben `vote@1` irrevocable gemacht, damit ein Widerruf die Menge nicht
+verkleinert. Gemessen im Klon auf `c59b0c8`: Schutz von `vote@1` in `NucleusPolicy` entfernt,
+Folge „Autor 0 stimmt Ja, Autor 1 stimmt Ja, Autor 0 widerruft seine Stimme" — die Menge
+schrumpft, `_pruefe_047` bleibt grün. Die Rücknahmeprobe 1 des Nachlaufs war trotzdem rot, aber
+nur, weil der Generator den Widerruf auf eine bereits mehrdeutige Stimme richtet und die
+Zusicherung „einmal entfallen, nie zurück" dabei anschlägt. Der Test hat den richtigen Fehler aus
+dem falschen Grund gefunden.
+
+**Beschluss 1 — der Vorbehalt nennt die Art, nicht nur den Urheber.** Eine zählende Stimme
+entwertet nur ihr eigener Autor, und nur durch einen Zwilling (Equivocation, gleich welcher Art
+der Zwilling ist) oder durch eine weitere **Stimme**; Widerruf, Supersede und ein fremder Claim
+nie. Für `INV-04.8`: die Epoche fällt nur durch einen Zwilling oder eine weitere Stimme eines
+Zeugen. Da der Test Equivocation ausschliesst, prüft er für den auslösenden Claim `vote@1`.
+`04-golden-anchors.md` ist nachgezogen, der Absatz in `§8` sagt ausdrücklich, dass der Schutz aus
+D105 und D107 unberührt bleibt.
+
+**Beschluss 2 — zweiter Nachlauf, dieselbe Datei.** Die Zusicherung prüft die Art des auslösenden
+Claims mit. Und der Generator bekommt zurück, was der erste Nachlauf gestrichen hat, ohne dass der
+Auftrag es verlangte: Widerruf und Supersede einer **noch einfach zählenden** Stimme, bei
+`INV-04.8` einer Zeugenstimme bei stehender Epoche. Ohne diese Schritte bleibt der Schutz
+ungeprüft, sobald die Zusicherung stimmt.
+
+**Die Lehre, als Kandidat.** Wer einen Vorbehalt verallgemeinert, prüft ihn gegen die Ausgänge,
+die die Invariante ursprünglich ausschliessen sollte, nicht nur gegen die neu gefundenen. D433 hat
+drei Ausgänge unter einen Satz gebracht und dabei zwei alte wieder geöffnet.
+
+**Geändert:** `04-golden-anchors.md` (`INV-04.7`, `INV-04.8`, Absatz in `§8`).

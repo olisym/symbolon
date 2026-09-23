@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Prüft die Zuordnung der Fragenlisten und den Index (D384, D385, D386, D387, D395).
+"""Prüft die Zuordnung der Fragenlisten und den Index (D384, D385, D386, D387, D395, D445).
 
 Liest die Adressen aus ``fragen-adressen.md`` oder, bei Markerzeile, aus der Liste
 selbst (D395 Beschluss 1); extrahiert keine (D386 Beschluss 2).
+``## <n>. Änderung:`` ist ein Änderungseintrag, jeder andere nummerierte Eintrag
+eine Frage; nur in selbsttragenden Listen (D445 Beschluss 1).
 Ohne Argument nur prüfen; ``--schreiben`` erzeugt ``fragen-index.md`` (D387 Beschluss 4).
+Die ausgegebene Zahl zählt die Fragen (D445 Beschluss 2).
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SECTION = re.compile(r"^## \d+\. `([^`]+)` — ")
 LIST_HEADING = re.compile(r"^## (\d+)\. ", re.M)
+AENDERUNG_KOPF = re.compile(r"^## (\d+)\. Änderung: ")
 ADDR_PART = re.compile(
     r"(?:AUFTRAG|WERKZEUG|"
     r"\d+[a-z]? (?:§\d+(?:\.\d+)*|Anhang [A-Z](?:\.\d+)*))"
@@ -30,10 +34,14 @@ MARKER = "Adressen: in der Liste."
 
 
 class Liste(NamedTuple):
-    """Eine zugeordnete Fragenliste aus ``fragen-adressen.md`` (D386 Beschluss 1)."""
+    """Eine zugeordnete Fragenliste aus ``fragen-adressen.md`` (D386 Beschluss 1).
+
+    ``aenderungen`` sind die Nummern der Änderungseinträge (D445 Beschluss 1).
+    """
 
     pfad: str
     zeilen: list[tuple[int, str]]
+    aenderungen: frozenset[int] = frozenset()
 
 
 def kurzform(pfad: str) -> str:
@@ -90,17 +98,30 @@ def _ist_trenner(zellen: list[str]) -> bool:
     return bool(zellen) and all(z and set(z) <= set("-:") for z in zellen)
 
 
-def zeilen_aus_liste(pfad: str) -> tuple[list[tuple[int, str]], list[str]]:
-    """Adresszeilen einer selbsttragenden Liste (D395 Beschluss 2)."""
+def zeilen_aus_liste(
+    pfad: str,
+) -> tuple[list[tuple[int, str]], list[str], frozenset[int]]:
+    """Adresszeilen einer selbsttragenden Liste (D395 Beschluss 2).
+
+    Die dritte Komponente sind die Nummern der Änderungseinträge
+    (D445 Beschluss 1).
+    """
     probleme: list[str] = []
     zeilen: list[tuple[int, str]] = []
+    aenderungen: set[int] = set()
     ziel = ROOT / pfad
     if not ziel.is_file():
-        return zeilen, probleme
+        return zeilen, probleme, frozenset()
     letzte: int | None = None
     anzahl: dict[int, int] = {}
     koepfe: list[int] = []
     for zeile in ziel.read_text(encoding="utf-8").splitlines():
+        kopf_aenderung = AENDERUNG_KOPF.match(zeile)
+        if kopf_aenderung is not None:
+            letzte = int(kopf_aenderung.group(1))
+            koepfe.append(letzte)
+            aenderungen.add(letzte)
+            continue
         kopf = LIST_HEADING.match(zeile)
         if kopf is not None:
             letzte = int(kopf.group(1))
@@ -130,7 +151,7 @@ def zeilen_aus_liste(pfad: str) -> tuple[list[tuple[int, str]], list[str]]:
             + "`: "
             + ", ".join(str(n) for n in ohne)
         )
-    return zeilen, probleme
+    return zeilen, probleme, frozenset(aenderungen)
 
 
 def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
@@ -146,6 +167,7 @@ def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
     def ablegen() -> None:
         nonlocal pfad, zeilen, in_tabelle, hat_tabelle, hat_marker
         if pfad is not None and zeilen is not None:
+            aenderungen: frozenset[int] = frozenset()
             if hat_tabelle == hat_marker:
                 if hat_tabelle:
                     probleme.append(
@@ -157,10 +179,10 @@ def listen_aus(text: str) -> tuple[list[Liste], list[str]]:
                         f"Abschnitt `{pfad}` hat weder Tabelle noch Marker"
                     )
             elif hat_marker:
-                gelesen, extra = zeilen_aus_liste(pfad)
+                gelesen, extra, aenderungen = zeilen_aus_liste(pfad)
                 probleme.extend(extra)
                 zeilen = gelesen
-            listen.append(Liste(pfad, zeilen))
+            listen.append(Liste(pfad, zeilen, aenderungen))
         pfad = None
         zeilen = None
         in_tabelle = False
@@ -300,8 +322,27 @@ def matrix_von(
 
 
 def index_text(listen: list[Liste]) -> str:
-    """``fragen-index.md`` aus der Zuordnung (D387 Beschluss 1, 2, 3)."""
-    spalten, matrix, eintraege, nennungen = matrix_von(listen)
+    """``fragen-index.md`` aus der Zuordnung (D387 Beschluss 1, 2, 3, D445 Beschluss 2)."""
+    fragen = [
+        Liste(
+            liste.pfad,
+            [
+                (nr, zelle)
+                for nr, zelle in liste.zeilen
+                if nr not in liste.aenderungen
+            ],
+        )
+        for liste in listen
+    ]
+    aenderungs_listen = [
+        Liste(
+            liste.pfad,
+            [(nr, zelle) for nr, zelle in liste.zeilen if nr in liste.aenderungen],
+        )
+        for liste in listen
+        if liste.aenderungen
+    ]
+    spalten, matrix, eintraege, nennungen = matrix_von(fragen)
     adressen = sorted(matrix, key=sortierschluessel)
     n_adressen = len(adressen)
     koepfe = ["Adresse", *spalten, "Σ"]
@@ -334,12 +375,43 @@ def index_text(listen: list[Liste]) -> str:
             else:
                 zellen.append("—")
         zeilen.append("| " + " | ".join([adresse, *zellen, str(sigma)]) + " |")
+    if not aenderungs_listen:
+        zeilen.append("")
+        return "\n".join(zeilen)
+    a_spalten, a_matrix, a_eintraege, a_nennungen = matrix_von(aenderungs_listen)
+    a_adressen = sorted(a_matrix, key=sortierschluessel)
+    a_koepfe = ["Adresse", *a_spalten, "Σ"]
+    a_trenner = ["---"] * len(a_koepfe)
+    zeilen.append("")
+    zeilen.append("## 2. Die Änderungen")
+    zeilen.append("")
+    zeilen.append(
+        f"Änderungen: {a_eintraege}. Nennungen: {a_nennungen}. "
+        f"Adressen: {len(a_adressen)}."
+    )
+    zeilen.append("")
+    zeilen.append("| " + " | ".join(a_koepfe) + " |")
+    zeilen.append("| " + " | ".join(a_trenner) + " |")
+    for adresse in a_adressen:
+        spaltenwerte = a_matrix[adresse]
+        zellen: list[str] = []
+        sigma = 0
+        for nummern in spaltenwerte:
+            sigma += len(nummern)
+            if nummern:
+                zellen.append(", ".join(str(n) for n in sorted(nummern)))
+            else:
+                zellen.append("—")
+        zeilen.append("| " + " | ".join([adresse, *zellen, str(sigma)]) + " |")
     zeilen.append("")
     return "\n".join(zeilen)
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Prüft die Zuordnung; mit ``--schreiben`` entsteht der Index (D387 Beschluss 4, D395)."""
+    """Prüft die Zuordnung; mit ``--schreiben`` entsteht der Index (D387 Beschluss 4, D395).
+
+    Die ausgegebene Zahl zählt die Fragen (D445 Beschluss 2).
+    """
     args = sys.argv[1:] if argv is None else argv
     schreiben = "--schreiben" in args
     quelle = ROOT / "fragen-adressen.md"
@@ -362,7 +434,14 @@ def main(argv: list[str] | None = None) -> int:
         for problem in probleme:
             print(problem)
         return 1
-    print(sum(len(liste.zeilen) for liste in listen))
+    print(
+        sum(
+            1
+            for liste in listen
+            for nr, _zelle in liste.zeilen
+            if nr not in liste.aenderungen
+        )
+    )
     return 0
 
 

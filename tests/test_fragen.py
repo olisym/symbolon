@@ -25,9 +25,19 @@ _ADDR_1 = "- **Adresse:** 02 §4"
 
 def _ueberschriften(wurzel: Path) -> int:
     anzahl = 0
+    muster = re.compile(r"^## \d+\. (?!Änderung: )", re.M)
     for rel in _LISTEN:
         text = (wurzel / rel).read_text(encoding="utf-8")
-        anzahl += len(re.findall(r"^## ", text, re.M))
+        anzahl += len(muster.findall(text))
+    return anzahl
+
+
+def _aenderungsueberschriften(wurzel: Path) -> int:
+    anzahl = 0
+    muster = re.compile(r"^## \d+\. Änderung: ", re.M)
+    for rel in _LISTEN:
+        text = (wurzel / rel).read_text(encoding="utf-8")
+        anzahl += len(muster.findall(text))
     return anzahl
 
 
@@ -48,10 +58,23 @@ def _nennungen(wurzel: Path) -> int:
         if zellen and set(zellen[0]) <= set("-:"):
             continue
         anzahl += len(zellen[1].split(" / "))
+    kopf_aenderung = re.compile(r"^## \d+\. Änderung: ")
+    kopf_frage = re.compile(r"^## \d+\. ")
     for rel in _LISTEN:
+        aenderung = False
         for zeile in (wurzel / rel).read_text(encoding="utf-8").splitlines():
-            if zeile.startswith(_ADDR_PRAEFIX):
-                anzahl += len(zeile.removeprefix(_ADDR_PRAEFIX).split(" / "))
+            if kopf_aenderung.match(zeile):
+                aenderung = True
+                continue
+            if kopf_frage.match(zeile):
+                aenderung = False
+                continue
+            if not zeile.startswith(_ADDR_PRAEFIX):
+                continue
+            if aenderung:
+                aenderung = False
+                continue
+            anzahl += len(zeile.removeprefix(_ADDR_PRAEFIX).split(" / "))
     return anzahl
 
 
@@ -235,3 +258,67 @@ def test_fragenliste_ohne_abschnitt_ist_befund(
     extra.write_text("## 1. Test\n", encoding="utf-8")
     assert main([]) == 1
     assert "Fragenliste ohne Abschnitt: xx/FRAGEN.md" in capsys.readouterr().out
+
+
+def test_aenderungen_im_kopf_stimmen_mit_ueberschriften(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    _baum_kopieren(tmp_path)
+    monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
+    assert main(["--schreiben"]) == 0
+    kopf = (tmp_path / "fragen-index.md").read_text(encoding="utf-8")
+    fund = re.search(r"Änderungen: (\d+)", kopf)
+    assert fund is not None
+    assert int(fund.group(1)) == _aenderungsueberschriften(tmp_path)
+
+
+def test_entfernte_aenderung_fehlt_in_der_nummernfolge(
+    tmp_path: Path, monkeypatch: object, capsys: object
+) -> None:
+    _baum_kopieren(tmp_path)
+    monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
+    ziel = tmp_path / "rs" / "FRAGEN.md"
+    text = ziel.read_text(encoding="utf-8")
+    anfang = text.index("## 14. Änderung: ")
+    ende = text.index("## 15. Änderung: ")
+    assert anfang < ende
+    ziel.write_text(text[:anfang] + text[ende:], encoding="utf-8")
+    assert main([]) == 1
+    assert "fehlend in `rs/FRAGEN.md`: 14" in capsys.readouterr().out
+
+
+def test_nicht_wohlgeformte_aenderungsadresse_ist_befund(
+    tmp_path: Path, monkeypatch: object, capsys: object
+) -> None:
+    _baum_kopieren(tmp_path)
+    monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
+    ziel = tmp_path / "rs" / "FRAGEN.md"
+    text = ziel.read_text(encoding="utf-8")
+    alt = "- **Adresse:** 02 §11.3"
+    assert alt in text
+    ziel.write_text(
+        text.replace(alt, _ADDR_PRAEFIX + "kein-abschnitt", 1),
+        encoding="utf-8",
+    )
+    assert main([]) == 1
+    assert (
+        capsys.readouterr().out.count(
+            "Adresse nicht wohlgeformt in `rs/FRAGEN.md` Nr. 23"
+        )
+        == 1
+    )
+
+
+def test_ohne_aenderungen_kein_abschnitt_2(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    _baum_kopieren(tmp_path)
+    monkeypatch.setattr("tools.check_fragen.ROOT", tmp_path)
+    ziel = tmp_path / "rs" / "FRAGEN.md"
+    text = ziel.read_text(encoding="utf-8")
+    marke = "# Nachzug\n"
+    assert marke in text
+    ziel.write_text(text[: text.index(marke)], encoding="utf-8")
+    assert main(["--schreiben"]) == 0
+    index = (tmp_path / "fragen-index.md").read_text(encoding="utf-8")
+    assert "## 2." not in index

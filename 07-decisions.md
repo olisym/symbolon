@@ -18337,3 +18337,104 @@ Fläche, die nicht vorhergesagt ist, also von allem im Delta ausser den drei ben
 `rs/spec/01-claim-atom.md` und `rs/spec/02-trust-flow.md` auf `573db57`; `rs/spec/STAND.md` neu
 gefasst. Der Auftrag liegt ausserhalb des Repositoriums und geht nach dem Lauf als
 `rs/AUFTRAG-NACHZUG.md` in den Baum, wie `rs/AUFTRAG.md` nach dem ersten Lauf.
+
+### D442 — Abnahme des Nachzugs: F1 und D439 tragen, F2 nicht, und das Autor-Flag steht nur im Code
+
+**Abnahme.** Der Lauf ist ein Commit `77f572d` auf `1c8be13` im Isolat. Geändert sind
+`src/trust.rs`, `src/main.rs`, `tests/integration.rs` und `FRAGEN.md`. Die eigenen Tests sind von
+15 auf 17 gestiegen, alle grün. Der Nachzugsabschnitt enthält elf Änderungseinträge (14 bis 24)
+und keine Frage; die Liste der alten Einträge nennt alle dreizehn als beantwortet. Der Detektor
+aus D441 Beschluss 4 hat keinen Treffer: Jede Registernummer, die der Nachzug zitiert, steht im
+Ankersatz. Der Lauf ist als Messung angenommen. Die Fassung wird nicht nachgebessert, denn ihre
+Lesart ist das Ergebnis.
+
+**Gemessen — der Vergleich.** Das Binary wurde im Container neu gebaut und über alle vier Sätze
+gegen `tools/ref_block.py` gehalten, die `inf`-Zeile ausgenommen (D391 Beschluss 4). Der
+Zeilenumfang stimmt bis auf die Abweichungen unten. `FALL-02` ist leer. Übrig bleiben zwei
+Klassen, zusammen zwölf Zeilen.
+
+**Was trägt.** F1 stimmt: b3 `active`, b2 `pending`, Fluss 3 je Ziel. Der Satz aus D437 ist also
+so lesbar, wie er gemeint ist. `SUBGRANULAR_VOUCH` stimmt in allen vier Sätzen; das ist D439
+Beschluss 1, mit dem Vorbehalt aus D441 (der Satz steht ausdrücklich im Delta). Die Nullgruppen
+aus D396 sind weg, und `VOUCH_WITHOUT_TEXP` trägt seine Kante wie in der Referenz (D392, Eintrag
+18 der Fassung).
+
+**Klasse 1 — acht Kanten mit `cap 0`.** Es sind vier in `TP-02` Profil E und je zwei in `TZ-02`
+Z1 und Z2. Die Referenz filtert sie weg. Das ist die Umfangsfrage aus D393, und D396 Beschluss 1
+hat sie dem Auftrag zugeschrieben, nicht dem Text. D396 Beschluss 2 verlangt, dass ein künftiger
+Auftrag die `kante`-Zeile als Kante aus `E⁺` beschreibt. Der Nachzugsauftrag hat das nicht getan:
+Er erklärt die Schnittstelle aus `AUFTRAG.md` für unverändert gültig. Das ist ein Fehler des
+Supervisors. Die Erwartung aus D441 Beschluss 5, der Diff sei leer, hat dieselbe Klasse
+übersehen. Die Zeilen tragen zu keiner Zahl bei. Ebenfalls falsch war die Zeilenerwartung im
+Messblock für `TZ-02`: 285 statt 293 (von 302 sind neun `inf`-Zeilen abzuziehen, nicht 17).
+
+**Klasse 2 — F2, die Stelle aus D398.** `rs` gibt den beiden `equivocation-flagged` Claims f1 und
+f2 `n_kante = 1` und je eine Kante mit `cap 2`. Die Referenz gibt `n_kante = 0` und keine Kante.
+Die Zustände stimmen in beiden Ausgaben, die Abweichung sitzt in der Gruppenstufe (D368
+Beschluss 2). Im Code steht es als `carries_edge` für `Active` und `EquivocationFlagged`, mit dem
+Kommentar `include_flagged=true`. Nach D441 Beschluss 2 ist das der starke Fall: Die Fassung hat
+die Stelle mit dem neuen Text vor Augen falsch gelesen.
+
+**Die Ursache liegt im Text.** `02` braucht `equivocation-flagged` in zwei Bedeutungen.
+
+- `§3.1` bindet das Aktiv-Set ausdrücklich an den Zustand `active`: „Stimmen beide nicht überein,
+  gilt der Zustand."
+- `§8` fragt unter „Geflaggte Autoren", ob ein **Bürge mit `equivocation-flagged`** noch Fluss
+  trägt, und nennt das Policy (`include_flagged`). Das ist ein Claim-Zustand, gebraucht als
+  Eigenschaft eines Autors.
+- `§10` verweist auf die Wirkung „wie bei `EQUIVOCATION_FLAGGED`". Einen Vermerk dieses Namens
+  führt die Tabelle nicht.
+
+Die Referenz löst das in `symbolon/trust/derive.py` auf. Ein Autor gilt als geflaggt, wenn er
+`OVERCOMMITTED_AUTHOR` trägt oder wenn irgendein Claim von ihm im Bestand `equivocation-flagged`
+ist, über alle Scopes. `include_flagged` filtert die Gruppen dieser Autoren; der geflaggte Claim
+selbst liegt nie im Aktiv-Set. **Die Definition des geflaggten Autors steht in keiner
+Spec-Zeile.** Der Auftragssatz „Vouches geflaggter Autoren tragen ihre Kante" hat die
+Verwechslung begünstigt, erzeugt hat er sie nicht: `§8` sagt dasselbe.
+
+**Befund über die Fassung.** Der Widerspruch zwischen `§3.1` und `§8` lag offen, und die Fassung
+hat ihn ohne Frage-Eintrag entschieden. Das ist das Muster aus D390 Beschluss 2: eine Abweichung,
+die die Fassung nicht als solche erkannt hat, weil sie einer anderen Textstelle folgte.
+
+**Beschluss 1 — D439 wird berichtigt.** D439 hat F2 allein dem alten `§3.1` zugeschrieben. Der
+heutige `§3.1` hat die Abweichung nicht beseitigt, also war die Zuschreibung unvollständig. Die
+tragende Ursache ist `§8` zusammen mit dem fehlenden Autor-Flag.
+
+**Beschluss 2 — O73 ist erledigt.** Die Fassung liest den heutigen Text, und der Stolperdraht
+hat einen Befund geliefert, der ohne zweiten Zeugen nicht sichtbar geworden wäre. Der Befund geht
+an O77.
+
+**Beschluss 3 — O77 wird eröffnet.** Das Autor-Flag aus Equivocation wird nach `02` normiert, und
+`§8` und `§10` werden so gefasst, dass `equivocation-flagged` nur noch den Zustand eines Claims
+benennt. Meine Position für den Splice: Der geflaggte Autor wird in `§8` definiert, wie ihn die
+Referenz rechnet, und ausdrücklich über alle Scopes. Eine Gabel in der Kette verrät den Autor,
+nicht einen Scope. Ausdrücklich wird auch: `include_flagged` entscheidet über die Gruppen eines
+Autors und nie über das Aktiv-Set. Entschieden wird im Splice, nach vollständiger Lesung von
+`01 §6` und `02 §8`, nicht hier.
+
+**Beschluss 4 — O78 wird eröffnet.** Die fortgeschriebene Fragenliste der Fassung geht noch nicht
+in den Baum. Eine Probe im Supervisor-Klon zeigt: `tools/check_fragen.py` zählt die
+Änderungseinträge als Fragen und meldet den Index als abweichend. Ein neu erzeugter Index würde
+elf Änderungen als Nennungen an ihren Adressen führen. Änderungen sind aber keine Fragen; sie
+sind die Karte vom Delta auf den Code (D441 Beschluss 3). Das Werkzeug muss die Eintragsarten
+unterscheiden, bevor die Liste übernommen wird. `rs/AUFTRAG-NACHZUG.md` geht jetzt in den Baum,
+weil nichts ihn prüft.
+
+**Nebenbefund.** Eintrag 23 der Fassung weist überlappende Anker und Ziele zurück, indem er das
+ganze Programm beendet statt nur das Profil. Das hat keine Wirkung auf die Vektoren und ist kein
+Befund gegen den Text.
+
+**Verworfen — F2 als Fehler der Fassung buchen und den Auftrag schärfen.** Der Text trägt die
+Lesart von `rs`. Eine Fassung, die dem Satz in `§8` folgt, handelt nicht gegen die Spec, sondern
+gegen eine andere Stelle derselben Spec.
+
+**Verworfen — die Nachzugsliste mit neu erzeugtem Index übernehmen.** Der Index zählte dann
+Änderungen als Mehrdeutigkeiten, und eine Adresse mit vielen Änderungen sähe aus wie eine mit
+vielen Fragen.
+
+**Schwächste Stelle.** Die Definition des geflaggten Autors in Beschluss 3 ist aus der Referenz
+abgelesen. Dass die Referenz die gemeinte Norm rechnet, ist nicht belegt. Belegt ist nur, dass der
+Text sie nicht sagt.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O73 in der Schliessform, O77 und O78 neu);
+`rs/AUFTRAG-NACHZUG.md` neu.

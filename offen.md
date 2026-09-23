@@ -340,20 +340,9 @@ Gebaut auf `o72-intervall-now`, gemergt als `8f8b460`; nur `flow.py` berührt, `
 blieb `include_flagged = True` über ein Fenster; die Kostenfrage aus D406 bleibt ohne
 Obergrenze.
 
-### O73 Der zweite Zeuge liest einen überholten Text
+### O73 Der zweite Zeuge liest einen überholten Text — erledigt (D442)
 
-Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in neun Commits
-geändert (D394, D396, D398, D400, D402, D406, D426, D429, D439; berichtigt in D441) und
-`01-claim-atom.md` in zwei (D396, D437),
-darunter der ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D368
-hält `02a` zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie
-beschlossen.
-Stufe A (D439) hat es gezeigt: in `ZF-02` F2 gibt `rs` geflaggten Claims eine Kante, weil ihr
-`02 §3.1` das Aktiv-Set noch ohne Zustand definiert (D398). Bei Stufe B müssen F1 und F2
-übereinstimmen. Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne
-zweiten Zeugen entschieden werden müsste.
-D441: Diät neu gefasst (Ankersatz `573db57`, `02a` und Ankerdatei weiter zurückgehalten),
-Nachzug statt Neubau, Erwartung fixiert. Offen ist der Lauf.
+`rs` auf `573db57` nachgezogen (D441); F1 und D439 tragen, F2 geht an O77.
 
 ### O74 Verschachtelung als Norm oder Schnittmenge bei der Auswertung
 
@@ -368,3 +357,17 @@ Keine wachsenden Zahlen mehr; Verweis auf `make check`, Registerende und Sitzung
 ### O76 `pending` und die Flags sind in keinem Vektorsatz belegt — erledigt (D439)
 
 `ZF-02` (D438) belegt sie; Stufe A hat `rs` darauf gemessen, der Rest von F2 gehört zu O73.
+
+### O77 Das Autor-Flag aus Equivocation steht nur im Code
+
+Aus D442. `02 §8` fragt nach einem „Bürgen mit `equivocation-flagged`", `02 §10` verweist auf
+`EQUIVOCATION_FLAGGED`, das die Vermerktabelle nicht führt. Wann ein Autor geflaggt ist, definiert
+allein `symbolon/trust/derive.py`: `OVERCOMMITTED_AUTHOR` oder ein Claim im Zustand
+`equivocation-flagged`, über alle Scopes. `rs` hat daraus eine Ausnahme vom Aktiv-Set gemacht
+(`ZF-02` F2). Zu tun: das Autor-Flag in `§8` normieren, `§10` berichtigen, `§3.1` unberührt.
+
+### O78 Die Fragenliste kennt nur eine Eintragsart
+
+Aus D442. Der Nachzug von `rs` führt Änderungseinträge neben Fragen (D441 Beschluss 3).
+`tools/check_fragen.py` zählt beide als Fragen. Bis das Werkzeug sie unterscheidet, bleibt die
+fortgeschriebene `rs/FRAGEN.md` ausserhalb des Baums; sie liegt im Isolat auf `77f572d`.

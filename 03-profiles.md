@@ -639,6 +639,13 @@ Hirschmans Exit, strukturell verankert.
   Schlüsselmenge übergibt, bekommt ein veraltetes Ergebnis — sichtbar, aber nicht erkannt.
 - **Keine Emissionsschranke** (§3.3.4). Ungedeckte Emission ist auditierbar und sozial, nicht
   mechanisch.
+- **`settlement()` prüft keine Mitgliedschaft.** Eine Obligation eines Nichtmitglieds ist ebenso
+  `OPEN` oder `SETTLED`. Die Substanz liegt nach `00 §4.2` in einem Scope ohne `participants`;
+  eine Prüfung koppelte sie an den Governance-Scope (`08 §3`, D423).
+- **Kein Gläubiger-Timeout.** Ohne `t_exp` bleibt eine Obligation offen, bis der Gläubiger
+  quittiert. Ein Erlass ist eine Quittung ohne Gegenleistung; das Protokoll unterscheidet beides
+  nicht (`08 §2.1`). Einen Zustand „überfällig" gibt es nicht, weil `OPEN` Nichtzahlung nicht von
+  Nichtzustellung trennt (`08 §7`, D423).
 - **Beweise in `accusation.v` werden nicht geprüft** (§2.1). Die Konvention richtet sich an
   Menschen.
 - **Der Zweck-Tag in `vouch.v` Key `1` ist unkodiert.** Er ist Trust-Flow-Semantik und braucht

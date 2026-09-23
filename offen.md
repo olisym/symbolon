@@ -32,29 +32,29 @@ bilateralen Zusagen ist die Antwort, kein Ersatz. Aus D312, entschieden in D327.
 Konzentriert Macht über die Auszahlungsentscheidung. Ort: Policy, in einem eigenen Scope,
 getrennt von `participants` (`00 §4.2`). Aus D312, entschieden in D327.
 
-### O3 `OPEN` unterscheidet Verweigerung nicht von Partition
+### O3 `OPEN` unterscheidet Verweigerung nicht von Partition — erledigt (D423)
 
-Das begrenzt, was Reputation aus Nichtleistung ableiten darf. Aus D312.
+Getragene Grenze in `08 §7`; `OPEN` ist kein negativer Ausgang (`05 §3`).
 
-### O4 Gleicher Zustand bei allen Beobachtern ist eine Eigenschaft der Verteilung
+### O4 Gleicher Zustand bei allen Beobachtern ist eine Eigenschaft der Verteilung — erledigt (D423)
 
-Nicht von `settlement`. Das Protokoll erzwingt die Kopie nicht. Aus D312.
+Bereits von `08 §2.3` getragen; kein Text geändert.
 
-### O5 Preisblindheit trägt keine Versicherungsphase
+### O5 Preisblindheit trägt keine Versicherungsphase — erledigt (D423)
 
-`03 §3.1` ist die Stelle, an der die Spec eine Versicherungsphase nicht mehr trägt. Aus D312.
+Prüftabelle `08 §3`: Wertschicht, wie D313 es schon entschieden hatte.
 
-### O6 `settlement` prüft keine Mitgliedschaft
+### O6 `settlement` prüft keine Mitgliedschaft — erledigt (D423)
 
-Eine Obligation eines Nichtmitglieds ist ebenso `OPEN` oder `SETTLED`. Aus D312.
+Prüftabelle `08 §3` und `03 §5`: nicht Protokoll, `00 §4.2`.
 
-### O7 Ohne `t_exp` bleibt eine Obligation ohne Ende offen
+### O7 Ohne `t_exp` bleibt eine Obligation ohne Ende offen — erledigt (D423)
 
-Ein Gläubiger-Timeout gibt es nicht. Aus D312.
+Prüftabelle `08 §3`: Erlass ist `receipt@1`, Ausfall `accusation@1`, kein neuer Mechanismus.
 
-### O8 `tools/szenario_absicherung.py` ist Wegwerfcode
+### O8 `tools/szenario_absicherung.py` ist Wegwerfcode — erledigt (D423)
 
-Wird nicht fortgeschrieben. Jeder weitere Szenariolauf setzt auf `tools/sim/` auf.
+Entschieden in D312; die Datei bleibt im Baum, Szenarioläufe setzen auf `tools/sim/` auf.
 
 ---
 

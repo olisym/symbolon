@@ -55,6 +55,10 @@ Akteur nicht kuriert/nachkommt. Keine Zwangskletterei durch sinnlose weiche Spro
 
 Verhältnismäßigkeit entsteht so durch den *Einstiegspunkt*, nicht durch eine starre Reihenfolge.
 
+**`OPEN` ist kein negativer Ausgang (D423).** Eine offene Obligation sagt nicht, ob nicht gezahlt,
+nicht quittiert oder nur nicht zugestellt wurde (`08 §7`). Nichtleistung ist ein subjektiver
+Vorwurf und tritt über `accusation@1` ein, also in der zweiten Zeile dieser Tabelle.
+
 ---
 
 ## 4. Cure & Rückfälligkeit (E2 — rehabilitativ mit steigenden Kosten)

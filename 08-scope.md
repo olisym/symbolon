@@ -107,6 +107,9 @@ Anwendung auf den Bestand:
 | Gruppen-Soll (Anspruch einer Gruppe gegen einen Beitragspflichtigen) | verteilt Macht (wer zählt zur Gruppe, wessen Nichtzustimmung bindet); Umlage aus bilateralen Obligationen reicht bereits | kein neuer Mechanismus nötig (O1, D327) |
 | Verwahrerrolle (Sammelstelle mit Auszahlungspflicht) | konzentriert Macht über die Auszahlungsentscheidung | Policy, eigener Scope (O2, D327), `00 §4.2` |
 | Prädikat für den Versicherungsfall | macht einen Zustand feststellbar | Protokoll, bereits vorhanden: `accusation@1` (D67, D327) |
+| Prämie und Deckungssumme einer Versicherung | Preisbildung, `03 §3.1` | Wertschicht, nicht vorhanden (O5, D313, D423) |
+| Mitgliedschaftsprüfung in `settlement` | bestimmte, wer Gläubiger sein darf, und koppelte die Substanz an den Governance-Scope | nicht Protokoll; ein Werkzeug darf beim Lesen filtern (O6, D423), `00 §4.2` |
+| Gläubiger-Timeout (Obligation endet ohne `t_exp` des Schuldners) | Erlass trägt `receipt@1`, Ausfall `accusation@1`; ein Zustand „überfällig" läse aus Ausbleiben Absicht (§7) | kein neuer Mechanismus nötig (O7, D423) |
 
 Die Prüftabelle ist bei jedem neuen Mechanismus fortzuschreiben. Ein Eintrag in der rechten
 Spalte "Protokoll" verlangt eine Begründung in der mittleren.
@@ -199,6 +202,9 @@ Was dieses Protokoll ausdrücklich nicht liefert:
 - **Keine Wahrheit über die Welt.** Nur Zurechenbarkeit und Widerspruchsfreiheit (2.1).
 - **Keine Verhinderung von Täuschung.** Nur ihre Unbestreitbarkeit nach dem Zusammentreffen (2.2).
 - **Keine Einigkeit über Fristablauf.** Zwei korrekte Verifizierer dürfen uneins sein (2.3).
+- **Keine Unterscheidung von Verweigerung und Ausbleiben.** `OPEN` heißt „aktiv, keine passende
+  Quittung" (`03 §3.3.2`) und deckt drei Lagen: nicht gezahlt, nicht quittiert, nicht zugestellt.
+  Wer daraus auf Unwilligkeit schließt, verwechselt Partition mit Absicht (D423).
 - **Keine Deckung.** Ein Bond ist eine Zusage, kein Treuhandkonto. Ausfall wird sichtbar und
   teuer; unmöglich wird er nicht.
 - **Keine Wiedergutmachung ohne Beteiligte.** Alles, was das Protokoll tut, setzt voraus, dass

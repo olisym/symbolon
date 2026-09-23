@@ -17395,3 +17395,67 @@ schreibt `command ls`. Das umgeht in fish Funktionen und Aliase.
 
 **Nicht beschlossen.** Keine Liste weiterer Aliase beim Operator. Wer einem Befehl eine
 bestimmte Semantik abverlangt, benennt ihn so, dass kein Alias greift.
+
+### D423 — Sektion A: O3 bis O8, der Rest aus D312 durch das Aufnahmekriterium
+
+**Anlass.** D327 hat drei der Befunde aus D312 durch `08 §3` geschickt und O1, O2 geschlossen. Die
+übrigen standen seitdem als O3 bis O7 in Sektion A, nie gegen dieselbe Frage gehalten. Dieser
+Eintrag schliesst die Runde. Gelesen vorab: `08 §2`, `§3`, `§7`, `03 §3`, `§5`, `05 §1` bis `§3`,
+`00 §4.2`, D312, D313, D327.
+
+**O3 — `OPEN` unterscheidet Verweigerung nicht von Partition.** Genauer, als D312 es sagt: `OPEN`
+heisst „aktiv, keine passende Quittung" (`03 §3.3.2`), und darunter liegen drei Lagen — der
+Schuldner hat nicht gezahlt, der Gläubiger hat nicht quittiert, die Quittung ist beim Beobachter
+nicht angekommen. Die zweite belastet den Gläubiger, nicht den Schuldner. Kein Mechanismus trennt
+die dritte von den ersten beiden; das ist die Grenze verteilter Systeme, die `08 §2.2` für
+Equivocation schon trägt. **Ort: getragene Grenze**, als Punkt in `08 §7`, und ein Absatz in
+`05 §3`: `OPEN` ist kein negativer Ausgang, Nichtleistung tritt als subjektiver Vorwurf über
+`accusation@1` ein. Gemessen: ausser `settlement` selbst (`symbolon/profiles/credit.py`) liest kein
+Produktivpfad `OPEN`; der einzige andere Leser ist der Wegwerfcode aus O8. Der Absatz ändert also
+keinen Befund, er legt fest, bevor ein Leser entsteht.
+
+**O4 — Gleichheit ist eine Eigenschaft der Verteilung.** Bereits getragen: `08 §2.3` sagt, dass
+jeder Beobachter lokal rechnet und die Ergebnisse konvergieren, soweit das Wissen konvergiert.
+D312 hat einen Fall davon gemessen, keine Lücke. **Kein Text geändert.**
+
+**O5 — Preisblindheit trägt keine Versicherungsphase.** D313 hat es entschieden, ohne den Posten
+zu schliessen: Prämien und Deckungssummen gehören nicht ins Protokoll, eine Versicherung ist
+Zusammensetzung. **Ort: Wertschicht**, der benannte leere Empfänger aus `08 §3`. Als Zeile in die
+Prüftabelle, damit die Zuordnung dort steht, wo D327 die übrigen hingeschrieben hat.
+
+**O6 — `settlement` prüft keine Mitgliedschaft.** Test aus `08 §3`: eine solche Prüfung bestimmte,
+wer Gläubiger sein darf, und verteilt damit Macht. Dazu der strukturelle Grund: nach `00 §4.2`
+liegt die Obligation in einem Scope ohne `participants`, die Mitgliedschaft im Governance-Scope
+daneben. Eine Prüfung koppelte beide und höbe den Schnitt auf, der ein Zerwürfnis billig macht.
+**Ort: nicht Protokoll**; ein Werkzeug darf beim Lesen filtern. Zeile in `08 §3`, Punkt in
+`03 §5`.
+
+**O7 — ohne `t_exp` kein Ende.** Was ein Gläubiger-Timeout leisten sollte, ist schon ausdrückbar:
+den Erlass trägt `receipt@1` — das Protokoll unterscheidet eine Quittung für Zahlung nicht von
+einer ohne (`08 §2.1`) —, den festgestellten Ausfall `accusation@1`. Übrig bliebe ein Zustand
+„überfällig" aus einer Frist des Gläubigers, und der läse aus Ausbleiben Absicht: O3 mit Datum.
+Dass die Obligation offen bleibt, ist die richtige Richtung. Eine Schuld erlischt nicht, weil Zeit
+vergeht, sondern weil jemand es signiert — der Schuldner vorab mit `t_exp`, der Gläubiger mit der
+Quittung. **Ort: kein neuer Mechanismus nötig.** Zeile in `08 §3`, Punkt in `03 §5`.
+
+**O8 — Wegwerfcode.** Entschieden in D312, „wird nicht fortgeschrieben"; der Posten trug die
+Entscheidung im Rumpf und nie die Schliessform. Gemessen: die Datei liegt weiter im Baum, wie D312
+es wollte. Geschlossen.
+
+**Schwächste Stelle.** Der Absatz in `05 §3` regelt eine Stufe, die nach `05 §2` im Kopf des
+Beobachters stattfindet. Das Protokoll kann niemandem verbieten, aus `OPEN` etwas zu schliessen; es
+kann nur festlegen, dass `OPEN` keine Evidenz ist, auf die sich eine Eskalation beruft. Getragen,
+weil die Leiter ab Stufe 2 an signierten Claims hängt und der Satz dort greift.
+
+**Verworfen — ein Zustand `OVERDUE` in `settlement`.** Er wäre die bequeme Antwort auf O7 und
+genau die Verwechslung aus O3.
+
+**Verworfen — O4 in `08 §7` zu wiederholen.** `§2.3` sagt es; eine zweite Stelle driftet.
+
+**Nicht nachgezogen: O41.** Sektion A ist damit leer. O41 knüpft eine dritte Implementierung daran,
+dass der Anwendungsabschnitt Fragen an `01` zurückwirft; diese Runde hat keine geworfen — alle
+Befunde landeten in `03`, `05` oder `08`. O41 bleibt stehen.
+
+**Kein Lauf.** Geändert: `08-scope.md` (§3 drei Zeilen, §7 ein Punkt), `05-enforcement.md` (§3
+ein Absatz), `03-profiles.md` (§5 zwei Punkte), `offen.md` (O3 bis O8 in der Schliessform). Keine
+Code-Datei.

@@ -17620,3 +17620,34 @@ bleibt bis dahin stehen, sein Text wird nach D316 nicht angefasst.
 
 **Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O14 in der Schliessform). Keine
 Code-Datei; die beiden Rücknahmeproben wurden im Klon zurückgenommen.
+
+### D428 — O16 und O17: die beiden Fussnoten aus D246
+
+**Anlass.** Dritter Cluster der Triage. D246 hat zehn von zwölf Pflichten als geprüft geführt und
+zwei Fussnoten angehängt, die das Wort nicht trägt; beide wurden Posten. Gelesen: D246, D119,
+`02 §6.2`, `§10`, `symbolon/profiles/credit.py`. Gemessen im Supervisor-Klon auf `345fe16`.
+
+**O16 — N09 ist beobachtet, nicht durchgesetzt. So beschlossen, geschlossen.** D119 hat
+`VOUCH_WITHOUT_TEXP` ausdrücklich ohne Wirkung eingeführt: den Vouch aus dem Budget-Set zu nehmen
+gäbe Budget frei, und das darf nach `02 §3.1` nur die Uhr. D246 selbst schreibt „beschlossen so,
+nicht versehentlich". Die Spec trägt es an zwei Stellen: in der Vermerkstabelle von `02 §10`
+(„bleibt, bindet unbegrenzt") und im Absatz darunter, der auch begründet, warum dem Vouch die
+Kante nicht entzogen wird. Der Posten beschrieb einen Zustand, keine Lücke.
+
+**O17 — N10 ist teilgemessen. Die Prämisse ist überholt.** D246 fand für `INVALID_V_TYPE` drei
+Erzeugungsstellen in `credit.py` und eine Teststelle. D287 hat danach zehn Träger für
+Doppelerzeuger gebaut, darunter `tests/profiles/test_zweitstellen.py`. Die Rücknahmeproben heute:
+
+| Neutralisiert | rot |
+|---|---|
+| Obligation, Key 1 kein `bstr` (`credit.py`, Zeile 52) | `test_obligation_v1_wrong_type` |
+| Quittung, Key 0 kein gültiger `uint` (`credit.py`, Zeile 170) | `test_receipt_v0_wrong_type` |
+
+Je ein Test rot, 917 grün, beide Eingriffe im Klon zurückgenommen. Die dritte Stelle, Key 0 der
+Obligation, war schon in D246 geprüft. **Beide Posten geschlossen.**
+
+**Wofür D246 damit steht.** Die Zahl „zehn geprüft" gilt jetzt ohne die N10-Fussnote. Die
+N09-Fussnote bleibt als Aussage richtig — geprüft ist der Vermerk, nicht eine Durchsetzung —,
+aber sie ist keine offene Frage.
+
+**Kein Lauf.** Geändert: `offen.md` (O16, O17 in der Schliessform). Keine Code-Datei.

@@ -86,13 +86,13 @@ Geprüft, gemessen mit Rücknahmeprobe; der Gleichstand hängt an einer einzigen
 
 Prüfreihenfolge der Go-Fassung, Anker vor Expiry, deterministisch; kein Befund nach Prüfregel 61.
 
-### O16 N09 ist beobachtet, nicht durchgesetzt
+### O16 N09 ist beobachtet, nicht durchgesetzt — erledigt (D428)
 
-D119, D246.
+So beschlossen in D119, getragen in `02 §10`; kein Mangel, sondern ein Zustand.
 
-### O17 N10 ist teilgemessen
+### O17 N10 ist teilgemessen — erledigt (D428)
 
-D246.
+Seit D287 alle drei Erzeugungsstellen getragen; gemessen mit Rücknahmeprobe.
 
 ### O18 `RATIFY_WITH_EXPIRY` und der Zeugenpfad tragen die Weitergaberegel ungeprüft
 

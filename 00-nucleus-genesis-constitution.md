@@ -238,7 +238,8 @@ auf E-1.
 
 `obligation@1`, `rotate-key@1` und `rotate-ack@1` sind **immer** irrevocable
 (Protokoll-Default, Profile-II §3.3.3 und §6.1). `irrevocable_predicates` kann die Menge nur
-**erweitern**, nie verkleinern:
+**erweitern**, nie verkleinern — gemessen am Boden, nicht an der Vorgängerfassung. Ein Amendment
+darf ein früher deklariertes Prädikat weglassen (`04 §8`, D424):
 
 ```
 wirksame Menge  =  { "obligation@1", "rotate-key@1", "rotate-ack@1" }

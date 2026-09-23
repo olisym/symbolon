@@ -17459,3 +17459,57 @@ Befunde landeten in `03`, `05` oder `08`. O41 bleibt stehen.
 **Kein Lauf.** Geändert: `08-scope.md` (§3 drei Zeilen, §7 ein Punkt), `05-enforcement.md` (§3
 ein Absatz), `03-profiles.md` (§5 zwei Punkte), `offen.md` (O3 bis O8 in der Schliessform). Keine
 Code-Datei.
+
+### D424 — O32: ein Amendment darf Schutz zurücknehmen; O33: Ausgang 5 hat seinen Ort in `01 §8`
+
+**Anlass.** Die Runde nach D423 sollte zwei Posten schliessen, die im Rumpf eine Entscheidung zu
+tragen schienen. Die Prämisse hielt nur für einen. O33 war entscheidbar. O32 nicht: D167 nennt dort
+den Ort der Frage und klammert die Frage selbst ausdrücklich aus. Der genannte Ort war zudem
+veraltet — `04 §5` ist heute der Nukleus-Akt, die Verfassungsänderung steht in `§7.1`. O32 wurde
+damit als Fork entschieden, nicht als Schliessform.
+
+**O32 — Beschluss: das Weglassen ist erlaubt und wird getragen.** Die Garantie des Protokolls ist
+der Boden aus `00 §5.2` (`obligation@1`, `rotate-key@1`, `rotate-ack@1`); für Governance schützt
+die Auszählbarkeit `vote@1` und `ratify@1` (`04 §1.1`), weil eine Fassung ohne sie nicht
+auszählbar ist. Was darüber hinaus irrevocable ist, wählt der Nukleus. Nach `08 §3` gehört ein
+solcher Wert in die Verfassung, „wo er geändert werden kann". Ein Verbot des Weglassens machte ihn
+unänderbar und damit zu Protokoll, ohne dass er den Test bestanden hätte.
+
+**Der Preis, benannt.** Ein Widerruf auf ein geschütztes Prädikat ist gültig, gespeichert und
+wirkungslos (`03 §3.3.3`). Fällt der Schutz durch ein Amendment, wirkt er ab der neuen Fassung —
+für jeden Leser, der unter ihr rechnet, auch rückwirkend für einen Widerruf, der lange vorher
+signiert wurde. Wer sich auf den Schutz verlassen hat, verliert ihn durch einen Akt, an dem er
+womöglich nicht beteiligt war. Getragen, weil die Änderung vor jedem `accept-rules@1` am Vergleich
+der beiden Verfassungsobjekte sichtbar ist, weil die `amendment`-Schwelle hoch ist, und weil
+Austritt bleibt — dasselbe Ventil wie bei der Governance-Rotation in `00 §9`.
+
+**Klarstellung in `00 §5.2`.** Der Satz „kann die Menge nur erweitern, nie verkleinern" meint den
+Boden. Gelesen gegen die Vorgängerfassung gäbe er die Antwort, die dieser Eintrag verwirft. Die
+Stelle nennt jetzt den Massstab.
+
+**Verworfen — Obermengenpflicht bei der Prüfung eines `ratify@1`.** Sie machte jede
+Fehldeklaration unheilbar; D167 hat die monotone Vereinigung aus demselben Grund verworfen. Der
+einzige Ausweg wäre ein Fork mit neuem `N`, also derselbe Preis wie für `amendment_rule`, hier für
+einen Wert, der nicht dieselbe Capture-Fläche hat.
+
+**Verworfen — ein Vermerk für weggefallene Prädikate.** `resolve_policy` müsste die
+Vorgängerfassung sehen, also den Kettenlauf, den D161 nicht gebaut hat. Der Vergleich zweier
+Verfassungsobjekte ist Werkzeugarbeit.
+
+**O33 — Ausgang 5.** D127 hat ihn an den Einlesepfad verwiesen, weil ein doppelt eingespielter
+Sicherungsblob den Fork in zwei getrennten Stores erzeugt. Der Ort war da, nur nicht benannt: ein
+doppelt eingespielter Blob ist „mehrere Geräte, ein Schlüssel", und das trägt `01 §8` als
+Ein-Schreiber-Annahme. Erkannt wird der Fork von jedem Leser, der beide Zweige sieht, als
+Equivocation nach `01 §4`; dafür braucht es nichts Neues. **Das Werkzeug bekommt keinen Ausgang.**
+Nach der zweiten Signatur verhindert ein Halt nichts: der Beweis ist signiert, und nach D162 kostet
+er die Autorität des Nukleus, unabhängig davon, ob der Autor danach weiterschreibt. Vermeiden lässt
+sich der Fall nur im Betrieb, und damit hängt er am Sicherungsblob (O25).
+
+**Drift, beim Lesen gefunden.** `werkzeuge.md §7` sagte, `store_laden` lese fremde Bytes mit
+`claim_from_bytes`, das dafür untauglich sei. Seit D138 ruft `store_laden` `read_claim` ohne Store;
+gemessen in `tools/sim/welt.py`. Übrig ist nur die fehlende Meldung übersprungener Claims, O34. Der
+Punkt verweist jetzt dorthin.
+
+**Kein Lauf.** Geändert: `00-nucleus-genesis-constitution.md` (§5.2 ein Satz), `04-governance.md`
+(§8 ein Punkt), `werkzeuge.md` (§2.2 ein Absatz, §7 zwei Punkte zu einem), `offen.md` (O32, O33 in
+der Schliessform). Keine Code-Datei.

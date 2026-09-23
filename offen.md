@@ -153,13 +153,13 @@ Mit D166 zurückgestellt, für alle drei Listen zugleich oder gar nicht. Nach D2
 dasselbe Bearer-Problem. Buchanan/Tullock (D326) liefert die theoretische Herleitung der
 Kostenkurve hinter D235s Tabelle, ändert die Entscheidung nicht.
 
-### O32 Darf ein Amendment ein deklariertes Prädikat weglassen?
+### O32 Darf ein Amendment ein deklariertes Prädikat weglassen? — erledigt (D424)
 
-Gehört an `04 §5`. D167.
+Ja, gemessen am Boden; getragen in `04 §8`, klargestellt in `00 §5.2`.
 
-### O33 Ausgang 5 und Selbst-Equivocation
+### O33 Ausgang 5 und Selbst-Equivocation — erledigt (D424)
 
-Entschieden, aber der Ort ist offen. D127.
+Ort ist `01 §8`; kein Werkzeugausgang, Vermeidung hängt an O25.
 
 ### O34 Meldung übersprungener Claims aus `store_laden`
 

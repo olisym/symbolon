@@ -106,8 +106,10 @@ fremder Redo heilt nicht, weil sich diese Lage nicht von selbst ändert. Beides 
 
 **Nicht erfasst: zwei eigene Claims auf dieselbe Spitze.** Der doppelt eingespielte Sicherungsblob
 erzeugt den Fork in zwei **getrennten** Stores, von denen keiner beide Zweige sieht. Der Fall ist
-durch eine Startprüfung nicht erreichbar, sondern erst bei der Vereinigung, und gehört damit zum
-Einlesepfad (D121) und nicht zur Spitze. Offen.
+durch eine Startprüfung nicht erreichbar, sondern erst bei der Vereinigung. Dort erkennt ihn jeder
+Leser als Equivocation nach `01 §4`; die Grenze trägt `01 §8` (Ein-Schreiber-Annahme). Das
+Werkzeug bekommt keinen Ausgang dafür: nach der zweiten Signatur verhindert ein Halt nichts mehr
+(D162, D424). Vermeiden lässt er sich nur im Betrieb, also beim Sicherungsblob (O25).
 
 ### 2.3 `signieren` — die Schreibordnung
 
@@ -374,9 +376,7 @@ dort steht, ist anderswo normativ, und dieses Werkzeug prüft nur, dass es auch 
 
 ## 7. Offene Punkte
 
-- **Zwei eigene Claims auf dieselbe Spitze** (§2.2) — gehört zum Einlesepfad, nicht zur Spitze.
-- **Der Einlesepfad selbst** (D121): `store_laden` in `tools/sim/welt.py` liest fremde Bytes mit
-  `claim_from_bytes`, das dafür untauglich ist. Bekannt, offen.
+- **Übersprungene Claims aus `store_laden`** werden nicht gemeldet (O34, D138).
 - **Der Sicherungsblob** mit Seed und Spitze (D120) ist beschrieben und nicht gebaut.
 - **B-4:** die Zwillingsbuchführung im Generator zieht kein Budget ab. Wirksam nur bei
   `erlaube_ueberzeichnung = False` **und** `erlaube_equivocation = True`, was heute keine

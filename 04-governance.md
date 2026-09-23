@@ -838,6 +838,13 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   und der Vorgang hinterlässt einen vom Urheber selbst signierten Beweis, dessen Folgen Layer 05
   regelt (D117).
 
+- **Ein Amendment kann Schutz zurücknehmen.** Lässt eine neue Fassung ein Prädikat aus
+  `irrevocable_predicates` weg, wirkt ein Widerruf darauf ab ihr — auch einer, der während des
+  Schutzes signiert wurde und bis dahin wirkungslos im Store lag. Erlaubt, weil über den Boden
+  (`00 §5.2`) hinaus die Menge Policy ist und Policy änderbar sein muss (`08 §3`). Sichtbar ist die
+  Änderung vor jedem `accept-rules@1` am Vergleich der beiden Verfassungsobjekte; das Ventil ist
+  die `amendment`-Schwelle und Austritt (D424).
+
 - **Kein Rechtsweg gegen die eigene Mehrheit.** Wer in `P` überstimmt wird, hat innerhalb des
   Nukleus keine Instanz über sich. Das Ventil ist Austritt und, wenn die Verfassung es vorsieht,
   das Föderationspanel (`§7.2`).

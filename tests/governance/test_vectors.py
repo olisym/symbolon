@@ -1024,3 +1024,40 @@ def test_GV_53() -> None:
     assert result.yes == (claim_id(first),)
     assert Finding(GovernanceFinding.UNPARSABLE_V, claim_id(second)) in result.findings
     assert GovernanceFinding.CONFLICTING_APPROVAL not in _kinds(result)
+
+
+def test_GV_54() -> None:
+    alice, bob, carol, dave, _eve = fresh_p2()
+    votes = [
+        vote(alice, PROPOSAL_2, choice=1, t=1),
+        vote(bob, PROPOSAL_2, choice=1, t=1),
+        vote(carol, PROPOSAL_2, choice=1, t=1),
+        vote(dave, PROPOSAL_2, choice=1, t=1),
+    ]
+    store = store_with(*votes)
+    tally = _tally(
+        store, epoch=EPOCH_2, proposal=PROPOSAL_2, constitution=C2, target=C3
+    )
+    assert tally.state is TallyState.PASSED
+    assert len(tally.yes) == 4
+    r = alice.claim(
+        p=nuc(N_D, "ratify"),
+        J=(3, PROPOSAL_2.proposal_hash),
+        t=5,
+        N=N_D,
+        v=bytes.fromhex("a2000101ff"),
+    )
+    store.add(r)
+    result = verify_ratification(
+        store,
+        ratify=r,
+        epoch=EPOCH_2,
+        proposal=PROPOSAL_2,
+        tally=tally,
+        target_constitution_obj=C3,
+        now=NOW,
+        policy=policy_of(C2),
+    )
+    assert result.next_epoch is None
+    assert Finding(GovernanceFinding.UNPARSABLE_V, claim_id(r)) in result.findings
+    assert GovernanceFinding.UNSUPPORTED_RATIFICATION not in _kinds(result)

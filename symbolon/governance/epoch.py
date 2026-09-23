@@ -33,13 +33,14 @@ class RatificationResult:
 
 
 def _cited(ratify: Claim) -> tuple[list[object] | None, GovernanceFinding | None]:
-    """Zeugenliste aus ``ratify.v`` (04-governance.md §4.1, 04-governance.md §2.3, D83, D275, D276).
+    """Zeugenliste aus ``ratify.v`` (04 §2.3, 04 §4.1, D432).
 
-    Nur Lage 3 verdrängt ``UNSUPPORTED_RATIFICATION`` durch ``NON_CANONICAL_V``.
-    Lage 1 und Lage 2 behalten das heutige Ergebnis.
+    Jeder Vermerk aus ``read_v`` geht durch, nicht nur ``NON_CANONICAL_V``.
+    Abwesendes ``v`` und eine lesbare Map ohne Liste unter Key ``0`` bleiben
+    ohne solchen Vermerk.
     """
     obj, kind = read_v(ratify.v)
-    if kind is GovernanceFinding.NON_CANONICAL_V:
+    if kind is not None:
         return None, kind
     if obj is None:
         return None, None
@@ -72,7 +73,7 @@ def verify_ratification(
     now: int,
     policy: NucleusPolicy | None = None,
 ) -> RatificationResult:
-    """Prüft ein ``ratify@1`` gegen eine Auszählung (04-governance.md §4.1, D106, D109, D112, D200, D203, D275, D276)."""
+    """Prüft ein ``ratify@1`` gegen eine Auszählung (04 §4.1, D106, D109, D112, D200, D203, D275, D276, D432)."""
     if (
         proposal.scope != epoch.scope
         or tally.epoch_id != epoch.epoch_id
@@ -132,15 +133,12 @@ def verify_ratification(
     if rid not in by_cid or by_cid[rid].state is not State.ACTIVE:
         return _unsupported(ratify, tally)
     cited, v_kind = _cited(ratify)
-    if v_kind is GovernanceFinding.NON_CANONICAL_V:
+    if v_kind is not None:
         return RatificationResult(
             next_epoch=None,
             findings=dedupe_sort(
                 [
-                    Finding(
-                        kind=GovernanceFinding.NON_CANONICAL_V,
-                        subject=claim_id(ratify),
-                    ),
+                    Finding(kind=v_kind, subject=claim_id(ratify)),
                     *tally.findings,
                 ]
             ),

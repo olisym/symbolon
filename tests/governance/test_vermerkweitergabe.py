@@ -65,6 +65,43 @@ def test_pending_tally_findings_reach_unsupported_ratification() -> None:
     )
 
 
+def test_pending_tally_findings_reach_ratify_with_expiry() -> None:
+    """Auszählungsvermerke erreichen ``RATIFY_WITH_EXPIRY`` (04 §4.1, D203, D431)."""
+    alice, bob, _carol, _dave = fresh_p1()
+    fremd = _fremd()
+    yes = [
+        vote(alice, PROPOSAL_1, choice=1, t=1),
+        vote(bob, PROPOSAL_1, choice=1, t=1),
+    ]
+    fremd_vote = vote(fremd, PROPOSAL_1, choice=1, t=1)
+    store = store_with(*yes, fremd_vote)
+    tally = _tally(store)
+    r = ratify_claim(
+        alice,
+        PROPOSAL_1,
+        witnesses=[claim_id(v) for v in yes],
+        t=10,
+        t_exp=10**9,
+    )
+    store.add(r)
+    result = verify_ratification(
+        store,
+        ratify=r,
+        epoch=EPOCH_1,
+        proposal=PROPOSAL_1,
+        tally=tally,
+        target_constitution_obj=C2,
+        now=NOW,
+        policy=policy_of(C1),
+    )
+    assert len(tally.findings) >= 1
+    assert tally.state is TallyState.PENDING
+    assert result.next_epoch is None
+    assert Finding(GovernanceFinding.RATIFY_WITH_EXPIRY, claim_id(r)) in result.findings
+    for vermerk in tally.findings:
+        assert vermerk in result.findings
+
+
 def test_governability_block_carries_tally_findings() -> None:
     """Bedingung 6 trägt die Auszählungsvermerke mit (D203)."""
     alice, bob, carol, dave = fresh_p1()

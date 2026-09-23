@@ -1,10 +1,12 @@
-"""INV-04.7 und INV-04.8 (04-golden-anchors.md §8, D433).
+"""INV-04.7 und INV-04.8 (04-golden-anchors.md §8, D433, D434).
 
 Equivocation ist ausgeschlossen: jede Identität führt eine Kette, keine zwei
 Claims eines Autors auf dieselbe Spitze. Die beiden anderen Ausgänge werden
 erzeugt: eine zweite gültige Stimme auf denselben Vorschlag (``AMBIGUOUS_VOTE``,
 04 §3.1) und ein Ja auf einen anderen Vorschlag derselben Epoche
-(``CONFLICTING_APPROVAL``, 04 §4.4).
+(``CONFLICTING_APPROVAL``, 04 §4.4). Zusätzlich Widerruf und Supersede einer
+Stimme, die dabei die einzige gültige ihres Autors ist; bei ``INV-04.8`` einer
+ursprünglichen Zeugenstimme, vor jeder weiteren Stimme dieses Zeugen.
 """
 
 from __future__ import annotations
@@ -13,6 +15,7 @@ from hypothesis import given, strategies as st
 
 from symbolon.atom import Claim, claim_id
 from symbolon.governance import verify_ratification
+from symbolon.predicates import is_nuc_name
 from tests.governance.fixtures import (
     C1,
     C2,
@@ -65,7 +68,11 @@ def _ziel_048(name: str):
 
 @st.composite
 def _folgen_047(draw: st.DrawFn) -> tuple:
-    """Stimmen, darunter eine zweite gültige und ein Ja auf den anderen Vorschlag."""
+    """Stimmen, darunter eine zweite gültige und ein Ja auf den anderen Vorschlag.
+
+    Widerruf und Supersede einer Stimme, die dabei die einzige gültige ihres
+    Autors auf den Vorschlag ist (D434).
+    """
     doppel = draw(st.integers(min_value=0, max_value=4))
     dritter = draw(st.integers(min_value=0, max_value=3))
     if dritter >= doppel:
@@ -107,6 +114,13 @@ def _folgen_047(draw: st.DrawFn) -> tuple:
         )
     ordnung = draw(st.permutations(range(len(block))))
     schritte = [block[i] for i in ordnung]
+    einfach = draw(st.integers(min_value=0, max_value=4))
+    schritte = [
+        ("vote", einfach, 1, False, "haupt"),
+        ("revoke", einfach, 0),
+        ("supersede", einfach, 0),
+        *schritte,
+    ]
     vorher = sum(1 for step in schritte if step[0] == "vote" and step[1] == doppel)
     schritte.append(("vote", doppel, 1, False, "haupt"))
     schritte.append(("revoke", doppel, vorher))
@@ -115,7 +129,11 @@ def _folgen_047(draw: st.DrawFn) -> tuple:
 
 @st.composite
 def _folgen_048(draw: st.DrawFn) -> tuple:
-    """Zusätze, darunter gültige Zweitstimmen der Zeugen auf beide Vorschläge."""
+    """Zusätze, darunter gültige Zweitstimmen der Zeugen auf beide Vorschläge.
+
+    Widerruf und Supersede einer ursprünglichen Zeugenstimme, eingereiht vor
+    jeder weiteren Stimme dieses Zeugen (D434).
+    """
     block: list[tuple] = [
         ("revoke-ratify",),
         ("supersede-ratify",),
@@ -139,6 +157,12 @@ def _folgen_048(draw: st.DrawFn) -> tuple:
     ]
     ordnung = draw(st.permutations(range(len(block))))
     schritte = [block[i] for i in ordnung]
+    zeuge = draw(st.integers(min_value=0, max_value=2))
+    schritte = [
+        ("revoke-zeuge", zeuge),
+        ("supersede-zeuge", zeuge),
+        *schritte,
+    ]
     alice_vorher = sum(1 for step in schritte if step[0] == "vote" and step[1] == 0)
     schritte.append(("vote", 0, 1, False, "haupt"))
     bob_vorher = sum(1 for step in schritte if step[0] == "vote" and step[1] == 1)
@@ -202,11 +226,16 @@ def _pruefe_047(folge: tuple) -> bool:
             _art, autor, ziel = step
             claim = autoren[autor].revoke(stimmen[autor][ziel], t=naechstes(autor))
             store.add(claim)
+        elif art == "supersede":
+            _art, autor, ziel = step
+            claim = autoren[autor].supersede(stimmen[autor][ziel], t=naechstes(autor))
+            store.add(claim)
         else:
             raise AssertionError(art)
         aktuell = _zaehlende_047(store)
         for cid in gesehen - aktuell:
             assert von_claim[cid] == claim.I
+            assert is_nuc_name(claim, "vote")
             schrumpfte = True
         entfallen |= gesehen - aktuell
         assert entfallen.isdisjoint(aktuell)
@@ -276,6 +305,12 @@ def _pruefe_048(folge: tuple) -> bool:
             claim = autoren[0].revoke(ratify, t=naechstes(0))
         elif art == "supersede-ratify":
             claim = autoren[0].supersede(ratify, t=naechstes(0))
+        elif art == "revoke-zeuge":
+            claim = autoren[step[1]].revoke(stimmen[step[1]], t=naechstes(step[1]))
+        elif art == "supersede-zeuge":
+            claim = autoren[step[1]].supersede(
+                stimmen[step[1]], t=naechstes(step[1])
+            )
         elif art == "revoke":
             _art, autor, ziel = step
             claim = autoren[autor].revoke(hinzugefuegt[autor][ziel], t=naechstes(autor))
@@ -297,6 +332,7 @@ def _pruefe_048(folge: tuple) -> bool:
         )
         if steht and not jetzt:
             assert claim.I in zeugen
+            assert is_nuc_name(claim, "vote")
             gefallen = True
         if gefallen:
             assert not jetzt
@@ -306,11 +342,11 @@ def _pruefe_048(folge: tuple) -> bool:
 
 @given(_folgen_047())
 def test_INV_04_7_counting_set_monotonic_random(folge: tuple) -> None:
-    """04 §3.1, 04 §4.4, D433: entwertet wird nur durch den Autor der Stimme."""
+    """04 §3.1, 04 §4.4, D434: nur der Autor, und nur durch eine Stimme."""
     _pruefe_047(folge)
 
 
 @given(_folgen_048())
 def test_INV_04_8_established_epoch_persists_random(folge: tuple) -> None:
-    """04 §4.1, 04 §4.4, D433: fällt nur durch einen Zeugen und nicht wieder auf."""
+    """04 §4.1, 04 §4.4, D434: nur eine Stimme eines Zeugen, und nicht wieder auf."""
     _pruefe_048(folge)

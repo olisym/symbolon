@@ -18620,3 +18620,39 @@ steht in jedem Auftrag, der Änderungen verlangt, und ein Fehlgriff zeigt sich i
 Verschiebung zwischen den Abschnitten.
 
 **Geändert.** `07-decisions.md`. Der Auftrag läuft auf `o78-fragen`.
+
+### D446 — Abnahme `o78-fragen`; O78 erledigt
+
+**Abnahme.** Branch `o78-fragen`, ein Commit `b9d0b53` auf `25cf759`. Geändert sind
+`tools/check_fragen.py`, `tests/test_fragen.py` und `fragen-index.md`. `rs/FRAGEN.md` und
+`fragen-adressen.md` sind unberührt. Im Supervisor-Klon am gepushten Commit gemessen:
+
+- `make check` grün mit 942 Tests; `check_fragen` gibt `81` aus.
+- Der Diff von `fragen-index.md` entfernt keine Zeile, Abschnitt 1 ist also byte-gleich.
+- Abschnitt 2 führt 11 Änderungen, 14 Nennungen und 11 Adressen, und `02 §10` steht bei 16, 17,
+  18, 21. Das trifft die Erwartung aus D445.
+- Die Nachzähler im Test zählen mit eigenen Mustern und importieren nichts aus dem Werkzeug.
+
+**Rücknahmeproben, selbst gefahren.** Jede traf ihren Test:
+
+- P1: Die Erkennung trifft nie. Rot werden a) und der Prüflauf auf dem Baum.
+- P2: Die Nummernprüfung läuft nur über Fragen. Rot wird b), dazu a) und der Prüflauf.
+- P3: Die Adressprüfung überspringt Änderungen. Rot wird nur c).
+
+Bei P2 färbt meine Fassung mehr rot als die gemeldete. Sie filtert die Nummern vor der Deckung
+von Überschriften und Zeilen, und dann fehlen dort 14 bis 24 als Zeilen. Beide Fassungen sehen
+die Regression. Merge fast-forward.
+
+**Beschluss 1 — O78 ist erledigt.** Die fortgeschriebene Fragenliste der Rust-Fassung liegt im
+Baum, und der Index zeigt Fragen und Änderungen getrennt. Die Karte vom Delta auf den Code aus
+D441 Beschluss 3 ist damit lesbar: Der Nachzug hat an `02 §10` am meisten geändert. Das ist der
+Abschnitt, den D394, D400 und D439 neu gefasst haben.
+
+**Nebenbefunde, nicht bearbeitet.**
+
+- In `index_text` ist die Matrixdarstellung für Abschnitt 2 kopiert statt geteilt. Das hat
+  keine Wirkung.
+- `arbeitsweise.md` sagt noch, die Rust-Liste „folgt". Der Satz ist seit D390 überholt und wird
+  beim nächsten Zug an dieser Datei berichtigt.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O78 in der Schliessform).

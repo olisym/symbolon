@@ -362,8 +362,6 @@ Keine wachsenden Zahlen mehr; Verweis auf `make check`, Registerende und Sitzung
 
 Normiert in `01 §4` und `02 §8` (D443), gebunden in `tests/trust/test_autor_flag.py`.
 
-### O78 Die Fragenliste kennt nur eine Eintragsart
+### O78 Die Fragenliste kennt nur eine Eintragsart — erledigt (D446)
 
-Aus D442. Der Nachzug von `rs` führt Änderungseinträge neben Fragen (D441 Beschluss 3).
-`tools/check_fragen.py` zählt beide als Fragen. Bis das Werkzeug sie unterscheidet, bleibt die
-fortgeschriebene `rs/FRAGEN.md` ausserhalb des Baums; sie liegt im Isolat auf `77f572d`.
+Zwei Arten, Änderungen als Abschnitt 2 im Index (D445); `rs/FRAGEN.md` liegt im Baum.

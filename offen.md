@@ -138,9 +138,9 @@ Entschieden in D147; jetzt als Grenze in `02 §8.1` statt nur im Register.
 
 Entschieden in D147, nicht zusammengelegt; beide Fassungen gemessen deckungsgleich.
 
-### O29 `genesis[4]` und die Auszählung
+### O29 `genesis[4]` und die Auszählung — erledigt (D430)
 
-`GV-24` führt ein Genesis, dessen deklarierte Verfassung in der Auszählung nirgends vorkommt.
+Seit D167 und D174 an Epoche 1 gebunden; gemessen mit Rücknahmeprobe, 21 rot.
 
 ### O30 Der Beispielnukleus kann Epoche-1- von Epoche-2-Policy nicht unterscheiden
 

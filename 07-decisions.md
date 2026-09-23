@@ -17705,3 +17705,45 @@ Ordnung. Nicht vorsorglich geregelt.
 **Kein Lauf in diesem Eintrag.** Geändert: `00` (§10 ein Absatz), `02` (§10 ein Satz), `03` (§6
 ein Verweis, Absatz neu umbrochen), `04` (§3.5 ein Satz), `offen.md` (O20 in der Schliessform).
 Keine Code-Datei; alle Proben im Klon zurückgenommen.
+
+### D430 — O29 ist gebunden; O30 zeigt auf die falsche Stelle, die Lücke liegt in der Fassade
+
+**Anlass.** Fünfter Cluster der Triage, Genesis und Epoche. O29 stammt aus D146, O30 aus D169 und
+D188. Gelesen: D146, D167, D169, D185, D188, `04 §1.1`, `04-golden-anchors.md` (`GV-24`),
+`symbolon/governance/chain.py`, `symbolon/resolve.py`, `tests/test_kettenwelt.py`. Gemessen im
+Supervisor-Klon auf `f601f71`.
+
+**O29 — `genesis[4]` ist gebunden, die Prämisse ist überholt.** D146 stellte fest, dass `[4]` an
+die Epochenkette nicht gebunden war, und nannte `GV-24` als Beleg: ein Vektor, dessen Genesis eine
+Verfassung deklariert, die in der Auszählung nicht vorkommt. Seitdem hat D167 `[4]` an Epoche 1
+gebunden, und D174 hat die Kette gebaut: `chain.py` beginnt mit `Epoch(index=1,
+constitution_hash=genesis_obj[4])`. Rücknahmeprobe: dort 32 Nullbytes statt `genesis_obj[4]` —
+21 rot, 897 grün. `GV-24` bleibt, was er ist: ein Einheitsvektor für die Auszählung, der eine
+Epoche direkt übergibt und die Kette nicht durchläuft. Das ist kein Mangel des Vektors, sondern
+seine Schnittführung; `UNSUPPORTED_WEIGHT_MODE` hängt nicht an `[4]`. **Geschlossen.**
+
+**O30 — gemessen, und die Lücke ist eine andere.** D169 und D188 halten fest, dass der
+Beispielnukleus Epoche-1- von Epoche-2-Policy nicht unterscheiden kann, weil seine beiden
+Verfassungen sich nur in `participants` unterscheiden. D188 hat die Änderung zurückgestellt, weil
+sie die Hashes in `example-nucleus.md` verschöbe (D186). Die Frage dahinter ist, ob irgendetwas
+den Epochenschritt der Policy prüft. Rücknahmeproben in `resolve_state`:
+
+| Eingriff | rot |
+|---|---|
+| Policy aus der Verfassung von Epoche 1 statt der geltenden | **keiner**, 918 grün |
+| Schlüsselsatz aus der Verfassung von Epoche 1 statt der geltenden | einer, `test_kettenwelt_authorized_keys_follow_epoch` |
+
+Die Kettenwelt aus D190 bewegt den Schlüsselsatz über die Epoche und nicht die Policy. `P-H` prüft
+`resolve_policy` direkt und sieht die Fassade nicht. Eine `resolve_state`, die still unter der
+Verfassung der ersten Epoche weiterrechnet — genau der Fehler, gegen den D183 die Fassade gebaut
+hat —, bleibt heute grün.
+
+**Beschluss.** Der Beispielnukleus bleibt, wie er ist; D186 gilt weiter, eine Vorführung braucht
+keine Hashverschiebung. Der Prüfer gehört in die Kettenwelt: ihre zweite Verfassung bekommt ein
+anderes `irrevocable_predicates`, ein Test hält `state.policy` an der geltenden Epoche fest, und
+die Rücknahmeprobe ist der erste Eingriff der Tabelle. Das geht in den gebündelten Messauftrag.
+O30 bleibt bis dahin stehen; sein Text wird nach D316 nicht angefasst, dieser Eintrag sagt, wohin
+er zeigt.
+
+**Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O29 in der Schliessform). Keine
+Code-Datei; alle Proben im Klon zurückgenommen.

@@ -17981,3 +17981,30 @@ Zusatz die Zeilengrenze überschritten.
 **Prüfregel-Kandidaten aus dieser Runde:** die Prämisse eines Postens messen, bevor er entschieden
 wird (D421, D424 — zweiter Fall); einen verallgemeinerten Vorbehalt gegen die Ausgänge prüfen, die
 die Invariante ursprünglich ausschliessen sollte (D434). Aufnahme beim Sitzungsende.
+
+### D436 — Prüfregeln 78 und 79: die Prämisse des Postens und der Vorbehalt nach beiden Seiten
+
+**Anlass.** Sitzungsende `00cd`. Zwei Kandidaten haben in dieser Sitzung ihren zweiten Befund
+bekommen und erfüllen damit die Schwelle aus D407.
+
+**78 — die Prämisse eines offenen Postens.** Kandidat seit D421 (O47: „es gibt keine", es gab
+eine). Zweiter Befund D424: O32 galt als entschieden, D167 hatte die Frage aber ausdrücklich
+offen gelassen. Danach hat die Triage die Regel breit bestätigt: O14, O17, O24 und O29 waren
+längst gedeckt, O5, O8, O16, O27 und O28 schon entschieden, O30 zeigte auf die falsche Stelle
+(D423, D426 bis D431). Geführt als Schwester von 75, nicht als Zusatz: 75 spricht vom
+Sitzungsstart, und ein Zusatz wäre in einem Prompt nicht zitierbar (D144, D407).
+
+**79 — der Vorbehalt nach beiden Seiten.** Erster Befund D433: der Vorbehalt aus D117 war zu eng,
+weil Prüfregel 5 auf `ACTIVE` angewandt worden war und nicht auf „zählt". Zweiter Befund D434:
+der neue Wortlaut war zu weit und liess den Widerruf wieder zu. Beide Fehler an derselben
+Invariante, in entgegengesetzter Richtung, in einer Sitzung. Prüfregel 5 deckt die erste Seite,
+aber nicht die zweite, und sie sagt nicht, welcher Zustand gemeint ist.
+
+**Verworfen — 79 als Zusatz zu 5.** 5 ist eine Anweisung zum Aufzählen; 79 ist eine Prüfung des
+Wortlauts danach. Sie stehen im selben Abschnitt, damit man sie zusammen liest.
+
+**Nicht übernommen, weiter Kandidaten:** die älteren aus dem Sitzungsstart `00cc`, unverändert.
+Neu dazu aus D435: ein Lauf, der ungefragt etwas entfernt, ist Scope-Verlust und gehört so in den
+Bericht wie ein Zuwachs.
+
+**Geändert:** `pruefregeln.md` (78 nach 75, 79 nach 5, Herkunftszeile).

@@ -117,6 +117,14 @@ soll, und formuliert das Abnahmekriterium an der Wirkung, nicht an der Silhouett
 **5. Ausgänge aufzählen.** Wo eine Invariante einen Zustandsübergang ausschließt, werden **alle**
 Ausgänge aus dem Zustand aufgezählt — aus dem Code, nicht aus dem Gedächtnis (D117).
 
+**79. Ein Vorbehalt an einer Invariante wird nach beiden Seiten geprüft.** Zu eng ist er, wenn er
+einen Ausgang verschweigt, den der Code hat; zu weit, wenn sein Wortlaut einen Ausgang öffnet,
+den die Invariante schliessen sollte. Gegen die erste Seite hilft Prüfregel 5, angewandt auf den
+Zustand, von dem die Invariante spricht — bei `INV-04.7` „zählt", nicht `ACTIVE`. Gegen die
+zweite wird jeder neue Wortlaut gegen die Ausgänge gehalten, die die Invariante ursprünglich
+ausschloss. In `00cd` geschah beides nacheinander: D433 fand zwei verschwiegene Ausgänge, fasste
+sie unter eine Urheberregel und öffnete damit den Widerruf wieder (D434).
+
 **8. Parallelenprüfung.** Zwei Stellen, die dasselbe tun, werden nebeneinandergelegt —
 Eingangsbedingungen, Fehlertypen, Diagnosen. Sequenzielles Lesen findet Asymmetrien nicht.
 
@@ -613,6 +621,16 @@ Modulcode neu geprüft. In `00bg` kostete das Überspringen zwei Durchgänge, be
 dass die vermeintliche Autorenseiten-Lücke an einer Stelle bereits geschlossen und an der
 anderen kein Code-, sondern ein Sichtbarkeitsproblem war (D366).
 
+**78. Die Prämisse eines offenen Postens wird gemessen, bevor er entschieden wird.**
+Ein Posten in `offen.md` beschreibt die Lage zu dem Zeitpunkt, an dem er geschrieben wurde, und
+die Arbeit danach läuft an ihm vorbei. Vor jeder Entscheidung wird darum der Ursprungseintrag
+gelesen und die Behauptung des Postens gemessen — am Code mit einer Rücknahmeprobe, an der Spec
+mit dem Wortlaut. Die Messung kann in beide Richtungen ausgehen: O47 stand auf „es gibt keine",
+und es gab eine (D421); O32 galt als entschieden und war es nicht (D424). In `00cd` war bei mehr
+als der Hälfte der triagierten Posten die Prämisse überholt oder schon erfüllt (D426 bis D431).
+Die Schwester von Prüfregel 75: dort ist die Prämisse ein Satz im Sitzungsstart, hier ein Posten
+der offenen Liste.
+
 ## Herkunft der Nummern
 
 Die Regeln 1–7 stammen aus `sitzungsstart-05.md`, 10–12 aus `sitzungsstart-anwendung.md`, 13–15
@@ -625,7 +643,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
 69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366,
-76 und 77 aus D407.
+76 und 77 aus D407, 78 und 79 aus D436.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

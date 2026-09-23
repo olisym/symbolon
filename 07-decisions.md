@@ -18079,3 +18079,77 @@ Zustand.
 **Kein Lauf.** Gemessen im Supervisor-Klon auf `22ae204`: `tools/ref_block.py` über die drei
 Vektorsätze, die Rücknahmeprobe mit vollem Testlauf, zurückgenommen. Geändert: `01-claim-atom.md`
 (`§6` ein Absatzende, `Anhang B.1` eine Zelle), `offen.md` (O41 in der Schliessform, O76 neu).
+
+### D438 — O76: der Vektorsatz `ZF-02` und die Messung in zwei Stufen
+
+**Anlass.** O76 aus D437: `pending`, `equivocation-flagged` und `time-regression-flagged` stehen
+in keinem Vektorsatz, und die Lesart von `linked` in `rs` weicht von der Referenz ab. D437 hat den
+Satz an den nächsten Auftrag an eine Zweitfassung gebunden. Dieser Eintrag legt fest, was der Satz
+enthält, und trennt die Messung der alten Lesart vom Nachzug des Ankers (O73).
+
+**Die Grundlage, die D376 fehlte.** D376 hat Equivocation und Zeitregression aus `TZ-02`
+herausgehalten, weil keine Ankerlage sie verlangte und jede Erwartung erfunden gewesen wäre. Das
+gilt nicht mehr: `01 Anhang B.1` führt beide Zustände samt ihrer Wirkung stromabwärts, `01 §6` die
+Regel aus D437, und `02 §3.1` nennt `pending` und beide Flags ausdrücklich im Budget-Set. Jede
+Erwartung unten ist aus diesen Stellen abgeleitet.
+
+**Beschluss 1 — drei Profile auf einem Gerüst.** Parameter wie `TZ-02`: `C₀ = 16`, `γ = 1/2`,
+`D = 4`; dazu `now = 1000` und `t_exp = 5000` für jeden Vouch. Das Gerüst: ALICE → BOB mit
+`n = 4`, BOB → CAROL, CAROL → g₁, g₂, g₃ mit je `n = 1`, das Mesh unter g₁ bis g₃ mit `n = 2`
+in beide Richtungen. Anker ALICE, Ziele g₁ bis g₃. Die Profile unterscheiden sich allein in BOBs
+Kette; X, Y und Z sind Subjekte ohne eigene Claims.
+
+- **F1, Lücke.** BOBs Kette: b0 → X (`t = 1`, `n = 1`), b1 → Y (`t = 2`, `n = 1`), b2 → Z
+  (`t = 3`, `n = 1`), b3 → CAROL (`t = 4`, `n = 2`). Gehalten sind b0, b2 und b3, nicht b1.
+  Erwartet: b2 `pending`, b3 `active` (D437).
+- **F2, Gabel.** f1 → X und f2 → Y, beide Genesis von BOB, `t = 1`, `n = 1`; b → CAROL auf f1,
+  `t = 2`, `n = 2`. Alle gehalten. Erwartet: f1 und f2 `equivocation-flagged`, b `active`.
+- **F3, Rückdatierung.** b0 → X (`t = 10`, `n = 1`), b1 → CAROL (`t = 5`, `n = 1`), b2 → CAROL
+  (`t = 20`, `n = 2`). Alle gehalten. Erwartet: b1 `time-regression-flagged`, b2 `active`.
+
+Jeder andere Claim ist `active`.
+
+**Golden Numbers, von Hand.** `C(BOB) = 8`, `C(CAROL) = 4`, `C(gᵢ) = 2`. BOB → CAROL trägt
+`⌊2·8/4⌋ = 4`, CAROL → gᵢ `⌊1·4/4⌋ = 1`, das Mesh `⌊2·2/4⌋ = 1`. Jedes Ziel erreicht CAROL
+direkt und über die beiden anderen g, alle Wege durch CAROL: Fluss 3 je Ziel, simultan 3,
+Disjunktheit 1, in allen drei Profilen. BOBs Budgetsumme: F1 4 (b0, b2, b3), F2 4 (f1, f2, b),
+F3 3 (X mit 1, die Gruppe BOB → CAROL mit `max n = 2`), jeweils `ok`. Eine Probe im
+Supervisor-Klon mit `tools/ref_block.py` trifft jede dieser Zahlen.
+
+**Was jedes Profil trennt.** F1 ist D437: liest eine Fassung `linked` transitiv, ist b3 `pending`,
+die Kante BOB → CAROL fällt, und jeder Fluss ist 0. F2 und F3 prüfen, dass ein Flag nicht
+stromabwärts wirkt; b und b2 tragen die Kante. Die Budgetzeilen prüfen `02 §3.1`: fehlt `pending`
+im Budget-Set, fällt F1 auf 3, fehlt `equivocation-flagged`, fällt F2 auf 2. F3 trennt dort nicht,
+weil die Gruppe BOB → CAROL ihr Maximum aus b2 bezieht.
+
+**Beschluss 2 — Vergleichsgrundlage ist `include_flagged = True`.** So rechnen
+`tools/ref_block.py` und die Anker nach `02-golden-anchors.md §1`. Die Wirkung eines Autor-Flags
+bei `False` misst `ZF-02` nicht.
+
+**Beschluss 3 — gemessen wird in zwei Stufen.** Stufe A: die gebaute Rust-Fassung auf ihrem Anker
+`15d091e`, unverändert, rechnet `ZF-02`. Das misst die schwächste Stelle aus D437 an dem Text, aus
+dem die Lesart stammt. Eine Abweichung in einer `zustand`-Zeile gehört zu `01`; eine in einer
+`budget`-Zeile zu `02 §3.1` in der Fassung von `15d091e`, deren Aufzählung nur `pending` nennt.
+Stufe B ist O73: Ankernachzug und neuer Lauf, mit eigener Entscheidung über D368 und `02 §11`.
+Stufe A kommt zuerst, weil der Nachzug die Lesart überschreibt, die sie messen soll.
+
+**Beschluss 4 — gebaut wird im Referenzrepo nach dem Muster von `TZ-02`.** Eigenes Fixture-Modul,
+eigener Exporter, eigener Vergleichstest, eigene Vektordatei (D376 Beschluss 1). Der Test prüft die
+Referenz gegen die Zustände und Zahlen dieses Eintrags, nicht gegen einen Lauf der Referenz (D256
+Beschluss 3). Rücknahmeprobe: wird `linked` transitiv geprüft, muss F1 rot werden.
+
+**Verworfen — `ZF-02` in `TZ-02` einhängen.** Dessen Datei ist Eingabe gelaufener Fassungen; jede
+Änderung entwertet den Vergleich mit ihnen (D376 Beschluss 1).
+
+**Verworfen — Stufe A überspringen und gleich nachziehen.** Dann liest `rs` den Text nach D437,
+und ob der alte Text die transitive Lesart erzeugt hat, bliebe für immer offen.
+
+**Verworfen — ein Profil mit `include_flagged = False`.** Keine Fassung druckt diesen Fall, und
+kein Anker rechnet ihn (Beschluss 2).
+
+**Schwächste Stelle.** Eine Fassung, die Flags gar nicht erkennt, rechnet in F2 und F3 dieselben
+Flüsse und fällt nur an den `zustand`-Zeilen auf, in F3 nicht einmal an der Budgetzeile. Das ist
+hingenommen: gemessen werden die Zeilen, nicht der Fluss allein.
+
+**Kein Lauf in diesem Eintrag.** Der Auftrag läuft auf Branch `o76-zf02`, Basis der Commit dieses
+Eintrags. Geändert: `07-decisions.md`.

@@ -17862,3 +17862,51 @@ einander aus, und mehrere formwidrige Einträge fallen nach D163 zu einem zusamm
 über höchstens ein Element hat keinen Prüfer. O19 ist nach Teil B damit ganz beantwortet.
 
 **Der erste Lauf unter `AGENTS.md`** (D421). Der Bericht hält fest, ob die Datei geladen war.
+
+### D433 — Abnahme des Messauftrags, Teil 1: `INV-04.7` und `INV-04.8` waren zweimal zu stark
+
+**Anlass.** Der Lauf auf `00cd-messauftrag` (`0eb92a8`, Basis `4b187db`) meldet eine Rückfrage: der
+Generator für `INV-04.7` musste jedem Autor höchstens eine gültige Stimme geben, sonst wäre der
+Test auf richtigem Code rot. Das ist keine Generatorfrage, sondern ein Befund über die Invariante.
+
+**Gemessen, im Supervisor-Klon auf `4b187db`.** Drei Stimmen, eine Epoche etabliert. Danach gibt
+ein Zeuge eine zweite, gültige Ja-Stimme auf denselben Vorschlag ab, keine Equivocation, eigene
+Kette, neues `h_prev`. Die zählende Menge fällt von drei auf zwei, die Auszählung trägt zweimal
+`AMBIGUOUS_VOTE`, und die Ratifizierung wird `UNSUPPORTED_RATIFICATION` — die Epoche fällt.
+`INV-04.7` („kein zusätzlicher Claim entfernt je eine bereits zählende Stimme") und `INV-04.8`
+sind damit verletzt, und ihr Vorbehalt nennt nur Equivocation. Dasselbe gilt nach `04 §4.4` für
+ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`).
+
+**Die Fehlerform ist die aus D117, ein zweites Mal.** D117 hat verlangt, die Ausgänge aus einem
+Zustand aus dem Code der Zustandsfunktion aufzuzählen, nicht aus dem Gedächtnis — und hat selbst
+nur die Ausgänge aus `ACTIVE` aufgezählt. Ob eine Stimme **zählt**, entscheidet aber nicht
+`classify`, sondern die Auszählung, und die hat zwei weitere Ausgänge: die Zusammenfassung nach
+Autor (`04 §3.1`) und die Ausschlussschleife (`04 §4.4`). Beide lagen zu D117 schon vor.
+
+**Beschluss 1 — die Mechanik bleibt.** Dass zwei Stimmen eines Autors beide nicht zählen, hat D101
+begründet: sie sagen Verschiedenes, und eine Auswahl erzeugte ein Ergebnis aus einer Aussage, die
+niemand gemacht hat. „Die erste zählt" setzte eine Ordnung voraus, die `t` nicht tragen darf.
+
+**Beschluss 2 — der Vorbehalt wird allgemein gefasst, nicht um zwei Fälle verlängert.** Allen
+drei Ausgängen gemeinsam ist der Urheber: eine zählende Stimme entwertet nur ein weiterer Claim
+ihres eigenen Autors; ein fremder Claim nie. Das ist schärfer als eine Liste, weil es auch einen
+vierten, noch nicht gefundenen Ausgang prüfbar macht, und es ist die Aussage, auf der D96, D101
+und D102 tatsächlich stehen: kein Dritter kann eine Entscheidung durch Hinzufügen kippen. Für
+`INV-04.8` folgt: eine etablierte Epoche fällt nur durch einen weiteren Claim eines ihrer Zeugen.
+Die Richtung bleibt abwärts, und der Beleg ist in allen drei Fällen vom Urheber selbst signiert.
+
+**Beschluss 3 — der Eigenschaftstest prüft diese Form, auf demselben Branch.** Der Generator aus
+Teil F schliesst Doppelstimmen aus; damit prüft er den alten, falschen Satz auf einer Teilmenge,
+auf der er zufällig gilt. Nachlauf: Doppelstimmen und Zweit-Ja werden erzeugt, und die Zusicherung
+lautet: schrumpft die Menge, stammt der eben hinzugefügte Claim vom Autor jeder entfallenen
+Stimme; fällt die Epoche, von einem Zeugen. Equivocation bleibt ausgeschlossen, wie `§8` es
+erlaubt.
+
+**Der Rest der Abnahme folgt mit dem Nachlauf.** Gelesen ist der Diff aus dem Bericht; gegen den
+Branch selbst geprüft wird er, sobald er auf dem Spiegel liegt. Zwei Befunde sind vermerkt und
+kein Defekt: der `02`-Test aus Teil B prüft nur die zweite Komponente des Schlüssels (zwei Vermerke
+gleicher Art), die erste prüft der `04`-Test; die Rücknahmeprobe aus Teil C trifft neben dem neuen
+Test 18 weitere, weil sie das Subjekt von `OVERCOMMITTED_AUTHOR` insgesamt verschiebt — der neue
+Test sieht sie, der alte nicht, und das war die Frage.
+
+**Geändert:** `04-golden-anchors.md` (`INV-04.7`, `INV-04.8`, Absatz zum Vorbehalt in `§8`).

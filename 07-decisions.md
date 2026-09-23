@@ -18221,3 +18221,22 @@ erst Stufe B.
 
 **Geändert.** `02-trust-flow.md` (`§10`, ein Absatzende), `offen.md` (O76 in der Schliessform,
 O73 um den Befund aus F2 und die Änderungen aus D437 und D439 ergänzt).
+
+### D440 — Abnahme `d439-subgranular`; Sitzungsschluss `00ce`
+
+**Abnahme.** Branch `d439-subgranular`, ein Commit `f536117` auf `b548557`, eine neue Datei
+`tests/trust/test_subgranular_reach.py`, nichts unter `symbolon/`. Im Supervisor-Klon gemessen:
+`make check` grün mit 935 Tests; die Rücknahmeprobe aus D439, der Vermerk auch am unerreichbaren
+Autor, färbt genau diesen Test rot und keinen anderen. Die `claim_id` ist aus dem gebauten Claim
+abgeleitet. Merge fast-forward. D439 Beschluss 2 ist damit erfüllt.
+
+**Sitzungsschluss.** `sitzungsstart-00ce.md` löst `sitzungsstart-00cd.md` ab, das nach `archiv/`
+geht (D314).
+
+**Prüfregel-Kandidat, nicht übernommen.** Ein Vergleichs-`diff` wird nicht mit `head` gekürzt.
+Der Stufe-A-Diff aus D439 brach mitten in F2 ab, und der Befund dort war ohne einen zweiten Zug
+nicht zuzuordnen. Die Regel, dass `git diff` vollständig bleibt, gilt für jeden Diff, der
+Messgrundlage ist.
+
+**Geändert.** `07-decisions.md`; `sitzungsstart-00ce.md` neu, `sitzungsstart-00cd.md` nach
+`archiv/`.

@@ -126,17 +126,17 @@ Bleibt `1` in allen gemessenen Fällen.
 
 D120, beschrieben und ungebaut.
 
-### O26 `D >= C₀` ist ein SHOULD und wird nirgends geprüft
+### O26 `D >= C₀` ist ein SHOULD und wird nirgends geprüft — erledigt (D426)
 
-`00 §4.0` und `02 §8`. D147.
+Bleibt ungeprüft; Adressat ist die Gründung, nicht der Leser (`02 §8.1`).
 
-### O27 `anchor_set` (`genesis[3]`) bleibt ungebunden
+### O27 `anchor_set` (`genesis[3]`) bleibt ungebunden — erledigt (D426)
 
-D147.
+Entschieden in D147; jetzt als Grenze in `02 §8.1` statt nur im Register.
 
-### O28 `TrustParams.__post_init__` und `00 §4.0` prüfen dieselbe Wohlgeformtheit zweimal
+### O28 `TrustParams.__post_init__` und `00 §4.0` prüfen dieselbe Wohlgeformtheit — erledigt (D426)
 
-D147.
+Entschieden in D147, nicht zusammengelegt; beide Fassungen gemessen deckungsgleich.
 
 ### O29 `genesis[4]` und die Auszählung
 

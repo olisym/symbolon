@@ -718,6 +718,14 @@ hat, besteht hier nicht.
 **Nicht hergeleitet werden `α` und `K`** (§5). Sie stehen nicht im Genesis, sind reine
 Policy-Knöpfe und bleiben Feld von `RelaxParams` neben dem hergeleiteten `base`.
 
+**Nicht gebunden wird `anchor_set`** (`genesis[3]`). Es ist nach §6.3 die Linse des Nukleus, nicht
+die Grundwahrheit; `anchors` bleibt Parameter von `derive`, `trust` und `rank`. Wer mit dem eigenen
+Ankerset oder einer Teilmenge rechnet, rechnet eine andere Sicht, keine falsche (D147, D426).
+
+**`D ≥ C₀` wird weder geprüft noch vermerkt** (D426). Die Empfehlung richtet sich an die Gründung:
+das Genesis ist unveränderlich, ein Leser kann an `D < C₀` nichts ändern, und `TP-02` rechnet
+absichtlich in diesem Regime (D34). Warnen kann nur das Werkzeug, das ein Genesis baut.
+
 ---
 
 ## 9. Bewusst getragene v1-Grenzen & gemachte Designentscheidungen

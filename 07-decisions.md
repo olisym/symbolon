@@ -17550,3 +17550,38 @@ sie nicht, könnten die sechs einen dritten Code tragen; dann wären sie Abweich
 512 und D308 hätte sie gemeldet. Nachgelaufen wird das nicht.
 
 **Kein Lauf.** Geändert: `offen.md` (O15 in der Schliessform). Keine Code-Datei.
+
+### D426 — O26, O27, O28: die drei Reste aus D147
+
+**Anlass.** Erster Cluster der Triage über Sektion B (Sitzung `00cd`): drei Posten, ein Ursprung.
+Gelesen: D147, D34, D242, `00 §4.0`, `02 §6.3`, `§8`, `§8.1`, `symbolon/trust/params.py`.
+
+**O28 — zwei Orte, eine Regel. Entschieden in D147, geschlossen.** D147 hat die Doppelung
+notiert und bewusst nicht zusammengelegt, weil eine Zusammenlegung `params.py` an Spec-Prosa
+binden würde statt an ein Objekt. Nachgemessen, ob sie noch deckungsgleich sind:
+`__post_init__` verlangt `type(...) is int` für alle vier Felder — `bool` fällt damit heraus —,
+dann `C0 > 0`, `0 < gamma_num < gamma_den`, `D >= 1`. Über ganzen Zahlen ist das Wort für Wort
+`00 §4.0`. Stolperdraht: jede Änderung an einer der beiden Stellen.
+
+**O27 — `anchor_set`. Entschieden in D147, aber nur im Register.** D147 nennt die Ungebundenheit
+eine benannte Grenze; benannt war sie nirgends ausser dort. Die Begründung steht in `02 §6.3`:
+das individuelle Ankerset ist die Grundwahrheit, das des Nukleus eine optionale Linse. Ein Leser,
+der mit dem eigenen oder einer Teilmenge rechnet, rechnet eine andere Sicht und keine falsche.
+Das steht jetzt als Absatz in `02 §8.1`, neben den ebenfalls nicht hergeleiteten `α` und `K`.
+
+**O26 — `D >= C₀`. Beschluss: bleibt ungeprüft, auch ohne Vermerk.** D147 nannte es einen
+Kandidaten für einen Vermerk, „sobald es einen Ort gibt, der ihn trägt". Den Ort gibt es seitdem:
+`resolve_trust_params`. Getragen wird der Vermerk trotzdem nicht, und zwar nicht aus Mangel an
+Ort, sondern an Adressat. Das Genesis ist unveränderlich; ein Leser, der `D < C₀` vorfindet, kann
+daran nichts ändern, und ein Vermerk begleitete jede Rechnung über diesen Scope für dessen ganze
+Lebensdauer. Dazu ist das Regime nicht falsch: `TP-02` (`D = 4 < C₀ = 16`) rechnet es absichtlich,
+und genau darum ist es nach D34 ein SHOULD. Die Empfehlung richtet sich an die Gründung; warnen
+kann nur das Werkzeug, das ein Genesis baut.
+
+**Verworfen — ein Vermerk nur beim Genesis-Bau in der Referenz.** Es gibt keinen Genesis-Bauer im
+Paket; `tools/example_nucleus.py` baut eines als Beispiel. Ihm eine Warnung einzubauen wäre
+Werkzeugarbeit ohne Nutzer.
+
+**Kein Lauf.** Geändert: `02-trust-flow.md` (§8.1 zwei Absätze), `offen.md` (O26 bis O28 in der
+Schliessform; in der Kopfzeile von O28 fällt „zweimal", weil sie mit dem Zusatz die Zeilengrenze
+überschritt). Keine Code-Datei.

@@ -17747,3 +17747,69 @@ er zeigt.
 
 **Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O29 in der Schliessform). Keine
 Code-Datei; alle Proben im Klon zurückgenommen.
+
+### D431 — Die Einzelposten aus Sektion B: fünf geschlossen, zwei in den Messauftrag, zwei bleiben
+
+**Anlass.** Letzter Schritt der Triage über Sektion B, in einem Zug statt einzeln: O10 bis O13,
+O18, O21, O22, O24, O25. Gelesen: D117, D120, D138, D142, D176, D203, D263, D268, D274 bis D276,
+D281, D303, `01 §6`, NV12, `04 §4.1`, `§4.4`, `04-golden-anchors.md §8`, die Aufrufstellen von
+`cbor_canon.decode`, `governance/epoch.py`, `trust/flow.py`, `tests/governance/test_invariants.py`,
+`tests/trust/test_deckenelastizitaet.py`. Gemessen im Supervisor-Klon auf `776b97a`; alle Eingriffe
+zurückgenommen.
+
+**O11 — der tolerante Dekoder. Geschlossen.** Der Posten stammt aus dem Sitzungsstart `00ah`: der
+Umschlag ist seit D272 streng, `v` wird mit dem toleranten Dekoder gelesen, und damals prüften zwei
+von vier Stellen `is_canonical` nicht (D274). Heute gemessen: `governance/tally.py`,
+`profiles/payload.py` und `trust/groups.py` stellen `decode` und `is_canonical` in denselben `try`;
+`verifier.py` liest den Umschlag mit dem strengen Dekoder. Die vierte Stelle, `atom.py`, liest
+eigene Bytes und ist nach D121 kein Einlesepfad. Die Toleranz ist damit an keiner Stelle
+sichtbar, an der fremde Bytes ankommen. Stolperdraht: ein neuer Leser von `v` ohne `is_canonical`.
+
+**O12 — `FOREIGN_LIFECYCLE` ohne Vektor. Getragen, geschlossen.** Nach D263 hängt der Code an
+einem lokal bekannten Ziel-Claim, nach D268 ist das der einzige Punkt ausserhalb der
+selbstenthaltenen Gültigkeit. `01 §6` und der Vektor NV12 sagen es im Text. Ein zustandsloser
+Vektor kann ihn nicht tragen, und das ist die Aussage, nicht ihr Mangel.
+
+**O13 — `EPOCH_FORK` ohne Produktivträger. Getragen, geschlossen.** D176 beweist die Lage für
+jede wohlgeformte Schwelle unerreichbar, `04 §4.4` definiert den Ausgang trotzdem, D281 hat ihn als
+einzigen Überlebenden der Vermerksmatrix benannt. Ein Test prüfte eine unmögliche Lage.
+
+**O22 — die dreifache Kantensumme. Geschlossen.** Drei gleichgebaute `sum(...)`-Ausdrücke in
+`test_deckenelastizitaet.py`, einer davon in einer Hilfsfunktion. Testcode, die Aussage aus D142
+hängt nicht daran. Aufgeräumt wird, wenn die Datei ohnehin berührt wird; ein eigener Lauf dafür
+hätte keinen Ertrag.
+
+**O24 — `disjoint_paths` bewegt sich nicht. Die Prämisse ist überholt.** Rücknahmeprobe:
+`disjoint_paths = 1` fest gesetzt in `flow.py` — drei rot, zwei Zeilen aus `TP-BOOT` und
+`test_TP_FAN_endpoint_rule`. Der Wert bewegt sich, und Tests halten ihn fest.
+
+**O18 — die Weitergaberegel auf zwei Pfaden. Halb überholt, halb in den Messauftrag.** D203 liess
+`RATIFY_WITH_EXPIRY` und den Zeugenpfad ohne Prüffall. Die Weitergabe steht in `epoch.py` je Pfad
+und nicht an einer Stelle, eine strukturelle Antwort wie bei O14 gibt es also nicht. Gemessen:
+ohne Weitergabe auf dem Zeugenpfad zwei rot — inzwischen gedeckt; ohne Weitergabe bei
+`RATIFY_WITH_EXPIRY` 918 grün — weiterhin offen. D203 hat den Verzicht mit Verhältnismässigkeit
+begründet; mit einem ohnehin anstehenden Messauftrag kostet der eine fehlende Prüffall einen Test.
+
+**O21 — die Invariantentests prüfen weniger, als sie heissen. Bestätigt, in den Messauftrag.**
+`04-golden-anchors.md §8` verlangt für `INV-04.7` zufällige Claim-Folgen und für beide
+Invarianten den Umgang mit Equivocation — ausschliessen oder den Rückfall als erwartet prüfen.
+Gebaut sind zwei feste Folgen. `test_INV_04_7` fügt nur Stimmen und einen Vorschlag hinzu, keinen
+Widerruf, kein Supersede, kein `t_exp`. `test_INV_04_8` übergibt `verify_ratification` die
+Auszählung vom Anfang und fügt danach nichts hinzu, was die Zeugen betrifft; ein Widerruf einer
+Zeugenstimme könnte die eingefrorene Auszählung gar nicht bewegen. Das ist genau die schwächere
+Aussage, die der Posten nennt. Der Prüfer ist ein Eigenschaftstest über `hypothesis`, in der Form,
+die `tests/property` für `P-2` schon hat.
+
+**O25 — der Sicherungsblob. Bleibt.** Ein Bau ohne Anlass; seit D424 hängt an ihm auch die
+Vermeidung von Ausgang 5.
+
+**O10 — `UNPARSABLE_V` bei `ratify@1`. Bleibt, als eigener Fork.** Der Posten ist keine Messlücke,
+sondern die Frage, die D275 Beschluss 3 offen gelassen hat. Sie wird gesondert entschieden.
+
+**Der Messauftrag, wie er jetzt steht.** Fünf Prüfer, alle Tests, kein Produktivcode: O19
+(Ordnung in `00`, `02`, `04`), O23 (Sondierwelt mit Vermerken), O30 (Policy-Epoche in der
+Kettenwelt), O18 (`RATIFY_WITH_EXPIRY`), O21 (Eigenschaftstests `INV-04.7`, `INV-04.8`). Für
+jeden ist die Rücknahmeprobe in diesem Register benannt.
+
+**Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O11, O12, O13, O22, O24 in der
+Schliessform; O11 hatte keinen Rumpf und bekommt die Zeile). Keine Code-Datei.

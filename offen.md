@@ -68,15 +68,17 @@ Ganz Anhang C gebunden, in beide Richtungen, mit dauerhafter Verfälschungsprobe
 
 D276.
 
-### O11 `cbor_canon.decode` ist tolerant und bleibt es
+### O11 `cbor_canon.decode` ist tolerant und bleibt es — erledigt (D431)
 
-### O12 `FOREIGN_LIFECYCLE` hat keinen Vektor und kann keinen bekommen
+Jeder Leser fremder `v`-Bytes prüft `is_canonical` im selben `try`; gemessen an allen drei.
 
-D263, D268. Auch vom Gitter unerreichbar, weil es einen Speicher braucht.
+### O12 `FOREIGN_LIFECYCLE` hat keinen Vektor und kann keinen bekommen — erledigt (D431)
 
-### O13 `EPOCH_FORK` hat keinen Produktivträger
+Getragen in `01 §6` und NV12 (D263, D268); eine Grenze, keine Lücke.
 
-D138, D176, D281.
+### O13 `EPOCH_FORK` hat keinen Produktivträger — erledigt (D431)
+
+Unerreichbar nach D176, getragen in `04 §4.4`; ein Test prüfte eine unmögliche Lage.
 
 ### O14 `SUBGRANULAR_VOUCH.subject` ist ungeprüft — erledigt (D427)
 
@@ -110,17 +112,17 @@ Getrennt gelassen wie in D183; gegen Drift trägt die Ordnungsnorm aus `00 §10`
 
 Schwächer als sie scheinen. D117.
 
-### O22 Dreifache Kantensumme in `test_deckenelastizitaet.py`
+### O22 Dreifache Kantensumme in `test_deckenelastizitaet.py` — erledigt (D431)
 
-D142, nicht blockierend.
+Testcode, ohne Wirkung auf die Aussage; aufgeräumt wird, wenn die Datei ohnehin berührt wird.
 
 ### O23 Die Sondierwelt in `test_benennung.py` erzeugt keine Vermerke
 
 D173.
 
-### O24 `disjoint_paths` bewegt sich nicht
+### O24 `disjoint_paths` bewegt sich nicht — erledigt (D431)
 
-Bleibt `1` in allen gemessenen Fällen.
+Bewegt sich in TP-BOOT und TP-FAN; gemessen mit Rücknahmeprobe, drei rot.
 
 ### O25 Der Sicherungsblob mit Seed und Spitze
 

@@ -18556,3 +18556,67 @@ Nachzug. Er wird nicht jetzt beauftragt: Keine offene Entscheidung hängt an ihm
 Beschluss 3). Der Stolperdraht bleibt der aus O73.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O77 in der Schliessform).
+
+### D445 — O78: die Fragenliste kennt zwei Eintragsarten, und der Index zeigt beide getrennt
+
+**Anlass.** O78 aus D442. Der Nachzug hat in `rs/FRAGEN.md` Änderungseinträge neben die Fragen
+gestellt (D441 Beschluss 3). `tools/check_fragen.py` kennt nur eine Art. Die Probe aus D442:
+Übernommen, würde die Liste den Index verfälschen. Gelesen wurden `tools/check_fragen.py` ganz,
+`tests/test_fragen.py`, `fragen-adressen.md` Abschnitt 4 und `fragen-index.md`.
+
+**Gemessen — was die Einführung trifft.**
+
+- `zeilen_aus_liste` liest Überschriften der Form `## <n>. ` und die Adresszeile darunter.
+- `zuordnung_pruefen` prüft die Nummern lückenlos ab 1, dazu die Deckung von Überschriften und
+  Zeilen und die Adressform.
+- `matrix_von` zählt jede Zeile als Eintrag.
+- Zwei Tests in `tests/test_fragen.py` zählen unabhängig nach. `_ueberschriften` zählt jede
+  Zeile, die mit `## ` beginnt, `_nennungen` jede Adresszeile. Beide würden die Änderungen und
+  die Überschrift `## Einträge 1 bis 13` mitzählen.
+
+**Beschluss 1 — die Eintragsart steht in der Überschrift.** Ein Eintrag der Form
+`## <n>. Änderung: <Titel>` ist ein Änderungseintrag, jeder andere nummerierte Eintrag eine Frage.
+Die Form ist die aus dem Nachzugsauftrag, und `Änderung:` ist als Titelanfang damit reserviert.
+Die Art gibt es nur in selbsttragenden Listen; Tabellenlisten in `fragen-adressen.md` führen
+nur Fragen.
+
+**Beschluss 2 — gemeinsame Nummern, getrennte Zählung.**
+
+- Nummernfolge, Deckung von Überschriften und Zeilen sowie Adressform gelten über beide Arten.
+  Eine Lücke zwischen einer Frage und einer Änderung bleibt ein Befund.
+- Die Matrix in Abschnitt 1 des Index zählt nur Fragen; ihre Kopfzahlen bleiben Fragen.
+- Änderungen stehen in einem eigenen Abschnitt `## 2. Die Änderungen`, gleich gebaut, mit Spalten
+  nur für Listen, die Änderungen führen.
+- Führt keine Liste Änderungen, entfällt der Abschnitt. Der heutige Index bleibt dann
+  byte-gleich.
+- Die Ausgabezahl des Prüflaufs zählt die Fragen.
+
+**Beschluss 3 — die Liste aus dem Isolat kommt vor dem Lauf in den Baum.** `rs/FRAGEN.md` wird auf
+dem Auftragsbranch aus `~/mar-rs` auf `77f572d` übernommen, mit Blob-Abgleich. Die Basis des
+Laufs ist damit ein Stand, an dem `check_fragen` genau eine Meldung gibt: der Index weicht ab. Das
+ist die Vormessung. Der Lauf muss sie auflösen, ohne Abschnitt 1 anzufassen.
+
+**Die Erwartung, vor dem Lauf fixiert.**
+
+- Abschnitt 1 bleibt byte-gleich: 81 Einträge, 110 Nennungen, 27 Adressen.
+- Abschnitt 2 führt nach dem Bericht zu `77f572d` 11 Änderungen mit 14 Nennungen an 11 Adressen.
+  `02 §10` steht mit vier Änderungen am dichtesten (16, 17, 18, 21).
+- Diese Zahlen stammen aus dem Bericht des Nachzugs. Der Lauf leitet sie aus der Datei ab, und
+  eine Abweichung wird gemeldet, nicht nachgezogen.
+
+**Verworfen — Änderungen aus der Prüfung ganz herausnehmen.** Dann wären ihre Adressen ungeprüft,
+und gerade die Adressen sind an einem Nachzug das Messbare (D441 Beschluss 3).
+
+**Verworfen — die Änderungen in eine eigene Datei auslagern.** Die Liste im Isolat ist der Beleg
+und wird nicht aufgeteilt. Eine zweite Datei hätte ohne Anmeldung auch den
+Vollständigkeitsbefund aus D395 ausgelöst.
+
+**Verworfen — eine Spalte `Art` in der Matrix.** Sie mischte beide Zählungen in einer Kopfzeile.
+Genau das soll verhindert werden.
+
+**Schwächste Stelle.** Beschluss 1 erkennt die Art an einer Titelkonvention. Eine künftige Fassung,
+die eine Frage mit „Änderung:" betitelt, würde falsch eingeordnet. Hingenommen: die Konvention
+steht in jedem Auftrag, der Änderungen verlangt, und ein Fehlgriff zeigt sich im Index als
+Verschiebung zwischen den Abschnitten.
+
+**Geändert.** `07-decisions.md`. Der Auftrag läuft auf `o78-fragen`.

@@ -82,10 +82,9 @@ D138, D176, D281.
 
 D173.
 
-### O15 Sechs Zeilen mit wahrer Expiry-Inkohärenz
+### O15 Sechs Zeilen mit wahrer Expiry-Inkohärenz — erledigt (D425)
 
-Die Zweitfassung wählt anders; beide Codes sind wahr, die Spec stellt frei, der Grund des
-Unterschieds ist ungeklärt.
+Prüfreihenfolge der Go-Fassung, Anker vor Expiry, deterministisch; kein Befund nach Prüfregel 61.
 
 ### O16 N09 ist beobachtet, nicht durchgesetzt
 

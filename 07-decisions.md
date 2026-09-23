@@ -17513,3 +17513,40 @@ Punkt verweist jetzt dorthin.
 **Kein Lauf.** Geändert: `00-nucleus-genesis-constitution.md` (§5.2 ein Satz), `04-governance.md`
 (§8 ein Punkt), `werkzeuge.md` (§2.2 ein Absatz, §7 zwei Punkte zu einem), `offen.md` (O32, O33 in
 der Schliessform). Keine Code-Datei.
+
+### D425 — O15: die sechs Zeilen sind die Prüfreihenfolge der Go-Fassung
+
+**Anlass.** O15 stammt aus dem Sitzungsstart `00am`, nicht aus einem Registereintrag: von 294
+Zeilen mit wahrer Expiry-Inkohärenz, die die Referenz `BAD_SIGNATURE` nennt, wählt die
+Go-Fassung bei 288 `INCOHERENT_EXPIRY` und bei sechs etwas anderes. Beide Codes wahr, `01 §B.2`
+stellt frei. Offen war nur, woran der Unterschied hängt. Nach zwei Anläufen in `00al` wurde die
+Schicht gewechselt; ein dritter Datenlauf wäre der Kreisel gewesen. Dieser Eintrag wechselt die
+Schicht noch einmal: er liest den Code statt die Daten.
+
+**Die Ableitung, ohne Lauf.** Drei Stücke, alle bereits gemessen:
+
+1. `go/verify.go`, Funktion `verify`, prüft in fester Folge: Kodierung, Version, Felder, `J`-Tag,
+   Prädikat, Scope-Bindung, **Genesis-Anker, dann Expiry**, zuletzt die Signatur. Eine Zeile mit
+   wahrer Expiry-Inkohärenz erreicht die Signaturprüfung nie; die Go-Fassung kann dort also nicht
+   `BAD_SIGNATURE` melden, und jede der sechs Zeilen weicht von der Referenz ab.
+2. D308: die Stufe 2 hat 512 abweichende Zeilen, und sie zerfallen vollständig in zwei Muster —
+   224 mal `INVALID_GENESIS_ANCHOR`, 288 mal `INCOHERENT_EXPIRY`, beide gegen `BAD_SIGNATURE`.
+3. Also liegen die sechs im Ankermuster. Sie tragen ein `h_prev` aus 32 Nullbytes — D308 hat das
+   für alle 224 nachgemessen — und die Go-Fassung prüft den Anker vor der Frist.
+
+Der Unterschied hängt damit an einem zweiten wahren Mangel derselben Zeile, nicht an der Frist.
+
+**Was ein Befund gewesen wäre.** Eine Codewahl, die zwischen zwei Läufen wechselt. Go randomisiert
+die Iteration über Maps, und `verify` iteriert zweimal über eine: bei den Top-Level-Keys und in
+`uintKeyMap`. Beide Schleifen liefern nur `MALFORMED_CBOR` oder ein Flag, nie eine Wahl zwischen
+Klassen. Die Pflichtfeldprüfung in `parseV1Claim` läuft über eine Slice. Die Codewahl ist
+deterministisch.
+
+**Beschluss.** O15 ist kein Befund nach Prüfregel 61 und wird geschlossen. Kein Auftrag: jeder
+Ausgang des Laufs hätte zur selben Entscheidung geführt.
+
+**Schwächste Stelle.** Die Ableitung ruht auf der Vollständigkeit der zwei Muster in D308. Stimmte
+sie nicht, könnten die sechs einen dritten Code tragen; dann wären sie Abweichungen ausserhalb der
+512 und D308 hätte sie gemeldet. Nachgelaufen wird das nicht.
+
+**Kein Lauf.** Geändert: `offen.md` (O15 in der Schliessform). Keine Code-Datei.

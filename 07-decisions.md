@@ -17813,3 +17813,52 @@ jeden ist die Rücknahmeprobe in diesem Register benannt.
 
 **Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O11, O12, O13, O22, O24 in der
 Schliessform; O11 hatte keinen Rumpf und bekommt die Zeile). Keine Code-Datei.
+
+### D432 — O10: ein nicht lesbares `v` bei `ratify@1` trägt `UNPARSABLE_V`; der Messauftrag
+
+**Anlass.** O10 aus D431, als Fork vorgelegt und vom Operator entschieden. Die Frage hat D275
+Beschluss 3 offen gelassen: ein nicht dekodierbares `v` behält dort „sein heutiges Ergebnis",
+`UNKNOWN_VOTE_CHOICE` bei `vote@1`, `UNSUPPORTED_RATIFICATION` bei `ratify@1`. D276 hat danach
+`UNPARSABLE_V` für Stimmen eingeführt. Seitdem benennt eine Schicht dieselbe Lage an zwei
+Prädikaten verschieden.
+
+**Beschluss 1 — `ratify@1` folgt `vote@1`.** Die zweite Lage aus `04 §2.3` — `v` vorhanden, nicht
+lesbar, weil Dekodierung oder Re-Serialisierung scheitert oder das Ergebnis keine Map ist —
+erzeugt bei `ratify@1` `UNPARSABLE_V` mit der `claim_id` des `ratify@1` als Subjekt und verdrängt
+`UNSUPPORTED_RATIFICATION`. Der Grund ist das Kriterium, das `04 §4.1` selbst nennt: die Auskunft
+an den Beobachter. Nach ihm verdrängt `NON_CANONICAL_V` den Sammelvermerk seit D275 Beschluss 4,
+weil „nicht kanonisch" „trägt nicht" enthält und den Grund dazusagt. „Nicht lesbar" tut dasselbe.
+Die Sammelzeile „der Claim ist da und trägt nicht" trifft die Lage nur ungenau — dieselbe Form wie
+die beiden Zeilen, die D207 nachgetragen hat.
+
+**Was bleibt.** Ein abwesendes `v` und eine lesbare, kanonische Map ohne Liste unter Key `0`
+bleiben bei `UNSUPPORTED_RATIFICATION`; dort ist nichts unlesbar. Die Weitergabe der
+Auszählungsvermerke gilt auf dem neuen Pfad wie auf jedem ohne Folgeepoche (D203).
+
+**Gemessen vorab, im Supervisor-Klon auf `8246420`.** Die Umstellung in `epoch.py` — `_cited`
+und der Rückgabepfad lassen jeden Vermerk aus `read_v` durch, nicht nur `NON_CANONICAL_V` —
+lässt alle 918 Tests grün. Kein bestehender Test erwartet für diese Lage
+`UNSUPPORTED_RATIFICATION`; die Lage hatte bisher überhaupt keinen Prüfer. `GV-54` in
+`04-golden-anchors.md` wird ihr erster.
+
+**Geändert in diesem Eintrag:** `04 §2.3` (ein Satz), `04 §4.1` (ein Absatz),
+`04-golden-anchors.md` (`GV-54`), `offen.md` (O10 in der Schliessform). Der Code folgt im Auftrag.
+
+**Der Messauftrag.** Ein Lauf, Branch `00cd-messauftrag`, Basis der Commit dieses Eintrags. Sechs
+Teile, fünf davon reine Tests:
+
+| Teil | Posten | Prüfer | Rücknahmeprobe |
+|---|---|---|---|
+| A | O10 | `test_GV_54` und die Umstellung in `epoch.py` | alte Behandlung der zweiten Lage |
+| B | O19 | Ordnung der Vermerke in `02` und `04` gegen einen im Test ausgeschriebenen Schlüssel | `reverse=True` je Schicht |
+| C | O23 | Vertauschungsprobe über einer Welt mit Vermerken | künstliche Namensabhängigkeit in einem Vermerkspfad |
+| D | O30 | Kettenwelt, deren zweite Verfassung `irrevocable_predicates` bewegt | `resolve_state` rechnet die Policy aus Epoche 1 |
+| E | O18 | Weitergabe bei `RATIFY_WITH_EXPIRY` | `*tally.findings` auf diesem Pfad entfernt |
+| F | O21 | Eigenschaftstests zu `INV-04.7` und `INV-04.8`, Auszählung je Schritt neu | Schutz von `vote@1` in der Auflösung entfernt |
+
+**`00` ist aus Teil B herausgenommen, mit Grund.** `symbolon/keys.py` erzeugt je Aufruf höchstens
+einen verschiedenen Vermerk: `CONSTITUTION_UNAVAILABLE` und `MALFORMED_NUCLEUS_KEY` schliessen
+einander aus, und mehrere formwidrige Einträge fallen nach D163 zu einem zusammen. Eine Ordnung
+über höchstens ein Element hat keinen Prüfer. O19 ist nach Teil B damit ganz beantwortet.
+
+**Der erste Lauf unter `AGENTS.md`** (D421). Der Bericht hält fest, ob die Datei geladen war.

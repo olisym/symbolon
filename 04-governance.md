@@ -151,7 +151,8 @@ dekodiert zu einer Map mit Key `0` und Wert `1` und lässt sich nicht re-seriali
 Fehler der Re-Serialisierung abfängt und danach weiterliest, zählt diese Stimme. Ihr Vermerk ist
 `UNPARSABLE_V` und nicht `NON_CANONICAL_V`: an ihr ist die Kanonizität nicht entscheidbar, und
 Profile-II `§1.3` benennt dieselbe Lage ebenso. Ein abwesendes `v` bleibt davon unberührt und
-behält bei `vote@1` den Vermerk `UNKNOWN_VOTE_CHOICE`.
+behält bei `vote@1` den Vermerk `UNKNOWN_VOTE_CHOICE`. Bei `ratify@1` trägt die zweite Lage
+ebenfalls `UNPARSABLE_V` und verdrängt `UNSUPPORTED_RATIFICATION` (`§4.1`, D432).
 
 **Lage 2 und Lage 3 überschneiden sich; die Kanonizität geht vor** (D277). Ein `v` kann zugleich
 nicht kanonisch und keine Map sein — `h'1801'` etwa, die Zahl `1` in nicht-kürzester Form. Es ist
@@ -462,6 +463,12 @@ und der Claim etabliert keine Epoche. Der Vermerk ist `NON_CANONICAL_V` und **ni
 die Auskunft „das `v` ist nicht kanonisch" enthält „er trägt nicht" bereits und nennt zusätzlich
 den Grund. Das Subjekt ist die `claim_id` des `ratify@1`, aus demselben Grund wie in der zweiten
 Zeile — die Zeugenliste ist ein Feld und hat keine eigene Adresse.
+
+**Nicht lesbares `v`** (D432). Liegt `v` in der zweiten Lage aus `§2.3`, fällt die Zeugenmenge
+ebenso weg, und der Vermerk ist `UNPARSABLE_V`, nicht `UNSUPPORTED_RATIFICATION` — aus demselben
+Grund wie beim nicht-kanonischen `v`, mit demselben Subjekt. Ein abwesendes `v` und eine lesbare
+Map ohne Zeugenliste unter Key `0` bleiben bei `UNSUPPORTED_RATIFICATION`: dort ist nichts
+unlesbar, der Claim trägt nur nicht.
 
 **Bedingung 6 — die Zielverfassung muss regieren können** (D200).
 

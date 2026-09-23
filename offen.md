@@ -64,9 +64,9 @@ Entschieden in D312; die Datei bleibt im Baum, Szenarioläufe setzen auf `tools/
 
 Ganz Anhang C gebunden, in beide Richtungen, mit dauerhafter Verfälschungsprobe.
 
-### O10 `UNPARSABLE_V` entsteht bei `ratify@1` nicht
+### O10 `UNPARSABLE_V` entsteht bei `ratify@1` nicht — erledigt (D432)
 
-D276.
+Entschieden: entsteht, wie bei `vote@1`; `04 §4.1`, `GV-54`. Der Code folgt im Messauftrag.
 
 ### O11 `cbor_canon.decode` ist tolerant und bleibt es — erledigt (D431)
 

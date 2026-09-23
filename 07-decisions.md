@@ -18525,3 +18525,34 @@ hinzu, gehört er in diese Aufzählung.
 
 **Geändert.** `01-claim-atom.md` (`§4`); `02-trust-flow.md` (`§8`, `§10`, `§11.4`);
 `07-decisions.md`; `offen.md` (O77 fortgeschrieben). `rs/spec/` bleibt auf `573db57`.
+
+### D444 — Abnahme `o77-autorflag`; O77 erledigt
+
+**Abnahme.** Branch `o77-autorflag`, ein Commit `67f6551` auf `cb9858f`, eine neue Datei
+`tests/trust/test_autor_flag.py`, nichts unter `symbolon/`. Der Bericht lag vor dem Push vor. Die
+Datei wurde deshalb aus dem gemeldeten Diff im Supervisor-Klon nachgebaut. `git hash-object`
+ergibt `c7bea3f`, den Blob aus der Indexzeile des Diffs; der Nachbau ist also byte-gleich mit dem
+Commit. Gemessen darauf: 938 grün. Die drei Rücknahmeproben aus D443 Beschluss 5 wurden selbst
+gefahren, jede gegen die ganze Suite, und treffen die Erwartung genau:
+
+- A färbt Test 1 rot.
+- B färbt Test 2 und Test 3 rot.
+- C färbt nur Test 3 rot.
+
+Die Variante mit dem zweiten Scope hat dieselben 13 Claims wie F2, f1 und f2 liegen ausserhalb
+von `SCOPE`, und `b` liegt darin. Das `n` von `b` ist aus dem Payload abgeleitet, der Fluss aus
+`FLOW_PER_TARGET`; getippt ist nur die 0. `ruff format --check` würde die Datei umbrechen; das
+Projekt erzwingt die Formatierung nicht, und 105 weitere Dateien stehen ebenso. Das ist kein
+Befund. Merge fast-forward.
+
+**Beschluss 1 — O77 ist erledigt.** Das Autor-Flag ist in `02 §8` normiert (D443), und beide
+Wirkungen sind gebunden: der geflaggte Claim ohne Kante auch bei `include_flagged = True`, und
+das Autor-Flag über Scope-Grenzen bei `False`. Die Lesart von `rs` aus D442 fällt jetzt in der
+Referenz an einem Test.
+
+**Was offen bleibt, benannt.** `rs` steht auf `573db57` und hat den Text aus D443 nicht gelesen.
+Ob `02 §8` in der neuen Fassung so gelesen wird, wie er gemeint ist, zeigt erst ein nächster
+Nachzug. Er wird nicht jetzt beauftragt: Keine offene Entscheidung hängt an ihm (D409
+Beschluss 3). Der Stolperdraht bleibt der aus O73.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O77 in der Schliessform).

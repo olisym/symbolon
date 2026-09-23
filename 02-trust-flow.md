@@ -800,7 +800,9 @@ ihm die Kante zu entziehen wäre eine Sanktion, die nirgends beschlossen ist.
 weil `⌊n_kante·C_author/D⌋` auf null fällt: sie nimmt weder an der Distanzberechnung noch am Fluss
 teil. Als Adresse dient die `claim_id` des Mitglieds mit `n == n_kante`, bei Gleichstand die
 lexikographisch kleinste. Damit ist der Vermerk deterministisch, auch wenn mehrere Claims dasselbe
-`n` tragen (`§3.1`).
+`n` tragen (`§3.1`). Der Vermerk setzt einen erreichten Autor voraus: er entsteht in Schritt 6
+von `§11.4` an einer Kante, deren Autor die Breitensuche erreicht hat. Für einen unerreichbaren
+Autor ist `C = 0` der strukturelle Fall aus `§3` und kein Vermerk (D439).
 
 **`OVERCOMMITTED_AUTHOR` ist die Ausnahme, und sie ist nicht am Typ erkennbar.** Sein Subjekt ist
 ein öffentlicher Schlüssel, kein `claim_id`. Beide sind 32 Byte; wer `subject` pauschal im Speicher

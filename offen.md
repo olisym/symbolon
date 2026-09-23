@@ -342,12 +342,15 @@ Obergrenze.
 
 ### O73 Der zweite Zeuge liest einen überholten Text
 
-Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in sechs Commits
-geändert (D394, D396, D398, D400, D402, D406) und `01-claim-atom.md` in einem (D396), darunter der
-ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D368 hält `02a`
-zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie beschlossen.
-Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne zweiten Zeugen
-entschieden werden müsste.
+Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in sieben Commits
+geändert (D394, D396, D398, D400, D402, D406, D439) und `01-claim-atom.md` in zwei (D396, D437),
+darunter der ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D368
+hält `02a` zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie
+beschlossen.
+Stufe A (D439) hat es gezeigt: in `ZF-02` F2 gibt `rs` geflaggten Claims eine Kante, weil ihr
+`02 §3.1` das Aktiv-Set noch ohne Zustand definiert (D398). Bei Stufe B müssen F1 und F2
+übereinstimmen. Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne
+zweiten Zeugen entschieden werden müsste.
 
 ### O74 Verschachtelung als Norm oder Schnittmenge bei der Auswertung
 
@@ -359,10 +362,6 @@ das in `03 §1.3` einen Prämissen-Key deklariert.
 
 Keine wachsenden Zahlen mehr; Verweis auf `make check`, Registerende und Sitzungsstart.
 
-### O76 `pending` und die Flags sind in keinem Vektorsatz belegt
+### O76 `pending` und die Flags sind in keinem Vektorsatz belegt — erledigt (D439)
 
-Aus D437. Die Zweitfassungen lesen `pending`, `equivocation-flagged` und
-`time-regression-flagged` aus `01`; keine hat einen davon je ausgegeben, und `rs` liest `linked`
-transitiv, die Referenz nicht. Ein Vektorsatz mit Kettenlücke, Equivocation und Zeitregression
-gehört in den nächsten Auftrag an eine Zweitfassung (O73). Stolperdraht: ein Befund, der an einem
-dieser Zustände hängt und ohne gemessene Übereinstimmung entschieden werden müsste.
+`ZF-02` (D438) belegt sie; Stufe A hat `rs` darauf gemessen, der Rest von F2 gehört zu O73.

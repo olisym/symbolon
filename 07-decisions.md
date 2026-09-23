@@ -18153,3 +18153,71 @@ hingenommen: gemessen werden die Zeilen, nicht der Fluss allein.
 
 **Kein Lauf in diesem Eintrag.** Der Auftrag läuft auf Branch `o76-zf02`, Basis der Commit dieses
 Eintrags. Geändert: `07-decisions.md`.
+
+### D439 — Abnahme `ZF-02` und Stufe A: `rs` rechnet transitiv, und ein zweiter Befund in `02 §10`
+
+**Abnahme.** Branch `o76-zf02`, ein Commit `b3aebcb` auf `a6402eb`, vier neue Dateien, nichts
+unter `symbolon/`. Im Supervisor-Klon gemessen: `make check` grün mit 934 Tests, der Exporter
+erzeugt die Vektordatei byte-gleich, `tools/ref_block.py` trifft jede Zahl aus D438. Die
+Rücknahmeprobe, `linked` transitiv, färbt genau `test_zf02_states[F1]` und
+`test_zf02_flow_and_budget[F1]` rot. Merge fast-forward.
+
+**Stufe A — gemessen.** Die Rust-Fassung `trustflow02` auf ihrem Anker `15d091e`, unverändert,
+rechnet `ZF-02`; verglichen mit `diff` gegen `ref_block`, die `inf`-Zeile nach D391 Beschluss 4
+ausserhalb. 54 abweichende Zeilen, drei Ursachen.
+
+**F1 — die transitive Lesart ist gerechnet, nicht nur gelesen.** `rs` setzt b3 auf `pending`; die
+Gruppe BOB → CAROL trägt `n_kante = 0`, CAROL und die Ziele sind unerreichbar, jeder Fluss ist 0,
+simultan und disjunkt ebenso. Die schwächste Stelle aus D437 ist damit gemessen: der Text vor D437
+hat die transitive Lesart erzeugt, und D437 war eine Reparatur am Text, keine Klarstellung.
+
+**F2 — der alte Text von `02 §3.1`.** Die Zustände stimmen: f1 und f2 sind in beiden Fassungen
+`equivocation-flagged`. `rs` gibt ihren Gruppen aber `n_kante = 1` und druckt zwei Kanten von BOB.
+Die Kopie von `15d091e` definiert das Aktiv-Set als „nicht widerrufen, nicht abgelaufen", und ein
+geflaggter Claim erfüllt das. Seit D398 heisst es „Zustand `active`", und `02 §3.1` hält den Fall
+unter „Aktiv heisst der Zustand" fest. Das ist O73: ein Befund am alten Text, den der heutige schon
+beantwortet. Die Flüsse ändern sich nicht, weil X und Y keine Ziele sind.
+
+**F3 — keine Abweichung.** Zeitregression und die Wirkung stromabwärts rechnen beide Fassungen
+gleich; nur die `inf`-Zeile weicht ab.
+
+**Der zweite Befund — `SUBGRANULAR_VOUCH` am unerreichbaren Autor.** In F1 meldet `rs` neun
+`SUBGRANULAR_VOUCH`, einen je Kante von CAROL und aus dem Mesh, alle mit unerreichbarem Autor. Die
+Referenz meldet den Vermerk nur für Kanten, die die Breitensuche von einem erreichten Knoten aus
+prüft (`symbolon/trust/graph.py`). Der Text trägt beide Lesarten, auch der heutige: `02 §3` setzt
+`C(x) = 0` für unerreichbare Knoten, und `02 §10` knüpft den Vermerk daran, dass
+`⌊n_kante·C_author/D⌋` auf null fällt. Sichtbar wird das erst jetzt, weil kein Vektorsatz einen
+unerreichbaren Autor mit einer Kantengruppe hat, in der Referenz auch `ZF-02` nicht; erst die
+transitive Lesart von `rs` hat CAROL abgeschnitten. Eine Rücknahmeprobe im Klon, die den Vermerk
+auch für unerreichte Autoren setzt, lässt alle 934 Tests grün: das Verhalten ist nicht gebunden.
+
+**Beschluss 1 — `SUBGRANULAR_VOUCH` setzt einen erreichten Autor voraus (normativ, `02 §10`).** Der
+Vermerk entsteht in Schritt 6 von `§11.4`, an einer Kante, deren Autor die Breitensuche erreicht
+hat. Für einen unerreichbaren Autor ist `C = 0` der strukturelle Fall aus `§3` und kein Vermerk.
+Der Grund: der Vermerk sagt, dass ein Gewicht für die Entfernung zu fein ist, und ein
+unerreichbarer Autor hat keine Entfernung. Sonst trüge jeder Vouch jedes Fremden im Bestand einen
+Vermerk, und die Vermerkliste wüchse mit dem Bestand statt mit der Reichweite der Anker.
+
+**Beschluss 2 — das Verhalten wird gebunden.** Ein Test mit einem erreichten Autor, dessen Kante
+auf null fällt, und einem unerreichbaren mit tragfähigem Gewicht; erwartet ist genau ein Vermerk.
+Er entsteht im Auftrag `d439-subgranular`, Basis der Commit dieses Eintrags, mit der Rücknahmeprobe
+aus dem Klon.
+
+**Beschluss 3 — O76 ist erledigt.** Die Flag-Zustände sind belegt und in einer Zweitfassung
+gemessen. Was an F2 offen bleibt, gehört zu O73; bei Stufe B müssen F1 und F2 mit der Referenz
+übereinstimmen und die neun Vermerke verschwinden.
+
+**Verworfen — den Vermerk auch am unerreichbaren Autor setzen, wie `rs`.** Es wäre der
+wörtlichere Anschluss an `§3`. Aber der Vermerk hinge dann am ganzen Bestand und nicht an der
+Anfrage, und die Referenz hätte zum ersten Mal einen Vermerk, den sie für keine Anfrage braucht.
+
+**Verworfen — F2 als Befund gegen `rs` buchen.** Die Fassung folgt ihrem Text; der Text ist
+überholt, das trägt O73.
+
+**Schwächste Stelle.** Beschluss 1 ist an einer Lesart entschieden, die eine einzige Fassung
+geliefert hat, und die Referenz hat den Fall nie in einem Vektor gerechnet. Der Test aus
+Beschluss 2 bindet die Referenz, nicht den Text; ob eine Fassung den neuen Satz so liest, zeigt
+erst Stufe B.
+
+**Geändert.** `02-trust-flow.md` (`§10`, ein Absatzende), `offen.md` (O76 in der Schliessform,
+O73 um den Befund aus F2 und die Änderungen aus D437 und D439 ergänzt).

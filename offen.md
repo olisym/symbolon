@@ -102,9 +102,9 @@ D203.
 
 D196.
 
-### O20 Vier `Finding`-Klassen, drei `dedupe_sort`
+### O20 Vier `Finding`-Klassen, drei `dedupe_sort` — erledigt (D429)
 
-D183, mit D207 berichtigt.
+Getrennt gelassen wie in D183; gegen Drift trägt die Ordnungsnorm aus `00 §10`.
 
 ### O21 Die Eigenschaftstests zu `INV-04.7` und `INV-04.8` prüfen eine schwächere Aussage
 

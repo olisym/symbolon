@@ -367,7 +367,8 @@ einzige Adresse, unter der ein Beobachter es holen kann. Und wird die Schwelle i
 Verfassungen geprüft, benennt das Subjekt die **zurückgewiesene** — bei der Zielverfassung also
 `proposal.constitution_hash`, nicht `epoch.constitution_hash`. Ein Vermerk, der auf ein heiles
 Objekt zeigt, schickt den Beobachter an die falsche Stelle, und das ist schlechter als gar keine
-Adresse: einer fehlenden folgt er nicht.
+Adresse: einer fehlenden folgt er nicht. `findings` ist sortiert und dedupliziert, in der Ordnung
+aus `00 §10` (D429).
 
 **Eine leere `participants`-Liste ist formwidrig.** Sie ist sortiert und duplikatfrei und käme
 sonst durch; mit `n = 0` wäre jeder Vorschlag sofort `FAILED`, und die Diagnose sagte „abgelehnt",

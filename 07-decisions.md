@@ -17651,3 +17651,57 @@ N09-Fussnote bleibt als Aussage richtig — geprüft ist der Vermerk, nicht eine
 aber sie ist keine offene Frage.
 
 **Kein Lauf.** Geändert: `offen.md` (O16, O17 in der Schliessform). Keine Code-Datei.
+
+### D429 — O19, O20: was „sortiert" heisst, und wo die Ordnung ungeprüft ist
+
+**Anlass.** Vierter Cluster der Triage: O19 aus D196 (Vergleiche gegen `dedupe_sort` sind für die
+Reihenfolge zirkulär), O20 aus D183 mit D207 (vier `Finding`-Klassen, drei `dedupe_sort`).
+Gelesen: D183, D196, D207, `00 §10`, `02 §10`, `03 §6`, `04 §3.5`, `03-golden-anchors.md`
+(`PR-INV-9`), die vier `findings.py` und `policy.py`. Gemessen im Supervisor-Klon auf `b355a86`.
+
+**Gemessen — die Ordnung ist in drei von vier Schichten ungeprüft.** Die Sortierung je Schicht
+umgedreht (`reverse=True`), jeweils allein:
+
+| Umgedreht | rot |
+|---|---|
+| `symbolon/findings.py` (`00`) | keiner |
+| `governance/findings.py` (`04`) | keiner |
+| `profiles/findings.py` (`03`) | sieben, darunter `test_PR_INV_9` |
+| `trust/graph.py` und `trust/derive.py` (`02`, ohne `dedupe_sort`) | keiner |
+
+Nur `03` pinnt die Ordnung, weil `PR-INV-9` sie als Invariante führt und die Payload-Tests Tupel
+vergleichen. O19 trifft also zu und ist breiter, als D196 ihn formuliert hat: nicht nur ein Test
+ist zirkulär, drei Schichten haben gar keinen Prüfer.
+
+**Der tiefere Befund — der Schlüssel steht nirgends.** `00 §10` und `03 §6` sagen „sortiert und
+dedupliziert", `04` sagt es nur in `04-prompt.md §2` (D173), `02` gar nicht. Wonach sortiert wird,
+sagt keine Stelle. Der Code sortiert über `dataclass(order=True)` mit den Feldern `kind` und
+`subject` in dieser Folge, in allen vier Klassen gleich; `kind` ist ein `str`-Enum und vergleicht
+über seinen Wert. Eine zweite Fassung, die nur die Spec liest, dürfte anders sortieren.
+
+**Beschluss 1 — der Schlüssel wird normiert, einmal.** `00 §10`: aufsteigend nach `kind` als
+ASCII-Zeichenfolge, dann `subject` byteweise; gleiche Paare fallen zusammen. `02 §10`, `03 §6` und
+`04 §3.5` verweisen darauf. Das ist keine Verhaltensänderung, sondern der fehlende Satz zu einem
+Verhalten, das alle vier Klassen zeigen — dieselbe Form wie D308. Die Ordnung trägt keine
+Bedeutung; sie macht zwei Antworten über denselben Bestand byte-vergleichbar, und dafür muss sie
+beschrieben sein.
+
+**Beschluss 2 — die Prüfer gehen in den gebündelten Messauftrag.** Je Schicht `00`, `02`, `04` ein
+Test, der die Ordnung gegen einen **im Test ausgeschriebenen** Schlüssel prüft, nicht gegen
+`dedupe_sort`, an einer Welt mit mindestens zwei Vermerken verschiedener Ordnung; Rücknahmeprobe
+jeweils `reverse=True`. O19 bleibt bis dahin stehen.
+
+**O20 — getrennt lassen, geschlossen.** D183 hat die Trennung begründet: die Herkunft eines
+Vermerks ist Information, ein vereinheitlichter Typ koppelte `00`, `03` und `04`. Die dreifache
+`dedupe_sort` ist eine Zeile gleichen Inhalts; die Drift, gegen die eine Zusammenlegung schützen
+sollte, fängt nach Beschluss 1 und 2 die Ordnungsprüfung je Schicht, ohne die Schichten
+aneinander zu binden. `PolicyNote` bleibt aussen vor: fünfte Familie, andere Felder, eigene
+Begründung in `03 §1.2`, und die Norm aus Beschluss 1 spricht von Vermerken.
+
+**Schwächste Stelle.** „ASCII-Zeichenfolge" setzt voraus, dass jede `kind` ASCII ist. Heute sind es
+Grossbuchstaben und Unterstriche; eine künftige Art mit anderem Zeichensatz hätte keine normierte
+Ordnung. Nicht vorsorglich geregelt.
+
+**Kein Lauf in diesem Eintrag.** Geändert: `00` (§10 ein Absatz), `02` (§10 ein Satz), `03` (§6
+ein Verweis, Absatz neu umbrochen), `04` (§3.5 ein Satz), `offen.md` (O20 in der Schliessform).
+Keine Code-Datei; alle Proben im Klon zurückgenommen.

@@ -568,6 +568,11 @@ Vermerke ab und rechnet weiter. `NucleusFinding` ist ein eigener Enum und kein R
 Atoms — diese Schicht weist keinen Claim zurück, sie sagt nur, unter welchem Vorbehalt ihre
 Antwort steht. `findings` ist sortiert und dedupliziert.
 
+**Was sortiert heisst (D429).** Aufsteigend nach `kind`, als ASCII-Zeichenfolge verglichen, dann
+nach `subject` byteweise; gleiche Paare fallen zusammen. Die Ordnung gilt für die Vermerke aller
+Schichten (`02 §10`, `03 §6`, `04 §3.5`). Sie trägt keine Bedeutung — sie macht zwei Antworten
+über denselben Bestand byte-vergleichbar.
+
 | Vermerk | Subjekt |
 |---|---|
 | `CONSTITUTION_UNAVAILABLE` | der übergebene `constitution_hash` (D164) |

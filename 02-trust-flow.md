@@ -760,7 +760,8 @@ Die Ableitung wirft keine Ausnahmen für schadhafte Eingaben; sie legt Vermerke 
 weiter. **Der Satz gilt der Ableitung, nicht dem vermerkten Objekt.** Was mit dem Objekt geschieht,
 ist je Vermerk verschieden, und es folgt nie aus dem Vermerk selbst, sondern aus der Stelle, die
 ihn begründet. Ein Vermerk benennt in seinem `subject` das betroffene Objekt — notfalls gröber,
-wenn das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`).
+wenn das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`). `findings` ist
+sortiert und dedupliziert, in der Ordnung aus `00 §10` (D429).
 
 | Vermerk | Subjekt | Budget-Set | Kante | Grundlage |
 |---|---|---|---|---|

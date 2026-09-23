@@ -726,8 +726,8 @@ seinem Autor gefragt, nie nach seinem Zustand.
 betroffen ist, ist es das Objekt, um das es geht: bei `CONSTITUTION_UNAVAILABLE` der
 **übergebene** `constitution_hash` — nicht der berechnete Hash eines Objekts, das gar nicht
 vorliegt, und nie `b""`. Die vollständige Zuordnung steht in §6.1. `findings` ist sortiert und
-dedupliziert. `ProfileFinding` ist ein eigener Enum, kein Claim-Reject; wo ein Vermerk denselben
-Defekt bezeichnet wie in einer anderen Schicht, trägt er **denselben String**
+dedupliziert (`00 §10`). `ProfileFinding` ist ein eigener Enum, kein Claim-Reject; wo ein
+Vermerk denselben Defekt bezeichnet wie in einer anderen Schicht, trägt er **denselben String**
 (`NON_CANONICAL_V`), aber nicht dasselbe Symbol.
 
 **Benennen ist keine Entscheidung.** `subject` und die `*_claim_id`-Felder eines Ergebnisses

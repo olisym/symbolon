@@ -364,7 +364,8 @@ Aus D442. `02 §8` fragt nach einem „Bürgen mit `equivocation-flagged`", `02 
 `EQUIVOCATION_FLAGGED`, das die Vermerktabelle nicht führt. Wann ein Autor geflaggt ist, definiert
 allein `symbolon/trust/derive.py`: `OVERCOMMITTED_AUTHOR` oder ein Claim im Zustand
 `equivocation-flagged`, über alle Scopes. `rs` hat daraus eine Ausnahme vom Aktiv-Set gemacht
-(`ZF-02` F2). Zu tun: das Autor-Flag in `§8` normieren, `§10` berichtigen, `§3.1` unberührt.
+(`ZF-02` F2). Normiert in D443 (`01 §4`, `02 §8`, `§10`, `§11.4`); die Definition stand
+entgegen D442 schon in `01 §4`. Offen ist die Bindung: beide Wirkungen sind ungebunden (D443).
 
 ### O78 Die Fragenliste kennt nur eine Eintragsart
 

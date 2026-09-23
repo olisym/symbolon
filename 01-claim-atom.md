@@ -247,8 +247,10 @@ hash-verketteten Log.
 mit gleichem `(I, h_prev)`, dann hat der Autor seinen Log geforkt. Das ungeordnete Paar
 `{C1, C2}` ist ein selbstenthaltener, kryptografischer Equivocation-Beweis gegen `I`. Beide
 bleiben gespeichert; nichts wird gelöscht. Equivocation invalidiert strukturell gültige
-Downstream-Claims **nicht** rückwirkend — sie **flaggt den Autor** (Zustand
-`equivocation-flagged`, Anhang B). Die *Konsequenz* (z. B. Slashing) ist Sache der
+Downstream-Claims **nicht** rückwirkend — sie **flaggt den Autor**. Den Zustand
+`equivocation-flagged` (Anhang B) trägt jeder Claim, der sein `(I, h_prev)` mit einem anderen
+teilt; der Autor selbst hat keinen Zustand, er ist der Gegenstand des Beweises. Wie ein geflaggter
+Autor stromabwärts wirkt, regelt Trust-Flow §8. Die *Konsequenz* (z. B. Slashing) ist Sache der
 ökonomischen/Policy-Schicht. Positiver Beweis-Vektor: **NV3** (Anhang C, teilt `(I, h_prev)`
 mit TV1).
 

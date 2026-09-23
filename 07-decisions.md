@@ -18438,3 +18438,90 @@ Text sie nicht sagt.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O73 in der Schliessform, O77 und O78 neu);
 `rs/AUFTRAG-NACHZUG.md` neu.
+
+### D443 — O77: das Autor-Flag in `02 §8`, und keine der beiden Wirkungen ist gebunden
+
+**Anlass.** O77 aus D442. Vor dem Splice sind `01 §4`, `01 §6`, `01 Anhang B.1` und `02 §8` ganz
+gelesen worden, dazu die Stellen in `symbolon/trust/derive.py`, `symbolon/trust/groups.py` und
+`symbolon/verifier.py`.
+
+**D442 wird berichtigt.** D442 schreibt, die Definition des geflaggten Autors stehe in keiner
+Spec-Zeile. Das ist falsch. `01 §4` sagt, Equivocation „flaggt den Autor", `01 Anhang B.1` sagt
+in der Zeile zu `equivocation-flagged` „Autor flaggen", und `01 Anhang C.6` erwartet, den Autor
+„als equivocation-flagged" zu markieren. Das Flag ist also normiert. Es fehlt die Brücke nach
+`02`, und `01` benennt das Autor-Flag mit dem Namen eines Claim-Zustands: „flaggt den Autor
+(Zustand `equivocation-flagged`)". Von dort stammt die doppelte Bedeutung, die `02 §8` übernommen
+hat. Die Ursache für D442 war, aus `02` allein zu schliessen, ohne `01` zu lesen. Das ist der
+Prüfregel-Kandidat aus D392 und D394 ein weiteres Mal.
+
+**Gemessen — beide Wirkungen sind ungebunden.** Zwei Rücknahmeproben im Supervisor-Klon, jede
+gegen die ganze Suite:
+
+- `groups.py` nimmt `equivocation-flagged` ins Aktiv-Set auf (die Lesart von `rs`): 935 grün.
+- `derive.py` flaggt Autoren nur noch über `OVERCOMMITTED_AUTHOR`: 935 grün.
+
+`ZF-02` sieht keine der beiden, weil X und Y keine Ziele sind und der Test nur Flüsse, Zustände
+und Budget prüft. D438 hat F2 geschrieben, um zu prüfen, dass ein Flag nicht stromabwärts wirkt.
+Dass der geflaggte Claim selbst keine Kante trägt, prüft F2 nicht.
+
+**Beschluss 1 — das Autor-Flag steht in `02 §8` (normativ).**
+
+- Ein Autor ist geflaggt, wenn er `OVERCOMMITTED_AUTHOR` trägt oder wenn der Bestand einen
+  Equivocation-Beweis gegen ihn hält, das heisst mindestens ein Claim von ihm im Zustand
+  `equivocation-flagged` steht, gleich in welchem Scope.
+- `time-regression-flagged` flaggt nur den Claim.
+- `include_flagged` wirkt auf die Gruppen geflaggter Autoren und nie auf das Aktiv-Set. Ein
+  `equivocation-flagged` Claim trägt auch bei `include_flagged = True` keine Kante.
+
+„Gleich in welchem Scope" folgt aus `01`: Der Beweis ist das Paar gleicher `(I, h_prev)`, und die
+Kette eines Autors ist scope-blind. Damit ist die schwächste Stelle aus D442 Beschluss 3
+aufgelöst: Die Referenz rechnet, was `01` sagt, und das ist nicht mehr nur aus dem Code
+abgelesen.
+
+**Beschluss 2 — kein eigener Vermerk für den Equivocation-Beweis.** `02 §10` verwies auf die
+Wirkung „wie bei `EQUIVOCATION_FLAGGED`", einen Namen ohne Vermerk. Der Satz nennt jetzt den
+Beweis und sagt, warum es keinen Vermerk gibt: Der Beweis steht in den Zuständen der Claims und
+ist ohne `now` und ohne Budgetrechnung aus dem Bestand ablesbar. `OVERCOMMITTED_AUTHOR` braucht
+einen Vermerk, weil sein Prädikat `now` liest (§3.1); der Equivocation-Beweis braucht keinen.
+
+**Beschluss 3 — `01 §4` trennt Autor und Zustand.** Den Zustand trägt jeder Claim, der sein
+`(I, h_prev)` mit einem anderen teilt. Der Autor hat keinen Zustand, er ist Gegenstand des
+Beweises, und seine Wirkung regelt `02 §8`. Das entspricht `_is_in_equivocation_pair` in der
+Referenz. `01 Anhang C.6` bleibt unverändert: Der Satz beschreibt die Erwartung an den Vektor,
+und die ist richtig.
+
+**Beschluss 4 — `02 §11.4` Schritt 5 nennt die Wirkung.** Aus „Flags anwenden" wird „bei
+`include_flagged = False` fallen die Gruppen geflaggter Autoren weg".
+
+**Beschluss 5 — gebunden wird durch einen Werkzeuglauf.** Drei Tests auf dem Gerüst von `ZF-02`:
+
+- F2 bei `include_flagged = True`: BOB→X und BOB→Y haben `n_kante = 0`, BOB→CAROL hat
+  `n_kante = 2`.
+- F2 bei `include_flagged = False`: jeder Fluss ist 0. BOB ist geflaggt, seine einzige Kante
+  fällt, CAROL ist unerreichbar.
+- Eine Variante von F2 mit f1 und f2 in einem zweiten Scope: Bei `False` ist jeder Fluss im
+  ersten Scope 0, bei `True` ist er 3.
+
+Die Golden Numbers stammen aus D438: `C(BOB) = 8`, BOB→CAROL mit `⌊2·8/4⌋ = 4`, Fluss 3 je Ziel.
+Jeder Test hat eine Rücknahmeprobe: die beiden Proben oben und eine dritte, die das Autor-Flag
+auf den Scope der Anfrage beschränkt. Der Lauf ändert nichts unter `symbolon/`, nichts an
+`zf02.py` und nichts an der Vektordatei.
+
+**Verworfen — einen Vermerk `EQUIVOCATING_AUTHOR` einführen.** Er machte den Namen aus `§10` wahr
+und kostete einen neuen Wert in der Vermerkordnung, einen Codelauf und einen Vektornachzug. Er
+trüge nichts, was nicht schon in den Zuständen steht.
+
+**Verworfen — das Flag auf den Scope der Anfrage beschränken.** Ein Autor, der in einem Scope
+forkt, hat seinen Schlüssel für alle Scopes kompromittiert oder missbraucht. Ein Flag je Scope
+liesse ihn in jedem anderen Scope unbelastet weiter bürgen.
+
+**Verworfen — `01 Anhang C.6` mitändern.** Die Erwartung spricht vom Autor, und der Autor wird
+geflaggt. Sie ist nicht falsch, nur knapp.
+
+**Schwächste Stelle.** Beschluss 1 nennt `OVERCOMMITTED_AUTHOR` und Equivocation als die zwei
+Gründe für ein Autor-Flag, abschliessend. Ob `05` weitere Gründe kennt, ist nicht geprüft. Das
+Enforcement-Layer liegt ausserhalb der Referenzimplementierung. Kommt dort ein dritter Grund
+hinzu, gehört er in diese Aufzählung.
+
+**Geändert.** `01-claim-atom.md` (`§4`); `02-trust-flow.md` (`§8`, `§10`, `§11.4`);
+`07-decisions.md`; `offen.md` (O77 fortgeschrieben). `rs/spec/` bleibt auf `573db57`.

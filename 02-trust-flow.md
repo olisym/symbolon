@@ -673,10 +673,18 @@ Der *Mechanismus* ist festgelegt; die *Werte* sind Interpretation (A2):
   `r_max = 4` für die Bürgschaftsfähigkeit und `5` für die Mitgliedschaft. Ein Nukleus mit
   `θ = 2` sättigt bei rund **600 Mitgliedern** und Radius 5; wer mehr will, muss `C₀` oder
   `γ` ändern. Das ist die quantitative Fassung von „maximal lokal" und keine Panne.
-- **Geflaggte Autoren.** Ob ein Bürge mit `equivocation-flagged` oder erwiesenem
-  Über-Commitment noch Fluss trägt, ist Policy (`include_flagged`, Default *nein*). Die
-  Budgetrechnung ist davon **unberührt** — ein Flag darf die Grundlage nicht verschieben, auf
-  der es erkannt wurde.
+- **Geflaggte Autoren.** Ein Autor ist **geflaggt**, wenn er `OVERCOMMITTED_AUTHOR` trägt
+  (§3.1) oder wenn der Bestand einen Equivocation-Beweis gegen ihn hält (Atom-Spec §4): mindestens
+  ein Claim dieses Autors steht im Zustand `equivocation-flagged`, **gleich in welchem Scope**.
+  Der Beweis betrifft die Kette des Autors, und die Kette kennt keinen Scope.
+  `time-regression-flagged` flaggt nur den Claim, nicht den Autor (Atom-Spec Anhang B.1). Ob die
+  Gruppen eines geflaggten Autors noch Kanten tragen, ist Policy (`include_flagged`, Default
+  *nein*).
+  **`include_flagged` wirkt auf Autoren, nie auf das Aktiv-Set.** Ein Claim im Zustand
+  `equivocation-flagged` liegt nicht im Aktiv-Set (§3.1) und trägt keine Kante, auch bei
+  `include_flagged = True`; der Knopf entscheidet nur über die übrigen, aktiven Vouches des
+  Autors. Die Budgetrechnung ist davon **unberührt** — ein Flag darf die Grundlage nicht
+  verschieben, auf der es erkannt wurde.
 
 ---
 
@@ -812,7 +820,9 @@ Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vou
 Budgetrechnung ändert sich durch den Vermerk nicht. **Der Vermerk ist nicht der Beweis:** er liest
 `now` und wirkt nur lokal; slashbar ist allein das signaturbasierte Prädikat aus `§3.1`. Bei
 `include_flagged = False`, dem Default, tragen die Gruppen des Autors keine Kante — dieselbe
-Wirkung wie bei `EQUIVOCATION_FLAGGED`.
+Wirkung wie bei einem Equivocation-Beweis gegen den Autor (§8). Für diesen gibt es keinen eigenen
+Vermerk: der Beweis steht in den Zuständen seiner Claims und ist aus dem Bestand ablesbar, ohne
+`now` und ohne Budgetrechnung.
 
 **Der Vermerk entsteht vor dem Aufbau des Graphen, nicht danach.** Die Budgetprüfung liest nur das
 Budget-Set und keine Kapazität; bei `include_flagged = False` entscheidet ihr Ergebnis, welche
@@ -880,7 +890,8 @@ je Auswertungspunkt (§11.1):
    (D400).
 3. Gruppen `(I, J, N)` bilden → `n_budget`, `n_kante` (§3.1).
 4. Budget je Autor prüfen → `OVERCOMMITTED_AUTHOR`.
-5. Flags anwenden (`include_flagged`, §8) → Kantenkandidaten.
+5. Flags anwenden: bei `include_flagged = False` fallen die Gruppen geflaggter Autoren weg (§8)
+   → Kantenkandidaten.
 6. Breitensuche über `E⁺`, schichtweise → `d`, `C`, `cap`, `SUBGRANULAR_VOUCH` (§3).
 7. Flussgraph bauen: Knoten-Splitting, `S*`, `T*` (§3, §4).
 8. Max-Flow zweimal: Flusslauf (§4) und Einheitslauf (§8).

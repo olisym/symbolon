@@ -18008,3 +18008,74 @@ Neu dazu aus D435: ein Lauf, der ungefragt etwas entfernt, ist Scope-Verlust und
 Bericht wie ein Zuwachs.
 
 **Geändert:** `pruefregeln.md` (78 nach 75, 79 nach 5, Herkunftszeile).
+
+### D437 — O41: die Bedingung ist erfüllt, und die Frage an `01` ist eine Textlücke
+
+**Anlass.** O41 knüpft eine dritte Implementierung von Layer 01 daran, dass der
+Anwendungsabschnitt Fragen an `01` zurückwirft (D311). D424 hat O41 stehen lassen, weil die
+Befunde aus D312 in `03`, `05` und `08` landeten. Geprüft wurde dort nur diese eine Runde.
+
+**Gemessen — dem Wortlaut nach seit D353 erfüllt.** Die Übertragung auf unterbrochene Zustellung
+(D336 bis D345) hat die Vorfrage nach der Zeit gestellt (D350), und D353 hat daraufhin `01`
+geändert: `t` monoton entlang der Autorenkette, Zustand `time-regression-flagged`, Vektor NV32.
+Das ist eine Frage des Anwendungsabschnitts an `01`, eine Woche nach dem Eintrag von O41. Der Satz
+in D424, diese Runde habe keine geworfen, ist richtig; der Schluss, O41 bleibe stehen, war es
+nicht. D424 bleibt nach D316 unangetastet.
+
+**Gemessen — der Sache nach ebenfalls erfüllt.** Die drei Fassungen von Layer 02 lesen `01` mit,
+weil die Zustandsstufe vor dem Fluss steht, und ihre Kopien tragen D353. Der Fragenindex führt für
+`01 §6` elf Nennungen und für `01 Anhang B.1` acht, aus `hs1`, `hs2` und `rs`. Eine unabhängige
+Lesung des Textes, den die Anwendung verändert hat, liegt damit zweimal vor, dazu die kontaminierte
+aus `hs1` (D374).
+
+**Gemessen — eine Lesung weicht ab.** `rs/FRAGEN.md` Punkt 4 liest `linked` transitiv, die Kette
+bis zum Genesis aufgelöst. `hs/FRAGEN-1.md` Punkt 12 liest nur den unmittelbaren Vorgänger und
+verwirft die transitive Lesart ausdrücklich. Die Referenz tut dasselbe wie `hs1`
+(`_predecessor_known_and_valid` in `verifier.py`). Der Text trägt beide: `§6` sagt, sobald der
+Vorgänger eintreffe, werde `C` linked; die Zeile `linked` in `Anhang B.1` sagt „Kette konsistent".
+Die Rücknahmeprobe im Klon, den Vorgänger rekursiv geprüft, färbt fünf von 926 Tests rot, darunter
+den Rotationsfall aus D155 a und NV32. Das Verhalten ist gebunden, der Text nicht.
+
+**Gemessen — keine Ausgabe hat die Abweichung je gezeigt.** Die Referenz ordnet über `TP-02`,
+`TZ-02` und `FALL-02` 160 Zustandszeilen ein, alle `active`, `expired`, `revoked` oder
+`superseded`. `pending` und die beiden Flags kommen nicht vor; `hs/FRAGEN-2.md` Punkt 19 sagt es
+für die Flags selbst. Ein Claim mit pending-Vorgänger steht in keinem Vektorsatz, also hat keine
+Fassung ihn je ausgegeben. D409 nennt die Zustandshälfte mit `TZ-02` gelesen; das gilt für die
+Zustände, die `TZ-02` erzeugt.
+
+**Beschluss 1 — `linked` hängt am unmittelbaren Vorgänger (normativ, `01 §6`, `Anhang B.1`).** Ist
+`P` bekannt, gültig und vom selben Autor, ist `C` linked, gleich welchen Zustand `P` selbst hat.
+Der Grund steht in `Anhang B.1`: kein Zustand wirkt stromabwärts. Ein Equivocation-Paar lässt
+Downstream unberührt, `time-regression-flagged` ausdrücklich ebenso, Widerruf und Supersede treffen
+nur ihr Ziel. Was über die Vorfahren von `P` noch eintrifft, kann den Zustand von `C` deshalb nicht
+ändern, und eine transitive Forderung hielte `C` für eine Auskunft zurück, die nichts entscheidet.
+Unter unterbrochener Zustellung setzte sie jedes Kettensuffix hinter einem fehlenden Glied auf
+pending.
+
+**Beschluss 2 — O41 ist erledigt, ohne dritte Fassung von Layer 01.** Der Zweck der Bedingung war
+eine unabhängige Lesung. Sie liegt vor und hat genau eine Textlücke gefunden, die Beschluss 1
+schliesst. Eine eigene dritte Fassung von `01` müsste den Anker `79b73a2` verschieben und den
+Speicher nachbauen, den die Layer-02-Fassungen schon haben; gegen den Verdiktsatz aus `Anhang C`
+prüfte sie weiter die Achse der Kampagne (D311).
+
+**Beschluss 3 — die Messlücke wird O76.** Übereinstimmung über `pending` und die Flags ist aus
+Lesarten geschlossen und nicht gemessen. Das ist die Lage, die D388 Beschluss 1 für `revoked`,
+`superseded` und `expired` beschrieben hat. Ein Vektorsatz mit Kettenlücke, Equivocation und
+Zeitregression gehört zum nächsten Auftrag an eine Zweitfassung (O73), nicht davor: eine Datei,
+die niemand liest, misst nichts, wie `TZ-02` zwischen D376 und D390.
+
+**Verworfen — die transitive Lesart.** Sie wäre die vorsichtigere, wenn Wissen über Vorfahren den
+Zustand ändern könnte. Es kann nicht (Beschluss 1), und Referenz und fünf Tests stehen dagegen.
+
+**Verworfen — die Abweichung von `rs` als Fehler der Fassung buchen.** Der Text gab die Lesart
+her. Ein Befund, den eine saubere Fassung aus dem Wortlaut zieht, ist ein Befund am Wortlaut.
+
+**Schwächste Stelle.** Dass `rs` transitiv rechnet, ist aus der Lesart geschlossen; der Code liegt
+nicht im Baum, erst O76 zeigt es. Ebenso ist „kein Zustand wirkt stromabwärts" an den Zeilen von
+`Anhang B.1` gelesen, nicht an jeder Stelle, die einen Zustand konsumiert. Der Rückwärtslauf in
+`keys.py` bricht an einer Lücke ab (D155 a); das ist ein eigener Mechanismus und ändert keinen
+Zustand.
+
+**Kein Lauf.** Gemessen im Supervisor-Klon auf `22ae204`: `tools/ref_block.py` über die drei
+Vektorsätze, die Rücknahmeprobe mit vollem Testlauf, zurückgenommen. Geändert: `01-claim-atom.md`
+(`§6` ein Absatzende, `Anhang B.1` eine Zelle), `offen.md` (O41 in der Schliessform, O76 neu).

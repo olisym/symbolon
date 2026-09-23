@@ -190,10 +190,9 @@ D200. Zurückgestellt — **nicht vorher aufmachen**.
 
 Mit D237 ausdrücklich zurückgestellt.
 
-### O41 Eine dritte Implementierung
+### O41 Eine dritte Implementierung — erledigt (D437)
 
-Bleibt möglich (D311), aber sie prüft dieselbe Achse wie die Kampagne, und die hat nichts
-geliefert. Erst wenn der Anwendungsabschnitt Fragen an `01` zurückwirft.
+Nicht gebaut; die Lesung liegt aus den Layer-02-Fassungen vor, ihr Befund steht in `01 §6`.
 
 ### O42 Tripel bleiben zurückgestellt
 
@@ -359,3 +358,11 @@ das in `03 §1.3` einen Prämissen-Key deklariert.
 ### O75 Die öffentliche README nennt Zahlen, die driften — erledigt (D415)
 
 Keine wachsenden Zahlen mehr; Verweis auf `make check`, Registerende und Sitzungsstart.
+
+### O76 `pending` und die Flags sind in keinem Vektorsatz belegt
+
+Aus D437. Die Zweitfassungen lesen `pending`, `equivocation-flagged` und
+`time-regression-flagged` aus `01`; keine hat einen davon je ausgegeben, und `rs` liest `linked`
+transitiv, die Referenz nicht. Ein Vektorsatz mit Kettenlücke, Equivocation und Zeitregression
+gehört in den nächsten Auftrag an eine Zweitfassung (O73). Stolperdraht: ein Befund, der an einem
+dieser Zustände hängt und ohne gemessene Übereinstimmung entschieden werden müsste.

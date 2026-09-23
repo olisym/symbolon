@@ -517,7 +517,10 @@ referenziert einen **noch unbekannten** Vorgänger (Partial-Sync über Gossip), 
 **pending** — es wird **gehalten**, nicht abgelehnt. Das folgt derselben „sichere Richtung"-Logik
 wie Trust-Flow §7: Fehlende Vorgänger senken nur, was ich weiß; sie machen einen Claim nicht zu
 Müll. Sobald der Vorgänger eintrifft, wird `C` **linked** und (falls nicht neutralisiert)
-**active**.
+**active**. Es zählt nur der **unmittelbare** Vorgänger: ist `P` bekannt, gültig und vom
+selben Autor, ist `C` linked, gleich welchen Zustand `P` selbst hat, auch `pending`. Kein
+Zustand aus Anhang B.1 wirkt stromabwärts; was über die Vorfahren von `P` noch eintrifft,
+ändert den Zustand von `C` nicht (D437).
 
 **Idempotenz.** `claim_id` ist inhaltsadressiert; ein doppelt empfangener Claim (Gossip-Replay)
 ist ein **idempotenter No-op**, kein Fehler.
@@ -696,7 +699,7 @@ Alle Zustände sind aus den gehaltenen Bytes + lokaler Zeit ohne Weltwissen best
 |---------|-----------|-----------|
 | `malformed` | Signatur/CBOR/Kanonizität/`J`-Tag/Bindungsregel verletzt (§6.1–4) | **Reject**, nicht speichern |
 | `pending` | strukturell gültig, aber `h_prev`-Vorgänger unbekannt (Partial-Sync) | **halten**, auf Vorgänger warten |
-| `linked` | Vorgänger bekannt & gültig, Kette konsistent | weiter zu active/neutralisiert |
+| `linked` | unmittelbarer Vorgänger bekannt & gültig (§6) | weiter zu active/neutralisiert |
 | `active` | linked, zeitlich gültig, nicht revoked/superseded | **Default-Sicht** |
 | `revoked` | linked, gültiger selbst-bezüglicher `core/revoke@1` existiert **und** `C.p` ist nicht irrevocable unter der Policy (§5.4) | gültig, **inaktiv** |
 | `superseded` | linked, durch eigenen `core/supersede@1` ersetzt **und** `C.p` ist nicht irrevocable unter der Policy (§5.4) | gültig, **inaktiv** |

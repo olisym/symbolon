@@ -78,9 +78,9 @@ D263, D268. Auch vom Gitter unerreichbar, weil es einen Speicher braucht.
 
 D138, D176, D281.
 
-### O14 `SUBGRANULAR_VOUCH.subject` ist ungeprüft
+### O14 `SUBGRANULAR_VOUCH.subject` ist ungeprüft — erledigt (D427)
 
-D173.
+Geprüft, gemessen mit Rücknahmeprobe; der Gleichstand hängt an einer einzigen Stelle.
 
 ### O15 Sechs Zeilen mit wahrer Expiry-Inkohärenz — erledigt (D425)
 

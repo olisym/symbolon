@@ -17585,3 +17585,38 @@ Werkzeugarbeit ohne Nutzer.
 **Kein Lauf.** Geändert: `02-trust-flow.md` (§8.1 zwei Absätze), `offen.md` (O26 bis O28 in der
 Schliessform; in der Kopfzeile von O28 fällt „zweimal", weil sie mit dem Zusatz die Zeilengrenze
 überschritt). Keine Code-Datei.
+
+### D427 — O14 ist geprüft; O23 ist zur Hälfte folgenlos, die andere Hälfte wird gemessen
+
+**Anlass.** Zweiter Cluster der Triage: O14 und O23, beide aus der Abnahme D173. Gelesen: D173,
+D374, `symbolon/trust/groups.py`, `graph.py`, `symbolon/findings.py`,
+`tests/trust/test_benennung.py`. Gemessen im Supervisor-Klon auf `4adc4f6`, 918 grün vorher.
+
+**O14 — die Prämisse ist überholt.** D173 hielt fest, dass der zweite Messpunkt für
+`SUBGRANULAR_VOUCH.subject` nicht gebaut wurde, weil die Gleichstandsgruppe am Anker sitzt und
+dort nie auf null fällt. Seitdem pinnen drei Tests das Subjekt. Die Rücknahmeprobe dazu: in
+`graph.py` `subject=group.kante_claim_id` durch `subject=subject` ersetzt — die Identity statt der
+Claim-Adresse, gleich lang, also typgleich. Ergebnis: drei rot (`test_E_subgranular_edges`,
+`test_bootstrap_m3_all_subgranular`, `test_angriff_unter_der_schwelle`), 915 grün.
+
+**Der Gleichstand braucht keinen eigenen Messpunkt.** `kante_claim_id` entsteht an genau einer
+Stelle, `groups.py`, als `tied[0]` über die sortierte Kandidatenmenge. Die Kante und der Vermerk
+lesen dasselbe Attribut, und `graph.py` verzweigt nicht nach Gleichstand. Die Auswahl selbst hält
+`test_tied_active_vouches_name_minimum_claim_id`; die Rücknahmeprobe aus D173 (`tied[0]` →
+`tied[-1]`) ist heute nachgelaufen und weiterhin rot. Ein Fehler, der nur den Vermerk bei
+Gleichstand träfe, bräuchte eine Verzweigung, die es nicht gibt. **O14 geschlossen.**
+
+**O23, erste Hälfte — „als Menge, nicht als Folge" ist folgenlos.** `dedupe_sort` ist
+`tuple(sorted(set(findings)))` über `(kind, subject)`. Vielfachheit gibt es danach nicht mehr, und
+die Teilfolge der Vermerke ohne Namen behält ihre Ordnung, weil jeder davon nach eigenen, vom Namen
+unabhängigen Feldern sortiert wird. Der Mengenvergleich in der Vertauschungsprobe verliert damit
+nichts, auch nicht bei einer künftigen Welt mit Vermerken. D173s Vorbehalt galt einer
+Sortierregel, die nicht die gebaute ist.
+
+**O23, zweite Hälfte — echt offen.** Die Sondierwelt erzeugt keinen Vermerk, also läuft der
+Vergleich leer: ob ein Vermerkspfad vom Namen abhängt, sieht die Probe nicht. Das ist eine
+Messlücke und keine Spec-Frage. Sie geht in den gebündelten Messauftrag am Ende der Triage; O23
+bleibt bis dahin stehen, sein Text wird nach D316 nicht angefasst.
+
+**Kein Lauf in diesem Eintrag.** Geändert: `offen.md` (O14 in der Schliessform). Keine
+Code-Datei; die beiden Rücknahmeproben wurden im Klon zurückgenommen.

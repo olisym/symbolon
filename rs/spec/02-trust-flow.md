@@ -119,6 +119,8 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 > **unabhängig** vom Lebenszyklus-Zustand. Wer sie an einen Zustand „abgelaufen" knüpft,
 > erzeugt einen Deadlock: ein widerrufener Claim erreicht diesen Zustand nie, weil der
 > Widerruf vorrangig ist, und bände sein Budget für immer (D41).
+> Ist `now` ein Intervall (§11.1), gilt das Prädikat je Auswertungspunkt; gemischt
+> wird nicht (D406).
 
 > **Aggregation je `(I, J, N)`.** Mehrere Vouches derselben Identität auf dasselbe Subjekt im
 > selben Scope bilden **eine** Gruppe. Es zählen `n_budget = max n` über die
@@ -128,6 +130,12 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 > sonst wäre die bloße Erneuerung eines Vouch ein selbst-validierender Beweis gegen den
 > eigenen Autor (§6.2), und zwei aktive Vouches auf dasselbe Subjekt trügen doppelte
 > Kapazität bei einfachem Budget.
+>
+> **Eine Gruppe besteht, solange mindestens eines ihrer Mitglieder im Budget-Set liegt.** Sind alle
+> abgelaufen, gibt es sie nicht mehr — auch nicht als Gruppe mit `n_budget = 0`. Daraus folgt
+> `n_budget ≥ 1` für jede Gruppe und `Σ_J n_budget ≥ 1` für jeden Autor, der eine hat. Die
+> Out-Degree-Schranke weiter unten zählt Gruppen und setzt `n ≥ 1` voraus; eine Gruppe mit `0`
+> bräche die Herleitung, ohne eine Zahl zu ändern (D396).
 
 > **Welches Gruppenmitglied die Kante benennt.** `kante_claim_id` — der Träger von
 > `SUBGRANULAR_VOUCH` — ist die kleinste `claim_id` unter den Gruppenmitgliedern mit
@@ -152,8 +160,18 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
 
 | Menge | Inhalt | Verwendung |
 |---|---|---|
-| **Aktiv-Set** | nicht widerrufen, nicht abgelaufen | Kantensatz für den Fluss (§2) |
-| **Budget-Set** | nicht abgelaufen (**widerrufen, supersediert und `pending` eingeschlossen**), aggregiert je `(I, J, N)` über `max n` | Prüfung `Σ n_budget ≤ D` |
+| **Aktiv-Set** | Zustand `active` nach Atom-Spec §6 — verkettet, zeitlich gültig, nicht widerrufen, nicht supersediert | Kantensatz für den Fluss (§2) |
+| **Budget-Set** | nicht abgelaufen nach dem Prädikat oben, gleich in welchem Zustand (**`revoked`, `superseded`, `pending`, `equivocation-flagged` und `time-regression-flagged` eingeschlossen**), aggregiert je `(I, J, N)` über `max n` | Prüfung `Σ n_budget ≤ D` |
+
+**Aktiv heisst der Zustand.** Das Aktiv-Set prüft den Zustand `active` ausdrücklich und
+übernimmt kein abgeleitetes Merkmal, das denselben Sachverhalt zu tragen scheint. Stimmen beide
+nicht überein, gilt der Zustand.
+
+**Das Prädikat ist die Definition, die Aufzählung seine ausgerechnete Form.** Weicht die Liste
+der eingeschlossenen Zustände vom Prädikat ab, gilt das Prädikat. Eine frühere Aufzählung liess
+`equivocation-flagged` weg, der Code folgte ihr, und Equivocation wurde zum Budget-Reset (D135).
+Beide Mengen enthalten nur gespeicherte Claims; ein `malformed` Claim wird nach Atom-Spec §6
+abgewiesen und erreicht diese Schicht nicht (D398).
 
 **`pending` bindet Budget.** Ein Vouch, dessen Vorgänger in der Autorenkette noch fehlt, trägt
 keine Kante bei (§2), gehört aber ins **Budget-Set**: Er ist signiert, und der
@@ -181,11 +199,42 @@ ist die **Deklaration selbst der Einsatz** — hohes Vertrauen lässt sich nicht
 Ein erfolgreicher Vouch bringt dem Bürgen umgekehrt **keine** Kapazitätsprämie (§1): der Ertrag
 liegt in der Beziehung, nicht in der Metrik.
 
-**Über-Commitment ist selbst-validierend.** Liegen mehrere signierte Vouches derselben Identität im
-selben Scope mit `Σw > 1` vor, ist das ein unabhängig nachrechenbarer Beweis — dieselbe Klasse
-wie Equivocation (Atom-Spec §4), mechanisch slashbar, ohne Verdikt. Bei Teilwissen ist das
-beobachtete `Σw` zu klein: eine Verletzung wird möglicherweise **nicht erkannt**, aber nie eine
-erfunden.
+**Über-Commitment: zwei Prädikate, zwei Verbraucher.** Das Budget-Set bedient zwei Fragen, und
+ihre sicheren Seiten sind entgegengesetzt. Der lokale Vermerk entscheidet, ob eine Auswertung den
+Kanten dieses Autors folgt — falsch gesetzt kostet er Vertrauen, das mit der Uhr zurückkommt. Der
+Beweis trifft den Bond — falsch gesetzt ist er eine Falschbeschuldigung, und die bleibt. Deshalb
+sind es zwei Prädikate und nicht eines (D402).
+
+> **Normativ — der lokale Vermerk.** Gilt `Σ_J n_budget(I, N) > D` über das Budget-Set gegen
+> `now`, trägt `I` den Vermerk `OVERCOMMITTED_AUTHOR` (§10). Er ist eine Aussage über die eigene
+> Auswertung: er liest `now`, und `now` ist lokal und subjektiv (§6.2). Seine Wirkung endet bei
+> `include_flagged` (§8).
+
+> **Normativ — der slashbare Beweis.** Ein Über-Commitment-Beweis gegen `I` im Scope `N` besteht
+> aus signierten Vouches von `I`, aggregiert je `(I, J, N)` über `max n` wie oben, mit
+> `Σ_J n > D` und einem gemeinsamen Geltungspunkt: `max tᵢ ≤ min t_expᵢ`, wobei ein fehlendes
+> `t_exp` als unbegrenzt zählt. Der Beweis liest **kein** `now`. Nur er ist selbst-validierend
+> und mechanisch slashbar, ohne Verdikt — dieselbe Klasse wie Equivocation (Atom-Spec §4,
+> Profile-II §2.3).
+
+Der Beweis ist ein Widerspruch zwischen signierten Zahlen: der Autor hat selbst bezeugt, wann er
+gehandelt hat und worauf er sich binden wollte. Das ist die Bauform aus D354 und erfüllt damit
+`08 §2.2`, wo der Vermerk es nicht kann. Rückdatierung kauft nichts, weil `t` entlang der
+Autorenkette monoton ist (Atom-Spec §6, D353).
+
+**Die beiden Mengen fallen nicht zusammen.** Zu jedem Beweis gibt es einen Auswertungszeitpunkt,
+an dem auch der Vermerk fällt — `now = max tᵢ`. Umgekehrt gilt das nicht: zwei Bürgschaften, die
+nach den signierten Zahlen nacheinander liefen, liegen bei einer nachlaufenden Verifizierer-Uhr
+gleichzeitig im Budget-Set und erzeugen den Vermerk gegen einen ehrlichen Autor (§7). Das ist der
+Grund für die Trennung, und es tritt schon bei einem Punkt-`now` auf.
+
+Bei Teilwissen ist das beobachtete `Σ n` zu klein: eine Verletzung wird möglicherweise **nicht
+erkannt**, aber nie eine erfunden. Das gilt für beide Prädikate.
+
+**Getragene Grenze.** Wer sein `t` vordatiert, entgeht dem Beweis, obwohl er die Kapazität
+tatsächlich gleichzeitig einsetzt — die Kettenmonotonie erfasst Rückdatierung, nicht Vorlauf. Er
+bleibt dem lokalen Vermerk ausgesetzt, und jeder spätere Claim derselben Kette erbt sein
+vordatiertes `t`. Die allgemeine Gegenrichtung ist offen (`offen O61`).
 
 **Unlesbares oder ungültiges `n`.** Ist `v` keine CBOR-Map, fehlt der Key `0`, ist sein Wert
 kein `uint`, oder liegt `n` außerhalb `[1, D]`, trägt dieser Vouch **keine Kante** und
@@ -287,9 +336,14 @@ die Schranke gilt daher erst recht. ∎
 > **∞ ist ein Sentinel, kein Wert.** Die Kanten an `S*` und `T*` tragen keine echte Kapazität und
 > dürfen den Fluss nicht binden. Eine Implementierung realisiert sie als endliche Zahl, die jeden
 > erreichbaren Flusswert übersteigt; ein festes Literal leistet das nicht, sobald `C₀` gross genug
-> ist, und der Fluss fällt dann still zu klein aus. Die Herleitung oben liefert die Schranke mit:
-> der Anker liegt auf jedem Pfad, also genügt die Summe der `C(a)` über die Anker. Die
-> Ausgestaltung steht in `02a §2.8`.
+> ist, und der Fluss fällt dann still zu klein aus. **Normativ ist die Bedingung:** ∞ MUSS echt
+> grösser sein als jeder Flusswert, der in einem der beiden Läufe (dieser Abschnitt und `§8`)
+> erreichbar ist. Im Flusslauf liegt die interne Kante des Ankers auf jedem Pfad, dort genügt
+> `Σ_{a ∈ Anker} C(a)`. Im Einheitslauf trägt sie selbst ∞ und bindet nicht; dort begrenzt
+> `|E⁺|` den Fluss, weil Anker und Ziele disjunkt sind (`§11.3`) und jeder Pfad deshalb
+> mindestens eine Vouch-Kante mit Kapazität 1 trägt. Hinreichend für beide Läufe ist
+> `max(Σ_{a ∈ Anker} C(a), |E⁺|) + 1` (D381). Die Summe aller endlichen Kapazitäten des
+> Flusslaufs `+ 1` ist ebenfalls hinreichend; gegen diese Belegung sind die Vektorsätze gepinnt.
 
 Hinge die Quelle an `a_out`, wäre der Satz **falsch**: drei Kanten mit `n = D` von einem
 Anker mit `C₀ = 16, D = 4` tragen je `⌊4·16/4⌋ = 16` und simultan 48 gegen eine behauptete
@@ -485,6 +539,10 @@ Verifizierer-Zeit `now` (Atom-Spec §6): zwei Verifizierer dürfen legitim unein
 Vouch schon abgelaufen ist — die sichere Richtung ist stets Unter-Vertrauen. „Voidet sich
 selbst" meint also *strukturell definiert*, nicht *global synchron*.
 
+**Grobe Uhren.** `now` darf ein Intervall sein (§11.1). Die harte Decke ändert sich dadurch
+nicht: verglichen wird weiterhin `now ≤ t_exp`, nur an mehreren Zeitpunkten. Die legitime
+Uneinigkeit zweier Verifizierer wird damit breiter, nicht anders geartet (D406).
+
 **`t_exp` ist für Vouches verpflichtend.** In Scopes mit Budgetregel (§3.1) MUSS ein Vouch
 `t_exp` tragen, oder die Policy setzt eine Maximallaufzeit als Default — andernfalls bindet er
 Budget unbefristet, und zwar unwiderruflich: ein Widerruf befreit ohne `t_exp` nie, `REVOKED`
@@ -535,7 +593,9 @@ Toleranz.
   deshalb keine Decke gegen jede Form von Über-Vertrauen — hier ist `t_exp` die Ursache.
   Zwei ehrliche Knoten mit Uhrversatz rechnen verschieden, und der mit der vorlaufenden
   Uhr sieht mehr. Gilt bei `include_flagged = False`, dem Default; bei `True` ist der
-  Wert monoton fallend.
+  Wert monoton fallend. Derselbe Uhrversatz setzt den Vermerk `OVERCOMMITTED_AUTHOR` auch
+  gegen einen Autor, der nach seinen eigenen signierten Zahlen nie über-committet war —
+  weshalb der Vermerk lokal bleibt und der slashbare Beweis ohne `now` auskommt (§3.1).
 - **Die andere gefährliche Richtung:** ein fehlender *Widerruf* (nicht eine fehlende
   Bürgschaft). Hast du den Vouch, aber sein `revoke` steckt in einer Partition, dann
   **über**-vertraust du. Drei gestaffelte Abwehren:
@@ -578,6 +638,9 @@ Der *Mechanismus* ist festgelegt; die *Werte* sind Interpretation (A2):
   Bürgen sind ein Bürge. Die Vouch-Kanten tragen `1` und nicht ∞: zwei knotendisjunkte Pfade
   teilen nie eine Kante, die Kappung ist daher verlustfrei — und ohne sie liefert der Solver bei
   einer direkten Anker→Ziel-Kante keinen Pfadwert, sondern den ∞-Sentinel (D42).
+  Beide Läufe arbeiten auf demselben Kantensatz `E⁺` (§3). Deshalb ist der Kapazitätsfilter für
+  diesen Lauf sicherheitsrelevant: mit `1` auf jeder Vouch-Kante wäre eine Kante mit `cap = 0`
+  sonst von einer vollwertigen nicht zu unterscheiden.
   **Endpunkte werden nicht gespalten:** die internen Kanten der Anker
   tragen ∞, die des Ziels liegt ohnehin nicht auf dem Pfad (§4). Sonst wäre die Zahl von
   einem einzelnen Anker aus trivial 1. Wirkung: eine Koalition, die über *einen*
@@ -655,6 +718,14 @@ hat, besteht hier nicht.
 **Nicht hergeleitet werden `α` und `K`** (§5). Sie stehen nicht im Genesis, sind reine
 Policy-Knöpfe und bleiben Feld von `RelaxParams` neben dem hergeleiteten `base`.
 
+**Nicht gebunden wird `anchor_set`** (`genesis[3]`). Es ist nach §6.3 die Linse des Nukleus, nicht
+die Grundwahrheit; `anchors` bleibt Parameter von `derive`, `trust` und `rank`. Wer mit dem eigenen
+Ankerset oder einer Teilmenge rechnet, rechnet eine andere Sicht, keine falsche (D147, D426).
+
+**`D ≥ C₀` wird weder geprüft noch vermerkt** (D426). Die Empfehlung richtet sich an die Gründung:
+das Genesis ist unveränderlich, ein Leser kann an `D < C₀` nichts ändern, und `TP-02` rechnet
+absichtlich in diesem Regime (D34). Warnen kann nur das Werkzeug, das ein Genesis baut.
+
 ---
 
 ## 9. Bewusst getragene v1-Grenzen & gemachte Designentscheidungen
@@ -683,38 +754,138 @@ Policy-Knöpfe und bleiben Feld von `RelaxParams` neben dem hergeleiteten `base`
 
 ---
 
-## 10. Vermerke und ihre Subjekte
+## 10. Vermerke, ihre Subjekte und ihre Wirkung
 
 Die Ableitung wirft keine Ausnahmen für schadhafte Eingaben; sie legt Vermerke ab und rechnet
-weiter. Ein Vermerk benennt in seinem `subject` das zurückgewiesene Objekt — notfalls gröber, wenn
-das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`).
+weiter. **Der Satz gilt der Ableitung, nicht dem vermerkten Objekt.** Was mit dem Objekt geschieht,
+ist je Vermerk verschieden, und es folgt nie aus dem Vermerk selbst, sondern aus der Stelle, die
+ihn begründet. Ein Vermerk benennt in seinem `subject` das betroffene Objekt — notfalls gröber,
+wenn das Objekt ein Feld ist und keine eigene Adresse hat (D198, `04 §3.5`). `findings` ist
+sortiert und dedupliziert, in der Ordnung aus `00 §10` (D429).
 
-| Vermerk | Subjekt |
-|---|---|
-| `UNPARSABLE_VOUCH_PAYLOAD` | `claim_id` des Vouch |
-| `NON_CANONICAL_V` | `claim_id` des Vouch |
-| `INVALID_VOUCH_WEIGHT` | `claim_id` des Vouch |
-| `VOUCH_WITHOUT_TEXP` | `claim_id` des Vouch |
-| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` |
-| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** |
+| Vermerk | Subjekt | Budget-Set | Kante | Grundlage |
+|---|---|---|---|---|
+| `UNPARSABLE_VOUCH_PAYLOAD` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1`, D3 |
+| `NON_CANONICAL_V` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1` |
+| `INVALID_VOUCH_WEIGHT` | `claim_id` des Vouch | kein Beitrag | keine | `§3.1`, D3 |
+| `VOUCH_WITHOUT_TEXP` | `claim_id` des Vouch | bleibt, bindet unbegrenzt | unverändert | `§6.2`, D119 |
+| `SUBGRANULAR_VOUCH` | `claim_id` des Mitglieds mit `n == n_kante` | bleibt | nicht in `E⁺` | `§3` |
+| `OVERCOMMITTED_AUTHOR` | **Identity des Autors** | unverändert | bei `include_flagged = False` keine | `§8`, D39 |
 
-Die vier ersten Lagen entstehen beim Dekodieren von `v` (`02a §2.3`): `v` ist nicht dekodierbar,
-ist kein Map, führt den Schlüssel 0 nicht oder trägt dort keinen nichtnegativen `int` — das ergibt
-`UNPARSABLE_VOUCH_PAYLOAD`; `v` dekodiert, ist aber nicht kanonisch kodiert — `NON_CANONICAL_V`;
-`n` liegt ausserhalb von `1 ≤ n ≤ D` — `INVALID_VOUCH_WEIGHT`; der Vouch trägt kein `t_exp` —
-`VOUCH_WITHOUT_TEXP`. `SUBGRANULAR_VOUCH` entsteht beim Aufbau des Graphen, wenn die
-Kantenkapazität `⌊n_kante·C_author/D⌋` auf null fällt. `OVERCOMMITTED_AUTHOR` entsteht danach,
-wenn die Summe der Budgets eines Autors `D` überschreitet.
+**Unlesbares Gewicht: drei Vermerke, eine Wirkung.** `UNPARSABLE_VOUCH_PAYLOAD`,
+`NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` entstehen beim Lesen von `v`, in der Reihenfolge aus
+`§3.1`: der Rundlauf geht der Kanonizität voraus, die Kanonizität der Form, die Form dem
+Wertebereich. `v` ist nicht dekodierbar oder scheitert im Rundlauf, ist keine Map, führt den
+Schlüssel 0 nicht oder trägt dort keinen `uint` — `UNPARSABLE_VOUCH_PAYLOAD`; `v` dekodiert, ist
+aber nicht kanonisch kodiert — `NON_CANONICAL_V`; `n` liegt ausserhalb von `1 ≤ n ≤ D` —
+`INVALID_VOUCH_WEIGHT`. Ohne gültiges `n` hat der Claim nichts, das er beitragen könnte: er wird
+bei der Gruppenbildung übersprungen, nicht zurückgewiesen, und bleibt gespeichert. Die übrigen
+Mitglieder seiner Gruppe sind davon unberührt.
+
+**Gelesen wird, was beitragen könnte.** Die Vermerke dieses Abschnitts sind über ihre Wirkung auf
+Budget und Kante bestimmt. Die Ableitung liest `v` deshalb nur an Vouches im Budget-Set (`§11.4`
+Schritt 2): ausserhalb trägt ein Vouch ohnehin nichts bei, und ein Vermerk über ihn beschriebe
+keine Wirkung. Aus demselben Grund fällt `VOUCH_WITHOUT_TEXP` nur an einem Vouch mit gültigem `n`.
+Scheitert das Lesen von `v`, bindet der Claim nichts, und die Wirkung „bindet unbegrenzt" träfe
+nicht zu; er trägt allein den Vermerk seines Lesefehlers (D400).
+
+**Fehlendes `t_exp`: ein Vermerk ohne Wirkung.** `VOUCH_WITHOUT_TEXP` ist kein Dekodierfall; er
+liest `t_exp`, nicht `v`. Die Pflicht aus `§6.2` wird beobachtet, nicht durchgesetzt (D119). Der
+Vouch bleibt im Budget-Set und bindet dort unbegrenzt (`§3.1`), und er trägt seine Kante, wenn er
+im Aktiv-Set liegt. Ihn aus dem Budget-Set zu nehmen gäbe Budget frei, und das darf nur die Uhr;
+ihm die Kante zu entziehen wäre eine Sanktion, die nirgends beschlossen ist.
+
+**`SUBGRANULAR_VOUCH` betrifft eine Gruppe, nicht einen Claim.** Die Gruppe bleibt im Budget-Set,
+`n_budget` zählt voll. Ihre Kante liegt im Aktiv-Set, aber nicht im wirksamen Kantenset `E⁺`,
+weil `⌊n_kante·C_author/D⌋` auf null fällt: sie nimmt weder an der Distanzberechnung noch am Fluss
+teil. Als Adresse dient die `claim_id` des Mitglieds mit `n == n_kante`, bei Gleichstand die
+lexikographisch kleinste. Damit ist der Vermerk deterministisch, auch wenn mehrere Claims dasselbe
+`n` tragen (`§3.1`). Der Vermerk setzt einen erreichten Autor voraus: er entsteht in Schritt 6
+von `§11.4` an einer Kante, deren Autor die Breitensuche erreicht hat. Für einen unerreichbaren
+Autor ist `C = 0` der strukturelle Fall aus `§3` und kein Vermerk (D439).
 
 **`OVERCOMMITTED_AUTHOR` ist die Ausnahme, und sie ist nicht am Typ erkennbar.** Sein Subjekt ist
 ein öffentlicher Schlüssel, kein `claim_id`. Beide sind 32 Byte; wer `subject` pauschal im Speicher
-nachschlägt, greift genau dort ins Leere. Der Grund ist derselbe wie überall sonst: das
-zurückgewiesene Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vouch
-ist der überzählige — erst ihre Summe verletzt das Budget.
+nachschlägt, greift genau dort ins Leere. Der Grund ist derselbe wie überall sonst: das betroffene
+Objekt ist hier der Autor und nicht ein einzelner Claim, denn kein einzelner Vouch ist der
+überzählige — erst ihre Summe verletzt das Budget. Alle Claims des Autors bleiben gültig, und die
+Budgetrechnung ändert sich durch den Vermerk nicht. **Der Vermerk ist nicht der Beweis:** er liest
+`now` und wirkt nur lokal; slashbar ist allein das signaturbasierte Prädikat aus `§3.1`. Bei
+`include_flagged = False`, dem Default, tragen die Gruppen des Autors keine Kante — dieselbe
+Wirkung wie bei `EQUIVOCATION_FLAGGED`.
 
-**`SUBGRANULAR_VOUCH` betrifft eine Gruppe, nicht einen Claim.** Als Adresse dient die `claim_id`
-des Mitglieds mit `n == n_kante`, bei Gleichstand die lexikographisch kleinste. Damit ist der
-Vermerk deterministisch, auch wenn mehrere Claims dasselbe `n` tragen (`02a §5`).
+**Der Vermerk entsteht vor dem Aufbau des Graphen, nicht danach.** Die Budgetprüfung liest nur das
+Budget-Set und keine Kapazität; bei `include_flagged = False` entscheidet ihr Ergebnis, welche
+Kanten die Distanzberechnung überhaupt sieht. `SUBGRANULAR_VOUCH` fällt erst dort. Die Reihenfolge
+ist normativ (`§11.4`).
 
-Ein Claim mit einem der vier Dekodier-Vermerke trägt nichts zum Fluss bei; er wird übersprungen,
-nicht zurückgewiesen.
+---
+
+## 11. Auswertung: Rechenregeln, Anfrage, Reihenfolge
+
+Dieser Abschnitt nimmt die Normen auf, die bis D397 nur im Implementierungsauftrag `02a` standen.
+Er ändert keine Rechnung dieser Schicht. Er legt fest, was eine Auswertung einhalten muss, damit
+zwei Verifizierer über demselben Bestand mit denselben Argumenten dieselbe Antwort erhalten.
+
+### 11.1 Rechenregeln
+
+- **Ganzzahlig.** Kapazitäten, Gewichte, Flusswerte und der ∞-Sentinel (§4) sind ganze Zahlen.
+  Es gibt keine Gleitkomma- und keine Bruchrechnung; jede Division rundet ganzzahlig ab, und
+  `C(x)` wird einmal am Ende gerundet (§3).
+- **`now` ist Parameter.** Die Auswertung liest keine Uhr. `now` wird übergeben und ist die
+  subjektive Verifizierer-Zeit aus §6.2. Eine Auswertung, die die Systemuhr liest, ist nicht
+  wiederholbar und damit nicht nachprüfbar. `now` ist ein Zeitpunkt oder ein Intervall
+  `[lo, hi]`; der Zeitpunkt ist der Fall `lo = hi` (D406).
+- **Deterministisch.** Zwei Auswertungen über denselben Bestand mit denselben Argumenten liefern
+  dieselben Ergebnisse, Schnitt und Vermerke eingeschlossen. Wo die Reihenfolge einer Menge ein
+  Ergebnis berühren kann, wird vorher sortiert. Die Ausgabeform des Schnitts normiert diese
+  Schicht nicht (§4); die Referenzform steht in `02-golden-anchors.md` §0, Konvention K9 (D375,
+  D398).
+
+> **Normativ — Auswertung über ein Intervall.** Ein Intervall-`now` bezeichnet **einen**
+> unbekannten Zeitpunkt in `[lo, hi]`, nicht zwei unabhängige. Ausgewertet wird punktförmig
+> an `lo` und an `t_exp + 1` für jedes `t_exp` eines Scope-Vouch mit `lo ≤ t_exp < hi`;
+> innerhalb einer Auswertung gilt überall derselbe Zeitpunkt. Die Aufzählung ist
+> erschöpfend, weil `now` nur in Vergleichen `now ≤ t_exp` vorkommt und das Ergebnis
+> zwischen den Bruchstellen konstant ist. Das Ergebnis der Anfrage ist das **Minimum** über
+> die ausgewerteten Punkte; dazu tritt als zweite Zahl die **obere Schranke**, das Maximum
+> über dieselben Punkte. Gemeldet werden die Vermerke des Punktes, der das Minimum
+> geliefert hat; bei mehreren gilt der kleinste Zeitpunkt (D406).
+
+> **Gemischt wird nicht.** Kanten gegen `hi` und Budget gegen `lo` zu prüfen erhält zwar
+> `Aktiv-Set ⊆ Budget-Set`, rechnet `now` aber als zwei unabhängige Werte und enthält
+> dadurch mehr, als der Bestand hergibt: gemessen ein Wert von 0, wo an jedem Punkt des
+> Fensters 6 oder 8 stand (D406).
+
+### 11.2 Parameterbereiche
+
+`C₀`, `γ = γ_num/γ_den` und `D` sind ganze Zahlen mit `C₀ ≥ 1`, `0 < γ_num < γ_den` und `D ≥ 1`.
+Ausserhalb dieser Bereiche gibt es keine Auswertung. Woher die Werte kommen, regelt §8.1.
+Ist `now` ein Intervall, sind `lo` und `hi` ganze Zahlen mit `lo ≤ hi` (D406).
+
+### 11.3 Die Anfrage
+
+Anker und Ziele einer Anfrage sind disjunkt. Überschneiden sie sich, ist die Frage nicht
+wohldefiniert, und die Auswertung weist die Anfrage zurück, statt einen Wert zu liefern. Das ist
+kein Vermerk nach §10: fehlerhaft ist nicht der Bestand, sondern die Frage.
+
+### 11.4 Auswertungsreihenfolge
+
+Die Reihenfolge ist ergebnisrelevant und daher normativ. Bei einem Intervall-`now` gilt sie
+je Auswertungspunkt (§11.1):
+
+1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren.
+2. Das Gewicht `v` der Vouch-Claims des Scopes im Budget-Set lesen (§3.1) → `n` oder ein Vermerk
+   nach §10. Ein Vouch ausserhalb des Budget-Sets wird nicht gelesen und trägt keinen Vermerk
+   (D400).
+3. Gruppen `(I, J, N)` bilden → `n_budget`, `n_kante` (§3.1).
+4. Budget je Autor prüfen → `OVERCOMMITTED_AUTHOR`.
+5. Flags anwenden (`include_flagged`, §8) → Kantenkandidaten.
+6. Breitensuche über `E⁺`, schichtweise → `d`, `C`, `cap`, `SUBGRANULAR_VOUCH` (§3).
+7. Flussgraph bauen: Knoten-Splitting, `S*`, `T*` (§3, §4).
+8. Max-Flow zweimal: Flusslauf (§4) und Einheitslauf (§8).
+
+Schritt 4 vor 5 vor 6: das Autor-Flag hängt nur am Budget-Set, nie an Kapazitäten oder Distanzen.
+Deshalb ist die Kette azyklisch, obwohl Schritt 5 den Kantensatz und damit die Distanzen ändert.
+`OVERCOMMITTED_AUTHOR` ist deshalb unabhängig von `include_flagged`; `SUBGRANULAR_VOUCH` ist es
+nicht, weil er an `d` hängt und `d` am gefilterten Kantensatz.

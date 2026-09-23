@@ -342,8 +342,9 @@ Obergrenze.
 
 ### O73 Der zweite Zeuge liest einen überholten Text
 
-Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in sieben Commits
-geändert (D394, D396, D398, D400, D402, D406, D439) und `01-claim-atom.md` in zwei (D396, D437),
+Aus D409. Der Rust-Anker steht auf `15d091e`; seither ist `02-trust-flow.md` in neun Commits
+geändert (D394, D396, D398, D400, D402, D406, D426, D429, D439; berichtigt in D441) und
+`01-claim-atom.md` in zwei (D396, D437),
 darunter der ganze `§11`. Keine Fassung hat das gelesen. Vor dem nächsten Auftrag offen: D368
 hält `02a` zurück, dessen Normstoff seit D397 in `02 §11` steht — die Diät wirkt nicht mehr wie
 beschlossen.
@@ -351,6 +352,8 @@ Stufe A (D439) hat es gezeigt: in `ZF-02` F2 gibt `rs` geflaggten Claims eine Ka
 `02 §3.1` das Aktiv-Set noch ohne Zustand definiert (D398). Bei Stufe B müssen F1 und F2
 übereinstimmen. Stolperdraht: der erste Befund, der an einer dieser Änderungen hängt und ohne
 zweiten Zeugen entschieden werden müsste.
+D441: Diät neu gefasst (Ankersatz `573db57`, `02a` und Ankerdatei weiter zurückgehalten),
+Nachzug statt Neubau, Erwartung fixiert. Offen ist der Lauf.
 
 ### O74 Verschachtelung als Norm oder Schnittmenge bei der Auswertung
 

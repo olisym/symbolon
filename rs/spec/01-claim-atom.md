@@ -517,7 +517,10 @@ referenziert einen **noch unbekannten** Vorgänger (Partial-Sync über Gossip), 
 **pending** — es wird **gehalten**, nicht abgelehnt. Das folgt derselben „sichere Richtung"-Logik
 wie Trust-Flow §7: Fehlende Vorgänger senken nur, was ich weiß; sie machen einen Claim nicht zu
 Müll. Sobald der Vorgänger eintrifft, wird `C` **linked** und (falls nicht neutralisiert)
-**active**.
+**active**. Es zählt nur der **unmittelbare** Vorgänger: ist `P` bekannt, gültig und vom
+selben Autor, ist `C` linked, gleich welchen Zustand `P` selbst hat, auch `pending`. Kein
+Zustand aus Anhang B.1 wirkt stromabwärts; was über die Vorfahren von `P` noch eintrifft,
+ändert den Zustand von `C` nicht (D437).
 
 **Idempotenz.** `claim_id` ist inhaltsadressiert; ein doppelt empfangener Claim (Gossip-Replay)
 ist ein **idempotenter No-op**, kein Fehler.
@@ -696,7 +699,7 @@ Alle Zustände sind aus den gehaltenen Bytes + lokaler Zeit ohne Weltwissen best
 |---------|-----------|-----------|
 | `malformed` | Signatur/CBOR/Kanonizität/`J`-Tag/Bindungsregel verletzt (§6.1–4) | **Reject**, nicht speichern |
 | `pending` | strukturell gültig, aber `h_prev`-Vorgänger unbekannt (Partial-Sync) | **halten**, auf Vorgänger warten |
-| `linked` | Vorgänger bekannt & gültig, Kette konsistent | weiter zu active/neutralisiert |
+| `linked` | unmittelbarer Vorgänger bekannt & gültig (§6) | weiter zu active/neutralisiert |
 | `active` | linked, zeitlich gültig, nicht revoked/superseded | **Default-Sicht** |
 | `revoked` | linked, gültiger selbst-bezüglicher `core/revoke@1` existiert **und** `C.p` ist nicht irrevocable unter der Policy (§5.4) | gültig, **inaktiv** |
 | `superseded` | linked, durch eigenen `core/supersede@1` ersetzt **und** `C.p` ist nicht irrevocable unter der Policy (§5.4) | gültig, **inaktiv** |
@@ -811,6 +814,13 @@ h_prev_genesis(ALICE) = SHA-256(DOM_ID_GEN ‖ ALICE)
 h_prev_genesis(BOB)   = SHA-256(DOM_ID_GEN ‖ BOB)
                       = d507038f3b07c8642b65e9b3cf559204d9ad7aa0a3faee674d4284a5d9e43abe
 ```
+
+**Was `bytes` enthält, hängt davon ab, ob der Vektor eine eigene Zeile `σ` trägt.** Trägt er
+sie, ist `bytes` die kanonische Kodierung des Core und `σ` die Signatur darüber; der Map-Header
+zählt dann die Core-Schlüssel und nicht `σ`. Trägt er sie nicht, ist `bytes` die Wire-Form, so wie
+sie beim Verifizierer ankommt — mit `σ` unter Schlüssel 9, und bei negativen Vektoren absichtlich
+defekt: zusätzliche Schlüssel, Restbytes, eine Liste statt einer Map. Die Unterscheidung hängt am
+Vektor und nicht an der Abschnittsnummer (D396).
 
 ### C.1 TV1 — Genesis-Vouch (Alice → Bob), `v` und `t_exp` gesetzt
 

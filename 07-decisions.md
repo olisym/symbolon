@@ -18240,3 +18240,100 @@ Messgrundlage ist.
 
 **Geändert.** `07-decisions.md`; `sitzungsstart-00ce.md` neu, `sitzungsstart-00cd.md` nach
 `archiv/`.
+
+### D441 — O73: die Diät wird neu gefasst, und `rs` wird nachgezogen statt neu gebaut
+
+**Anlass.** Der Stolperdraht aus O73 hat ausgelöst. D439 Beschluss 1 ist an der Lesart einer
+einzigen Fassung entschieden, und seine schwächste Stelle verweist ausdrücklich auf Stufe B. Vor
+dem Auftrag war die Frage aus D409 zu entscheiden: D368 Beschluss 3 hält `02a` zurück, dessen
+Normstoff seit D397 in `02 §11` steht.
+
+**Gemessen — die Fläche.** Gegen den Anker `15d091e` ist `02-trust-flow.md` in neun Commits
+geändert worden (D394, D396, D398, D400, D402, D406, D426, D429, D439), mit 210 hinzugefügten und
+39 entfernten Zeilen. `01-claim-atom.md` ist in zwei Commits geändert worden (D396, D437), mit 12
+hinzugefügten und 2 entfernten Zeilen. O73 nannte für `02` sieben Commits; D426 und D429 fehlten
+dort. Die Zahl ist hier aus `git log 15d091e..HEAD` abgeleitet, und O73 wird berichtigt. Das Delta
+ist der einzige Normtext dieser Schicht, den keine Fassung gelesen hat. Der übrige Text ist
+dreifach bezeugt.
+
+**Gemessen — `02 §11` nennt `02a` beim Namen.** Der Einleitungssatz des Abschnitts sagt, woher
+seine Normen kommen. Das benennt die Datei, gibt sie aber nicht mit. `STAND.md` weist das
+Zurückhalten ohnehin aus.
+
+**Beschluss 1 — die Diät wird neu gefasst.** Der neue Ankersatz besteht aus `01-claim-atom.md` und
+`02-trust-flow.md` auf `573db57`. Weiter zurückgehalten werden `02-golden-anchors.md` und `02a`.
+Der Grund: D368 hat `02a` nicht zurückgehalten, weil es normativ war, sondern weil es ein Auftrag
+war, der Mehrdeutigkeiten vorwegnimmt. Seit D397 Beschluss 1 hat jeder Gegenstand genau einen
+normativen Text, und das ist `02`. Wer `§11` zurückhält, lässt die Fassung einen Text lesen, der
+nicht die Spec ist. Das wäre Stufe A ein zweites Mal. Was `02a` über `§11` hinaus trägt, bleibt
+Vorwegnahme: Modul-Layout, Nicht-Ziele, Testplan, Abnahme. Was verloren geht, ist benannt: Der
+Entdeckungswert der Stellen, die `02a` vorwegnahm, ist nicht mehr messbar. Er ist in drei
+Fragenlisten geerntet (`hs/FRAGEN.md`, `hs/FRAGEN-2.md`, `rs/FRAGEN.md`).
+
+**Beschluss 2 — Nachzug der Rust-Fassung, kein Neubau.** Der Neubau liest vor allem Text, der
+schon bezeugt ist, und zahlt dafür die volle Fläche aus D368. Der Nachzug zwingt die Fassung auf
+das Delta, also genau auf die unbezeugte Fläche. Die Grenze ist benannt: Wer alten Code gegen
+neuen Text hält, kann sich den Diff selbst bilden. Das ist eine Lesung der Änderungen, keine
+unabhängige Lesung. Ein Fehlschlag an den Stellen aus D437, D398 und D439 ist deshalb ein starker
+Befund, eine Übereinstimmung dort nur ein schwacher. Die Fassung bekommt keine Liste der
+geänderten Abschnitte; das ist das Mindeste, was sich zurückhalten lässt.
+
+**Beschluss 3 — die Fragenliste wird fortgeschrieben, nicht neu begonnen.** Die dreizehn
+Einträge aus dem ersten Lauf bleiben unangetastet, denn sie sind Beleg. Ein neuer Abschnitt zählt
+ab 14 weiter und kennt drei Eintragsarten:
+
+- Fragen in der bisherigen Form.
+- Ein Eintrag **je Codeänderung**, mit der Spec-Adresse, die sie erzwang. Eine Änderung ohne
+  Adresse ist selbst ein Befund. Das verschärft D390 Beschluss 2: Die Änderungsliste wird zur
+  Karte vom Delta auf den Code, und diese Karte ist das Messbare an einem Nachzug.
+- Je alter Eintrag eine Zeile: beantwortet (mit Adresse), offen oder widerlegt. Daran lässt sich
+  ablesen, ob `§11` die Fragen trägt, die der erste Lauf gestellt hat.
+
+Die Saturierung aus D390 Befund 3 wird ausdrücklich zurückgenommen: Ein Überlauf wird angehalten
+und gemeldet.
+
+**Beschluss 4 — der Detektor aus D389 Beschluss 2 wird neu abgeleitet.** D39 und D135 stehen jetzt
+im Ankersatz und fallen weg. D4 wird ausgeschlossen, weil das Token neben dem Parameter `D = 4`
+zufällig entstehen kann. D367 bleibt aus dem dort genannten Grund draussen. Die übrigen Nummern
+haben je null Treffer in `01`, `02`, `rs/FRAGEN.md`, `rs/AUFTRAG.md` und `rs/spec/STAND.md`:
+
+- nur in `02-golden-anchors.md`: D19, D24, D31, D32, D36, D44, D256, D408, D410
+- nur in `02a`: D28, D37, D38, D356
+
+Geprüft wird nur der Nachzugsabschnitt der Fragenliste und der Diff des Laufs.
+
+**Beschluss 5 — die Erwartung, vor dem Lauf fixiert.** Über alle vier Sätze (`TP-02`, `TZ-02`,
+`FALL-02`, `ZF-02`, zusammen 23 Profile) ist der `diff` gegen `tools/ref_block.py` leer, die
+`inf`-Zeile ausgenommen (D391 Beschluss 4). Das umfasst im Einzelnen:
+
+- In `ZF-02` sind F1 und F2 gleich: b3 `active`, Fluss 3 je Ziel, keine Kante an f1 und f2.
+- Die neun `SUBGRANULAR_VOUCH` aus Stufe A verschwinden.
+- In `TZ-02` gibt es keine Zeile `gruppe … 0 0` mehr (D396).
+- Die `befund`-Zeilen stehen in der Ordnung nach D429.
+
+Im Supervisor-Klon gezählt, liefert `ref_block` 280, 302, 78 und 154 Zeilen. `gruppe … 0 0`
+kommt nirgends vor, `SUBGRANULAR_VOUCH` nur in `TP-02` und `TZ-02` (je vier).
+
+Jede Abweichung wird nach D368 Beschluss 2 erst zwischen Zustandsstufe und Gruppierung
+lokalisiert, bevor sie als Befund gegen den Text zählt. Zeigt die Abweichung an D437, D398 oder
+D439, ist der Text dort nicht so lesbar, wie er gemeint ist.
+
+**Verworfen — die Verschiebung hinnehmen und nur in `STAND.md` benennen.** Dann bliebe die Diät
+dem Wortlaut nach bestehen und würde in der Sache nicht mehr wirken. Das ist der Zustand, den D409
+bemängelt hat, nur mit Vermerk.
+
+**Verworfen — `§11` aus der Ankerkopie herausschneiden.** Die Fassung läse einen Text, den es so
+nie gegeben hat, und jede Abweichung wäre für den Normtext wertlos.
+
+**Verworfen — Neubau in frischem Isolat.** Er ist die stärkere Messung, zahlt aber für die bezeugte
+Fläche ein zweites Mal. Er bleibt die Antwort, falls der Nachzug an einer der drei Stellen
+abweicht und die Lokalisierung keine eindeutige Zuordnung ergibt.
+
+**Schwächste Stelle.** Beschluss 2 macht einen Treffer an D439 fast wertlos. Der Satz steht jetzt
+ausdrücklich in `02 §10`, und wer den Diff bildet, liest ihn. Getragen wird der Nachzug von der
+Fläche, die nicht vorhergesagt ist, also von allem im Delta ausser den drei benannten Stellen.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O73: Zählung berichtigt, Beschluss vermerkt);
+`rs/spec/01-claim-atom.md` und `rs/spec/02-trust-flow.md` auf `573db57`; `rs/spec/STAND.md` neu
+gefasst. Der Auftrag liegt ausserhalb des Repositoriums und geht nach dem Lauf als
+`rs/AUFTRAG-NACHZUG.md` in den Baum, wie `rs/AUFTRAG.md` nach dem ersten Lauf.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import socket
 import sqlite3
@@ -10,6 +11,7 @@ import threading
 import urllib.error
 import urllib.request
 from http.server import HTTPServer
+from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import (
@@ -922,5 +924,65 @@ def test_nur_lokal(tmp_path) -> None:
     server = _start(path, lambda: NOW)
     try:
         assert server.server_address[0] == "127.0.0.1"
+    finally:
+        _stop(server)
+
+
+_APP_HEADERS = {
+    "content-security-policy": "default-src 'self'; frame-ancestors 'none'",
+    "x-content-type-options": "nosniff",
+    "cache-control": "no-store",
+}
+
+
+def _raw(server: HTTPServer, path: str):
+    host, port = server.server_address
+    connection = http.client.HTTPConnection(host, port)
+    connection.request("GET", path)
+    response = connection.getresponse()
+    body = response.read()
+    headers = {key.lower(): value for key, value in response.getheaders()}
+    status = response.status
+    connection.close()
+    return status, body, headers
+
+
+def _content_type(name: str) -> str:
+    if name.endswith(".html"):
+        return "text/html; charset=utf-8"
+    if name.endswith(".js"):
+        return "text/javascript; charset=utf-8"
+    if name.endswith(".json"):
+        return "application/json"
+    raise AssertionError(name)
+
+
+def test_statische_dateien(tmp_path) -> None:
+    """Startseite und /app/ nur mit den Namen aus static/ (D481 Beschluss 5)."""
+    path = tmp_path / "bestand.sqlite"
+    SqliteStore(path).close()
+    root = Path("symbolon/node/static")
+    server = _start(path, lambda: NOW)
+    try:
+        status, body, headers = _raw(server, "/")
+        assert status == 200
+        assert body == (root / "index.html").read_bytes()
+        assert headers["content-type"] == "text/html; charset=utf-8"
+        for key, value in _APP_HEADERS.items():
+            assert headers[key] == value
+        for file in sorted(item for item in root.iterdir() if item.is_file()):
+            status, body, headers = _raw(server, f"/app/{file.name}")
+            assert status == 200, file.name
+            assert body == file.read_bytes()
+            assert headers["content-type"] == _content_type(file.name)
+            for key, value in _APP_HEADERS.items():
+                assert headers[key] == value
+        for blocked in ("/app/../api.py", "/app/%2e%2e/api.py", "/app/unbekannt.js", "/app/unter/datei.js"):
+            status, _body, _headers = _raw(server, blocked)
+            assert status == 404, blocked
+        status, _body, headers = _raw(server, "/scopes")
+        assert status == 200
+        assert headers["content-type"] == "application/json"
+        assert "content-security-policy" not in headers
     finally:
         _stop(server)

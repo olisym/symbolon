@@ -18693,3 +18693,97 @@ war seit D390 überholt (D446, Nebenbefund).
 
 **Geändert.** `07-decisions.md`; `pruefregeln.md` (Regel 80 in „Beim Messen", Herkunftszeile);
 `arbeitsweise.md` (`§11`); `sitzungsstart-00cf.md` neu, `sitzungsstart-00ce.md` nach `archiv/`.
+
+### D448 — Bindungsmessung `02 §8` und `§10`; O79
+
+**Anlass.** Schritt 1 aus `sitzungsstart-00cf.md`. D443 hatte zwei Wirkungen gefunden, die kein
+Test sah, obwohl ein Vektorsatz eigens für sie gebaut war. Gemessen wird, ob das ein Einzelfall
+oder ein Muster ist.
+
+**Messung, selbst gefahren.** Supervisor-Klon am `3618771`, ohne Werkzeuglauf: Die Messung ändert
+nichts am Baum, und ein Lauf hätte einen Round-Trip für eine Tabelle gekostet. 41 Mutationen in
+`groups.py`, `derive.py` und `graph.py`, je eine Mechanik (Prüfregel 74). Für jeden Vermerk aus
+`§10` sind das Entstehung, Subjekt, Budget- und Kantenwirkung, dazu die Leseregeln (Reihenfolge,
+D400, D429) und die Unberührtheit der übrigen Gruppenmitglieder. Aus `§8` kommen Budgetgrenze,
+Pfad-Disjunktheit, Kapazitätsfilter und die geflaggten Autoren. Jede Mutation lief gegen
+`tests/trust`, die überlebenden danach gegen die volle Suite mit 942 Tests.
+
+Gebunden sind 34. Sieben sind deterministisch ungebunden:
+
+- **Knotendisjunktheit** (`§8`). Trägt die interne Kante eines Nicht-Ankers im Einheitslauf ∞
+  statt `1`, zählt der Lauf kantendisjunkte Pfade. Kein Test sieht es. Es ist der Satz, den `§8`
+  die strukturelle Fassung von „Zeugen dürfen nicht voneinander abhängen" nennt.
+- **`n` als CBOR-`true`** (`§10`). Ohne den Ausschluss von `bool` gilt `true` als `n = 1` und
+  trägt Budget und Kante.
+- **`n_kante = max`** über die aktiven Mitglieder (`§3.1`). `min` bleibt grün. Der einzige Treffer
+  war `test_p2_subset_never_higher_trust`, ein Hypothesis-Lauf ohne `derandomize`. Zufällig
+  gebunden ist ungebunden.
+- **`time-regression-flagged` flaggt den Autor nicht** (`§8`). Flaggt er ihn doch, bleibt alles
+  grün.
+- **Die übrigen Mitglieder einer Gruppe** bleiben von einem Lesefehler unberührt (`§10`). Fällt
+  die ganze Gruppe, bleibt alles grün.
+- **Negatives `n`** ist kein `uint` und damit `UNPARSABLE_VOUCH_PAYLOAD` (`§10`). Fällt es als
+  `INVALID_VOUCH_WEIGHT` an, bleibt alles grün.
+- **Kanonizität vor Form** (`§10`). Werden die beiden Prüfungen getauscht, bleibt alles grün.
+
+Die ersten fünf ändern Werte, die letzten beiden nur die Vermerkart. Die Vermerkart ist in `§10`
+normiert, und D429 ordnet nach ihr.
+
+**Nicht gemessen.** Die Punkte aus `§8`, die in `symbolon/trust` keine Codestelle haben: die
+Unveränderlichkeit von `D`, die Beobachtungskennzahlen, die Kalibrierungs-Nebenbedingung und die
+harte Reichweite als Arithmetik. Ebenso `rank()` für sich.
+
+**Zwei Messfehler, beide selbst gefunden.** Die erste Mutation zu D400 verschob nur das Dekodieren,
+eine reine Funktion, und war damit äquivalent. Richtig gestellt bindet sie ein Test. Zweitens nahm
+Python bei einer gleich langen Ersetzung innerhalb derselben Sekunde die `.pyc` des vorigen Stands,
+und die Gegenprobe sah den Mutanten nicht. Die Messung ist ohne Bytecode wiederholt; die Zahlen oben
+stammen aus diesem Lauf.
+
+**Beschluss 1 — O79 wird eröffnet.** Die Entscheidung stand vor der Messung fest: Eine neue
+ungebundene Zeile eröffnet einen Posten und einen Bindungsauftrag. Es sind sieben.
+
+**Beschluss 2 — ein Bindungsauftrag, eine neue Datei.** `tests/trust/test_bindung.py`, sieben
+Fälle, jeder mit eigener Rücknahmeprobe. Die Parameter sind die von `TP-02` (`C₀ = 16, γ = ½,
+D = 4`), `NOW` und `T_EXP` kommen aus `tp02`. Welten und Golden Numbers, im Supervisor-Klon am
+unveränderten Code und gegen jeden Mutanten nachgerechnet:
+
+- **Knotendisjunkt.** Die Anker `A1` und `A2` bürgen je mit `n = 4` für `B`, `B` bürgt mit `n = 2`
+  für `X1` und `X2`, beide bürgen mit `n = 4` für `T`. `C(B) = 8`, `cap(B→X) = ⌊2·8/4⌋ = 4`,
+  `C(X) = 4`, `cap(X→T) = ⌊4·4/4⌋ = 4`. Daraus folgen `value = 8` und `disjoint_paths = 1`, unter
+  dem Mutanten `2`. Zwei Anker sind nötig: Bei einem hielte schon die einzelne Kante `A→B` den
+  Einheitslauf auf `1`.
+- **`true`** mit `v = h'a100f5'`: Wert `0`, Vermerk `UNPARSABLE_VOUCH_PAYLOAD`. Unter dem Mutanten
+  ist der Wert `4`, ohne Vermerk.
+- **Negativ** mit `v = h'a10020'`: `UNPARSABLE_VOUCH_PAYLOAD`, unter dem Mutanten
+  `INVALID_VOUCH_WEIGHT`.
+- **Kanonizität vor Form** mit `v = h'1800'`: dekodiert zu `0`, ist keine Map und nicht minimal
+  kodiert. Das ergibt `NON_CANONICAL_V`, unter dem Mutanten `UNPARSABLE_VOUCH_PAYLOAD`.
+- **`max`** mit zwei aktiven Vouches derselben Gruppe, `n = 1` und `n = 4`, in beiden
+  Reihenfolgen der Zeitstempel: Wert `16 = ⌊4·16/4⌋`, unter `min` `4`. Die Mutanten „erstes"
+  und „letztes Mitglied" fallen je in einer der beiden Reihenfolgen. Welche es ist, hängt an der
+  Ordnung der `claim_id` und nicht am Zeitstempel. Deshalb verlangt der Auftrag beide.
+- **Zeitregression** an `ZF-02` F3 mit Ziel `g1` und `include_flagged = False`: Wert
+  `FLOW_PER_TARGET` und kein `OVERCOMMITTED_AUTHOR`. Unter dem Mutanten ist der Wert `0`.
+- **Gruppe** aus einem gültigen Vouch mit `n = 4` und einem unlesbaren mit `v = h'ff'`: Wert `16`,
+  ein Vermerk auf die `claim_id` des unlesbaren. Unter dem Mutanten ist der Wert `0`.
+
+**Verworfen — die Fälle auf die bestehenden Dateien verteilen.** Thematisch lägen sie näher. Der
+Lauf müsste dann aber fünf Dateien ganz lesen und ändern, und eine neue Datei hält den Diff
+prüfbar. Die Verteilung ist später eine reine Verschiebung.
+
+**Verworfen — `derandomize` für `test_p2` setzen.** Ein fester Seed bindet `max` nicht, er macht
+nur den Zufall wiederholbar. Der Fall gehört deterministisch gebaut.
+
+**Verworfen — die zwei Fälle ohne Wertwirkung weglassen.** Die Vermerkart ist Norm und
+Sortierschlüssel (D429), und die Fälle kosten je drei Zeilen.
+
+**Schwächste Stelle.** Die Mutantenliste ist meine. Eine Mechanik, für die ich keine Mutation
+geschrieben habe, ist nicht gemessen, und 34 gebundene sind nicht 34 von allen. Die letzte
+Mutation, die übrigen Gruppenmitglieder, kam erst nach der ersten Auswertung hinzu und war sofort
+ungebunden. Das spricht gegen Vollständigkeit.
+
+**Prüfregel-Kandidaten, nicht übernommen.** Mutanten werden ohne Bytecode gefahren, sonst misst
+eine gleich lange Ersetzung den vorigen Stand. Und: Eine Mutation, die nur eine reine Funktion
+verschiebt, ist äquivalent und bindet nichts. Je einmal begründet.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O79 neu).

@@ -365,3 +365,8 @@ Normiert in `01 §4` und `02 §8` (D443), gebunden in `tests/trust/test_autor_fl
 ### O78 Die Fragenliste kennt nur eine Eintragsart — erledigt (D446)
 
 Zwei Arten, Änderungen als Abschnitt 2 im Index (D445); `rs/FRAGEN.md` liegt im Baum.
+
+### O79 Sieben Normen aus `02 §8` und `§10` sind ungebunden
+
+Aus D448. Die Bindungsmessung fand sieben Mechaniken, deren Rücknahme kein Test sieht, darunter die
+Knotendisjunktheit aus `§8`. Auftrag `o79-bindung`, eine neue Datei `tests/trust/test_bindung.py`.

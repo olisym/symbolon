@@ -392,6 +392,6 @@ Geschlossenes `core`, uint-Schlüssel, gebunden in `tests/test_bindung_01.py`.
 `participants_wellformed` in `policy.py`; gebunden in `test_bindung_03.py`, `test_bindung_04.py`
 und `test_policy.py`.
 
-### O85 Die übrigen 36 Lücken aus `03` und `04`
+### O85 Die übrigen 36 Lücken aus `03` und `04` — erledigt (D460)
 
-Aus D458 Beschluss 4, ohne T1 (D459). Auftrag `o85-binden`.
+Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py`.

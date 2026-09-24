@@ -19440,3 +19440,27 @@ Normspalte in D458 nannte für T1 einen Satz, der die Darstellung nicht festlegt
 dieses Satzes geprüft, bevor sie in einen Auftrag geht (D459). Einmal belegt.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O84 erledigt, O85 auf 36).
+
+### D460 — Abnahme `o85-binden`; O85 erledigt; Nachmessung `03` und `04`
+
+**Gelesen im Spiegel.** Ein Commit, `6a6aa1a`, gegen `4f3d86f`: drei Testdateien, kein
+Produktivcode, wie berichtet. Suite im Supervisor-Klon ohne Bytecode: 1031 grün.
+
+**Befund: keiner.** Die Welten binden, was ihre Kennung sagt; die Ordnungsfälle laufen über beide
+Einfügeordnungen. Die Meldung zu H1 ist berechtigt: Ein Genesis, das Key `4` trägt, wirft ohne die
+Prüfung ebenfalls, nur aus `resolve_policy`. Die Welt ohne Key `4` trennt „wirft vor dem Lesen"
+von „wirft beim Lesen", und das verlangt `04 §4.5`.
+
+**Nachmessung am Stand von `o85-binden`**, alle 148 Mutanten aus D458 mit denselben Ersetzungen,
+im Messumfang, ohne Bytecode. Überlebend sind nur noch die vier äquivalenten (V9, T1, T6, E2), die
+beiden laut Norm unerreichbaren (H7, H8) und T29, den schon in D458 erst die volle Suite tötete.
+Acht Ersetzungen (M13 bis M16, T9 bis T12) greifen nicht mehr, weil die Prüfung seit D459 im
+Helfer steht; dessen Bedingungen hat O84 einzeln gebunden. Damit sind die 50 Lücken aus
+D458 und D459 gebunden.
+
+**Bilanz der Messungen seit D448.** 286 Mutationen über `01` bis `04`. Nach dem Stand von heute
+sind 68 Lücken gebunden, sieben Mutanten äquivalent und zwei laut Norm unerreichbar. Die Befunde
+mit Gewicht kamen aus dem Lesen: in `01` der fremde Lebenszyklus-Claim (D452), in `03` und `04` das
+Schlüssel-Aliasing in `v` (D456).
+
+**Geändert.** `07-decisions.md`; `offen.md` (O85 erledigt).

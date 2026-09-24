@@ -20028,3 +20028,43 @@ Schritt von P2 mit, so wie `example_nucleus.py` es für seine Objekte tut.
 
 **Geändert.** `tools/verein.py` und `tests/test_verein.py` (über den Merge);
 `szenario-verein.md`; `07-decisions.md`.
+
+### D473 — P2: der Bestand in SQLite und eine Sicht als reine Funktion
+
+**Anlass.** D471 Beschluss 5. Gelesen: `ClaimStore` und `structural_check` in
+`symbolon/verifier.py`, `symbolon/resolve.py`, `resolve_epoch` in `symbolon/governance/chain.py`,
+`decide` und `TallyResult`, `symbolon/governance/objects.py`, `membership`, `settlement`,
+`derive`, `resolve_trust_params`, `constitution_hash` in `symbolon/policy.py`, `tools/verein.py`.
+
+**Beschluss 1 — der Bestand nimmt nur, was er prüfen kann.** Ein Claim wird über
+`structural_check` eingeliefert (`01 §6`); was abgewiesen wird, wird nicht gespeichert, und der
+Grund geht an den Aufrufer zurück. Ein Objekt wird mit seiner Art eingeliefert und gegen seinen
+Hash geprüft: ein Genesis gegen `genesis_scope` (`00 §3`), eine Verfassung gegen
+`constitution_hash` (`00 §5`), ein Vorschlag gegen `proposal_hash` aus seinen drei Feldern
+(`04 §2.4`). Ein Objekt, dessen Hash nicht stimmt, gibt es nicht. Dieselbe Richtung wie
+`04 §4.5` Beschaffung: was nicht auf seinen Schlüssel hasht, ist unbekannt.
+
+**Beschluss 2 — die Sicht ist eine reine Funktion des Bestands und der Uhr.** Sie liest den
+Bestand, rechnet alles neu und speichert nichts Abgeleitetes. *Verworfen:* abgeleiteten Zustand
+in SQLite halten. Er wäre eine zweite Wahrheit neben den Claims, und jede Abweichung zwischen
+beiden eine Fehlerquelle, die es ohne ihn nicht gibt. *Verworfen:* inkrementelles Rechnen. Beim
+Umfang eines Vereins ist es nicht nötig; es kommt, wenn eine Messung es verlangt.
+
+**Beschluss 3 — was die Sicht je Scope enthält.** Für jeden Scope, dessen Genesis im Bestand
+liegt: die geltende Epoche mit ihren Vermerken aus `resolve_state`. Deklariert die Verfassung der
+Epoche `participants`, dazu der Verein: je Teilnehmer der Zustand aus `membership` mit dem
+Verfassungsobjekt (`04 §6.2`), und je bekanntem Vorschlag auf diese Epoche das Ergebnis von
+`decide`. Trägt der Genesis `trust_params`, dazu das Vereinsleben: `derive` von den Ankern aus
+`genesis[3]`, und je `obligation@1` im Scope das Ergebnis von `settlement` unter der Policy aus
+`resolve_state`. Ein Teil, den der Scope nicht trägt, fehlt in der Sicht, statt leer zu sein.
+
+**Beschluss 4 — Gabelungsbeweise sind eine eigene Sicht, über alle Scopes.** Jedes Paar von
+Claims im Zustand `equivocation-flagged` mit gleichem `(I, h_prev)`, mit beiden `claim_id` und dem
+Scope jedes Claims. Die Gabelung gehört der Kette, nicht einem Scope (`02 §8`), und die
+Auszählung meldet sie nicht (D469).
+
+**Beschluss 5 — die Hashes des Vereins werden im Code verankert.** Konstanten in
+`tools/verein.py` halten die Werte aus `szenario-verein §9` gegen die Rechnung, wie
+`example_nucleus.py` es für seine Objekte tut (D472).
+
+**Geändert.** `07-decisions.md`.

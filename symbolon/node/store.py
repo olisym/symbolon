@@ -11,7 +11,9 @@ from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
 from symbolon.governance.objects import Proposal
 from symbolon.policy import constitution_hash
-from symbolon.verifier import structural_check
+from symbolon.resolve import resolve_state
+from symbolon.trust.params import resolve_trust_params
+from symbolon.verifier import InMemoryStore, structural_check
 
 
 class ObjectKind(str, Enum):
@@ -85,7 +87,7 @@ class SqliteStore:
         return claim
 
     def submit_object(self, kind: ObjectKind, data: bytes) -> bytes:
-        """Liefert ein Objekt ein und gibt seinen Hash zurück (D473 Beschluss 1)."""
+        """Liefert ein Objekt ein und gibt seinen Hash zurück (D473 Beschluss 1, D474 Beschluss 1)."""
         try:
             canonical = cbor_canon.is_canonical(data)
         except Exception as exc:
@@ -97,6 +99,16 @@ class SqliteStore:
             if not isinstance(obj, dict):
                 raise ValueError("genesis object is not a map")
             digest = genesis_scope(obj)
+            resolve_state(
+                InMemoryStore(),
+                scope=digest,
+                genesis_obj=obj,
+                known_constitutions={},
+                known_proposals={},
+                now=0,
+            )
+            if 9 in obj:
+                resolve_trust_params(scope=digest, genesis_obj=obj)
         elif kind is ObjectKind.CONSTITUTION:
             if not isinstance(obj, dict):
                 raise ValueError("constitution object is not a map")

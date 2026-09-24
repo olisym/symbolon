@@ -7,6 +7,7 @@ import pytest
 from symbolon import cbor_canon
 from symbolon.atom import claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
+from symbolon.governance.findings import Finding, GovernanceFinding
 from symbolon.governance.objects import Proposal
 from symbolon.governance.tally import TallyState, decide
 from symbolon.policy import constitution_hash
@@ -138,6 +139,7 @@ def test_aufnahme(tmp_path) -> None:
     _res_objects(store, w)
     _submit_claims(store, [*w.base.values(), v1, *accepts])
     gov = scope_view(store, w.ex.N_gov, NOW)
+    assert gov.findings == ()
     assert gov.state.epoch == w.ex.epoch_2
     assert gov.vereinsleben is None
     assert gov.verein is not None
@@ -146,6 +148,7 @@ def test_aufnahme(tmp_path) -> None:
     for result in members.values():
         assert result.state is MembershipState.MEMBER
     res = scope_view(store, w.ex.N_res, NOW)
+    assert res.findings == ()
     assert res.verein is None
     assert res.vereinsleben is not None
     assert res.vereinsleben.derivation.bfs.distance[w.dora.pub] == 2
@@ -164,6 +167,7 @@ def test_austausch(tmp_path) -> None:
     _gov_chain(store, w, extra=(w.proposal_3, w.constitution_3))
     _submit_claims(store, [*w.base.values(), anna, chris, nein, ja, ratify])
     gov = scope_view(store, w.ex.N_gov, NOW)
+    assert gov.findings == ()
     assert gov.state.epoch == w.ex.epoch_2
     assert gov.verein is not None
     decisions = dict(gov.verein.decisions)
@@ -206,6 +210,7 @@ def test_beitrag(tmp_path) -> None:
     _res_objects(store, w)
     _submit_claims(store, [*w.base.values(), obligation, receipt])
     res = scope_view(store, w.ex.N_res, NOW)
+    assert res.findings == ()
     assert res.vereinsleben is not None
     settled = dict(res.vereinsleben.settlements)[claim_id(obligation)]
     direct = settlement(
@@ -232,6 +237,7 @@ def test_beitrag(tmp_path) -> None:
     _res_objects(other, partial)
     _submit_claims(other, [*partial.base.values(), obligation_partial, partial_receipt])
     view = scope_view(other, partial.ex.N_res, NOW)
+    assert view.findings == ()
     assert view.vereinsleben is not None
     opened = dict(view.vereinsleben.settlements)[claim_id(obligation_partial)]
     direct_open = settlement(
@@ -244,3 +250,67 @@ def test_beitrag(tmp_path) -> None:
     assert opened == direct_open
     assert direct_open.state is SettlementState.OPEN
     other.close()
+
+
+def test_participants_not_a_list(tmp_path) -> None:
+    """participants = 5 (D474 Beschluss 2, 04 §3.5)."""
+    w = build()
+    constitution = dict(w.ex.constitution_gov)
+    constitution["participants"] = 5
+    digest = constitution_hash(constitution)
+    genesis = dict(w.ex.genesis_gov)
+    genesis[4] = digest
+    store = SqliteStore(tmp_path / "bestand.sqlite")
+    scope = store.submit_object(ObjectKind.GENESIS, cbor_canon.encode(genesis))
+    store.submit_object(ObjectKind.CONSTITUTION, cbor_canon.encode(constitution))
+    view = scope_view(store, scope, NOW)
+    assert view.verein is None
+    assert view.findings == (
+        Finding(GovernanceFinding.MALFORMED_PARTICIPANTS, digest),
+    )
+    store.close()
+
+
+def test_participants_short_entry(tmp_path) -> None:
+    """participants mit einem Byte (D474 Beschluss 2, 04 §3.5)."""
+    w = build()
+    constitution = dict(w.ex.constitution_gov)
+    constitution["participants"] = [bytes([0x78])]
+    digest = constitution_hash(constitution)
+    genesis = dict(w.ex.genesis_gov)
+    genesis[4] = digest
+    store = SqliteStore(tmp_path / "bestand.sqlite")
+    scope = store.submit_object(ObjectKind.GENESIS, cbor_canon.encode(genesis))
+    store.submit_object(ObjectKind.CONSTITUTION, cbor_canon.encode(constitution))
+    view = scope_view(store, scope, NOW)
+    assert view.verein is None
+    assert view.findings == (
+        Finding(GovernanceFinding.MALFORMED_PARTICIPANTS, digest),
+    )
+    store.close()
+
+
+def test_root_keys_not_a_list(tmp_path) -> None:
+    """root_keys = 5 (D474 Beschluss 1, 03 §1.2)."""
+    w = build()
+    genesis = dict(w.ex.genesis_gov)
+    genesis[1] = 5
+    store = SqliteStore(tmp_path / "bestand.sqlite")
+    with pytest.raises(ValueError):
+        store.submit_object(ObjectKind.GENESIS, cbor_canon.encode(genesis))
+    assert store.all_genesis() == {}
+    store.close()
+
+
+def test_trust_params_text(tmp_path) -> None:
+    """Key 9, Wert unter 0 ein Text (D474 Beschluss 1, 00 §4.0)."""
+    w = build()
+    genesis = dict(w.ex.genesis_res)
+    trust = dict(w.ex.genesis_res[9])
+    trust[0] = "text"
+    genesis[9] = trust
+    store = SqliteStore(tmp_path / "bestand.sqlite")
+    with pytest.raises(ValueError):
+        store.submit_object(ObjectKind.GENESIS, cbor_canon.encode(genesis))
+    assert store.all_genesis() == {}
+    store.close()

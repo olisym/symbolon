@@ -10,6 +10,8 @@ from symbolon.trust import Finding, TrustFinding, TrustParams, trust
 from tests.helpers import Identity, scope_id, store_with
 from tests.trust.tp02 import NOW, T_EXP
 from tests.trust.zf02 import FLOW_PER_TARGET, build_f3
+from tests.trust.zf02 import NOW as ZF02_NOW
+from tests.trust.zf02 import PARAMS as ZF02_PARAMS
 
 PARAMS = TrustParams(C0=16, gamma_num=1, gamma_den=2, D=4)
 
@@ -135,8 +137,8 @@ def test_zeitregression_flaggt_den_autor_nicht() -> None:
         anchors=frozenset({graph.ALICE.pub}),
         targets=frozenset({graph.g1.pub}),
         scope=graph.scope,
-        now=NOW,
-        params=PARAMS,
+        now=ZF02_NOW,
+        params=ZF02_PARAMS,
         include_flagged=False,
     )
     assert r.value == FLOW_PER_TARGET
@@ -144,7 +146,7 @@ def test_zeitregression_flaggt_den_autor_nicht() -> None:
 
 
 def test_uebrige_gruppenmitglieder_unberuehrt() -> None:
-    """Ein Lesefehler lässt die übrigen Mitglieder der Gruppe (02 §10, D448)."""
+    """Ein Lesefehler lässt die übrigen Gruppenmitglieder unberührt (02 §10, D448)."""
     scope = scope_id("o79-gruppe")
     autor, subjekt = Identity("o79-gruppe-A"), Identity("o79-gruppe-S")
     gueltig = autor.vouch(subjekt, n=4, scope=scope, t=1, t_exp=T_EXP)

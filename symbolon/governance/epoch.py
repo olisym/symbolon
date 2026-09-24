@@ -148,7 +148,7 @@ def verify_ratification(
     witness_findings: list[Finding] = []
     authors: list[bytes] = []
     for cid in cited:
-        if not isinstance(cid, bytes):
+        if not isinstance(cid, bytes) or len(cid) != 32:
             witness_findings.append(
                 Finding(kind=GovernanceFinding.UNSUPPORTED_RATIFICATION, subject=rid)
             )

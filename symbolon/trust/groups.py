@@ -45,6 +45,8 @@ def _decode_weight(v: bytes | None, D: int) -> tuple[int | None, TrustFinding | 
         return D, None
     try:
         obj = cbor_canon.decode(v)
+        if not cbor_canon.keys_admissible(v):
+            return None, TrustFinding.UNPARSABLE_VOUCH_PAYLOAD
         canonical = cbor_canon.is_canonical(v)
     except Exception:
         return None, TrustFinding.UNPARSABLE_VOUCH_PAYLOAD

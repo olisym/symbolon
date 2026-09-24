@@ -15,6 +15,8 @@ def read_v(v: bytes | None) -> tuple[dict | None, tuple[ProfileFinding, ...]]:
         return None, ()
     try:
         obj = cbor_canon.decode(v)
+        if not cbor_canon.keys_admissible(v):
+            return None, (ProfileFinding.UNPARSABLE_V,)
         canonical = cbor_canon.is_canonical(v)
     except Exception:
         return None, (ProfileFinding.UNPARSABLE_V,)

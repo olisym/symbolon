@@ -142,7 +142,7 @@ def settlement(
 
     matching.sort(key=claim_id)
     receipt_claim_id: bytes | None = None
-    settled = False
+    settled_id: bytes | None = None
 
     for r in matching:
         rid = claim_id(r)
@@ -150,9 +150,9 @@ def settlement(
             receipt_claim_id = rid
 
         if r.v is None:
-            settled = True
-            receipt_claim_id = rid
-            break
+            if settled_id is None:
+                settled_id = rid
+            continue
 
         obj, kinds = read_v(r.v)
         if obj is None:
@@ -173,11 +173,11 @@ def settlement(
                 )
             continue
 
-        settled = True
-        receipt_claim_id = rid
-        break
+        if settled_id is None:
+            settled_id = rid
 
-    if settled:
+    if settled_id is not None:
+        receipt_claim_id = settled_id
         return SettlementResult(
             state=SettlementState.SETTLED,
             receipt_claim_id=receipt_claim_id,

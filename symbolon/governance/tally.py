@@ -98,6 +98,8 @@ def read_v(v: bytes | None) -> tuple[dict | None, GovernanceFinding | None]:
         return None, None
     try:
         obj = cbor_canon.decode(v)
+        if not cbor_canon.keys_admissible(v):
+            return None, GovernanceFinding.UNPARSABLE_V
         canonical = cbor_canon.is_canonical(v)
     except Exception:
         return None, GovernanceFinding.UNPARSABLE_V
@@ -239,7 +241,8 @@ def decide(
             epoch=epoch,
             proposal=proposal,
         )
-    if genesis_obj.get(6) != 0:
+    weight_mode = genesis_obj.get(6)
+    if type(weight_mode) is not int or weight_mode != 0:
         return _unevaluable(
             GovernanceFinding.UNSUPPORTED_WEIGHT_MODE,
             epoch.scope,

@@ -89,6 +89,10 @@ def verdict_status(
             findings.append(
                 Finding(kind=ProfileFinding.UNKNOWN_ACCUSATION, subject=verdict.J[1])
             )
+        elif not is_nuc_name(accusation, "accusation"):
+            findings.append(
+                Finding(kind=ProfileFinding.UNKNOWN_ACCUSATION, subject=v_cid)
+            )
         elif accusation.N != scope:
             findings.append(
                 Finding(

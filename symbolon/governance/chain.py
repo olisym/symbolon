@@ -16,7 +16,7 @@ from symbolon.governance.findings import (
     dedupe_sort,
 )
 from symbolon.governance.objects import Epoch, Proposal
-from symbolon.governance.tally import decide
+from symbolon.governance.tally import constitution_governable, decide
 from symbolon.index import classify_all
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_nuc_name
@@ -84,14 +84,27 @@ def resolve_epoch(
                 continue
             if by_cid[claim_id(claim)].state is not State.ACTIVE:
                 continue
+            if claim.J[0] != 3:
+                continue
             proposal = _known_proposal(known_proposals, claim.J[1])
             if proposal is None:
-                findings.append(
-                    Finding(
-                        kind=GovernanceFinding.EPOCH_PROPOSAL_UNAVAILABLE,
-                        subject=claim.J[1],
+                # 04 §4.5: Vermerk nur bei Tag 3 und, wenn participants wohlgeformt
+                # ist, bei I in P. Wohlgeformtheit kommt aus constitution_governable.
+                emit = True
+                if constitution_obj is not None:
+                    kind = constitution_governable(constitution_obj)
+                    if kind not in (
+                        GovernanceFinding.PARTICIPANTS_UNDECLARED,
+                        GovernanceFinding.MALFORMED_PARTICIPANTS,
+                    ):
+                        emit = claim.I in constitution_obj["participants"]
+                if emit:
+                    findings.append(
+                        Finding(
+                            kind=GovernanceFinding.EPOCH_PROPOSAL_UNAVAILABLE,
+                            subject=claim.J[1],
+                        )
                     )
-                )
                 continue
             if proposal.predecessor != epoch.epoch_id:
                 continue

@@ -18787,3 +18787,38 @@ eine gleich lange Ersetzung den vorigen Stand. Und: Eine Mutation, die nur eine 
 verschiebt, ist äquivalent und bindet nichts. Je einmal begründet.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O79 neu).
+
+### D449 — Abnahme `o79-bindung`; O79 erledigt
+
+**Abnahme.** Branch `o79-bindung`, Commit `d12b6bd` auf `de5de2f`. Er enthält eine neue Datei,
+`tests/trust/test_bindung.py`. Der Commit war nicht gepusht. Nach Prüfregel 59 habe ich die Datei
+aus dem gemeldeten Diff nachgebaut und über den Blob `67d29c7` verankert. Acht Fälle sind grün,
+`ruff` ist sauber, und die gemeldeten 950 Tests treffen die Erwartung aus D448.
+
+**Rücknahmeproben, selbst gefahren,** ohne Bytecode. R1 bis R7 färben genau ihren Fall rot, R5a
+beide Reihenfolgen. R5b und R5c färben je eine Reihenfolge rot, zusätzlich
+`test_p1_derive_and_trust_ignore_insertion_order` und in meinem Lauf zufällig `test_p2`.
+
+**Die Abweichung ist gemeldet, nicht angepasst, und sie liegt bei mir.** Die Tabelle des Auftrags
+hat für R5b und R5c keine Extra-Röte zugelassen. Gegen die volle Suite hatte ich in D448 nur `min`
+gemessen, nicht die beiden positionalen Mutanten. Die sind über P-1 bereits gebunden, weil ein
+Ergebnis, das am ersten oder letzten Mitglied hängt, von der Einfügereihenfolge abhängt. An D448
+ändert das nichts: `max` gegen `min` war ungebunden, und das ist der Befund. Es ist der Kandidat
+aus D448 in anderer Form: Eine Erwartung „sonst nichts rot" gilt nur für Mutanten, die gegen die
+volle Suite gemessen sind.
+
+**Zwei Defekte, vor dem Merge auf dem Branch behoben** mit einem Splice des Supervisors, weil ein
+Werkzeuglauf für zwei Stellen Testcode nicht lohnt:
+
+- Im Docstring des Gruppenfalls fehlte das Verb.
+- Der Zeitregressionsfall rechnete die Welt aus `ZF-02` mit `NOW` aus `tp02` und dem lokalen
+  `PARAMS`. Die Werte sind gleich, aber nur zufällig. Ändert `zf02` eine Konstante, prüft der Fall
+  eine andere Welt als `FLOW_PER_TARGET`. Er importiert jetzt beide aus `zf02`. Die Ursache ist
+  mein Auftrag, der `NOW` pauschal aus `tp02` verlangt hat. Nach dem Fix färbt R6 den Fall
+  weiterhin rot.
+
+**Beschluss — O79 ist erledigt.** Die sieben Mechaniken aus D448 sind gebunden. Der Befund aus
+D448, Schwächste Stelle, bleibt: Gemessen ist nur, wofür eine Mutation geschrieben wurde.
+
+**Geändert.** `tests/trust/test_bindung.py` (Fix); `07-decisions.md`; `offen.md` (O79 in der
+Schliessform).

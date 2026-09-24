@@ -79,6 +79,7 @@ def resolve_current_key(
             visited.add(k_cur)
             if any(
                 claim.I == k_cur
+                and claim_id(claim) in by_cid
                 and by_cid[claim_id(claim)].state is State.EQUIVOCATION_FLAGGED
                 for claim in claims
             ):

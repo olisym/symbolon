@@ -20,6 +20,7 @@ from symbolon.verifier import (
     State,
     _is_in_equivocation_pair,
     _is_temporally_valid,
+    _nachtraeglich_ungueltig,
     _predecessor_known_and_valid,
     structural_check,
 )
@@ -126,6 +127,8 @@ def classify_all(
 
     result: dict[bytes, Classification] = {}
     for claim in claims:
+        if _nachtraeglich_ungueltig(claim, store):
+            continue
         effective = _policy_for_claim(claim, policy)
         result[claim_id(claim)] = _classify_one(
             claim, store, now, revokes_by_target, supersedes_by_target, effective

@@ -62,7 +62,10 @@ def derive(
     equivocation_flagged_authors = {
         c.I
         for c in claims
-        if classifications[claim_id(c)].state == State.EQUIVOCATION_FLAGGED
+        if (
+            claim_id(c) in classifications
+            and classifications[claim_id(c)].state == State.EQUIVOCATION_FLAGGED
+        )
     }
     flagged_authors = overcommitted_authors | equivocation_flagged_authors
 

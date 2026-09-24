@@ -129,6 +129,16 @@ def _validate_field_types(m: dict) -> None:
         raise MalformedCbor()
 
 
+def _nachtraeglich_ungueltig(claim: Claim, store: ClaimStore) -> bool:
+    """Wahr gdw. core/* mit J.tag claim-ref, Ziel im Store, anderer Autor (01 §6, D452)."""
+    if not is_core_predicate(claim):
+        return False
+    if claim.J[0] != _J_TAG_CLAIM_REF:
+        return False
+    target = store.get(claim.J[1])
+    return target is not None and target.I != claim.I
+
+
 def _check_foreign_lifecycle(claim: Claim, store: ClaimStore | None) -> None:
     """FOREIGN_LIFECYCLE wenn Ziel-Claim bekannt und ziel.I != C.I."""
     if not is_core_predicate(claim):
@@ -254,7 +264,7 @@ def _predecessor_known_and_valid(
     pred = store.get(claim.h_prev)
     if pred is None:
         return False, None
-    if pred.I != claim.I:
+    if pred.I != claim.I or _nachtraeglich_ungueltig(pred, store):
         return False, pred
     return True, pred
 
@@ -307,7 +317,9 @@ def _is_in_equivocation_pair(claim: Claim, store: ClaimStore) -> bool:
     siblings = store.by_author_hprev(claim.I, claim.h_prev)
     cid = claim_id(claim)
     for other in siblings:
-        if claim_id(other) != cid and is_equivocation_pair(claim, other):
+        if claim_id(other) == cid or _nachtraeglich_ungueltig(other, store):
+            continue
+        if is_equivocation_pair(claim, other):
             return True
     return False
 

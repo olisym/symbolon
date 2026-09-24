@@ -298,14 +298,15 @@ def test_classify_foreign_lifecycle() -> None:
 
 
 def test_classify_all_foreign_lifecycle() -> None:
-    """Fremder Widerruf: classify_all wirft ForeignLifecycle (D283)."""
+    """Fremder Widerruf: classify_all übergeht ihn, Ziel bleibt active (D283, D452)."""
     erste = Identity("erste")
     zweite = Identity("zweite")
     vouch = erste.vouch(zweite, n=1, scope=scope_id("foreign-lifecycle"), t=1000)
     revoke = zweite.revoke(vouch, t=1001)
     store = store_with(vouch, revoke)
-    with pytest.raises(ForeignLifecycle):
-        classify_all(store, 1500)
+    result = classify_all(store, 1500)
+    assert claim_id(revoke) not in result
+    assert result[claim_id(vouch)].state == State.ACTIVE
 
 
 # --- Error class coverage ---

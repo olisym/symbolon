@@ -19053,3 +19053,28 @@ Sein Nachfolger ist `pending`, und als Equivocation-Geschwister zählt er nicht.
 
 **Geändert.** `tests/test_nachtraeglich_ungueltig.py` (Fix); `07-decisions.md`; `offen.md` (O81
 in der Schliessform).
+
+### D454 — Abnahme `o82-schliessen`; O82 erledigt
+
+**Abnahme.** Branch `o82-schliessen`, Commit `95e94f4` auf `086a856`. Geändert sind
+`symbolon/predicates.py` und `symbolon/verifier.py`, neu ist `tests/test_bindung_01.py`. Der
+Commit war nicht gepusht. Nach Prüfregel 59 habe ich den Diff nachgebaut und über die drei Blobs
+`a56f698`, `830cabe` und `574249c` verankert. 971 Tests sind grün, `ruff` ist sauber.
+
+**Rücknahmeproben, selbst gefahren,** ohne Bytecode, gegen die Wurzeltests und `tests/trust`. Sie
+decken sich mit dem Bericht. R5 färbt drei Fälle mehr rot als die Tabelle: die drei aus O81, die
+seit D453 dieselbe Norm von der anderen Seite binden. Die Tabelle stammt aus meiner Messung in
+D452, und die lag vor O81. Der Lauf hat gemeldet und nicht angepasst. Das ist der Kandidat aus
+D447 in anderer Form: Eine Erwartung gilt für den Stand, an dem sie gemessen ist, und zwischen
+Messung und Lauf lag hier ein Merge.
+
+**Ein Defekt, vor dem Merge behoben.** Keiner der neun Fälle trug einen Docstring mit seiner Norm.
+Die übrigen Bindungstests tun das, und der Auftrag hat die Normen je Fall genannt. Behoben mit
+einem Splice des Supervisors.
+
+**Beschluss — O82 ist erledigt.** `core` ist gegen die geschlossene Menge geprüft, Map-Schlüssel
+sind uint, und die sechs Lücken aus D452 sind gebunden. Damit ist die Messung über `01` durch: Von
+53 Mutationen sind 50 gebunden, drei sind äquivalent. Die drei Defekte aus dem Lesen sind behoben.
+
+**Geändert.** `tests/test_bindung_01.py` (Fix); `07-decisions.md`; `offen.md` (O82 in der
+Schliessform).

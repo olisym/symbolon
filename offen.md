@@ -378,6 +378,6 @@ Minimum über die Punkte in `flow.py`, gebunden in `test_fensterpunkte.py` und `
 
 Übergangen in `classify_all`, gebunden in `tests/test_nachtraeglich_ungueltig.py`.
 
-### O82 `core/revoke@2`, `bool`-Schlüssel und sechs ungebundene Normen aus `01`
+### O82 `core/revoke@2`, `bool`-Schlüssel und sechs ungebundene Normen aus `01` — erledigt (D454)
 
-Aus D452 Beschlüsse 2 bis 4. Folgt O81.
+Geschlossenes `core`, uint-Schlüssel, gebunden in `tests/test_bindung_01.py`.

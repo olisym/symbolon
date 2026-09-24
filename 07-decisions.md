@@ -19954,3 +19954,51 @@ Anwendung stolpert, und der Verein ist über `00 §5.3` und `04 §8` gestolpert.
 
 **Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `03-profiles.md`,
 `04-governance.md`, `07-decisions.md`.
+
+### D471 — Phase 2: Bauform des S-Node und der Schnitt in drei Aufträge
+
+**Anlass.** `ROADMAP.md §4` und `szenario-verein §7`. Gelesen: `symbolon/verifier.py`
+(`ClaimStore`, `InMemoryStore`), `symbolon/index.py`, `symbolon/resolve.py`, `symbolon/atom.py`
+(Signatur und `claim_id`), `tools/autor.py`, `tools/example_nucleus.py`. Oli hat entschieden:
+Schlüssel vorerst im Browser, am Ende in einem Offline-Gerät nach Art eines Trezor; Python; SQLite.
+
+**Beschluss 1 — der S-Node bereitet vor, das Gerät mit dem Schlüssel zeigt an und unterschreibt.**
+Die Signatur deckt `DOM_SIG ‖ core_bytes`, die `claim_id` ist `SHA-256(DOM_CID ‖ core_bytes)` und
+hängt nicht an der Signatur (`01 §4`). Der S-Node baut aus einer Absicht die `core_bytes`, das
+Gerät dekodiert sie, zeigt sie an, prüft sie und schickt nur `σ` zurück; der S-Node setzt den
+Claim zusammen und prüft ihn wie jeden fremden. Heute ist das Gerät der Browser, später ein
+Offline-Gerät; am S-Node ändert der Wechsel nichts. *Verworfen:* Schlüssel im S-Node. Der Dienst
+unterschriebe für den Menschen, und ein kompromittierter S-Node könnte in jedem Namen sprechen.
+*Verworfen:* der Browser baut den Claim selbst. Das verlangt einen zweiten kanonischen Kodierer
+nach `01 §3` in einer zweiten Sprache und bringt für die Sicherheit nichts, was die Prüfung in
+Beschluss 2 nicht schon bringt.
+
+**Beschluss 2 — das Gerät führt die Spitze der eigenen Kette.** Es merkt sich die `claim_id` des
+letzten eigenen Claims und unterschreibt nur, wenn `core_bytes` genau diesen Vorgänger nennt, das
+eigene `I` trägt und kanonisch kodiert ist. Sonst könnte ein fehlerhafter oder böswilliger S-Node
+den Menschen zu einer Gabelung verleiten, und der Beweis nach `01 §4` trüge dessen eigene
+Unterschrift. Die Rolle des `Rueckhalt` aus `tools/autor.py` wandert damit ins Gerät. Ist die
+Spitze dort verloren, ist die Kette angehalten, bis der Mensch eine Spitze ausdrücklich bestätigt;
+das ist `ANGEHALTEN` aus D120. Die Kanonizitätsprüfung im Browser gehört zu Phase 3.
+
+**Beschluss 3 — simulierte Personen unterschreiben im S-Node.** Die Skripte, die Anna, Bruno,
+Chris, Dora und die Kasse spielen, signieren über `Autor` mit ihren Seeds. Die Oberfläche
+kennzeichnet sie als simuliert. Das widerspricht Beschluss 1 nicht: niemand Wirkliches
+spricht durch sie.
+
+**Beschluss 4 — Bordmittel, keine neue Abhängigkeit.** `sqlite3` für den Bestand, `http.server`
+für eine Schnittstelle nur an `127.0.0.1`, JSON mit Bytes als Hex. Die Abhängigkeiten bleiben
+`cbor2` und `cryptography`. Drei Tabellen: Claims (`claim_id`, Bytes, `I`, `h_prev`), Objekte
+(Hash, Art, CBOR-Bytes, beim Einliefern gegen den Hash geprüft), simulierte Schlüssel. Ein
+`SqliteStore` erfüllt `ClaimStore`, damit jede Rechnung unverändert läuft. Der Ort ist
+`symbolon/node/`. *Verworfen:* ein Web-Rahmenwerk. Es brächte eine Abhängigkeit für eine lokale
+Schnittstelle mit einer Handvoll Pfaden.
+
+**Beschluss 5 — drei Aufträge.** P1 rechnet den Verein als geprüfte Welt in `tools/verein.py`
+und bindet damit die Zahlen aus `szenario-verein.md` an die Implementierung. P2 baut den
+`SqliteStore` und die Zustandsrechnung ohne Netz. P3 baut die Schnittstelle mit Vorbereiten,
+Unterschrift annehmen, Einliefern und Lesen. Jeder Auftrag nimmt die Welt aus P1 als Testdaten.
+Die Hashes der neuen Objekte werden erst verankert, wenn `szenario-verein.md` sie aus der Ausgabe
+von P1 trägt.
+
+**Geändert.** `07-decisions.md`.

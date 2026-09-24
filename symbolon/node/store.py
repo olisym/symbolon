@@ -1,10 +1,12 @@
-"""Bestand in einer SQLite-Datei (D473, 01 §6, 00 §3, 00 §5, 04 §2.4)."""
+"""Bestand in einer SQLite-Datei (D473, D476, 01 §6, 00 §3, 00 §5, 04 §2.4)."""
 
 from __future__ import annotations
 
 import sqlite3
 from enum import Enum
 from pathlib import Path
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
@@ -42,6 +44,10 @@ class SqliteStore:
                 hash BLOB PRIMARY KEY,
                 kind TEXT NOT NULL,
                 data BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS sim_keys (
+                pub BLOB PRIMARY KEY,
+                seed BLOB NOT NULL
             );
             """
         )
@@ -168,3 +174,22 @@ class SqliteStore:
                 scope=obj[0], predecessor=obj[1], constitution_hash=obj[2]
             )
         return found
+
+    def add_sim_key(self, seed: bytes) -> bytes:
+        """Trägt einen simulierten Schlüssel ein und gibt den öffentlichen zurück (D476 Beschluss 4)."""
+        pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+        self._db.execute(
+            "INSERT INTO sim_keys (pub, seed) VALUES (?, ?)",
+            (pub, seed),
+        )
+        self._db.commit()
+        return pub
+
+    def sim_seed(self, pub: bytes) -> bytes | None:
+        """Liest den Seed zu einem öffentlichen Schlüssel, oder None (D476 Beschluss 4)."""
+        row = self._db.execute(
+            "SELECT seed FROM sim_keys WHERE pub = ?", (pub,)
+        ).fetchone()
+        if row is None:
+            return None
+        return row[0]

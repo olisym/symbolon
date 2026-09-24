@@ -19142,7 +19142,7 @@ Lesern, `_decode_weight` (`02`), `profiles.payload.read_v` (`03`) und `governanc
 | `h'a200f5f4f5'` `{0: true, false: true}` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
 | `h'a1810001'` `{[0]: 1}` | `UNPARSABLE_VOUCH_PAYLOAD` | lesbar | kein Key `0` |
 | `h'a1c2410001'` `{2(h'00'): 1}` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
-| `h'a200012000410002616103'` | Gewicht 1 | lesbar | 1 |
+| `h'a400012000410002616103'` (Kopfbyte berichtigt in D457) | Gewicht 1 | lesbar | 1 |
 | `h'a200010002'` doppelter Key `0` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
 
 Die ersten drei Zeilen tragen eine Kante oder eine Ja-Stimme, wo eine Fassung mit typgenauen
@@ -19240,3 +19240,44 @@ Referenzvektoren tun es nicht, das prüft der Auftrag.
 **Geändert.** `01-claim-atom.md` (`§7.1`, Vouch-Zeile); `02-trust-flow.md` (`§3.1`, Absatz
 Schlüsseltypen; `§10`, ein Halbsatz); `03-profiles.md` (`§1.3`, `§2.4.4`, `§3.3.2`, `§5`,
 `§6.1`); `04-governance.md` (`§2.3`, `§3.5`, `§4.5`); `07-decisions.md`; `offen.md` (O83 neu).
+
+### D457 — Abnahme `o83-lesen`; O83 erledigt
+
+**Gelesen im Spiegel, nicht im Bericht.** Zwei Commits auf `o83-lesen`, `31f682b` und `f3332e2`,
+gegen `60bdc4a`. Suite im Supervisor-Klon ohne Bytecode: 983 grün.
+
+**Der erste Lauf trug fünf der sechs Punkte richtig.** `keys_admissible` läuft über die Bytes, prüft
+getaggte Schlüssel als unzulässig und steht in den drei `v`-Lesern nach dem Dekodieren und vor der
+Kanonizität. `genesis[6]`, das Prädikat der Anklage, die Zeugenlänge und `settlement` entsprechen
+D456. Die Tests bauen die Welten richtig, `settlement` in beiden Ordnungen der `claim_id`. Die
+Bestandsprüfung fand unter 360 `v` nur `h'a2000101ff'` aus D276, das ohnehin unlesbar ist.
+
+**Zwei Befunde.**
+
+- **Zeile 7 der Tabelle in D456 war falsch getippt.** Gemessen war `h'a400012000410002616103'`, ins
+  Register kam `a2` als Kopfbyte. Das Werkzeug hat die Abweichung gemeldet und die Lage am falschen
+  Vektor gebunden, statt die Erwartung anzupassen. Die Zeile ist berichtigt, der Nachtrag bindet
+  die richtige Map als lesbar. Der Fehler lag beim Supervisor: Der Vektor wurde aus der
+  Messausgabe abgeschrieben statt kopiert.
+- **Das Tag-Tor sass vor der Vorschlagssuche.** `if claim.J[0] != 3: continue` nahm jedes
+  `ratify@1` mit anderem Tag aus der Kette, nicht nur aus dem Vermerk. Ein Mitglieds-`ratify@1`
+  mit `J = (1, proposal_hash)` verlor so `UNSUPPORTED_RATIFICATION`. Der Bericht sagte „nichts
+  entfernt". Gefunden nur durch das Lesen des Diffs.
+
+**Nachtrag `f3332e2`.** Das Tor steht in der Vermerksentscheidung. Nachgemessen mit frischen
+Identitäten: `(1, PROPOSAL_1)` ergibt `UNSUPPORTED_RATIFICATION`, `(1, unbekannt)` keinen Vermerk,
+`(3, unbekannt)` `EPOCH_PROPOSAL_UNAVAILABLE`, wie verlangt. Drei Rücknahmeproben, je rot am
+richtigen Test; die dritte zeigt, dass Zeile 7 die Zulässigkeit von `bstr` und `tstr` bindet.
+
+**Abgenommen.** O83 ist erledigt.
+
+**Prüfregel-Kandidaten.**
+
+- Ein Vektor im Register wird aus der Messausgabe kopiert, nicht abgeschrieben (D457). Einmal
+  belegt.
+- Ein Lauf, der ungefragt etwas entfernt, ist Scope-Verlust und gehört in den Bericht (D435). Mit
+  D457 zweimal belegt; beide Male sagte der Bericht das Gegenteil.
+
+**Weiter.** Die Mutationsmessung über `03` und `04` nach Prüfregel 81, wie in D456 vorgesehen.
+
+**Geändert.** `07-decisions.md` (D456, Zeile 7 der Tabelle; D457); `offen.md` (O83 erledigt).

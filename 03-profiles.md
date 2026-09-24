@@ -163,9 +163,14 @@ Begründung, Verstoßklassen und der Grund, warum der Re-Serialisierungs-Check d
 abdeckt: Trust-Flow-Spec §3.1.
 
 Für `receipt@1` ist die Folge **die sichere Richtung** und nicht folgenlos: ein unlesbares `v`
-könnte einen Key `0` tragen, also **tilgt die Quittung nicht** (§3.3.2). Für `obligation@1`,
-`verdict@1`, `accusation@1` und `submit-arbitration@1` bleibt es beim Vermerk — dort wird
-nichts gelesen, was eine Wirkung hätte.
+könnte einen Key `0` tragen, also **tilgt die Quittung nicht** (§3.3.2). Für `obligation@1`
+bleibt es beim Vermerk — dort wird nichts gelesen, was eine Wirkung hätte.
+
+**Nicht jedes `v` wird gelesen** (D458). Das `v` von `verdict@1`, `accusation@1` und
+`submit-arbitration@1` liest in v1 keine Funktion dieser Schicht; es erzeugt deshalb keinen
+Vermerk, auch keinen nach Regel 2. Gelesen wird, was beitragen könnte (Trust-Flow-Spec §10). Die
+Typen in der Tabelle oben legen die Slots trotzdem fest, damit ein späterer Leser sie nicht
+verschieden belegt, wie Key `2` in Atom-Spec §7.1.
 
 ### 1.4 Scope-Bindung
 

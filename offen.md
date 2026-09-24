@@ -386,3 +386,12 @@ Geschlossenes `core`, uint-Schlüssel, gebunden in `tests/test_bindung_01.py`.
 
 `keys_admissible` in den drei `v`-Lesern; gebunden in `tests/test_v_schluessel.py`,
 `tests/profiles/test_lesen_03.py` und `tests/governance/test_lesen_04.py`.
+
+### O84 Sieben Lücken mit Wirkung, uint, eine Prüfung für `participants`
+
+Aus D458 Beschlüsse 1, 3 und 4: E6, E14, E19, C6, M3, T3, T31, C18, M13 bis M16, T9, T10.
+Auftrag `o84-binden`.
+
+### O85 Die übrigen 37 Lücken aus `03` und `04`
+
+Aus D458 Beschluss 4. Folgt O84.

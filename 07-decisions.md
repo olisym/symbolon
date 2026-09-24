@@ -19281,3 +19281,130 @@ richtigen Test; die dritte zeigt, dass Zeile 7 die Zulässigkeit von `bstr` und 
 **Weiter.** Die Mutationsmessung über `03` und `04` nach Prüfregel 81, wie in D456 vorgesehen.
 
 **Geändert.** `07-decisions.md` (D456, Zeile 7 der Tabelle; D457); `offen.md` (O83 erledigt).
+
+### D458 — Mutationsmessung `03` und `04`; drei Lesebefunde; O84, O85
+
+**Anlass.** Nachzug aus D456: dieselbe Messung wie in D448, D450 und D452, jetzt über die Profile
+und die Governance, nach dem Lesen und nach dem Merge von O83.
+
+**Messung, selbst gefahren, ohne Bytecode** (Prüfregel 81). Main am `fef69c4`. Jeder Mutant lief
+zuerst gegen `tests/profiles`, `tests/governance` und `tests/test_v_schluessel.py`, jeder
+überlebende dann gegen die volle Suite. Die Skripte liegen nicht im Repositorium.
+
+| | Mutationen | gebunden | äquivalent | laut Norm unerreichbar | ungebunden |
+|---|---|---|---|---|---|
+| `03`: `credit`, `verdict`, `membership`, `payload`, `profiles/policy` | 67 | 44 | 1 | – | 22 |
+| `04`: `tally`, `epoch`, `chain`; dazu `keys_admissible` | 81 | 48 | 2 | 2 | 29 |
+| zusammen | 148 | 92 | 3 | 2 | 51 |
+
+Die volle Suite hat nur einen Mutanten zusätzlich getötet. Äquivalent sind: die Parteien in
+`verdict_status` vertauscht, denn Pfad (ii) ist symmetrisch; `0 <= num` in `_is_ratio`, das aus
+`2 * num >= den` bei `den >= 1` folgt; der Zweig `TALLY_UNEVALUABLE` in `verify_ratification`,
+dessen Lage der folgende Zweig `participants is None` ebenso fängt. Laut Norm unerreichbar ist der
+Fork-Ausgang von `resolve_epoch` (`len(carrying)`, `EPOCH_FORK`); `04 §4.5` verbietet den Test.
+
+**Die 51 Lücken**, je mit Kennung. Jede bezeichnet eine Prüfung, deren Wegfall kein Test bemerkt.
+
+`03`:
+
+| Kennung | Stelle | Norm |
+|---|---|---|
+| C1 | `settlement`: `ValueError` bei `obligation.N != scope` | `03 §3.3.2` |
+| C2 | `settlement`: `ValueError` bei `policy.scope != scope` | `03 §3.3.2` |
+| C6 | `settlement`: `receipt.J == (2, claim_id(obligation))`, nicht nur das Tag | `03 §3.3.2` |
+| C9 | `settlement`: `obligation.J` trägt Tag `identity` | `03 §3.3.1` |
+| C12 | `settlement`: Sortierung der passenden Quittungen | `03 §3.3.2`, `01 §4.1` |
+| C13 | `settlement`: bei `OPEN` die kleinste passende Quittung | `03 §3.3.2` |
+| C14 | `settlement`: kleinste tilgende Quittung ohne `v` | `03 §3.3.2` |
+| C18 | `_is_valid_uint`: `bool` ist kein uint | `03 §1.3` |
+| C22 | `settlement`: `v`-Vermerke der Obligation | `03 §1.3` |
+| C23 | `settlement`: kleinste tilgende Quittung mit `v` ohne Key `0` | `03 §3.3.2` |
+| V2 | `verdict_status`: `ValueError` bei `policy.scope != scope` | `03 §2.4.2` |
+| V10 | `verdict_status`: Beschuldigter ist der Autor des bestrittenen Claims | `03 §2.4.4` |
+| V15 | `_active_submission`: `S.J` trägt Tag `identity` | `03 §2.4.2` |
+| M3 | `membership`: `accept-rules.I == subject` | `03 §4` |
+| M5 | `membership`: `CONSTITUTION_VERSION_MISMATCH` nur bei Tag `object-hash` | `03 §4` |
+| M7 | `membership`: `grant-membership.J` trägt Tag `identity` | `03 §4` |
+| M11 | `membership`: kleinste `accept-rules` | `03 §4` |
+| M12 | `membership`: kleinste `grant-membership` | `03 §4` |
+| M13 | `membership`: leere `participants` | `04 §3.5`, `04 §6.2` |
+| M14 | `membership`: Eintrag mit 32 Byte | `04 §3.5` |
+| M15 | `membership`: keine Duplikate | `04 §3.5` |
+| M16 | `membership`: sortiert | `04 §3.5` |
+
+`04`:
+
+| Kennung | Stelle | Norm |
+|---|---|---|
+| T1 | `ratio_max`: bei gleichem Verhältnis die alte Schwelle | `04 §3.4` |
+| T3 | `hopeless`: Grenze `<=` | `04 §3.2` |
+| T5 | `_is_ratio`: `den >= 1` | `04 §3.5` |
+| T8 | `_is_ratio`: `bool` ist kein Integer | `04 §3.5`, D112 |
+| T9 | `constitution_governable`: Eintrag mit 32 Byte | `04 §3.5` |
+| T10 | `constitution_governable`: keine Duplikate | `04 §3.5` |
+| T19 | `decide`: Hash der Zielverfassung | `04 §3.5` |
+| T31 | Ausschluss: nur Stimmen im eigenen Scope | `04 §4.4` |
+| T32 | Ausschluss: keine Stimme mit `t_exp` | `04 §3.1`, `§4.4` |
+| T33 | Ausschluss: nur aktive Stimmen | `04 §4.4` |
+| T41 | Ausschluss: `true` ist kein Ja | `04 §2.2` |
+| T44 | Ausschluss: nur `J` mit Tag `object-hash` | `04 §2.2`, `§4.4` |
+| T45 | `CONFLICTING_APPROVAL`: beide `claim_id` als Subjekt | `04 §4.4` |
+| E1 | `verify_ratification`: `ValueError` bei fremder `tally.epoch_id` | `04 §4.1` |
+| E1b | `verify_ratification`: `ValueError` bei fremdem `tally.proposal_hash` | `04 §4.1` |
+| E4 | `verify_ratification`: `ratify.N == scope` | `04 §4.1` |
+| E4b | `verify_ratification`: `ratify.J == (3, proposal_hash)` | `04 §4.1` |
+| E5 | `verify_ratification`: Prädikat `ratify@1` | `04 §4.1` |
+| E6 | `verify_ratification`: `ratify.I ∈ P` | `04 §4.1` |
+| E8 | `verify_ratification`: `ratify` ist aktiv | `04 §4.1` |
+| E14 | `verify_ratification`: keine zwei Zeugen desselben Autors | `04 §4.1`, D102 |
+| E19 | `_cited`: `v[0]` ist eine Liste | `04 §2.3` |
+| H1 | `resolve_epoch`: `ValueError` bei falschem Genesis | `04 §4.5` |
+| H2 | `resolve_epoch`: nur `ratify@1` im Scope | `04 §4.5` |
+| H3 | `resolve_epoch`: nur aktive `ratify@1` | `04 §4.5` |
+| H11 | `resolve_epoch`: `known_proposals` gegen den Schlüssel geprüft | `04 §4.5`, D175 |
+| K4 | `keys_admissible`: Schlüssel in Maps innerhalb von Arrays | `02 §3.1` |
+| K6 | `keys_admissible`: Schlüssel in Maps unter einem Tag | `02 §3.1` |
+| K7 | `keys_admissible`: Schlüssel in Maps innerhalb indefiniter Arrays | `02 §3.1` |
+
+**Sieben Lücken tragen eine Wirkung, die über die Diagnose hinausgeht.** E6: Ein Nichtmitglied
+etabliert eine Epoche. E14: Eine doppelt zitierte Stimme zählt zweimal gegen die Schwelle, und das
+ist die Schranke, auf der D102 steht. E19: Eine Map mit `bstr`-Schlüsseln in `v[0]` liefert beim
+Iterieren `claim_id`s. C6: Eine Quittung auf Obligation X tilgt Obligation Y desselben Gläubigers.
+M3: Die `accept-rules` eines anderen zählt als Zustimmung des Subjekts. T3: Die Grenze von
+`FAILED` ist nicht gebunden. T31: Eine Ja-Stimme in einem fremden Nukleus setzt den Autor hier
+aus. Der Code ist in allen sieben richtig; ungebunden heisst, eine Änderung fiele niemandem auf.
+
+**Drei Befunde beim Lesen, nicht aus der Messung.**
+
+- **`_is_valid_uint` nimmt negative Integer an.** `obligation.v` oder `receipt.v` mit `{0: -5}`
+  bekommt kein `INVALID_V_TYPE`, obwohl `03 §1.3` `uint` verlangt. Die Tilgung ist nicht
+  betroffen, denn Key `0` verhindert sie ohnehin.
+- **`03 §1.3` widerspricht `§6.1`.** Der letzte Absatz von `§1.3` stellt für `verdict@1`,
+  `accusation@1` und `submit-arbitration@1` einen Vermerk in Aussicht. `§6.1` sagt, gelesen werde
+  nur das `v` von Obligation und Quittung. Der Code folgt `§6.1`.
+- **Die Wohlgeformtheit von `participants` steht zweimal im Code**, in `membership` und in
+  `constitution_governable`. Beide sagen heute dasselbe. Das ist die Form, die D92 als Fehlerform
+  der `03`-Abnahme benannt hat, und M13 bis M16 zeigen, dass die eine Kopie gar nicht gebunden ist.
+
+**Beschluss 1 — uint heisst nicht negativ.** `_is_valid_uint` verlangt einen `int`, der kein
+`bool` ist, mit Wert `>= 0`.
+
+**Beschluss 2 — `§1.3` folgt `§6.1`.** Das `v` von `verdict@1`, `accusation@1` und
+`submit-arbitration@1` wird in v1 nicht gelesen und erzeugt keinen Vermerk. Absatz in `03 §1.3`.
+*Verworfen:* einen Leser für `verdict.v` bauen. Er erzeugte Vermerke über ein Feld, aus dem
+nichts folgt, gegen den Grundsatz aus `02 §10`, dass gelesen wird, was beitragen könnte.
+
+**Beschluss 3 — eine Prüfung für `participants`.** Ein Helfer `participants_wellformed(obj)` in
+`symbolon/policy.py`, genutzt von `membership` und `constitution_governable`. Dort, weil
+`profiles` nicht aus `governance` importieren darf. `04 §3.5` bleibt die einzige Normstelle.
+
+**Beschluss 4 — die 51 Lücken werden gebunden**, in zwei Aufträgen. O84 trägt die Beschlüsse 1
+und 3, die sieben Lücken mit Wirkung, C18 und die sechs Lücken, die Beschluss 3 berührt (M13 bis
+M16, T9, T10). O85 trägt die übrigen 37. O84 geht vor, weil O85 den Helfer voraussetzt.
+
+**Schwächste Stelle.** Die Mutanten sind von Hand gewählt, 148 Stück auf rund 1500 Zeilen. Eine
+ungewählte Prüfung kann ungebunden sein, ohne hier zu erscheinen. Die sieben Lücken mit Wirkung
+fand die Messung; die drei Befunde fand das Lesen. Das ist dasselbe Muster wie in D452.
+
+**Geändert.** `03-profiles.md` (`§1.3`, ein Absatz); `07-decisions.md`; `offen.md` (O84, O85
+neu).

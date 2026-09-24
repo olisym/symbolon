@@ -20188,3 +20188,44 @@ wie er in einer fremden Verfassung stehen kann, wird als Text seines `repr` ausg
 Richtung ist die aus D474.
 
 **Geändert.** `07-decisions.md`.
+
+### D477 — Prüfung `p3-api`: drei Befunde, Nachtrag vor dem Merge
+
+**Geprüft.** Commit `8e784a7` auf `p3-api`, Basis `372406b`. Der Diff im Spiegel nennt
+`symbolon/node/api.py`, `symbolon/node/__main__.py`, die Tabelle simulierter Schlüssel in
+`symbolon/node/store.py`, `tools/verein_node.py` und `tests/node/test_api.py`, und deckt sich mit
+dem Bericht. Im Klon ohne Bytecode sind es 1084 Tests, alle grün. Die drei Rücknahmeproben selbst
+nachgefahren, jede in der Sache: ohne Abweisung bei zwei Spitzen wird genau
+`test_gegabelte_kette` rot, ohne Untergrenze für `t` genau `test_zeit`, und wenn das mitgegebene
+`h_prev` übergangen wird, genau `test_vorgaenger_vom_geraet`. Die Docstrings nennen ihren Punkt als
+„Abschnitt 3.6 Punkt N“, weil `check_specs` ein `§` hinter einer Registernummer als Verweis ohne
+Datei liest; die Meldung war richtig.
+
+**Befund 1 — eine offene Verbindung legt den Server still.** Der Handler spricht HTTP/1.1 und
+hält die Verbindung offen; der Server bedient mit einem Faden (D476 Beschluss 5) und wartet auf
+der offenen Verbindung auf die nächste Anfrage. Gemessen: eine Verbindung mit einer beantworteten
+Anfrage bleibt offen, eine zweite Anfrage über eine neue Verbindung läuft nach drei Sekunden in
+die Zeitüberschreitung. Ein Browser hält Verbindungen genau so offen.
+
+**Befund 2 — dem Lader fehlt die Verfassung des Vereinslebens.** `tools/verein_node.py` legt
+`constitution_res` nicht an, weil der Auftrag sie nicht nannte. Die Sicht auf `N_res` trägt
+deshalb `CONSTITUTION_UNAVAILABLE` und rechnet mit dem Boden aus `00 §5.2`. Der Fehler lag im
+Auftrag.
+
+**Befund 3 — der Lader läuft nur einmal.** Ein zweiter Lauf auf dieselbe Datei bricht mit
+`IntegrityError` ab, weil `add_sim_key` denselben Schlüssel nicht zweimal einträgt. Claims und
+Objekte werden beim zweiten Einliefern still übergangen; die Schlüssel sollen es auch.
+
+**Beschluss 1 — jede Antwort schließt ihre Verbindung.** Der Handler antwortet mit
+`Connection: close` und beendet die Verbindung nach der Antwort. Ein Faden bleibt (D476
+Beschluss 5). *Verworfen:* mehrere Fäden. Sie lösten die Lage und brächten die Sperren um SQLite
+zurück, die D476 vermeiden wollte.
+
+**Beschluss 2 — der Lader legt `constitution_res` an, und `add_sim_key` ist für denselben Seed
+wiederholbar.** Ein zweiter Eintrag desselben Seeds gibt denselben öffentlichen Schlüssel zurück
+und ändert nichts.
+
+**Beschluss 3 — Nachtrag auf demselben Branch.** Der Auftrag `p3-nachtrag` setzt Beschluss 1 und 2
+auf `p3-api` um, mit je einem Test für die drei Befunde. Gemergt wird danach.
+
+**Geändert.** `07-decisions.md`.

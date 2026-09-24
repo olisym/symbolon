@@ -26,7 +26,7 @@ from tests.governance.fixtures import (
 )
 
 # Zeilen der Tabelle in D456 Befund 1. Zeilen 1 bis 6 sind unlesbar.
-# Zeilen 7 und 8 behalten die gemessene Lage: beide Bytes sind nicht kanonisch.
+# Zeile 7 ist die kanonische Map und lesbar, Zeile 8 nicht kanonisch.
 _ROWS: tuple[tuple[int, str, str], ...] = (
     (1, "a1f401", "unreadable"),
     (2, "a1f9000001", "unreadable"),
@@ -34,13 +34,13 @@ _ROWS: tuple[tuple[int, str, str], ...] = (
     (4, "a200f5f4f5", "unreadable"),
     (5, "a1810001", "unreadable"),
     (6, "a1c2410001", "unreadable"),
-    (7, "a200012000410002616103", "noncanonical"),
+    (7, "a400012000410002616103", "lesbar"),
     (8, "a200010002", "noncanonical"),
 )
 
 
 def test_schluessel_der_tabelle() -> None:
-    """Acht Vektoren: Zeilen 1–6 unlesbar, 7 und 8 nicht kanonisch (02 §3.1, D456)."""
+    """Zeilen 1–6 unlesbar, 7 lesbar, 8 nicht kanonisch (02 §3.1, D456)."""
     for row, hex_v, lage in _ROWS:
         data = bytes.fromhex(hex_v)
         if lage == "unreadable":
@@ -48,6 +48,17 @@ def test_schluessel_der_tabelle() -> None:
             assert _decode_weight(data, 8) == (None, TrustFinding.UNPARSABLE_VOUCH_PAYLOAD)
             assert read_v_03(data) == (None, (ProfileFinding.UNPARSABLE_V,))
             assert read_v_04(data) == (None, GovernanceFinding.UNPARSABLE_V)
+        elif lage == "lesbar":
+            assert cbor_canon.keys_admissible(data) is True, row
+            assert _decode_weight(data, 8) == (1, None)
+            obj_03, vermerke_03 = read_v_03(data)
+            assert vermerke_03 == ()
+            assert obj_03 is not None
+            assert type(obj_03[0]) is int and obj_03[0] == 1
+            obj_04, vermerk_04 = read_v_04(data)
+            assert vermerk_04 is None
+            assert obj_04 is not None
+            assert type(obj_04[0]) is int and obj_04[0] == 1
         else:
             assert cbor_canon.keys_admissible(data) is True, row
             assert _decode_weight(data, 8) == (None, TrustFinding.NON_CANONICAL_V)
@@ -56,12 +67,18 @@ def test_schluessel_der_tabelle() -> None:
 
 
 def test_zeile_7_schluessel_0_ist_int_eins() -> None:
-    """Dekodiert ist Key 0 der int 1; die Bytes sind nicht kanonisch (02 §3.1, D456)."""
-    data = bytes.fromhex("a200012000410002616103")
-    obj = cbor_canon.decode(data)
-    assert type(obj[0]) is int and obj[0] == 1
-    assert _decode_weight(data, 8)[0] is None
-    assert read_v_04(data)[0] is None
+    """Lesbare Map: Key 0 ist der int 1, Gewicht 1, ohne Vermerk (02 §3.1, D456)."""
+    data = bytes.fromhex("a400012000410002616103")
+    assert cbor_canon.keys_admissible(data) is True
+    assert _decode_weight(data, 8) == (1, None)
+    obj_03, vermerke_03 = read_v_03(data)
+    assert vermerke_03 == ()
+    assert obj_03 is not None
+    assert type(obj_03[0]) is int and obj_03[0] == 1
+    obj_04, vermerk_04 = read_v_04(data)
+    assert vermerk_04 is None
+    assert obj_04 is not None
+    assert type(obj_04[0]) is int and obj_04[0] == 1
 
 
 def test_indefinite_map_mit_unzulaessigem_schluessel() -> None:

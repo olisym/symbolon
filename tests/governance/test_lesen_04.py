@@ -66,6 +66,36 @@ def _ratify(identity, t: int):
     )
 
 
+def test_tag_1_bekannter_vorschlag() -> None:
+    """Tag 1 auf bekannten Vorschlag: UNSUPPORTED_RATIFICATION (04 §4.1, D456)."""
+    alice = fresh_alice()
+    ratify = alice.claim(
+        p=nuc(N_D, "ratify"),
+        J=(1, PROPOSAL_1.proposal_hash),
+        t=1,
+        N=N_D,
+    )
+    result = _resolve(store_with(ratify))
+    assert result.findings == (
+        Finding(GovernanceFinding.UNSUPPORTED_RATIFICATION, claim_id(ratify)),
+    )
+
+
+def test_tag_1_unbekannter_vorschlag_ohne_vermerk() -> None:
+    """Tag 1 auf unbekannten Vorschlag: kein EPOCH_PROPOSAL_UNAVAILABLE (04 §4.5, D456)."""
+    alice = fresh_alice()
+    ratify = alice.claim(
+        p=nuc(N_D, "ratify"),
+        J=(1, _UNBEKANNT),
+        t=1,
+        N=N_D,
+    )
+    result = _resolve(store_with(ratify))
+    assert GovernanceFinding.EPOCH_PROPOSAL_UNAVAILABLE not in {
+        f.kind for f in result.findings
+    }
+
+
 def test_nichtmitglied_ohne_vermerk() -> None:
     """Nichtmitglied auf unbekannten Vorschlag: kein Vermerk (04 §4.5, D456)."""
     frank = fresh_frank()

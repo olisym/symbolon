@@ -84,20 +84,18 @@ def resolve_epoch(
                 continue
             if by_cid[claim_id(claim)].state is not State.ACTIVE:
                 continue
-            if claim.J[0] != 3:
-                continue
             proposal = _known_proposal(known_proposals, claim.J[1])
             if proposal is None:
                 # 04 §4.5: Vermerk nur bei Tag 3 und, wenn participants wohlgeformt
                 # ist, bei I in P. Wohlgeformtheit kommt aus constitution_governable.
-                emit = True
+                emit = claim.J[0] == 3
                 if constitution_obj is not None:
                     kind = constitution_governable(constitution_obj)
                     if kind not in (
                         GovernanceFinding.PARTICIPANTS_UNDECLARED,
                         GovernanceFinding.MALFORMED_PARTICIPANTS,
                     ):
-                        emit = claim.I in constitution_obj["participants"]
+                        emit = emit and claim.I in constitution_obj["participants"]
                 if emit:
                     findings.append(
                         Finding(

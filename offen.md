@@ -374,11 +374,9 @@ Gebunden in `tests/trust/test_bindung.py`, je mit Rücknahmeprobe (D448, D449).
 
 Minimum über die Punkte in `flow.py`, gebunden in `test_fensterpunkte.py` und `test_bindung.py`.
 
-### O81 Ein fremder Lebenszyklus-Claim hält jede Auswertung an
+### O81 Ein fremder Lebenszyklus-Claim hält jede Auswertung an — erledigt (D453)
 
-Aus D452 Beschluss 1. `classify_all` übergeht einen nachträglich ungültigen Claim statt zu werfen;
-sein Nachfolger bleibt `pending`, als Equivocation-Geschwister zählt er nicht. Auftrag
-`o81-uebergehen`.
+Übergangen in `classify_all`, gebunden in `tests/test_nachtraeglich_ungueltig.py`.
 
 ### O82 `core/revoke@2`, `bool`-Schlüssel und sechs ungebundene Normen aus `01`
 

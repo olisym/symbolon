@@ -19020,3 +19020,36 @@ Rust-Fassung steht auf `573db57`; ob sie `core/revoke@2` annimmt, ist nicht gepr
 
 **Geändert.** `01-claim-atom.md` (`§6`, ein Absatz); `02-trust-flow.md` (`§11.4`, Schritt 1);
 `07-decisions.md`; `offen.md` (O81, O82 neu).
+
+### D453 — Abnahme `o81-uebergehen`; O81 erledigt
+
+**Abnahme.** Branch `o81-uebergehen`, Commit `9929846` auf `7f1c602`. Geändert sind
+`symbolon/verifier.py`, `symbolon/index.py`, `symbolon/trust/derive.py`, `symbolon/keys.py` und
+`tests/test_verifier.py`, neu ist `tests/test_nachtraeglich_ungueltig.py`. Der Commit war nicht
+gepusht. Nach Prüfregel 59 habe ich den Diff nachgebaut und über alle sechs Blobs verankert. 959
+Tests sind grün, `ruff` ist sauber.
+
+**Der gemeldete Diff war nicht vollständig.** Im letzten Hunk fehlten die abschliessenden
+Kontextzeilen, und `git apply` lehnte ihn ab. Die eine Teständerung habe ich von Hand gesetzt,
+und ihr Blob `8f0d908` trifft. Der Bericht ist also nicht byte-genau; der Inhalt ist es.
+
+**Rücknahmeproben, selbst gefahren,** jede gegen die volle Suite, ohne Bytecode. Sie decken sich
+mit dem Bericht. R1 färbt auch den Equivocation-Fall rot, was die Tabelle des Auftrags nicht
+vorsah. Das Ergebnis ist richtig: Ohne das Übergehen wirft `classify_all` am fremden Widerruf,
+bevor die Aussage über `X` erreicht ist. Meine Tabelle war unvollständig, der Lauf hat gemeldet
+und nicht angepasst.
+
+**Die Verbrauchertabelle** nennt zwei erreichbare Stellen, `derive.py` und `keys.py`, beide
+angepasst. Die übrigen vierzehn erreichen nur `nuc:`-Claims eines bestimmten Namens. Zwei davon
+habe ich am Code nachgesehen, `tally.py` und `credit.py`.
+
+**Ein Defekt, vor dem Merge behoben.** Die neue Datei benutzte die Labels `A`, `B` und `C`, die
+auch `test_kettenwelt.py` benutzt, und der Auftrag verlangte Labels nur in dieser Datei.
+Funktional ist das ohne Folgen, weil jede Welt ihren eigenen Speicher hat, aber es führt eine
+Suche in die Irre. Behoben mit einem Splice des Supervisors.
+
+**Beschluss — O81 ist erledigt.** Ein fremder Lebenszyklus-Claim hält keine Auswertung mehr an.
+Sein Nachfolger ist `pending`, und als Equivocation-Geschwister zählt er nicht.
+
+**Geändert.** `tests/test_nachtraeglich_ungueltig.py` (Fix); `07-decisions.md`; `offen.md` (O81
+in der Schliessform).

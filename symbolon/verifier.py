@@ -171,9 +171,9 @@ def structural_check(data: bytes, store: ClaimStore | None = None) -> Claim:
     if not isinstance(obj, dict):
         raise MalformedCbor()
 
-    # 2b: uint-Keys, keine doppelten (semantische Gleichheit der dekodierten Schlüssel)
+    # 2b: CBOR-uint-Keys, kein bool (01 Anhang B.2, D452)
     for k in obj:
-        if not isinstance(k, int):
+        if not _is_cbor_uint(k):
             raise MalformedCbor()
 
     # 2c: kanonische Kodierung (01 §3, D130)

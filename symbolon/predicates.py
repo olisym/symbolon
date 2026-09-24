@@ -18,7 +18,7 @@ from symbolon.errors import (
 _CANONICAL_SCOPE = re.compile(r"^[0-9a-f]{64}$")
 _NAME = re.compile(r"^[a-z0-9_-]+$")
 _VERSION = re.compile(r"^[1-9][0-9]*$")
-_CORE_PREDICATE = re.compile(r"^core/(revoke|supersede)@[1-9][0-9]*$")
+_CORE_PREDICATE = re.compile(r"^core/(revoke|supersede)@1$")
 _NUC_PREDICATE = re.compile(
     r"^nuc:(?:[0-9a-f]{64}|(?![0-9a-f]{64}/)[a-z0-9_-]+)/[a-z0-9_-]+@[1-9][0-9]*$"
 )
@@ -37,7 +37,9 @@ def parse_predicate(p: str) -> ParsedPredicate:
     """
     Grammatik aus Anhang A parsen.
 
-    Prüft als erstes, ob p ein str ist, und wirft sonst MalformedCbor (D213).
+    ``core/*`` gilt nur für die geschlossene Menge ``{revoke@1, supersede@1}``
+    (01 §2.2, 01 §2.4 Invariante 4, D452). Prüft als erstes, ob p ein str ist,
+    und wirft sonst MalformedCbor (D213).
     Raises VerifierError-Subklassen bei ungültiger Form.
     """
     if not isinstance(p, str):
@@ -97,7 +99,7 @@ def resolve_scope(claim: Claim) -> bytes:
 
 
 def is_core_predicate(claim: Claim) -> bool:
-    """True gdw. p ein gültiges core/revoke@1 oder core/supersede@1 ist."""
+    """True gdw. p ein gültiges core/revoke@1 oder core/supersede@1 ist (01 §2.4)."""
     try:
         parsed = parse_predicate(claim.p)
         return parsed.namespace == "core"

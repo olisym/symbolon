@@ -19716,3 +19716,35 @@ die Lücke nicht.
 `isinstance`-Typen, etwa `(list, tuple)` statt `list`. Was dort liegt, ist nicht gemessen.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O87 neu).
+
+### D465 — Abnahme `o87-binden`; O87 erledigt; die Nachmessung entfällt
+
+**Geprüft.** Commit `7259dde` auf `o87-binden`, Basis `7d33e62`. Der Diff im Spiegel ist
+vollständig gelesen und nennt nur `tests/nucleus/test_bindung_keys.py`, sieben Tests zu den Welten
+G1 bis G7 aus D464. Jede Welt baut ihre Identitäten frisch und hält den Zustand fest, den sie
+messen will. Im Klon ohne Bytecode sind es 1050 Tests, alle grün.
+
+**Rücknahmeproben selbst nachgefahren**, aus dem JSON des Auftrags: jeder der 13 Mutanten
+eingesetzt, dann die neue Datei. Jeder macht genau den Test seiner Welt rot und keinen anderen.
+Das deckt sich mit dem Bericht.
+
+**M09 und M10 scheitern an der Sache.** Der Bericht meldete, dass dort ein `TypeError` durch
+`pytest.raises(ValueError)` schlägt statt einer Zusicherung. G5 bindet genau die Zusage
+„`ValueError`, nicht `TypeError`", und der Mutant bricht sie. Anders als der `NameError` aus D463
+hat der Fehler hier mit der geprüften Zusage zu tun. Die Meldung war richtig.
+
+**Der Docstring von G5 zitiert `00 §6.4`.** Das Schema von `root_keys` steht in `00 §4`, und die
+Tabelle in D464 nennt den Vertrag der Funktion. `§6.4` Schritt 1 spricht aber ebenfalls von
+`genesis.root_keys` als Anker, der Verweis ist also ungenau, nicht falsch. Keine Nachbesserung.
+
+**Die Nachmessung aus D464 entfällt.** Sie änderte keine Entscheidung: die Proben zeigen, dass
+alle 13 Lücken-Mutanten jetzt erkannt werden; kein Produktivcode hat sich geändert, und
+hinzugekommene Tests können einen bisher erkannten Mutanten nicht wieder überleben lassen. Das
+Ergebnis stünde vorher fest: die zwölf Überlebenden, die D464 als Deklaration, unerreichbar und
+äquivalent eingeteilt hat.
+
+**Beschluss.** Abgenommen und nach `main` gemergt. O87 ist erledigt. Damit sind `keys.py`,
+`resolve.py` und `genesis.py` gelesen und gemessen, und Schritt 1 aus `sitzungsstart-00ch.md` ist
+abgeschlossen.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O87 erledigt).

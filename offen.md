@@ -400,6 +400,6 @@ Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py
 
 `genesis_scope` in `genesis.py`; gebunden in `tests/nucleus/test_lesen_keys.py`.
 
-### O87 Die vier Bedingungen einer vollständigen Rotation und drei Formprüfungen binden
+### O87 Rotationsbedingungen und drei Formprüfungen binden — erledigt (D465)
 
-Aus D464: 13 Mutanten in `keys.py` und `genesis.py`, sieben Welten G1 bis G7. Auftrag `o87-binden`.
+Gebunden in `tests/nucleus/test_bindung_keys.py`, Welten G1 bis G7 aus D464.

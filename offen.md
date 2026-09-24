@@ -395,3 +395,8 @@ und `test_policy.py`.
 ### O85 Die übrigen 36 Lücken aus `03` und `04` — erledigt (D460)
 
 Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py`.
+
+### O86 Genesis-Schlüssel und die Ordnung zweier Rotationen
+
+Aus D462 Beschlüsse 1 und 2: `genesis_scope` mit Schlüsselprüfung an allen fünf Genesis-Lesern,
+`_on_author_chain` über die Vorgängerrelation aus `01 §6`. Auftrag `o86-lesen`.

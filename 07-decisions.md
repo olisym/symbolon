@@ -19500,3 +19500,111 @@ geht (D314).
 
 **Geändert.** `07-decisions.md`; `pruefregeln.md` (Regeln 82 und 83, Herkunftszeile);
 `sitzungsstart-00ch.md` neu, `sitzungsstart-00cg.md` nach `archiv/`.
+
+### D462 — Lesen von `keys.py` und `resolve.py` gegen die Norm; drei Befunde; O86
+
+**Anlass.** Schritt 1 aus `sitzungsstart-00ch.md`: der letzte Code, der weder gelesen noch gemessen
+war. Gelesen auf `97cb5e7` gegen `00 §4`, `§5.4`, `§6` und `04 §5`, mit der Frage aus Prüfregel 83,
+wer eine Ausnahme oder eine Abweichung zwischen Implementierungen auslösen kann. Modul und Spec
+vollständig, dazu `verifier.py` und `index.py`, soweit `keys.py` sie ruft, und die übrigen vier
+Leser des Genesis-Objekts.
+
+**Die Ausnahmefrage ist verneint.** Kein Claim im Bestand lässt `resolve_current_key`,
+`resolve_authorized_keys` oder `resolve_state` werfen. `classify_all` übergeht nur nachträglich
+ungültige Claims, die sind immer `core/*` (D452), und die beiden ungeschützten Nachschläge in
+`by_cid` gelten `rotate-key@1` und `rotate-ack@1`. Der Nachschlag der Equivocation-Prüfung, der
+über alle Claims läuft, ist geschützt. `J` trägt bei beiden Prädikaten nach `01 §2` eine `bstr`
+mit 32 Byte. `ValueError` entsteht nur aus Argumenten des Aufrufers. `resolve.py` verkettet und
+entscheidet nichts (D183).
+
+**Befund 1 — Schlüssel im Genesis werden mit Pythons Gleichheit verglichen.** D456 hat die
+Schlüssel in `v` beschränkt und `genesis[6]` typgenau gemacht, die Schlüssel des Genesis-Objekts
+selbst aber nicht. Es kommt als `dict` herein, und dort sind `true` und `1`, `1.0` und `1`,
+`false` und `0` derselbe Schlüssel. Der Hash stimmt, denn er wird aus demselben `dict` gerechnet.
+Gemessen auf `97cb5e7`, `resolve_authorized_keys` und `resolve_trust_params` über denselben
+Bestand:
+
+| Genesis | Anker | `trust_params` |
+|---|---|---|
+| `{1: [k], 9: {0: 1, 1: 1, 2: 2, 3: 3}, …}` | `{k}` | `C0=1, gamma_num=1, gamma_den=2, D=3` |
+| `true` statt Key `1` | `{k}` | gleich |
+| `1.0` statt Key `1` | `{k}` | gleich |
+| `{false: 1, true: 1, 2: 2, 3: 3}` in Key `9` | `{k}` | gleich |
+
+Eine Fassung, die Schlüssel typgenau liest, findet in Zeile 2 und 3 kein `root_keys` und in Zeile
+4 kein `C0`. Dieselbe Lage trifft `genesis_obj[4]` in `resolve_epoch` und `genesis_obj.get(5)`,
+`get(6)` in `decide`, denn `4.0`, `5.0` und `6.0` sind in Python gleich `4`, `5` und `6`.
+Auslösen kann es nur der Gründer, denn jede Änderung des Genesis ist ein anderes `N`. Dann aber
+dauerhaft und für jeden, der diesen Nukleus liest: die Menge der autorisierten Schlüssel, die
+Schwellenklasse und die Kalibrierung des Trust-Flow hängen an der Sprache des Lesers.
+
+**Beschluss 1 — Beschränkung, an einer Stelle.** Jeder Map-Schlüssel des Genesis-Objekts ist ein
+uint, auch in `trust_params`; sonst ist das Objekt kein Genesis und wird abgewiesen wie eines,
+dessen Hash nicht `N` ist. Normiert in `00 §4`. Geprüft wird in einer einzigen Funktion
+`genesis_scope`, die den Hash rechnet und vorher die Schlüssel prüft. Die fünf Stellen, die heute
+den Hash je selbst rechnen (`keys.py`, `governance/chain.py`, `governance/tally.py`,
+`profiles/policy.py`, `trust/params.py`), rufen sie. Ihre Vergleiche und Meldungen bleiben.
+
+*Verworfen — typgenau lesen an jeder Stelle.* Fünf Leser heute, jeder künftige eine weitere
+Gelegenheit, es zu vergessen. D456 hat aus demselben Grund die Beschränkung der Treue vorgezogen.
+
+*Verworfen — `keys_admissible` auf den Bytes.* Das Genesis kommt an der Schnittstelle als `dict`,
+und `keys_admissible` lässt `bstr` und `tstr` zu. Das Schema in `00 §4` kennt nur uint.
+
+*Verworfen — ein Vermerk statt `ValueError`.* Das Genesis ist kein Claim im Bestand, sondern ein
+Argument, an `N` gebunden. Ein Objekt, das kein konformer Leser lesen kann, ist kein Nukleus, und
+die Abweichung vom Hash wirft schon heute (D167). `02 §10` gilt für Eingaben aus dem Bestand; der
+Wurf hier betrifft nur diesen einen Scope und nur, weil sein Gründer es so gebaut hat.
+
+**Befund 2 — die Ordnung zweier Rotationen läuft über ungültige Glieder.** `_on_author_chain`
+folgt `h_prev`, solange `store.get` etwas findet, und prüft weder den Autor noch, ob das Glied
+gehalten ist. `01 §6` sagt über einen nachträglich ungültigen Claim: er ist kein gültiger
+Vorgänger, und eine Auswertung über den Bestand übergeht ihn. `00 §6.4` sagt, D154 folgend: die
+Ordnung läuft in der **eigenen** Kette von `K_{n-1}`, und fehlt ein Zwischenglied, liefert die
+Wurzel keinen Kopf (D155 a). Gemessen auf `97cb5e7` an dieser Welt: `R_1` von `root` auf `a`;
+dann `x`, ein `core/revoke@1` von `root` auf einen Claim eines anderen Autors im Bestand; dann `P`,
+ein beliebiger `nuc:`-Claim von `root`; dann `R_2` von `root` auf `b`; beide gegengezeichnet.
+`classify_all` hält `x` nicht, `P` ist `pending`, `R_1` und `R_2` sind `active`. Die Auflösung
+liefert `{a}`. Nach der Norm liegt `R_1` nicht auf der gültigen Kette von `R_2`, die beiden sind
+nicht vergleichbar, und die Wurzel liefert keinen Kopf.
+
+Auslösen kann es der Halter von `K_{n-1}` allein, mit einer beliebigen öffentlichen `claim_id` eines
+anderen Autors. Die Folge ist eine Spaltung ohne Beweis: eine Fassung nach der Norm und diese
+Fassung sind über `authorized_keys` uneins. Dasselbe gilt für ein Glied eines anderen Autors, das
+ein Claim von `K_{n-1}` als Vorgänger nennt.
+
+**Beschluss 2 — eine Vorgängerrelation.** Die Ordnung folgt derselben Relation wie die
+Klassifikation: ein Glied zählt, wenn es bekannt, vom selben Autor und gehalten ist. Im Code ist das
+`verifier._predecessor_known_and_valid`, und `_on_author_chain` benutzt sie. Satz in `00 §6.4`,
+Absatz „Was als Kettenglied zählt".
+
+*Verworfen — die Ordnung über die Signaturen, gleich welches Glied.* Die Zeiger sind signiert, und
+dass `root` `R_2` nach `R_1` geschrieben hat, stimmt auch über `x` hinweg. Aber dann gäbe es zwei
+Begriffe von Kette, einen für den Zustand und einen für die Ordnung, und eine zweite Fassung müsste
+beide treffen. Die Beschränkung kostet nichts: wer `K_{n-1}` hält, kann seine Wurzel ohnehin
+durch Equivocation entwerten (D162).
+
+**Befund 3 — zwei Stand-Absätze sind überholt.** `00 §6.4` sagte, ein vorgefundenes `nucleus_keys`
+werde nicht ausgewertet und kein Pfad fülle `authorized_keys`. Beides ist seit `00b` und D183
+falsch; der erste Satz beschrieb eine unsichere Richtung, die es nicht mehr gibt. `04 §5` sagte,
+der Anschluss an die Epochenkette sei nicht gebaut; `resolve_state` baut ihn (D183). Geschrieben
+wurden beide vor den Einträgen, die sie überholt haben (D160, D174 bis D177), und nie
+nachgezogen. **Beschluss 3:** beide Absätze ersetzt, mit einem Satz, was vorher dort stand.
+
+**Nebenbei, kein Beschluss.** `threshold_class` liest `genesis_obj[5]` ohne eigene Prüfung und
+verweist dafür auf den Aufrufer. Ihr einziger Aufrufer ist `decide`, der jetzt über
+`genesis_scope` geht. Die Werkzeuge unter `tools/` rechnen den Hash weiter selbst; sie bauen
+Genesis-Objekte, sie lesen keine fremden.
+
+**Ein Auftrag.** O86 trägt die Beschlüsse 1 und 2 im Code, mit Rücknahmeprobe je Stelle.
+Beschluss 3 ist reiner Text und liegt diesem Eintrag bei. Die Mutationsmessung über `keys.py`,
+`resolve.py` und das neue Modul folgt nach dem Merge.
+
+**Schwächste Stelle.** Wie in D456 ist die Divergenz aus Befund 1 an Python gemessen und für die
+typgenaue Seite gefolgert; die Rust-Fassung auf `573db57` ist nicht geprüft. Die Beschränkung
+trägt unabhängig davon. Befund 2 ist gegen den Wortlaut von `01 §6` ein Defekt, nicht eine Lücke;
+neu ist nur der Satz, der die Relation für die Ordnung ausdrücklich nennt.
+
+**Geändert.** `00-nucleus-genesis-constitution.md` (`§4`, Absatz Schlüsseltypen; `§6.4`, Absatz
+„Was als Kettenglied zählt" und Stand-Absatz); `04-governance.md` (`§5`, letzter Absatz);
+`07-decisions.md`; `offen.md` (O86 neu).

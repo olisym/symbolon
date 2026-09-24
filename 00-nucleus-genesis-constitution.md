@@ -147,6 +147,13 @@ Nukleus). Pflichtfelder:
 - Die Änderungsregel ist **nicht** unveränderlich, aber nicht kaperbar: die anzuwendende Schwelle
   ist das Maximum aus alter und neuer (Gov-Spec §3.4). Anheben verlangt die neue, Senken die alte.
 
+**Schlüsseltypen (D462).** Jeder Map-Schlüssel des Genesis-Objekts ist ein uint, auch in
+`trust_params`. Ein Objekt mit einem anderen Schlüssel, etwa `true`, `1.0` oder `-1`, ist kein
+Genesis: ein Leser weist es ab wie eines, dessen Hash nicht `N` ist, und liest keinen seiner Werte.
+Der Grund ist derselbe wie in `02 §3.1`. Unter anderen Schlüsseltypen hängt es an der Sprache des
+Lesers, welcher Wert unter Key `1` steht, und der Gründer könnte die Schlüsselauflösung seines
+Nukleus über Implementierungen spalten.
+
 ### 4.0 `trust_params` — warum im Genesis
 
 `D` steckt über `n/D` in jedem signierten Vouch. Läge es in der änderbaren Verfassung, würde ein
@@ -443,18 +450,18 @@ wie nachträglich entdeckte Equivocation und die sichere Richtung.
 diesen beiden Prädikaten wie `ACTIVE`, weil eine ablaufende Rotation die Autorität zurückspringen
 ließe — dieselbe Monotonie-Begründung, aus der `01 §5.3` das `t_exp` von `core/*` ignoriert. Sind
 zwei vollständige Rotationen desselben Autors mangels Zwischenglied nicht vergleichbar, liefert
-die Wurzel keinen Kopf. Trifft der Lauf einen bereits besuchten Schlüssel, ebenso: eine zyklische
+die Wurzel keinen Kopf. Die Ordnung folgt derselben Vorgängerrelation wie die Klassifikation
+(`01 §6`): ein Glied zählt, wenn es bekannt, vom selben Autor und gehalten ist. Ein nachträglich
+ungültiger Claim oder ein Vorgänger eines anderen Autors ist für die Ordnung ein fehlendes
+Zwischenglied (D462). Trifft der Lauf einen bereits besuchten Schlüssel, ebenso: eine zyklische
 Kette ist keine Nachfolge.
 
-**Zustand seit `00a`, vor `00b` (D151, D160).** Schritt 2 bis 4 sind gebaut; der Anker ist
-Parameter, Schritt 1 bleibt bei `genesis.root_keys`. Ein vorgefundenes `nucleus_keys` wird
-**nicht** ausgewertet. Das ist die unsichere Richtung — ein Leser vertraut weiter einem Schlüssel,
-den die Mitglieder abgesetzt haben. Als benannte Grenze tragbar, als Schweigen wäre sie eine
-Lücke.
-
-**Die Auflösung ist rechenbar, aber noch ohne Wirkung (D160).** Kein Produktivpfad füllt
-`authorized_keys` aus `03 §4` mit dem Ergebnis; wer eine veraltete Menge übergibt, bekommt ein
-veraltetes Ergebnis. Der Anschluss gehört zu `00b`, weil dort ohnehin der Anker hergeleitet wird.
+**Stand (D161, D163, D183, D462).** Schritt 1 ist seit `00b` gebaut, und ein vorgefundenes
+`nucleus_keys` wird nach §5.4 ausgewertet. Die Verfassung der geltenden Epoche leitet
+`resolve_state` aus der Epochenkette her (`04 §4.5`) und bildet daraus `authorized_keys`.
+`membership` aus `03 §4` behält den Parameter (D183): wer ihn selbst füllt, trägt die Aktualität,
+und eine veraltete Menge gibt ein veraltetes Ergebnis. Bis D462 stand hier, dass `nucleus_keys`
+nicht ausgewertet werde; das war seit `00b` überholt.
 
 **Jede Spaltung entwertet, nicht nur die an einer Rotation (D162).** Der Diebstahl zeigt sich
 zuerst an gewöhnlichen Akten und erst spät an einer doppelten Rotation; eine Regel, die nur

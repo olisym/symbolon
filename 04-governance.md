@@ -699,10 +699,10 @@ die `resolve_authorized_keys` aus dem Anker und den Rotationsketten bildet (`00 
 ganze Auflösung. Das war nie ausgeschrieben und ist der Grund, aus dem `03 §5` eine Lücke melden
 musste.
 
-Beide sind seit `00a` und `00b` gebaut (D160, D161). Was fehlt, ist die Herleitung der Verfassung:
-`resolve_authorized_keys` bekommt den `constitution_hash` von außen, und wer eine veraltete Menge
-übergibt, bekommt ein veraltetes Ergebnis. `§4.5` normiert die Kette, die ihn herleitet; der
-Anschluss ist damit beschrieben und noch nicht gebaut.
+Beide sind seit `00a` und `00b` gebaut (D160, D161). `resolve_authorized_keys` bekommt den
+`constitution_hash` von außen; `§4.5` normiert die Kette, die ihn herleitet, und `resolve_state`
+verkettet beides (D183). Wer die Primitive selbst verkettet und eine veraltete Verfassung übergibt,
+bekommt ein veraltetes Ergebnis. Bis D462 stand hier, der Anschluss sei nicht gebaut.
 
 ---
 

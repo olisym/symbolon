@@ -19464,3 +19464,39 @@ mit Gewicht kamen aus dem Lesen: in `01` der fremde Lebenszyklus-Claim (D452), i
 Schlüssel-Aliasing in `v` (D456).
 
 **Geändert.** `07-decisions.md`; `offen.md` (O85 erledigt).
+
+### D461 — Sitzungsschluss `00ch`; Prüfregeln 82 und 83
+
+**Was die Sitzung getan hat.** Schritt 1 aus `sitzungsstart-00cg.md`: `03` und `04` gelesen, dann
+gemessen, und alles Gefundene gebunden.
+
+- O83: sechs Befunde aus dem Lesen, darunter das Schlüssel-Aliasing in `v` (D456, D457).
+- O84: `uint` ohne Negative, `participants_wellformed` als einzige Prüfung, sieben Lücken mit
+  Wirkung (D458, D459).
+- O85: die übrigen 36 Lücken (D458, D460).
+
+**Beschluss 1 — Prüfregel 82 wird übernommen.** Was ein Lauf ungefragt entfernt oder verengt,
+ist Scope-Verlust und steht im Bericht. Belegt in D435 und D457, beide Male mit einem Bericht, der
+das Gegenteil sagte. Sie steht unter „Bei der Abnahme und beim Merge".
+
+**Beschluss 2 — Prüfregel 83 wird übernommen.** Eine Mutantenmessung ersetzt das Lesen gegen die
+Norm nicht. Belegt in D452 und D456 mit D458. Sie steht unter „Bei Rücknahmeproben und Mutanten".
+Der Kandidat aus D455, wer eine Ausnahme über den Bestand auslösen kann, geht in ihren Wortlaut
+ein und wird nicht getrennt geführt.
+
+**Neue Prüfregel-Kandidaten, nicht übernommen.**
+
+- Ein Vektor im Register wird aus der Messausgabe kopiert, nicht abgeschrieben (D457).
+- Eine Lücke, deren Normspalte auf einen Satz zeigt, wird gegen dessen Wortlaut geprüft, bevor sie
+  in einen Auftrag geht (D459).
+
+**Die Mutantenlisten.** Sie liegen im Sandkasten des Supervisors und gehen mit ihm verloren. Die
+Kennungen und Stellen stehen in D458; die exakten Ersetzungen der 36 Lücken aus O85 stehen als
+JSON im Auftrag `o85-binden`, der unter `~/auftraege/erledigt/` liegt. Eine spätere Nachmessung
+schreibt die Liste aus diesen beiden Quellen neu, nicht aus dem Gedächtnis.
+
+**Sitzungsschluss.** `sitzungsstart-00ch.md` löst `sitzungsstart-00cg.md` ab, das nach `archiv/`
+geht (D314).
+
+**Geändert.** `07-decisions.md`; `pruefregeln.md` (Regeln 82 und 83, Herkunftszeile);
+`sitzungsstart-00ch.md` neu, `sitzungsstart-00cg.md` nach `archiv/`.

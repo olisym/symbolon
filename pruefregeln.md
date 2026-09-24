@@ -463,6 +463,16 @@ D454 lag zwischen Messung und Lauf ein Merge, der dieselbe Norm von der anderen 
 Male meldete der Lauf die Abweichung, und beide Male lag der Fehler in der Tabelle des Auftrags.
 Wer eine Rücknahmetabelle schreibt, misst sie am Basis-Commit des Auftrags.
 
+**83. Eine Mutantenmessung ersetzt das Lesen gegen die Norm nicht.**
+Ein Mutant verändert Code, der da ist, und fragt, ob ein Test es merkt. Er findet ungebundenen
+richtigen Code; einen Fehler, der schon im Code steht, findet er nicht, und eine Prüfung, die
+fehlt, auch nicht. Vor jeder Messung einer Schicht steht deshalb das Lesen ihres Codes gegen ihren
+Text, mit der Frage, wer eine Ausnahme oder eine Abweichung auslösen kann und was dann geschieht.
+In `00cg` fand das Lesen von `01` den fremden Lebenszyklus-Claim, der jede Auswertung anhielt, und
+keine der 53 Mutationen sah ihn (D452). In `00ch` fand das Lesen von `03` und `04` das
+Schlüssel-Aliasing in `v`, mit dem ein einzelnes Mitglied die Epoche über Implementierungen spalten
+konnte, und die Messung danach fand 50 Lücken, aber keinen Defekt dieser Art (D456, D458).
+
 ## Beim Messen
 
 **19. Kalte Messung.** Ein grüner Testlauf auf der Arbeitskopie ist keine Aussage über den
@@ -650,6 +660,15 @@ als der Hälfte der triagierten Posten die Prämisse überholt oder schon erfül
 Die Schwester von Prüfregel 75: dort ist die Prämisse ein Satz im Sitzungsstart, hier ein Posten
 der offenen Liste.
 
+**82. Was ein Lauf ungefragt entfernt oder verengt, ist Scope-Verlust und steht im Bericht.**
+Stiller Scope-Zuwachs fällt im Diff auf, weil Neues dasteht. Stiller Scope-Verlust fällt nicht
+auf, weil fehlt, was vorher da war, und der Bericht sagt dann gewöhnlich „nichts entfernt". Die
+Abnahme liest deshalb jede Verengung einer Bedingung als möglichen Verlust und misst ihn an einer
+Welt, die vorher einen Vermerk oder Zustand trug. In D435 fiel ein Absatz weg, in D457 nahm ein
+Tor, das nur einen Vermerk sperren sollte, einen ganzen Claim-Typ aus der Kette, und ein Vermerk
+ging verloren. Beide Male sagte der Bericht das Gegenteil, und beide Male fand es erst das Lesen
+des Diffs.
+
 ## Herkunft der Nummern
 
 Die Regeln 1–7 stammen aus `sitzungsstart-05.md`, 10–12 aus `sitzungsstart-anwendung.md`, 13–15
@@ -662,7 +681,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
 69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366,
-76 und 77 aus D407, 78 und 79 aus D436, 80 aus D447, 81 aus D455.
+76 und 77 aus D407, 78 und 79 aus D436, 80 aus D447, 81 aus D455, 82 und 83 aus D461.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

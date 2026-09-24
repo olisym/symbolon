@@ -44,6 +44,29 @@ def constitution_hash(constitution_obj: dict) -> bytes:
     return hashlib.sha256(cbor_canon.encode(constitution_obj)).digest()
 
 
+def participants_wellformed(obj: dict) -> bool:
+    """``participants`` deklariert, nicht leer, je 32 Byte, ohne Duplikat, aufsteigend (04 §3.5)."""
+    if "participants" not in obj:
+        return False
+    raw = obj["participants"]
+    if not isinstance(raw, (list, tuple)):
+        return False
+    if len(raw) == 0:
+        return False
+    seen: set[bytes] = set()
+    ordered: list[bytes] = []
+    for entry in raw:
+        if not isinstance(entry, bytes) or len(entry) != 32:
+            return False
+        if entry in seen:
+            return False
+        seen.add(entry)
+        ordered.append(entry)
+    if ordered != sorted(ordered):
+        return False
+    return True
+
+
 def _well_formed_irrevocable_entry(entry: object) -> bool:
     """Formkriterium aus D95: Profilname, bedeutungsblind."""
     if not isinstance(entry, str):
@@ -128,4 +151,5 @@ __all__ = [
     "constitution_hash",
     "dedupe_sort",
     "is_irrevocable",
+    "participants_wellformed",
 ]

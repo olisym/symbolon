@@ -318,3 +318,61 @@ def test_c8_scope_mismatch_raises():
 
     with pytest.raises(ValueError):
         classify(obl, store, now=100, policy=policy)
+
+
+def _teilnehmer_objekt(participants: list) -> dict:
+    return {
+        "irrevocable_predicates": ["obligation@1", "ratify@1", "vote@1"],
+        "participants": participants,
+    }
+
+
+def _nicht_gelistet(obj: dict, subject: bytes) -> None:
+    """Helfer falsch, Mitgliedschaft nicht gelistet, Verfassung formwidrig (04 §3.5, D458)."""
+    from symbolon.governance.tally import constitution_governable
+    from symbolon.governance.findings import GovernanceFinding
+    from symbolon.policy import constitution_hash, participants_wellformed
+    from symbolon.profiles import MembershipState, membership
+
+    from tests.profiles.fixtures import N_A, NOW
+
+    assert participants_wellformed(obj) is False
+    assert constitution_governable(obj) is GovernanceFinding.MALFORMED_PARTICIPANTS
+    ergebnis = membership(
+        store_with(),
+        subject=subject,
+        scope=N_A,
+        constitution_hash=constitution_hash(obj),
+        now=NOW,
+        authorized_keys=frozenset(),
+        constitution_obj=obj,
+    )
+    assert ergebnis.state == MembershipState.NONE
+
+
+def test_participants_leer() -> None:
+    """Leere participants-Liste (04 §3.5, D458, M13)."""
+    from tests.profiles.fixtures import ALICE
+
+    _nicht_gelistet(_teilnehmer_objekt([]), ALICE.pub)
+
+
+def test_participants_zu_kurz() -> None:
+    """Eintrag kürzer als 32 Byte (04 §3.5, D458, M14, T9)."""
+    kurz = b"\x01" * 31
+    _nicht_gelistet(_teilnehmer_objekt([kurz]), kurz)
+
+
+def test_participants_doppelt() -> None:
+    """Doppelter Eintrag (04 §3.5, D458, M15, T10)."""
+    from tests.profiles.fixtures import ALICE
+
+    _nicht_gelistet(_teilnehmer_objekt([ALICE.pub, ALICE.pub]), ALICE.pub)
+
+
+def test_participants_unsortiert() -> None:
+    """Unsortierte Liste (04 §3.5, D458, M16)."""
+    from tests.profiles.fixtures import ALICE, BOB
+
+    aufsteigend = sorted([ALICE.pub, BOB.pub])
+    _nicht_gelistet(_teilnehmer_objekt(list(reversed(aufsteigend))), aufsteigend[0])

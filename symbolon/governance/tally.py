@@ -18,7 +18,7 @@ from symbolon.governance.findings import (
 )
 from symbolon.governance.objects import Epoch, Proposal
 from symbolon.index import classify_all
-from symbolon.policy import NucleusPolicy, constitution_hash
+from symbolon.policy import NucleusPolicy, constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
 from symbolon.verifier import ClaimStore, State
 
@@ -164,22 +164,7 @@ def constitution_governable(obj: dict) -> GovernanceFinding | None:
     """Gibt die Vermerksart zurück, wenn ``obj`` keine Auszählung tragen kann (04-governance.md §3.5, D200)."""
     if "participants" not in obj:
         return GovernanceFinding.PARTICIPANTS_UNDECLARED
-    raw_p = obj["participants"]
-    if not isinstance(raw_p, (list, tuple)):
-        return GovernanceFinding.MALFORMED_PARTICIPANTS
-    seen: set[bytes] = set()
-    ordered: list[bytes] = []
-    malformed = False
-    for entry in raw_p:
-        if not isinstance(entry, bytes) or len(entry) != 32:
-            malformed = True
-            break
-        if entry in seen:
-            malformed = True
-            break
-        seen.add(entry)
-        ordered.append(entry)
-    if malformed or not ordered or ordered != sorted(ordered):
+    if not participants_wellformed(obj):
         return GovernanceFinding.MALFORMED_PARTICIPANTS
     raw_irr = obj.get("irrevocable_predicates", [])
     if not isinstance(raw_irr, (list, tuple)) or "vote@1" not in raw_irr:

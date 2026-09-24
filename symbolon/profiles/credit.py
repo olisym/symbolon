@@ -31,7 +31,8 @@ class SettlementResult:
 
 
 def _is_valid_uint(value: object) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool)
+    """uint: ``int``, kein ``bool``, Wert >= 0 (03 §1.3)."""
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
 
 
 def _obligation_v_findings(obligation: Claim) -> list[Finding]:

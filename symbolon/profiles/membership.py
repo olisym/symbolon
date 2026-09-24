@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from enum import Enum
 
 from symbolon.atom import claim_id
-from symbolon.policy import NucleusPolicy, constitution_hash as hash_constitution
+from symbolon.policy import (
+    NucleusPolicy,
+    constitution_hash as hash_constitution,
+    participants_wellformed,
+)
 from symbolon.predicates import is_nuc_name
 from symbolon.profiles.findings import Finding, ProfileFinding, dedupe_sort
 from symbolon.index import classify_all
@@ -97,20 +101,8 @@ def membership(
     accept_claim_id = min(accept_ids) if accept_ids else None
     grant_claim_id = min(grant_ids) if grant_ids else None
     listed = False
-    if constitution_obj is not None:
-        raw_p = constitution_obj.get("participants")
-        if isinstance(raw_p, (list, tuple)) and len(raw_p) > 0:
-            seen: set[bytes] = set()
-            ordered: list[bytes] = []
-            well_formed = True
-            for entry in raw_p:
-                if not isinstance(entry, bytes) or len(entry) != 32 or entry in seen:
-                    well_formed = False
-                    break
-                seen.add(entry)
-                ordered.append(entry)
-            if well_formed and ordered == sorted(ordered):
-                listed = subject in seen
+    if constitution_obj is not None and participants_wellformed(constitution_obj):
+        listed = subject in constitution_obj["participants"]
     has_accept = accept_claim_id is not None
     has_grant = grant_claim_id is not None or listed
 

@@ -20405,3 +20405,64 @@ gehört die Prüfung hin.
 
 **Geändert.** `symbolon/node/`, `tools/verein_node.py`, `tests/node/test_api.py` (über den
 Merge); `07-decisions.md`.
+
+### D481 — P5: das Gerät im Browser, seine Vektoren und wie es geprüft wird
+
+**Anlass.** D479 Beschluss 6 und 8. Gelesen: `01 §3`, `01 §4`, `symbolon/atom.py`,
+`symbolon/domains.py`, `symbolon/node/api.py`, `tools/check_tree.py`. Oli bedient die Demo mit
+aktuellem Chrome und Brave, am Rechner und auf einem Pixel 7a.
+
+**Befund 1 — der Browser ist der einzige Ort, an dem das Gerät wirklich läuft.** Schlüssel in
+IndexedDB, Ed25519 in WebCrypto und die Sperre zwischen Tabs gibt es nur dort. Ein Test in Python
+erreicht sie nicht. Der Kern des Geräts dagegen, Dekodieren, Neukodieren, Prüfen, `claim_id` und
+Signatur, ist eine reine Rechnung und läuft in jeder JavaScript-Umgebung mit WebCrypto, auch in
+Node.
+
+**Befund 2 — zwei Tabs sind zwei Geräte mit einem Schlüssel.** Sie teilen IndexedDB. Unterschreiben
+beide auf dieselbe Spitze, gabelt der Mensch sich selbst (`01 §8`), und der Beweis trägt seine
+Unterschrift. D479 Beschluss 6 schützt davor nicht, weil beide Tabs dieselbe Spitze lesen.
+
+**Befund 3 — WebCrypto verlangt einen sicheren Ursprung.** `http://127.0.0.1` ist einer, eine
+Adresse im Heimnetz ohne TLS nicht. Das Telefon erreicht den S-Node nur, wenn sein eigenes
+`127.0.0.1` auf den Rechner zeigt, etwa über `adb reverse`, oder über TLS. Das gehört nicht zu P5.
+
+**Beschluss 1 — Vektoren aus Python, geprüft in drei Umgebungen.** Ein Werkzeug erzeugt eine
+Vektordatei aus der Implementierung: angenommene Kerne mit `claim_id`, Genesis-Anker und Signatur
+eines Testschlüssels (Ed25519 ist deterministisch), abgewiesene Kerne mit dem Namen der
+Abweisung. Die Datei liegt bei den statischen Dateien; ein Test in Python hält sie gleich der
+Ausgabe des Werkzeugs und bestätigt jede Abweisung mit den Mitteln von `symbolon/`. Eine
+Selbsttestseite lässt das Gerät im Browser gegen die Vektoren laufen; Oli öffnet sie in jedem
+Browser, mit dem er die Demo bedient. Der Supervisor lässt dasselbe Modul bei der Abnahme in Node
+laufen. *Verworfen:* Node als Abhängigkeit von `make check`. Es wäre die erste Abhängigkeit
+außerhalb von Python (D471 Beschluss 4), und der Browser, auf den es ankommt, prüfte es trotzdem
+nicht.
+
+**Beschluss 2 — die Abweisungen des Geräts und ihr Vorrang.** Geprüft wird in dieser Reihenfolge,
+die erste Abweisung zählt: `MALFORMED` (kein einzelnes Item, Restbytes, unbestimmte Länge, Tag,
+Float, negative Zahl, doppelter Schlüssel), `NOT_CANONICAL` (Neukodierung weicht ab, `01 §3`),
+`SCHEMA` (Schlüssel außerhalb von `0` bis `8`, Pflichtfeld fehlt, Feld vom falschen Typ nach
+`01 §2`), `WRONG_VERSION`, `WRONG_AUTHOR`, `WRONG_PREDECESSOR`. Eine feste Reihenfolge macht die
+Vektoren eindeutig.
+
+**Beschluss 3 — eine Sperre um das Unterschreiben.** Lesen der Spitze, Prüfen, Unterschreiben,
+Einliefern und Vorrücken laufen unter einer exklusiven Sperre der Web Locks API; ein zweiter Tab
+wartet. Die Spitze wird innerhalb der Sperre aus IndexedDB gelesen, nicht aus dem Speicher der
+Seite. *Verworfen:* nur einen Tab zulassen. Das verschiebt die Frage auf den Moment, in dem der
+Mensch doch einen zweiten öffnet.
+
+**Beschluss 4 — ein Einliefern ohne Antwort.** Schlägt `POST /submit` ohne Antwort fehl, merkt
+sich das Gerät die `claim_id` als schwebend und unterschreibt nichts, bevor sie geklärt ist.
+Geklärt wird mit einer Absicht ohne `h_prev`: schlägt der S-Node die schwebende `claim_id` als
+Spitze vor, rückt das Gerät vor; schlägt er die eigene Spitze vor, verwirft es die schwebende;
+sonst hält es an, bis der Mensch eine Spitze bestätigt (D471 Beschluss 2).
+
+**Beschluss 5 — statische Dateien vom S-Node.** `GET /` liefert die Startseite, `GET /app/<name>`
+jede Datei des Verzeichnisses `symbolon/node/static/`, flach, nach den Namen, die beim Start dort
+liegen; alles andere ist 404. Jede dieser Antworten trägt
+`Content-Security-Policy: default-src 'self'; frame-ancestors 'none'`,
+`X-Content-Type-Options: nosniff` und `Cache-Control: no-store`, damit eine neue Fassung ohne
+Leeren des Zwischenspeichers ankommt. `tools/check_tree.py` zählt `.js`, `.html` und `.json` unter
+`symbolon/` als Quelldateien, damit eine vergessene statische Datei auffällt wie eine vergessene
+Python-Datei.
+
+**Geändert.** `07-decisions.md`.

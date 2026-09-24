@@ -20112,3 +20112,32 @@ bekommt dafür ein Feld für Vermerke.
 auf `p2-node` um, mit den vier gemessenen Lagen als Tests. Gemergt wird danach.
 
 **Geändert.** `07-decisions.md`.
+
+### D475 — Abnahme `p2-node`
+
+**Geprüft.** Die Commits `89335f5` und `e3bd208` auf `p2-node`, Basis `6a5c9f3`. Der Diff des
+Nachtrags im Spiegel nennt `symbolon/node/store.py`, `symbolon/node/view.py` und
+`tests/node/test_node.py` und deckt sich mit dem Bericht. Im Klon ohne Bytecode sind es 1075
+Tests, alle grün.
+
+**Die Messung aus D474 wiederholt.** Dieselben Lagen wie dort: die beiden Verfassungen mit
+formwidrigem `participants` ergeben eine Sicht ohne Teil Verein, die Genesis-Objekte mit
+formwidrigem Key 1 oder Key 9 werden beim Einliefern abgewiesen. Die übrigen gemessenen
+Abweichungen im Genesis (Key 0 als `2`, Key 4 als Text, Key 5 als `9`, Key 6 als `true`, Key 7 als
+leere Liste, Anker von einem Byte) und eine Schwelle als Text lassen die Sicht weiter stehen; die
+Auflösungen vermerken sie, statt zu werfen.
+
+**Rücknahmeproben selbst nachgefahren.** Die Bedingung `participants_wellformed` durch `False`
+ersetzt: beide Tests der formwidrigen Liste werden rot, nicht nur der eine, den der Auftrag nannte.
+Den Aufruf von `resolve_state` beim Einliefern durch einen leeren Aufruf ersetzt: genau
+`test_root_keys_not_a_list` wird rot. Der Test zu Key 9 bleibt dabei grün, weil
+`resolve_trust_params` ihn weiter abweist; das ist die zweite Prüfung aus D474 Beschluss 1 und
+kein Mangel.
+
+**Die Meldung zu Key 4 ist richtig.** Die Tests setzen `genesis[4]` auf den Hash der veränderten
+Verfassung, sonst wäre sie nicht die Verfassung der Epoche 1 und der Vermerk entstünde nicht.
+
+**Beschluss.** Gemergt. P2 ist abgeschlossen; P3 baut die Schnittstelle nach D471 Beschluss 5.
+
+**Geändert.** `symbolon/node/`, `tests/node/test_node.py`, `tools/verein.py` (über den Merge);
+`07-decisions.md`.

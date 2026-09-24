@@ -50,6 +50,7 @@ def _vouch(autor: str, subjekt: str, scope_label: str, h_prev: bytes, t: int) ->
 
 @pytest.mark.parametrize("name", ["revoke", "supersede"])
 def test_core_at_2_ist_reserviert(name: str) -> None:
+    """core/*@2 ist RESERVED_CORE_PREDICATE (01 §2.4 Invariante 4, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     lebenszyklus = a.claim(p=f"core/{name}@2", J=(2, claim_id(v)), t=2)
@@ -58,6 +59,7 @@ def test_core_at_2_ist_reserviert(name: str) -> None:
 
 @pytest.mark.parametrize("name", ["revoke", "supersede"])
 def test_core_at_2_wirkt_nicht(name: str) -> None:
+    """core/*@2 wirkt nicht als Lebenszyklus (01 §2.2, 01 §6, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     lebenszyklus = a.claim(p=f"core/{name}@2", J=(2, claim_id(v)), t=2)
@@ -71,6 +73,7 @@ def test_core_at_2_wirkt_nicht(name: str) -> None:
     [(3, b"\xf5"), (1, b"\xf4")],
 )
 def test_bool_schluessel_ist_malformed(stelle: int, ersatz: bytes) -> None:
+    """Ein bool-Schlüssel ist MALFORMED_CBOR (01 Anhang B.2, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     draht = bytearray(signed_bytes(v))
@@ -80,6 +83,7 @@ def test_bool_schluessel_ist_malformed(stelle: int, ersatz: bytes) -> None:
 
 
 def test_genesis_anker_an_identitaet() -> None:
+    """Genesis nur mit dem eigenen Anker SHA-256(DOM_ID_GEN ‖ I) (01 §4, D452)."""
     fremd = id_genesis_anchor(Identity("o82-fremd").pub)
     for h_prev in (hashlib.sha256(DOM_ID_GEN).digest(), fremd):
         vouch = _vouch("o82-d", "o82-ds", "o82-sd", h_prev, 1)
@@ -88,6 +92,7 @@ def test_genesis_anker_an_identitaet() -> None:
 
 
 def test_vorgaenger_vom_selben_autor() -> None:
+    """Ein Vorgänger eines anderen Autors verlinkt nicht (01 §6, D452)."""
     e = Identity("o82-e")
     pe = e.vouch(Identity("o82-es"), n=1, scope=scope_id("o82-se"), t=1, t_exp=T_EXP)
     fv = _vouch("o82-f", "o82-fs", "o82-sf", claim_id(pe), 1)
@@ -97,6 +102,7 @@ def test_vorgaenger_vom_selben_autor() -> None:
 
 
 def test_widerruf_nur_vom_autor() -> None:
+    """Nur der eigene Widerruf wirkt (01 §5.1, 01 §6, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     fremd = Identity("o82-b").revoke(v, t=1)
@@ -106,6 +112,7 @@ def test_widerruf_nur_vom_autor() -> None:
 
 
 def test_supersede_nur_vom_autor() -> None:
+    """Nur das eigene Supersede wirkt (01 §5.1, 01 §6, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     fremd = Identity("o82-b").supersede(v, t=1)
@@ -115,6 +122,7 @@ def test_supersede_nur_vom_autor() -> None:
 
 
 def test_widerruf_nur_strukturell_gueltig() -> None:
+    """Nur ein strukturell gültiger Widerruf wirkt (01 §6, D452)."""
     a = Identity("o82-a")
     v = a.vouch(Identity("o82-as"), n=1, scope=scope_id("o82-s"), t=1, t_exp=T_EXP)
     widerruf = replace(a.revoke(v, t=2), sigma=bytes(64))
@@ -125,6 +133,7 @@ def test_widerruf_nur_strukturell_gueltig() -> None:
 
 
 def test_policy_nur_im_eigenen_scope() -> None:
+    """Die Policy gilt nur im eigenen Scope (01 §5.4, 03 §6, D91, D452)."""
     g = Identity("o82-g")
     s1 = scope_id("o82-s1")
     s2 = scope_id("o82-s2")

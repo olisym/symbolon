@@ -20229,3 +20229,29 @@ und ändert nichts.
 auf `p3-api` um, mit je einem Test für die drei Befunde. Gemergt wird danach.
 
 **Geändert.** `07-decisions.md`.
+
+### D478 — Abnahme `p3-api`; Phase 2 abgeschlossen
+
+**Geprüft.** Die Commits `8e784a7` und `9096033` auf `p3-api`, Basis `372406b`. Der Diff des
+Nachtrags im Spiegel nennt `symbolon/node/api.py`, `symbolon/node/store.py`,
+`tools/verein_node.py` und `tests/node/test_api.py` und deckt sich mit dem Bericht. Im Klon ohne
+Bytecode sind es 1087 Tests, alle grün.
+
+**Befund 1 aus D477 nachgemessen.** Dieselbe Messung wie dort: nach einer beantworteten Anfrage auf
+einer offenen Verbindung bekommt eine zweite Anfrage über eine neue Verbindung ihre Antwort nach
+0,02 Sekunden statt einer Zeitüberschreitung.
+
+**Die erste Rücknahmeprobe des Berichts traf die Kopfzeile, nicht die Sperre.** Ohne
+`Connection: close` scheitert `test_verbindung` an der Zusicherung über die Kopfzeile, bevor die
+zweite Anfrage läuft. Selbst nachgefahren mit herausgenommener Kopfzeilenzusicherung: ohne
+Kopfzeile und ohne `close_connection` läuft die zweite Anfrage in die Zeitüberschreitung, und
+genau dieser Test wird rot. Der Test sieht also auch die Sperre selbst. Die Befunde 2 und 3 sind
+mit dem Lader nachgefahren: zwei Läufe auf dieselbe Datei gehen durch.
+
+**Beschluss.** Gemergt. Phase 2 nach `ROADMAP.md §4` ist abgeschlossen: der S-Node hält den
+Bestand, prüft Einliefertes, rechnet den Zustand beider Scopes aus und bietet ihn an `127.0.0.1`
+an; Unterschriften kommen vom Gerät oder, für simulierte Personen, aus seiner Tabelle. Als
+Nächstes Phase 3, die Oberfläche (`ROADMAP.md §5`), mit den Absichten aus D476 Beschluss 2.
+
+**Geändert.** `symbolon/node/`, `tools/verein_node.py`, `tests/node/test_api.py` (über den
+Merge); `07-decisions.md`.

@@ -399,3 +399,7 @@ Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py
 ### O86 Genesis-Schlüssel und die Ordnung zweier Rotationen — erledigt (D463)
 
 `genesis_scope` in `genesis.py`; gebunden in `tests/nucleus/test_lesen_keys.py`.
+
+### O87 Die vier Bedingungen einer vollständigen Rotation und drei Formprüfungen binden
+
+Aus D464: 13 Mutanten in `keys.py` und `genesis.py`, sieben Welten G1 bis G7. Auftrag `o87-binden`.

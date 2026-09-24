@@ -19648,3 +19648,71 @@ Suche im Auftrag hätte `--include='*.py'` tragen sollen; für die Abnahme ände
 **Beschluss.** Abgenommen und nach `main` gemergt. O86 ist erledigt.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O86 erledigt).
+
+### D464 — Mutationsmessung über `keys.py`, `resolve.py` und `genesis.py`; sieben Lücken; O87
+
+**Anlass.** Zweiter Teil von Schritt 1 aus `sitzungsstart-00ch.md`, nach dem Lesen (D462) und dem
+Merge von `o86-lesen` (D463). Gemessen auf `3502221` im Klon des Supervisors, ohne Bytecode
+(Prüfregel 81).
+
+**Methode.** Ein AST-Mutator, der nicht im Repositorium liegt. Er kehrt Vergleiche um, tauscht
+`and` und `or`, lässt `not` fallen, erhöht int-Konstanten, kippt bool-Konstanten, setzt jede
+`if`-Bedingung auf wahr und auf falsch und ersetzt einzelne Statements durch `pass`. Erst läuft
+jeder Mutant gegen einen engen Umfang aus sechs Dateien mit 57 Tests: `test_anchor.py`,
+`test_rotate_key.py`, `test_lesen_keys.py` unter `tests/nucleus/`, dazu `test_resolve.py`,
+`test_kettenwelt.py` und `tests/governance/test_vermerkweitergabe.py`. Jeder Überlebende, der
+nicht äquivalent ist, läuft danach gegen die volle Suite. Die Baseline, das Original durch den
+Mutator ohne Mutation, ist in allen drei Modulen grün.
+
+**Zahlen.** 200 Mutanten: 179 in `keys.py`, 6 in `resolve.py`, 15 in `genesis.py`. Im engen
+Umfang überleben 25. Drei weitere bleiben hängen: Sie entfernen den Zyklusschutz in `_head_from`
+(Zeilen 77 bis 79), und ein bestehender Test mit einem Rotationszyklus läuft dann endlos. Die drei
+zählen als erkannt, weil ein Lauf nicht grün endet.
+
+**Die 25 Überlebenden, eingeteilt am Wortlaut.**
+
+- *Deklaration, 4:* `frozen=True` und `slots=True` an `KeyResolution` (`keys.py` Z. 20) und an
+  `NucleusState` (`resolve.py` Z. 19). Keine Normaussage.
+- *Laut Norm unerreichbar, 4:* der Wiederholungsschutz in `_on_author_chain` (Z. 35 bis 37),
+  gekippt, gelöscht oder auf `True` gesetzt. Ein Zyklus in `h_prev` verlangt ein Urbild von
+  SHA-256, denn `h_prev` geht in die `claim_id` ein. Der Schutz bleibt als Härtung.
+- *Äquivalent, 4:* `return None` am Ende von `_earliest_on_chain` (Z. 55), die Abkürzung für eine
+  einzige vollständige Rotation (Z. 116 und das `continue` in Z. 118, denn `_earliest_on_chain`
+  gibt bei einem Element eben dieses zurück) und das `break` der Ack-Suche (Z. 111).
+- *Lücken, 13 Mutanten in sieben Welten.* Alle 13 überleben auch die volle Suite. Jede Welt ist am
+  Original und am Mutanten gemessen:
+
+| Welt | Mutanten (Datei, Zeile) | Norm | Original | Mutant |
+|---|---|---|---|---|
+| G1: `rotate-ack@1` auf einen `obligation@1` von `r` mit `J = (1, a)` | `keys` 89, 90 | `00 §6.1`, D152 | Kopf `r` | Kopf `a` |
+| G2: Rotation `r` auf `a` ist `pending`, ihr Vorgänger fehlt | `keys` 95, 96 | `00 §6.4`, D155 | Kopf `r` | Kopf `a` |
+| G3: `a` gegenzeichnet eine andere Rotation `j` auf `a`, nicht die von `r` | `keys` 102, 103 | `00 §6.1`, D152 | Kopf `r` | Kopf `a` |
+| G4: Gegenzeichnung von `a` ist `pending`, ihr Vorgänger fehlt | `keys` 108, 109 | `00 §6.4`, D155 | Kopf `r` | Kopf `a` |
+| G5: `genesis[1] = 5` | `keys` 150, 151 | Vertrag von `resolve_authorized_keys` | `ValueError` | `TypeError` |
+| G6: `nucleus_keys` ist eine Map mit einem 32-Byte-`bstr` als Schlüssel | `keys` 180 | `00 §5.4`, D163 | Anker leer | Anker = dieser Schlüssel |
+| G7: `genesis[3] = [{true: 0}]` | `genesis` 21, 22 | `00 §4`, D462 | `ValueError` | kein Wurf |
+
+G1 bis G4 sind die vier Bedingungen einer vollständigen Rotation, und keine ist einzeln gebunden:
+die Tests bauen nur vollständige oder ganz fehlende Rotationen. G1 und G3 kann `a` allein
+herbeiführen; G1 braucht dazu einen Claim von `r`, der `a` in `J` nennt. G6 erreicht, wer eine
+Verfassung durchbringt. G7 prüft, was D462 für jede Tiefe normiert hat; die Leser lesen in
+`genesis[3]` keine Map, also spaltet dort heute nichts, aber die Zusage steht. G5 ist keine
+Protokollfrage, beide Fassungen werfen. Gebunden wird es trotzdem, weil der Code `ValueError`
+zusagt und ein Test es kostet.
+
+**`chain.py` gehört nicht zu dieser Messung.** Der äquivalente Mutant aus D463 bleibt dort
+vermerkt.
+
+**Beschluss.** Die 13 Mutanten werden in O87 gebunden. Der Auftrag `o87-binden` trägt die
+Ersetzungen als erzeugtes JSON mit einer Kontextzeile je Ersetzung, und jede ist gegen den Stand
+`3502221` als eindeutig und übersetzbar geprüft. Eine Nachmessung folgt nach dem Merge.
+
+**Prüfregel-Kandidat, nicht übernommen.** Eine Welt baut jede Identität frisch. Beim ersten Bau
+von G2 und G3 war `a` aus G1 wiederverwendet. Die Gegenzeichnung zeigte auf einen Vorgänger
+außerhalb der Welt und war `pending`. Original und Mutant stimmten dann überein, die Welt maß
+die Lücke nicht.
+
+**Schwächste Stelle.** Der Mutator kennt keine Mutationen an Aufrufargumenten und an
+`isinstance`-Typen, etwa `(list, tuple)` statt `list`. Was dort liegt, ist nicht gemessen.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O87 neu).

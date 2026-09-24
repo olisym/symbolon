@@ -20367,3 +20367,41 @@ auf die Gabelung und die Skripte für die simulierten Personen. Wie das Gerät g
 entscheidet der Eintrag vor `p5-geraet`.
 
 **Geändert.** `07-decisions.md`.
+
+### D480 — Abnahme `p4-absichten`; Doku-Blöcke ohne Testlauf
+
+**Geprüft.** Commit `0997bcc` auf `p4-absichten`, Basis `6193d45`. Der Diff im Spiegel nennt
+`symbolon/node/__main__.py`, `symbolon/node/api.py`, `symbolon/node/store.py`,
+`tests/node/test_api.py` und `tools/verein_node.py` und deckt sich mit dem Bericht; dessen
+Ausschnitt war bei `store.py` gekappt, gelesen wurde der Diff aus dem Spiegel. Im Klon ohne
+Bytecode sind es 1098 Tests, alle grün. Die drei Rücknahmeproben selbst nachgefahren, jede in der
+Sache: ohne Einsortieren bei `add` wird genau `test_add_sortiert` rot, an der Sortierung; ohne die
+Budgetsumme genau `test_budget`, an `BUDGET_FULL`; mit allen Ja-Stimmen des Bestands in `ratify`
+werden `test_weg_zur_epoche_3` und `test_ausschluss` rot, der zweite, weil die Ratifizierung mit
+Brunos Stimme nicht trägt und der Ausschluss dann nicht auf Epoche 3 zeigt. Befund 1 aus D479
+nachgemessen: `python -m symbolon.node` mit `--uhr-ab 1000` zeigt im Vereinsleben vier Kanten, und
+eine Bürgschaft Annas mit `n = 1` trägt `BUDGET_FULL`.
+
+**Die drei Meldungen des Berichts werden getragen.** Ein `set` auf ein Feld, das die Grundlage mit
+einem Wert trägt, der kein Text ist, heißt `RESERVED_FIELD`; D479 Beschluss 3 weist ihn im selben
+Satz ab wie die Tabellenschlüssel. Eine Grundlage ohne Liste `participants` heißt
+`INVALID_CHANGE`: aus ihr lässt sich keine Änderung ableiten. Eine Obligation ohne `N` heißt
+`UNKNOWN_OBLIGATION`: eine Quittung braucht den Scope der Obligation (`03 §3.3.2`). Die Menge, die
+`set` abweist, stimmt mit den Tabellen in `00 §5` und `04 §1.1` überein.
+
+**Beschluss 1 — gemergt.** D479 Beschluss 1 bis 5 stehen. Als Nächstes der Eintrag vor
+`p5-geraet` (D479 Beschluss 8).
+
+**Beschluss 2 — ein Block, der nur Markdown ändert, läuft ohne Testlauf.** Oli liefert Register,
+Sitzungsstart und Aufträge; diese Blöcke ändern keinen Code, und die volle Prüfung dauert auf
+seinem Rechner über eine Minute. Sie prüfen mit `make check-tree check-specs check-offen
+check-fragen`, das dauert unter einer Sekunde. Die volle Prüfung bleibt an zwei Stellen: das
+Werkzeug fährt `make check` vor seinem Commit (`AGENTS.md §4`), und der Supervisor fährt die
+Tests im Klon auf dem Stand, den ein Merge ergibt, bevor er den Mergeblock schreibt. Ein
+Mergeblock prüft dann wie ein Doku-Block. *Verworfen:* den Testlauf in jedem Block behalten. Er
+prüft dort einen Stand, der schon zweimal geprüft ist, und kostet jeden Zug eine Minute.
+*Verworfen:* den Testlauf auch beim Werkzeug streichen. Dort ändert sich der Code, und dort
+gehört die Prüfung hin.
+
+**Geändert.** `symbolon/node/`, `tools/verein_node.py`, `tests/node/test_api.py` (über den
+Merge); `07-decisions.md`.

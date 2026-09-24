@@ -146,7 +146,8 @@ austauschbarer Beleg ist (D274).
 **Wenn `v` sich nicht lesen lässt** (D276). Die Prüfung kennt **vier** Lagen, nicht zwei: `v` ist
 abwesend; `v` ist vorhanden und nicht lesbar, weil die Dekodierung **oder** die Re-Serialisierung
 scheitert oder das Ergebnis keine Map ist; `v` ist lesbar und nicht kanonisch; `v` ist lesbar und
-kanonisch. Die zweite Lage ist eigens genannt, weil sie sonst als vierte durchgeht: `h'a2000101ff'`
+kanonisch. Zur zweiten Lage gehört auch ein unzulässiger Map-Schlüssel nach Profile-II `§1.3`
+(D456). Die zweite Lage ist eigens genannt, weil sie sonst als vierte durchgeht: `h'a2000101ff'`
 dekodiert zu einer Map mit Key `0` und Wert `1` und lässt sich nicht re-serialisieren. Wer den
 Fehler der Re-Serialisierung abfängt und danach weiterliest, zählt diese Stimme. Ihr Vermerk ist
 `UNPARSABLE_V` und nicht `NON_CANONICAL_V`: an ihr ist die Kanonizität nicht entscheidbar, und
@@ -357,7 +358,7 @@ liefe eine Auszählung über ein unpassendes Paar **ohne** Stimmen glatt durch u
 | `participants` formwidrig: kein Array, leer, Eintrag nicht 32 B, unsortiert, Duplikate | `MALFORMED_PARTICIPANTS` |
 | `irrevocable_predicates` führt `vote@1` nicht | `VOTE_REVOCABLE` |
 | `irrevocable_predicates` führt `ratify@1` nicht | `RATIFY_REVOCABLE` |
-| `genesis[6] != 0` (Gewichtungsmodus nicht Kopfzahl) | `UNSUPPORTED_WEIGHT_MODE` |
+| `genesis[6]` ist nicht der uint `0` (Gewichtungsmodus nicht Kopfzahl) | `UNSUPPORTED_WEIGHT_MODE` |
 | `genesis[5] > 2`, Schwellenklasse fehlt, oder Schwelle nicht wohlgeformt | `MALFORMED_THRESHOLD` |
 
 **Das Subjekt benennt das Objekt, das die Prüfung zurückweist** (D198). Bei den Zeilen über den
@@ -412,7 +413,8 @@ Verfassung soll nicht daran scheitern, dass ein in v1 unbenutzter Eintrag unglü
 `UNEVALUABLE` ist **nie** `PASSED`. Kein Teilwissen führt zu einer Ratifizierung.
 
 Zur letzten Zeile: `00 §4` Key 6 lässt `weight_mode = 1` weiterhin zu, aber v1 wertet es nicht
-aus (D98). Ein Nukleus, der es setzt, bekommt kein Ergebnis statt eines falschen.
+aus (D98). Ein Nukleus, der es setzt, bekommt kein Ergebnis statt eines falschen. Verglichen wird
+typgenau: ein `false` ist nicht der uint `0` (D456).
 
 ---
 
@@ -647,6 +649,14 @@ darf (D179).
 `EPOCH_PROPOSAL_UNAVAILABLE`, Subjekt der `proposal_hash`. `UNKNOWN_PROPOSAL` aus `§4.4` trägt
 hier nicht: dort ist das Subjekt die `claim_id` einer Stimme, hier ein Objekthash, und derselbe
 Vermerkstyp mit verschiedenem Subjekttyp ist die falsche Kollision aus D172.
+
+**„Sonst tragend" heißt: vorab nicht widerlegt** (D456). Gemeint sind die Teile von Bedingung 1
+aus `§4.1`, die ohne das Vorschlagsobjekt prüfbar sind: `ratify.N == scope`, `ratify.J` trägt
+Tag 3, und `ratify.I` ist Element von `P`. Die letzte Prüfung braucht eine bekannte Verfassung der
+Epoche mit wohlgeformtem `participants`; fehlt sie, entsteht der Vermerk trotzdem, denn unbekannt
+heißt auch hier möglicherweise einschlägig. Ohne diese Vorbedingung hängt jede Identität beliebig
+viele Vermerke an die erreichte Epoche, je einen für ein signiertes `ratify@1` auf einen erfundenen
+Hash.
 
 Der Vermerk erscheint an der **erreichten** Epoche, obwohl die Epochenzugehörigkeit des fehlenden
 Vorschlags gerade unbestimmt ist — sie steht in `proposal[1]`, und genau dieses Objekt fehlt. Die

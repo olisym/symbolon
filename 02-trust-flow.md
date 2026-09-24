@@ -290,6 +290,27 @@ in keiner Spezifikation, sondern in der verwendeten Bibliothek. Atom-Spec §6, R
 „ohne doppelte Keys" — für den Core; für `v` gilt der Satz erst durch diesen Absatz. Ohne ihn
 hinge `n` an einer undokumentierten Implementierungsentscheidung.
 
+**Zulässige Schlüsseltypen** (D456). Ob zwei Schlüssel derselbe sind, entscheidet beim Dekodieren
+die Gleichheit der Zielsprache und nicht CBOR. In Python gelten `false` und `0`, `true` und `1`,
+`0.0` und `0` jeweils als gleich: `h'a1f401'` liest sich dort als `{0: 1}` und trägt eine Kante,
+eine typgenaue Fassung findet keinen Key `0`. Und `h'a200f5f4f5'`, nach RFC 8949 kanonisch, fällt
+dort beim Rundlauf auf einen einzigen Eintrag zusammen und heißt nicht kanonisch. Das ist der
+doppelte Schlüssel in anderer Gestalt: was unter Key `0` steht, hinge an der Sprache.
+
+> **Normativ:** Jeder Map-Schlüssel in `v` — in der äußeren Map und in jeder Map, die als Wert
+> darin steht, in jeder Tiefe — ist ein ungetaggter CBOR-Integer (Major Type 0 oder 1), eine
+> `bstr` oder ein `tstr`. Trägt `v` einen Schlüssel anderen Typs — `bool`, `null`, Float, Array,
+> Map, Tag —, ist `v` **unlesbar** (`UNPARSABLE_VOUCH_PAYLOAD`). Die Prüfung gehört zum Rundlauf
+> und steht **vor** der Kanonizität.
+
+Unter diesen drei Typen fallen CBOR-Gleichheit und Sprachgleichheit zusammen, und die
+Kanonizitätsprüfung sagt in jeder Fassung dasselbe. Vor der Kanonizität steht sie aus demselben
+Grund wie ein gescheiterter Rundlauf: `NON_CANONICAL_V` behauptete eine kanonische Form desselben
+Inhalts, und welcher Inhalt das ist, hängt hier an der Sprache. Das Atom trägt dieselbe
+Beschränkung für seine eigene Map, dort strenger auf uint (Atom-Spec Anhang B.2, D452); COSE
+beschränkt seine Labels ebenso auf Integer und Text (RFC 9052). Geprüft wird die Form der
+Schlüssel, nicht die der Werte: ein Float als Wert eines opaken Keys bleibt zulässig.
+
 Dieselbe Regel gilt sinngemäß in jeder anderen Schicht, die ein `v` liest; der Vermerk trägt
 dort denselben Namen (Profile-II §3.3).
 
@@ -783,7 +804,8 @@ sortiert und dedupliziert, in der Ordnung aus `00 §10` (D429).
 **Unlesbares Gewicht: drei Vermerke, eine Wirkung.** `UNPARSABLE_VOUCH_PAYLOAD`,
 `NON_CANONICAL_V` und `INVALID_VOUCH_WEIGHT` entstehen beim Lesen von `v`, in der Reihenfolge aus
 `§3.1`: der Rundlauf geht der Kanonizität voraus, die Kanonizität der Form, die Form dem
-Wertebereich. `v` ist nicht dekodierbar oder scheitert im Rundlauf, ist keine Map, führt den
+Wertebereich. `v` ist nicht dekodierbar oder scheitert im Rundlauf, trägt einen unzulässigen
+Schlüssel, ist keine Map, führt den
 Schlüssel 0 nicht oder trägt dort keinen `uint` — `UNPARSABLE_VOUCH_PAYLOAD`; `v` dekodiert, ist
 aber nicht kanonisch kodiert — `NON_CANONICAL_V`; `n` liegt ausserhalb von `1 ≤ n ≤ D` —
 `INVALID_VOUCH_WEIGHT`. Ohne gültiges `n` hat der Claim nichts, das er beitragen könnte: er wird

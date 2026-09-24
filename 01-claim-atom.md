@@ -561,7 +561,7 @@ Interpretation (Policy). Es fügt **kein Feld** hinzu. Das ist das radiale Prinz
 |--------|----------|
 | `I`    | der Bürge |
 | `J`    | `[identity, verbürgte_identity]` |
-| `v`    | kanonische CBOR-Map mit `0: n`, `n : uint`, `1 ≤ n ≤ D` — das Vouch-Gewicht (Trust-Flow-Spec §3.1). **Abwesend ⇒ `n = D`, also `w = 1`.** Weitere Keys sind zulässig und für das Atom opak. |
+| `v`    | kanonische CBOR-Map mit `0: n`, `n : uint`, `1 ≤ n ≤ D` — das Vouch-Gewicht (Trust-Flow-Spec §3.1). **Abwesend ⇒ `n = D`, also `w = 1`.** Weitere Keys sind zulässig und für das Atom opak; welche Schlüsseltypen zulässig sind, steht in Trust-Flow-Spec §3.1. |
 | `N`    | **Pflicht** — Vertrauen ist kontextgebunden |
 | `t_exp`| optional im Atom; in Scopes mit Budgetregel **Pflicht**, oder die Policy setzt eine Maximallaufzeit als Default (Trust-Flow-Spec §6.2) |
 

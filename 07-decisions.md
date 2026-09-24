@@ -19115,3 +19115,128 @@ geht (D314).
 
 **Geändert.** `07-decisions.md`; `pruefregeln.md` (Regel 81 in „Bei Rücknahmeproben und Mutanten",
 Herkunftszeile); `sitzungsstart-00cg.md` neu, `sitzungsstart-00cf.md` nach `archiv/`.
+
+### D456 — Lesen von `03` und `04` gegen die Norm; sechs Befunde; O83
+
+**Anlass.** Schritt 1 aus `sitzungsstart-00cg.md`: `03` und `04` vor jeder Mutationsmessung gegen
+die Norm lesen, mit der Frage aus D452, welche Ausnahme ein fremder Claim auslösen kann und was
+dann anhält. Gelesen auf `926c713`, Spec und Module vollständig.
+
+**Die Frage aus D452 ist verneint.** Kein fremder Claim hält in `settlement`, `membership`,
+`verdict_status`, `decide`, `verify_ratification` oder `resolve_epoch` eine Auswertung an.
+`classify_all` übergeht nachträglich ungültige Claims (D452), und die sind immer `core/*`; alle
+Nachschläge in `by_cid` gelten `nuc:`-Claims. `read_v` fängt jede Ausnahme, `is_nuc_name` fängt
+`VerifierError`, der Ausschluss nach `04 §4.4` sieht nur die Stimmen des eigenen Autors.
+`ValueError` entsteht nur aus Argumenten des Aufrufers, wie beabsichtigt.
+
+**Befund 1 — Schlüssel in `v` werden mit Pythons Gleichheit verglichen.** `cbor2` dekodiert in ein
+`dict`, und dort sind `false` und `0`, `true` und `1`, `0.0` und `0` gleich. Gemessen an den drei
+Lesern, `_decode_weight` (`02`), `profiles.payload.read_v` (`03`) und `governance.tally.read_v`
+(`04`):
+
+| `v` | Vouch heute | `03` heute | `04` heute (`choice`) |
+|---|---|---|---|
+| `h'a1f401'` `{false: 1}` | Gewicht 1 | lesbar | 1 |
+| `h'a1f9000001'` `{0.0: 1}` | Gewicht 1 | lesbar | 1 |
+| `h'a2000105a1f400'` `{0: 1, 5: {false: 0}}` | Gewicht 1 | lesbar | 1 |
+| `h'a200f5f4f5'` `{0: true, false: true}` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
+| `h'a1810001'` `{[0]: 1}` | `UNPARSABLE_VOUCH_PAYLOAD` | lesbar | kein Key `0` |
+| `h'a1c2410001'` `{2(h'00'): 1}` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
+| `h'a200012000410002616103'` | Gewicht 1 | lesbar | 1 |
+| `h'a200010002'` doppelter Key `0` | `NON_CANONICAL_V` | `NON_CANONICAL_V` | `NON_CANONICAL_V` |
+
+Die ersten drei Zeilen tragen eine Kante oder eine Ja-Stimme, wo eine Fassung mit typgenauen
+Schlüsseln keinen Key `0` findet. Die vierte ist nach RFC 8949 kanonisch und fällt im Rundlauf auf
+einen Eintrag zusammen. In `04` wird daraus ein Angriff: Ein einziges Mitglied kann mit
+`{false: 1}` absichtlich Python-Knoten `PASSED` und typgenaue Knoten `PENDING` sehen lassen, also
+die Epoche über Implementierungen spalten, ohne Equivocation und ohne Beweis. Auslösen kann es nur
+der Autor des Claims, denn `v` ist signiert. Dieselbe Klasse auf der Wertseite:
+`genesis_obj.get(6) != 0` nimmt `false` als Kopfzahl-Modus.
+
+**Beschluss 1 — Beschränkung statt Treue.** Jeder Map-Schlüssel in `v`, in jeder Tiefe, ist ein
+ungetaggter Integer, eine `bstr` oder ein `tstr`; sonst ist `v` unlesbar, geprüft vor der
+Kanonizität. Normiert in `02 §3.1`, übernommen in `03 §1.3` und `04 §2.3`, verwiesen aus
+`01 §7.1`. `genesis[6]` wird typgenau gegen den uint `0` geprüft (`04 §3.5`).
+
+Unter den drei Typen fallen CBOR-Gleichheit und Sprachgleichheit in jeder gängigen Sprache
+zusammen. Vor der Kanonizität steht die Prüfung, weil `NON_CANONICAL_V` eine kanonische Form
+desselben Inhalts behauptet und der Inhalt hier an der Sprache hängt; das ist die Begründung aus
+`02 §3.1` für den gescheiterten Rundlauf. Wirkung auf die Tabelle: Zeilen 1 bis 6 werden unlesbar,
+Zeilen 7 und 8 bleiben, wie sie sind. Zeile 6 wechselt damit von `NON_CANONICAL_V` zu
+`UNPARSABLE_V`.
+
+*Verworfen — typtreues Dekodieren.* `false` und `0` blieben verschiedene Schlüssel, und nur ein
+uint träfe Key `0`. Das ist die treuere Lesart von Regel 3 in `03 §1.3`, aber `cbor2` kann sie
+nicht, und jede weitere Sprache bringt ihre eigene Gleichheit mit. Die Norm verlangte dann von
+jeder Fassung einen eigenen Decoder, damit zwei Fassungen übereinstimmen. Die Beschränkung verlangt
+nur eine Prüfung.
+
+*Verworfen — nur die äußere Map.* `h'a2000105a1f400'` bliebe dann lesbar, und seine Kanonizität
+hinge weiter an der Sprache: Zwei Schlüssel in einem opaken Wert fallen im Rundlauf ebenso
+zusammen.
+
+*Verworfen — nur uint wie beim Atom.* Die Atom-Map ist Protokoll; `v` gehört dem Profil, und
+Regel 3 lässt weitere Keys zu. Text- und Byteschlüssel kollidieren nirgends.
+
+**Befund 2 — `verdict_status` prüft nicht, dass `verdict.J` auf eine Anklage zeigt.** Geprüft wird
+nur `N`. Jeder Claim im Scope bestimmt so die Parteien: Ein `vouch@1` von X auf Y macht X zum
+Ankläger und Y zum Beschuldigten, und haben sich beide demselben Schiedsrichter unterworfen, bindet
+dessen Verdikt sie, ohne dass jemand angeklagt hat. `03 §2.2` und `§2.4.4` sprechen von der
+Anklage.
+
+**Beschluss 2.** Neue Zeile in `03 §2.4.4`: Bezeichnet `verdict.J` einen Claim, der keine
+`accusation@1` ist, lautet der Vermerk `UNKNOWN_ACCUSATION`, Subjekt die `claim_id` des Verdikts.
+Das Prädikat wird vor dem Scope geprüft. Das Subjekt folgt D198: Der Mangel liegt im Feld, und der
+bezeichnete Claim ist heil; auf ihn zu zeigen schickte den Betreiber an ein Objekt ohne Fehler.
+
+**Befund 3 — Normlücke: der Schiedsrichter als Partei.** `submit-arbitration@1` unterwirft einem
+Schiedsrichter und nicht einem Streit. A kann sich selbst unterwerfen, B anklagen und B binden,
+sobald B sich A je unterworfen hat.
+
+**Beschluss 3 — getragene Grenze, keine Regel.** Eintrag in `03 §5`. *Verworfen:*
+`verdict.I ∉ {Ankläger, Beschuldigter}` nach dem Grundsatz, dass niemand in eigener Sache richtet.
+Ein zweiter Schlüssel als Ankläger umgeht die Regel für den Preis eines Schlüsselpaars; sie kaufte
+nur den Anschein eines Schutzes und einen neuen Vermerk. Anders als bei D236 steht hier kein
+Minderheitenschutz auf dem Spiel, sondern die Regel wirkt schlicht nicht. Der Schutz bleibt das
+Trust-Gewicht des Schiedsrichters (`03 §2.4` Punkt 1). Eine streitgebundene Unterwerfung
+(`J = [claim-ref, accusation]`) schlösse die Lücke und ist eine Profiländerung; sie wird nicht
+beauftragt, solange kein Nukleus sie braucht.
+
+**Befund 4 — `EPOCH_PROPOSAL_UNAVAILABLE` von jeder Identität.** `resolve_epoch` meldet ihn für
+jedes aktive `ratify@1` im Scope, dessen Vorschlag unbekannt ist. `04 §4.5` sagt „einer sonst
+tragenden Ratifizierung". Ein Nichtmitglied hängt damit beliebig viele Vermerke an die erreichte
+Epoche. Es hält nichts an, aber es verschüttet die Auskunft, die der Vermerk geben soll.
+
+**Beschluss 4.** Absatz in `04 §4.5`: Vorbedingung sind die vorab prüfbaren Teile von Bedingung 1,
+`N`, Tag 3 in `J` und `I ∈ P`. Die letzte gilt nur, wenn die Verfassung der Epoche bekannt ist
+und ihr `participants` wohlgeformt; sonst wird weiter gemeldet.
+
+**Befund 5 — ein Zeuge falscher Länge.** `verify_ratification` nimmt jede `bstr` in `v[0]` als
+`claim_id` und meldet für eine mit 31 Byte `UNKNOWN_WITNESS_VOTE` mit einem Subjekt, das keine
+Adresse ist. `04 §4.1` Zeile 2 verlangt `UNSUPPORTED_RATIFICATION`, Subjekt die `claim_id` des
+`ratify@1`. **Beschluss 5:** Nur eine `bstr` mit 32 Byte ist eine `claim_id`. Die Spec ändert sich
+nicht.
+
+**Befund 6 — `settlement` unterdrückt Vermerke nach der tilgenden Quittung.** Die Schleife bricht
+bei der ersten tilgenden Quittung ab. `PARTIAL_RECEIPT_UNSUPPORTED` und die `v`-Vermerke einer
+nicht tilgenden Quittung erscheinen nur, wenn ihre `claim_id` kleiner ist. `03 §6.1` nennt den
+Auslöser, keine Reihenfolge. **Beschluss 6:** Vermerke für jede passende aktive Quittung, auch nach
+einer tilgenden; `receipt_claim_id` bleibt die kleinste tilgende, sonst die kleinste passende.
+Satz in `03 §3.3.2`.
+
+**Nebenbei, kein Beschluss.** Der Wurf von `ForeignLifecycle` in `index._classify_one` ist für
+`classify_all` seit D452 unerreichbar. Die Mutationsmessung wird ihn als äquivalent zeigen.
+
+**Ein Auftrag.** O83 trägt die Beschlüsse 1, 2 und 4 bis 6 im Code, mit Rücknahmeprobe je
+Beschluss. Die Mutationsmessung über `03` und `04` folgt nach dem Merge, damit sie nicht Code
+misst, der sich gerade ändert.
+
+**Schwächste Stelle.** Die Divergenz aus Befund 1 ist an Python gemessen und für die typgenaue
+Seite gefolgert. Ob die Rust-Fassung auf `573db57` die Schlüssel typgenau liest, ist nicht
+geprüft. Die Beschränkung trägt unabhängig davon, denn sie macht beide Seiten gleich. Offen bleibt,
+ob ein bestehender Claim im Umlauf einen der jetzt unzulässigen Schlüssel trägt; die
+Referenzvektoren tun es nicht, das prüft der Auftrag.
+
+**Geändert.** `01-claim-atom.md` (`§7.1`, Vouch-Zeile); `02-trust-flow.md` (`§3.1`, Absatz
+Schlüsseltypen; `§10`, ein Halbsatz); `03-profiles.md` (`§1.3`, `§2.4.4`, `§3.3.2`, `§5`,
+`§6.1`); `04-governance.md` (`§2.3`, `§3.5`, `§4.5`); `07-decisions.md`; `offen.md` (O83 neu).

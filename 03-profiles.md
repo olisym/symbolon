@@ -139,7 +139,8 @@ als Ganzes):
 2. **Ist er vorhanden, MUSS er den deklarierten Typ tragen.** Ein Verstoß erzeugt einen
    Vermerk (`INVALID_V_TYPE`), **keinen** Reject — das Atom hat den Claim bereits akzeptiert
    und wird nicht nachträglich strenger.
-3. **Weitere Keys sind zulässig und opak.** Sie werden nicht gelesen und nicht bewertet.
+3. **Weitere Keys sind zulässig und opak**, sofern ihr Typ zulässig ist (unten). Sie werden
+   nicht gelesen und nicht bewertet.
 
 **Kanonizität.** Ist `v` vorhanden und nicht kanonisch kodiert, gilt es als **unlesbar**:
 Vermerk `NON_CANONICAL_V`, und kein reservierter Key wird gelesen. Die Prüfung steht **vor**
@@ -150,6 +151,10 @@ Sie ist selbst ein Dekodier- *und* Enkodiervorgang und kann an beiden Enden sche
 > **Normativ:** Scheitert der Rundlauf `decode → encode` an irgendeiner Stelle mit einer
 > Exception, ist `v` **unlesbar** (`UNPARSABLE_V`). Liefert er ein Ergebnis, das den
 > Eingabebytes nicht gleicht, ist `v` **nicht kanonisch** (`NON_CANONICAL_V`).
+
+**Schlüsseltypen.** Die Beschränkung aus Trust-Flow-Spec §3.1 gilt hier unverändert: ein
+Schlüssel in `v`, der in irgendeiner Tiefe kein ungetaggter Integer, keine `bstr` und kein `tstr`
+ist, macht `v` **unlesbar** (`UNPARSABLE_V`), geprüft vor der Kanonizität (D456).
 
 Die Unterscheidung ist Diagnose, nicht Wirkung — beide Vermerke verhindern dasselbe. Sie ist
 trotzdem normativ, weil `h'ff'` und `h'a100ff'` **ohne Fehler** dekodieren und erst beim
@@ -328,26 +333,34 @@ auswertbar**; Pfad (i) bleibt es. Trägt auch er nicht, lautet die Antwort
 `ATTRIBUTED_OPINION`. Teilwissen senkt, was ich behaupten kann, und die schwächere Behauptung
 ist hier die sichere.
 
-Fünf Lagen, drei Vermerke — die Wirkung ist dieselbe, die Diagnose nicht:
+Sechs Lagen, drei Vermerke — die Wirkung ist dieselbe, die Diagnose nicht:
 
 | Lage | Vermerk |
 |---|---|
 | `verdict.J.tag` ist nicht `claim-ref` | `UNKNOWN_ACCUSATION` |
 | die Anklage ist lokal unbekannt | `UNKNOWN_ACCUSATION` |
+| `verdict.J` bezeichnet einen Claim, der keine `accusation@1` ist | `UNKNOWN_ACCUSATION` |
 | die Anklage liegt in einem anderen Nukleus | `SCOPE_MISMATCH` |
 | `accusation.J.tag` ist weder `identity` noch `claim-ref` | `UNRESOLVED_ACCUSED` |
 | der bestrittene Claim ist lokal unbekannt | `UNRESOLVED_ACCUSED` |
 
-Die dritte Zeile ist der Grund für die Tabelle. Eine Anklage aus fremdem Scope ist **bekannt**;
+Die vierte Zeile ist der Grund für die Tabelle. Eine Anklage aus fremdem Scope ist **bekannt**;
 sie zählt nur nicht. `UNKNOWN_ACCUSATION` schickte den Betreiber in die Partitionsecke, während
 das Objekt vor ihm liegt.
 
-**Die vierte Zeile stand bis D207 nicht in der Tabelle.** Eine Anklage, deren `J` weder eine
+**Die fünfte Zeile stand bis D207 nicht in der Tabelle.** Eine Anklage, deren `J` weder eine
 Identität noch einen Claim benennt, hat keinen Beschuldigten, den man auflösen könnte — dieselbe
-Auskunft wie in der fünften Zeile, aus anderer Ursache. Das Subjekt ist die `claim_id` der
+Auskunft wie in der sechsten Zeile, aus anderer Ursache. Das Subjekt ist die `claim_id` der
 Anklage und nicht der nicht vorhandene bestrittene Claim, denn `accusation.J` ist ein Feld und hat
 keine eigene Adresse. Der Kopfsatz sprach zuvor von vier Fällen und vier Vermerken; es waren schon
 damals vier Lagen und drei Vermerksarten.
+
+**Die dritte Zeile stand bis D456 nicht in der Tabelle.** Ohne sie bestimmt jeder Claim im Scope
+die Parteien, auf den ein Verdikt zeigt: ein `vouch@1` von X auf Y macht X und Y zu Ankläger und
+Beschuldigtem, und haben sich beide demselben Schiedsrichter unterworfen, bindet dessen Verdikt sie
+ohne Anklage. Geprüft wird das Prädikat vor dem Scope; ein Claim, der keine Anklage ist, ist auch
+keine aus fremdem Scope. Das Subjekt ist die `claim_id` des Verdikts wie in der ersten Zeile: der
+Mangel liegt im Feld `verdict.J`, und der bezeichnete Claim ist heil.
 
 **Der Zustand der Anklage ist irrelevant.** Sie wird nur gelesen, um die Parteien zu
 bestimmen; ob der Ankläger sie inzwischen widerrufen hat, ändert nichts daran, wer die Parteien
@@ -442,6 +455,11 @@ eine Schuld aus Nukleus A.
 > **Normativ:** Trägt `receipt.v` den Key `0` — oder ist `receipt.v` unlesbar, könnte ihn also
 > tragen (§1.3) —, **tilgt die Quittung nicht**. Vermerk `PARTIAL_RECEIPT_UNSUPPORTED`. Die
 > Schuld bleibt stehen.
+
+Der Vermerk hängt an der Quittung, nicht an der Reihenfolge. Er entsteht für **jede** passende
+aktive Quittung, die nicht tilgt, auch wenn eine andere tilgt; ebenso ihre Vermerke aus §1.3.
+Sonst hinge die Diagnose an der Ordnung der `claim_id` (D456). Benannt als `receipt_claim_id`
+wird die kleinste tilgende Quittung, und tilgt keine, die kleinste passende.
 
 Die naive Auflösung — `receipt.v` opak lassen und jede Quittung als Voll-Tilgung werten — ist
 die gefährliche: ein Gläubiger, der einen Teilbetrag meint, quittierte versehentlich die ganze
@@ -646,6 +664,14 @@ Hirschmans Exit, strukturell verankert.
   quittiert. Ein Erlass ist eine Quittung ohne Gegenleistung; das Protokoll unterscheidet beides
   nicht (`08 §2.1`). Einen Zustand „überfällig" gibt es nicht, weil `OPEN` Nichtzahlung nicht von
   Nichtzustellung trennt (`08 §7`, D423).
+- **Ein Schiedsrichter kann Partei sein.** `submit-arbitration@1` unterwirft einem
+  Schiedsrichter, nicht einem Streit (§2.4.1). Wer sich einmal unterworfen hat, ist an jedes
+  Verdikt dieses Schiedsrichters auf eine Anklage gegen ihn gebunden — auch auf eine, die der
+  Schiedsrichter selbst erhoben hat, nachdem er sich selbst unterworfen hat. *Verworfen:* eine
+  Regel `verdict.I ∉ {Ankläger, Beschuldigter}`. Ein zweiter Schlüssel als Ankläger umgeht sie,
+  und sie kaufte nur den Anschein eines Schutzes. Der Schutz ist das Trust-Gewicht des
+  Schiedsrichters (§2.4 Punkt 1), das der Unterwerfende vorher prüft; wer ihn härter will, braucht
+  eine streitgebundene Unterwerfung, und das ist ein anderes Profil (D456).
 - **Beweise in `accusation.v` werden nicht geprüft** (§2.1). Die Konvention richtet sich an
   Menschen.
 - **Der Zweck-Tag in `vouch.v` Key `1` ist unkodiert.** Er ist Trust-Flow-Semantik und braucht
@@ -742,7 +768,7 @@ Auswahl, an der ein Zustand hängt, gehört nicht an eine Hashordnung.
 | Vermerk | Ausgelöst durch |
 |---|---|
 | `NON_CANONICAL_V` | `v` vorhanden, nicht kanonisch kodiert (§1.3) |
-| `UNPARSABLE_V` | `v` vorhanden, nicht dekodierbar (§1.3) |
+| `UNPARSABLE_V` | `v` vorhanden, nicht dekodierbar oder mit unzulässigem Schlüssel (§1.3) |
 | `INVALID_V_TYPE` | reservierter Key mit falschem Typ (§1.3) |
 | `SCOPE_MISMATCH` | zwei in Beziehung gesetzte Claims mit verschiedenem `N` (§1.4) |
 | `CONSTITUTION_UNAVAILABLE` | Verfassungsobjekt lokal unbekannt (§1.2) |
@@ -799,9 +825,10 @@ pauschal als `claim_id` liest, greift genau hier daneben — dieselbe Lage wie
 **Zwei Arten tragen je nach Lage verschiedene Subjekte**, und beide Male trennt dieselbe Frage:
 hat das zurückgewiesene Objekt eine eigene Adresse? `UNKNOWN_ACCUSATION` benennt die bezeichnete
 Anklage, wenn `verdict.J` auf einen Claim zeigt, dieser aber lokal unbekannt ist — der Zeiger ist
-die Adresse. Zeigt `J` auf keinen Claim, ist das zurückgewiesene Objekt das Feld `J` selbst, und
-benannt wird gröber das Verdikt. `UNRESOLVED_ACCUSED` steht ebenso: benannt wird der bestrittene
-Claim, solange die Anklage auf ihn zeigt, sonst die Anklage (§2.4.4).
+die Adresse. Zeigt `J` auf keinen Claim oder auf einen, der keine Anklage ist, ist das
+zurückgewiesene Objekt das Feld `J` selbst, und benannt wird gröber das Verdikt (D456).
+`UNRESOLVED_ACCUSED` steht ebenso: benannt wird der bestrittene Claim, solange die Anklage auf
+ihn zeigt, sonst die Anklage (§2.4.4).
 
 **Ein Subjekt sagt nicht, dass der Claim vorliegt.** `UNKNOWN_ACCUSATION` und
 `UNRESOLVED_ACCUSED` benennen im Regelfall gerade den Claim, den der Store nicht führt. Das ist

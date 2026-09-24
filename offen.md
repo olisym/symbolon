@@ -381,3 +381,9 @@ Minimum über die Punkte in `flow.py`, gebunden in `test_fensterpunkte.py` und `
 ### O82 `core/revoke@2`, `bool`-Schlüssel und sechs ungebundene Normen aus `01` — erledigt (D454)
 
 Geschlossenes `core`, uint-Schlüssel, gebunden in `tests/test_bindung_01.py`.
+
+### O83 Sechs Befunde aus dem Lesen von `03` und `04`
+
+Aus D456 Beschlüsse 1, 2, 4 bis 6: Schlüsseltypen in `v`, `genesis[6]` typgenau, Prädikat der
+Anklage, `EPOCH_PROPOSAL_UNAVAILABLE` nur bei vorab tragendem `ratify@1`, Zeugen mit 32 Byte,
+Vermerke aller Quittungen. Auftrag `o83-lesen`.

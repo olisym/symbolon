@@ -19608,3 +19608,43 @@ neu ist nur der Satz, der die Relation für die Ordnung ausdrücklich nennt.
 **Geändert.** `00-nucleus-genesis-constitution.md` (`§4`, Absatz Schlüsseltypen; `§6.4`, Absatz
 „Was als Kettenglied zählt" und Stand-Absatz); `04-governance.md` (`§5`, letzter Absatz);
 `07-decisions.md`; `offen.md` (O86 neu).
+
+### D463 — Abnahme `o86-lesen`; O86 erledigt
+
+**Geprüft.** Commit `670ccbf` auf `o86-lesen`, Basis `bf3f7f0`. Der Diff gegen die Basis ist
+vollständig gelesen: sieben Dateien, nur die im Auftrag genannten, dazu die neue Testdatei.
+`genesis_scope` prüft jeden Map-Schlüssel in jeder Tiefe und rechnet danach den Hash. Die fünf
+Leser rufen sie, und ihre Vergleiche und Meldungen sind wortgleich. `_on_author_chain` läuft über
+`_predecessor_known_and_valid`. Im Klon des Supervisors ohne Bytecode sind es 1043 Tests, alle
+grün. Die Hashberechnung des Genesis steht in `symbolon/` genau einmal, in `genesis.py`.
+
+**Die Rücknahmeproben der fünf Leser haben nichts gezeigt.** Der Bericht meldete sie rot, und er
+nannte den Grund selbst: `hashlib` und `DOM_NUC_GEN` waren nicht mehr importiert. Rot war also ein
+`NameError`, nicht die fehlende Prüfung. In der Sache nachgefahren: je Lesermodul `genesis_scope`
+durch einen Hash ohne Schlüsselprüfung ersetzt, dann die fünf Lesertests. Rot werden die Tests
+für `resolve_authorized_keys`, `decide`, `resolve_policy` und `resolve_trust_params`, jeweils
+genau der eine.
+
+**`resolve_epoch` ist die Ausnahme.** Bei ihm bleibt der Test grün, denn `resolve_epoch` ruft
+im ersten Schleifendurchlauf `resolve_policy` mit demselben Genesis auf, und das wirft. Die
+eigene Prüfung in `chain.py` ist damit heute äquivalent: das beobachtbare Verhalten ist dasselbe,
+nur die Stelle des Wurfs ist eine andere. Die Norm ist gebunden, die Zeile nicht. Das ist kein
+Defekt. Die Mutationsmessung wird diese Mutante als äquivalent führen, und der Test trägt die
+Zusage weiter, falls `resolve_policy` dort je entfällt.
+
+**Die beiden übrigen Proben tragen**, ebenfalls nachgefahren. Ohne die Schlüsselprüfung werden
+die vier Einheitstests und alle fünf Lesertests rot. Mit `_on_author_chain` auf dem Stand der
+Basis wird nur die Welt mit dem nicht gehaltenen Glied rot, die Kontrolle und
+`test_rotate_key.py` bleiben grün.
+
+**Prüfregel-Kandidat, nicht übernommen.** Eine Rücknahmeprobe zählt nur, wenn der Test an der
+Sache scheitert. Rot aus einem Importfehler oder aus einem anderen Wurf zeigt nichts. Beleg:
+dieser Lauf, bei dem eine der fünf Proben in der Sache grün geblieben wäre.
+
+**Die Grep-Zeile und der Bytecode.** Der Bericht merkt an, dass die vorgeschriebene Suche neben den
+Quellen auch `__pycache__` trifft. Im Klon ohne Bytecode trifft sie genau die eine Zeile. Die
+Suche im Auftrag hätte `--include='*.py'` tragen sollen; für die Abnahme ändert das nichts.
+
+**Beschluss.** Abgenommen und nach `main` gemergt. O86 ist erledigt.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O86 erledigt).

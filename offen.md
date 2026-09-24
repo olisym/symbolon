@@ -396,7 +396,6 @@ und `test_policy.py`.
 
 Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py`.
 
-### O86 Genesis-Schlüssel und die Ordnung zweier Rotationen
+### O86 Genesis-Schlüssel und die Ordnung zweier Rotationen — erledigt (D463)
 
-Aus D462 Beschlüsse 1 und 2: `genesis_scope` mit Schlüsselprüfung an allen fünf Genesis-Lesern,
-`_on_author_chain` über die Vorgängerrelation aus `01 §6`. Auftrag `o86-lesen`.
+`genesis_scope` in `genesis.py`; gebunden in `tests/nucleus/test_lesen_keys.py`.

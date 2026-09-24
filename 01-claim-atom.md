@@ -445,6 +445,15 @@ Ziel bekannt ist; der umgekehrte Weg existiert nicht. Zeitliche Gültigkeit, `pe
 liegen außerhalb: sie brauchen Uhr beziehungsweise Speicher, und keines von beiden ist ein Reject
 (Anhang B.3).
 
+**Nachträglich ungültig (normativ).** Ein gehaltener Claim, den später eintreffendes Wissen
+strukturell ungültig macht, ist von da an **nicht gehalten** (Anhang B.1, `malformed`). Heute gibt
+es genau einen solchen Fall: ein `core/*`-Claim, dessen Ziel bekannt wird und einen anderen Autor
+hat. Ein solcher Claim hat keinen Zustand. Er ist kein gültiger Vorgänger, sein Nachfolger bleibt
+also `pending`. Er ist kein Geschwister eines Equivocation-Paars (§4) und wirkt nicht als Widerruf
+oder Supersede. Eine Auswertung über den Bestand **übergeht** ihn und wirft seinetwegen nicht: ein
+Claim, den jeder signieren kann, darf die Auswertung fremder Claims nicht anhalten. Wer genau diesen
+Claim prüft, erhält weiter `FOREIGN_LIFECYCLE` (D452).
+
 **Zeit — `now` ist bewusst lokal und subjektiv (normativ).** Die Gültigkeitsprüfung gegen `t_exp`
 lautet: falls `t_exp` vorhanden, gilt `C` als *zeitlich gültig* gdw. `now ≤ t_exp`, wobei `now`
 die **lokale Zeitquelle des Verifizierers** ist (eigene Uhr **oder** ein Zeitdienst, dem er

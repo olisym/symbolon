@@ -888,7 +888,8 @@ kein Vermerk nach §10: fehlerhaft ist nicht der Bestand, sondern die Frage.
 Die Reihenfolge ist ergebnisrelevant und daher normativ. Bei einem Intervall-`now` gilt sie
 je Auswertungspunkt (§11.1):
 
-1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren.
+1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren. Ein Claim, den der
+   Bestand nachträglich ungültig macht, wird übergangen (Atom-Spec §6, D452).
 2. Das Gewicht `v` der Vouch-Claims des Scopes im Budget-Set lesen (§3.1) → `n` oder ein Vermerk
    nach §10. Ein Vouch ausserhalb des Budget-Sets wird nicht gelesen und trägt keinen Vermerk
    (D400).

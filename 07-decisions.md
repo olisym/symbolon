@@ -18930,3 +18930,93 @@ gemessen ist, wofür eine Mutation geschrieben wurde.
 
 **Geändert.** `tests/trust/test_bindung.py` (Fix); `07-decisions.md`; `offen.md` (O80 in der
 Schliessform).
+
+### D452 — Bindungsmessung `01`; drei Defekte; nachträglich ungültige Claims; O81, O82
+
+**Anlass.** Die Messung aus D448 und D450 auf `01` ausgedehnt, weil die Klassifikation die
+Grundlage aller Schichten darüber ist. Die Entscheidungsregel stand vorher fest.
+
+**Messung, selbst gefahren, ohne Bytecode.** Main am `81b52b9`, 53 Mutationen in `verifier.py`,
+`index.py`, `predicates.py`, `atom.py` und `policy.py`. Gebunden sind 44. Drei sind äquivalent:
+
+- Die Pflichtfeldprüfung. `_validate_field_types` prüft jedes Pflichtfeld ohnehin.
+- Der Lookahead der `nuc:`-Grammatik. Ein 64-Hex-Scope ist immer kanonisch (D283).
+- Der gleiche Autor im Equivocation-Paar. Der Speicher liefert Geschwister nur zu `(I, h_prev)`.
+
+Sechs sind ungebunden, auch gegen die volle Suite:
+
+- Der Genesis-Anker ist an `I` gebunden (`§4`). Ein identitätsfreier Anker bliebe unbemerkt.
+- Der Vorgänger ist vom selben Autor (`§6`). Ohne die Prüfung wird ein Claim mit fremdem Vorgänger
+  `linked`.
+- Widerruf und Supersede zählen nur vom Autor des Ziels (`§6`), je eine Mutation.
+- Ein Widerruf wirkt nur, wenn er strukturell gültig ist (`§6`), im Index.
+- `classify_all` wendet eine Policy nur im eigenen Scope an (`§5.4`, `03 §6`, D91).
+
+**Drei Defekte, beim Lesen gefunden und am Code bestätigt.**
+
+- **`core/revoke@2` wird angenommen und widerruft.** `§2.2`, `§2.4` Invariante 4, `§6` Punkt 4
+  und B.2 erlauben in `core` genau `revoke@1` und `supersede@1`. Der Code prüft gegen die Regex
+  aus Anhang A, die Versionen zulässt und selbst vermerkt, dass in v1 nur `@1` aktiv ist. Eine
+  Fassung nach der Spec lehnt den Claim ab, diese Fassung widerruft mit ihm. Zwei Verifizierer
+  sind damit über den Zustand desselben Claims uneins, ohne dass ein Beweis dafür existiert.
+- **Ein `bool` als Map-Schlüssel gibt den falschen Code.** Nach B.2, Vorrang bei mehreren
+  Mängeln, ist ein Nicht-uint-Schlüssel `MALFORMED_CBOR`. Der Code liefert
+  `NON_CANONICAL_ENCODING`, weil `isinstance(k, int)` ein `bool` durchlässt und die
+  Kanonizitätsprüfung zuerst anschlägt. Das ist der falsche Satz, den B.2 verbietet. Abgelehnt
+  wird der Claim trotzdem.
+- **Ein fremder Lebenszyklus-Claim hält jede Auswertung an.** Nach D138 liest `store_laden` ohne
+  Store, also wird ein `core/revoke@1` auf den Claim eines anderen Autors immer gespeichert. Ist
+  sein Ziel bekannt, wirft `classify_all` `ForeignLifecycle` (D283). `classify_all` läuft über den
+  ganzen Bestand, und ein `core/*`-Claim hat keinen Scope. Damit werfen `trust`, `rank`, die drei
+  Profile, `keys` und die drei Governance-Module auf diesem Knoten, für jeden Scope und dauerhaft.
+  Den Claim kann jede Identität für jede öffentliche `claim_id` signieren. Das widerspricht
+  `02 §10`, wonach die Ableitung für schadhafte Eingaben nicht wirft. D138 und D283 haben die
+  Prüfung bewusst nach `classify_all` gelegt, die Folge des Wurfs aber nicht betrachtet. Ausserdem
+  bleibt ein Nachfolger dieses Claims in derselben Kette `active`, obwohl `§6` für `linked` einen
+  gültigen Vorgänger verlangt.
+
+**Beschluss 1 — nachträglich ungültig heisst nicht gehalten.** `01 §6` bekommt einen Absatz, und
+`02 §11.4` Schritt 1 verweist darauf. Das Meiste folgt aus bestehendem Text: `§6` verlangt für
+`linked` einen gültigen Vorgänger, `§4` für Equivocation zwei strukturell gültige Claims, und
+B.1 hält einen `malformed`-Claim nicht. Neu ist allein, dass eine Auswertung über den Bestand ihn
+übergeht, statt zu werfen. `classify` auf genau diesen Claim wirft weiter. Dort ist er selbst
+die Frage, und das ist der Teil von D283, der bleibt. Der Teil, der `classify_all` werfen lässt,
+ist aufgehoben.
+
+**Verworfen — den Wurf behalten.** Ein Claim, den jeder signieren kann, hielte jede Auswertung auf
+jedem Knoten an. Das ist ein Angriff, und er kostet eine Signatur.
+
+**Verworfen — ein Vermerk oder ein Zustand.** `malformed` ist kein Zustand (D278). Ein Vermerk
+müsste in zehn Verbrauchern eigens geführt werden und sagte nichts, was nicht schon im Claim
+steht: dass ein Autor einen Claim eines anderen widerrufen wollte.
+
+**Verworfen — beim Einlesen mit Store prüfen.** D138 hat das aus gutem Grund verworfen: Der Reject
+hinge an der Ladereihenfolge. Über Gossip kann das Ziel auch nach dem fremden Claim eintreffen, die
+Lage bleibt also bestehen.
+
+**Beschluss 2 — `core` wird gegen die geschlossene Menge geprüft.** `core/*` ausserhalb
+`{revoke@1, supersede@1}` ist `RESERVED_CORE_PREDICATE`, auch bei gültiger Grammatik. Die Regex
+in Anhang A bleibt eine Formbeschreibung. Das gesperrte Prädikat hat dann auch keine Wirkung
+mehr als Widerruf.
+
+**Beschluss 3 — Map-Schlüssel sind uint.** Die Schlüsselprüfung verlangt einen CBOR-uint, kein
+`bool`. Ein `bool`-Schlüssel ist `MALFORMED_CBOR` nach dem Vorrang aus B.2.
+
+**Beschluss 4 — die sechs Lücken werden gebunden.**
+
+**Zwei Aufträge.** O81 trägt Beschluss 1, weil er Norm und zehn Verbraucher berührt und einen
+bestehenden Test umkehrt. O82 trägt die Beschlüsse 2 bis 4. O81 geht vor.
+
+**Golden Numbers, am Code gemessen.** Fremder Widerruf: A's Vouch `v` auf C, B's
+`core/revoke@1` auf `v`, B's nächster Claim `nach` mit `h_prev` gleich dem Widerruf. Heute:
+`trust` wirft `ForeignLifecycle`, `classify(nach)` ist `active`, `classify(v)` ist `active`.
+Nach Beschluss 1: `trust` rechnet mit `v` als Kante, `nach` ist `pending`, `v` bleibt `active`,
+und `classify(revoke)` wirft weiter.
+
+**Schwächste Stelle.** Die drei Defekte stammen aus dem Lesen, nicht aus der Messung. Eine
+Mutation kann einen Defekt nicht finden, der schon im Code steht; sie findet nur ungebundenen
+richtigen Code. Wie viele Defekte dieser Art `03` und `04` tragen, sagt diese Messung nicht. Die
+Rust-Fassung steht auf `573db57`; ob sie `core/revoke@2` annimmt, ist nicht geprüft.
+
+**Geändert.** `01-claim-atom.md` (`§6`, ein Absatz); `02-trust-flow.md` (`§11.4`, Schritt 1);
+`07-decisions.md`; `offen.md` (O81, O82 neu).

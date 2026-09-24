@@ -373,3 +373,13 @@ Gebunden in `tests/trust/test_bindung.py`, je mit Rücknahmeprobe (D448, D449).
 ### O80 `disjoint_paths` im Fenster und drei ungebundene Normen aus `02` — erledigt (D451)
 
 Minimum über die Punkte in `flow.py`, gebunden in `test_fensterpunkte.py` und `test_bindung.py`.
+
+### O81 Ein fremder Lebenszyklus-Claim hält jede Auswertung an
+
+Aus D452 Beschluss 1. `classify_all` übergeht einen nachträglich ungültigen Claim statt zu werfen;
+sein Nachfolger bleibt `pending`, als Equivocation-Geschwister zählt er nicht. Auftrag
+`o81-uebergehen`.
+
+### O82 `core/revoke@2`, `bool`-Schlüssel und sechs ungebundene Normen aus `01`
+
+Aus D452 Beschlüsse 2 bis 4. Folgt O81.

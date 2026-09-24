@@ -453,6 +453,16 @@ Gegenstück zu Prüfregel 60 in der Gegenrichtung: dort muss der rote Test der T
 muss jeder Träger rot werden. Von Prüfregel 62 unterschieden, die fragt, ob ein Test überhaupt
 rot werden kann.
 
+**81. Eine Mutantenmessung gilt ohne Bytecode und für den Stand, an dem sie gefahren ist.**
+Zwei Fehler derselben Art, beide in `00cg`. Eine gleich lange Ersetzung innerhalb derselben
+Sekunde liess Python die `.pyc` des vorigen Stands laden, und die Gegenprobe sah den Mutanten
+nicht (D448). Jede Mutation läuft deshalb mit `PYTHONDONTWRITEBYTECODE=1` und geleertem
+`__pycache__`. Und eine Erwartung „sonst wird nichts rot" gilt nur für den Stand, an dem sie gegen
+die volle Suite gemessen ist. In D449 waren zwei Mutanten nie gegen die volle Suite gefahren, in
+D454 lag zwischen Messung und Lauf ein Merge, der dieselbe Norm von der anderen Seite band. Beide
+Male meldete der Lauf die Abweichung, und beide Male lag der Fehler in der Tabelle des Auftrags.
+Wer eine Rücknahmetabelle schreibt, misst sie am Basis-Commit des Auftrags.
+
 ## Beim Messen
 
 **19. Kalte Messung.** Ein grüner Testlauf auf der Arbeitskopie ist keine Aussage über den
@@ -652,7 +662,7 @@ D148, 24 und 25 aus D160, 26 aus D169, 27 aus D173, 28 aus D179, 29 aus D184,
 52 bis 59 aus D282, 60 aus D296, 61 aus D299, 62 aus D304, 63 aus D312, 64 aus D315,
 65 aus D343, 66 aus D344, 67 aus D345, 68 aus D349,
 69 aus D352, 70 aus D358, 71 aus D359, 72 aus D360, 73 aus D363, 74 aus D365, 75 aus D366,
-76 und 77 aus D407, 78 und 79 aus D436, 80 aus D447.
+76 und 77 aus D407, 78 und 79 aus D436, 80 aus D447, 81 aus D455.
 
 Die Nummern **8** und **9** wurden in D144 vergeben. Parallelenprüfung und Begründungsprüfung
 liefen bis dahin unnummeriert als „die beiden älteren" mit; ohne Nummer waren sie in Prompts

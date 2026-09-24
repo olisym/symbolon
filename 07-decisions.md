@@ -19078,3 +19078,40 @@ sind uint, und die sechs Lücken aus D452 sind gebunden. Damit ist die Messung �
 
 **Geändert.** `tests/test_bindung_01.py` (Fix); `07-decisions.md`; `offen.md` (O82 in der
 Schliessform).
+
+### D455 — Sitzungsschluss `00cg`; Prüfregel 81
+
+**Bilanz.** Die Sitzung hat die Bindungsmessung aus Schritt 1 des Sitzungsstarts über `02` und `01`
+gefahren und vier Posten eröffnet und geschlossen:
+
+- O79: sieben ungebundene Normen aus `02 §8` und `§10` (D448, D449).
+- O80: `disjoint_paths` im Fenster und drei Bindungen (D450, D451).
+- O81: Ein fremder Lebenszyklus-Claim hielt jede Auswertung an (D452, D453).
+- O82: `core/revoke@2`, `bool`-Schlüssel und sechs Bindungen aus `01` (D452, D454).
+
+Gemessen sind 138 Mutationen: 41 in D448, 44 in D450, 53 in D452. 117 waren gebunden, drei
+äquivalent, und die achtzehn Lücken sind jetzt gebunden. Die Messung hat zwei Normlücken gezeigt,
+beide mit Wirkung: `disjoint_paths` im Fenster und die nachträglich ungültigen Claims.
+
+**Das Ergebnis mit Gewicht stammt nicht aus der Messung, sondern aus dem Lesen.** Die drei Defekte
+in `01` hat keine Mutation gefunden. Eine Mutation findet ungebundenen richtigen Code; einen Fehler,
+der schon im Code steht, findet sie nicht. Der schwerste war ein Angriff: Eine einzige Signatur auf
+eine öffentliche `claim_id` legte auf jedem Knoten jede Auswertung still, und zwar für jeden Scope.
+D138 und D283 hatten die Prüfung bewusst dorthin gelegt, den Abbruch aber nicht betrachtet.
+
+**Beschluss 1 — Prüfregel 81 wird übernommen.** Mutanten laufen ohne Bytecode, und eine Erwartung
+„sonst nichts rot" gilt für den Stand, an dem sie gemessen ist. Belegt in D448, D449 und D454,
+dreimal in einer Sitzung. Sie steht unter „Bei Rücknahmeproben und Mutanten".
+
+**Neue Prüfregel-Kandidaten, nicht übernommen.**
+
+- Wer eine Ausnahme in einer Auswertung über den ganzen Bestand wirft, fragt, wer sie auslösen kann
+  und was dann anhält (D452). Einmal begründet.
+- Eine Mutationsmessung ersetzt das Lesen gegen die Norm nicht; sie findet nur ungebundenen
+  richtigen Code (D452). Einmal begründet.
+
+**Sitzungsschluss.** `sitzungsstart-00cg.md` löst `sitzungsstart-00cf.md` ab, das nach `archiv/`
+geht (D314).
+
+**Geändert.** `07-decisions.md`; `pruefregeln.md` (Regel 81 in „Bei Rücknahmeproben und Mutanten",
+Herkunftszeile); `sitzungsstart-00cg.md` neu, `sitzungsstart-00cf.md` nach `archiv/`.

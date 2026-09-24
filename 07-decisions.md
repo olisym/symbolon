@@ -19408,3 +19408,35 @@ fand die Messung; die drei Befunde fand das Lesen. Das ist dasselbe Muster wie i
 
 **Geändert.** `03-profiles.md` (`§1.3`, ein Absatz); `07-decisions.md`; `offen.md` (O84, O85
 neu).
+
+### D459 — Abnahme `o84-binden`; O84 erledigt; T1 ist keine Lücke
+
+**Gelesen im Spiegel.** Ein Commit, `cf2e7d1`, gegen `b41311c`, sieben Dateien, wie berichtet.
+Suite im Supervisor-Klon ohne Bytecode: 996 grün. Die sieben Mutanten mit Wirkung aus D458
+(E6, E14, E19, C6, M3, T3, T31) habe ich mit denselben Ersetzungen wie in der Messung erneut
+eingesetzt; alle sieben sterben jetzt im Messumfang.
+
+**Befund: keiner.** `participants_wellformed` in `symbolon/policy.py` ist die eine Prüfung,
+`membership` und `constitution_governable` rufen sie. `_is_valid_uint` verlangt `>= 0`. Die Welten
+sind richtig gebaut. Für E14 und T3 reichen die Fixtures nicht; der Lauf hat die Schwelle aus der
+Formel abgeleitet und für E14 eine eigene Verfassung mit dem kürzesten Präfix von `P1` gebaut, bei
+dem ein Zeuge die Schwelle verfehlt und zwei sie erreichen. Die Rücknahmeproben am Helfer töten
+ausser den neuen auch ältere Tests (`test_GV_23`, `test_GV_40`, zwei in `test_example_nucleus`):
+Diese banden die Prüfung schon an `constitution_governable`, und die Kopie in `membership` war die
+ungebundene.
+
+**Berichtigung zu D458: T1 ist keine Lücke.** `ratio_max` gibt bei gleichem Verhältnis das erste
+Argument zurück, also die alte Schwelle. `04 §3.4` normiert das Maximum als Verhältnis, nicht seine
+Darstellung, und `reached` und `hopeless` rechnen mit beiden Darstellungen dasselbe. Sichtbar ist
+der Unterschied nur im Feld `TallyResult.threshold`. Ihn zu binden hiesse, eine Wahl normativ zu
+machen, die niemand getroffen hat. T1 zählt damit zu den äquivalenten Mutanten, D458 steht bei
+vier äquivalenten und 50 ungebundenen, und O85 bei 36. Der Fehler lag bei der Einordnung: Die
+Normspalte in D458 nannte für T1 einen Satz, der die Darstellung nicht festlegt.
+
+**Stand der 36.** Alle 36 Mutanten aus O85 gelten unverändert am Stand von `o84-binden` und
+überleben dort den Messumfang.
+
+**Prüfregel-Kandidat.** Eine Lücke, deren Normspalte auf einen Satz zeigt, wird gegen den Wortlaut
+dieses Satzes geprüft, bevor sie in einen Auftrag geht (D459). Einmal belegt.
+
+**Geändert.** `07-decisions.md`; `offen.md` (O84 erledigt, O85 auf 36).

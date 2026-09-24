@@ -126,9 +126,11 @@ def trust(
     # Kleinster value, bei Gleichstand der kleinste Zeitpunkt (02 §11.1, D406).
     best = min(point_results, key=lambda r: r.value)
     value_max = max(r.value for r in point_results)
+    # disjoint_paths ist das Minimum über alle ausgewerteten Punkte (02 §11.1, D450).
+    disjoint_paths = min(r.disjoint_paths for r in point_results)
     return TrustResult(
         value=best.value,
-        disjoint_paths=best.disjoint_paths,
+        disjoint_paths=disjoint_paths,
         cut=best.cut,
         findings=best.findings,
         value_max=value_max,

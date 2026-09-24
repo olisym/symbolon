@@ -1,9 +1,10 @@
-"""Bindung von sieben Normen aus 02 §3.1, 02 §8 und 02 §10 (D448)."""
+"""Bindung von zehn Normen aus 02 §3.1, 02 §8 und 02 §10, D448, D450."""
 
 from __future__ import annotations
 
 import pytest
 
+from symbolon import cbor_canon
 from symbolon.atom import claim_id
 from symbolon.trust import Finding, TrustFinding, TrustParams, trust
 
@@ -165,3 +166,66 @@ def test_uebrige_gruppenmitglieder_unberuehrt() -> None:
     assert r.findings == (
         Finding(TrustFinding.UNPARSABLE_VOUCH_PAYLOAD, claim_id(unlesbar)),
     )
+
+
+def test_c_einmal_am_ende_gerundet() -> None:
+    """C(d) wird einmal am Ende gerundet (02 §3, D450)."""
+    params = TrustParams(C0=2, gamma_num=3, gamma_den=4, D=4)
+    scope = scope_id("o80-c-ende")
+    A, B = Identity("o80-c-A"), Identity("o80-c-B")
+    X, T = Identity("o80-c-X"), Identity("o80-c-T")
+    claims = [
+        A.vouch(B, n=4, scope=scope, t=1, t_exp=T_EXP),
+        B.vouch(X, n=4, scope=scope, t=1, t_exp=T_EXP),
+        X.vouch(T, n=4, scope=scope, t=1, t_exp=T_EXP),
+    ]
+    r = trust(
+        store_with(*claims),
+        anchors=frozenset({A.pub}),
+        targets=frozenset({T.pub}),
+        scope=scope,
+        now=NOW,
+        params=params,
+    )
+    assert r.value == 1
+    assert r.findings == ()
+
+
+def test_nur_vouch_at_1() -> None:
+    """Eine Kante trägt nur nuc:N/vouch@1 (02 §2, D450)."""
+    scope = scope_id("o80-vouch-at-2")
+    autor, subjekt = Identity("o80-v2-A"), Identity("o80-v2-S")
+    claim = autor.claim(
+        p=f"nuc:{scope.hex()}/vouch@2",
+        J=(1, subjekt.pub),
+        t=1,
+        v=cbor_canon.encode({0: 4}),
+        N=scope,
+        t_exp=T_EXP,
+    )
+    r = trust(
+        store_with(claim),
+        anchors=frozenset({autor.pub}),
+        targets=frozenset({subjekt.pub}),
+        scope=scope,
+        now=NOW,
+        params=PARAMS,
+    )
+    assert r.value == 0
+    assert r.findings == ()
+
+
+def test_now_ist_kein_bool() -> None:
+    """now ist ein Zeitpunkt oder ein Intervall, kein bool (02 §11.1, 02 §11.2, D450)."""
+    scope = scope_id("o80-now-bool")
+    autor, subjekt = Identity("o80-now-A"), Identity("o80-now-S")
+    claim = autor.vouch(subjekt, n=4, scope=scope, t=1, t_exp=T_EXP)
+    with pytest.raises(ValueError):
+        trust(
+            store_with(claim),
+            anchors=frozenset({autor.pub}),
+            targets=frozenset({subjekt.pub}),
+            scope=scope,
+            now=True,
+            params=PARAMS,
+        )

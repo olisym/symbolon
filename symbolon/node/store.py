@@ -176,8 +176,13 @@ class SqliteStore:
         return found
 
     def add_sim_key(self, seed: bytes) -> bytes:
-        """Trägt einen simulierten Schlüssel ein und gibt den öffentlichen zurück (D476 Beschluss 4)."""
+        """Trägt einen simulierten Schlüssel ein und gibt den öffentlichen zurück (D476 Beschluss 4, D477 Beschluss 2)."""
         pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+        row = self._db.execute(
+            "SELECT pub FROM sim_keys WHERE seed = ?", (seed,)
+        ).fetchone()
+        if row is not None:
+            return row[0]
         self._db.execute(
             "INSERT INTO sim_keys (pub, seed) VALUES (?, ?)",
             (pub, seed),

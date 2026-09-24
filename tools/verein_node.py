@@ -38,6 +38,7 @@ def anlegen(path: str | Path) -> None:
     for constitution in (
         world.ex.constitution_gov,
         world.ex.constitution_2,
+        world.ex.constitution_res,
         world.constitution_3,
         world.constitution_4,
     ):

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import socket
+import sqlite3
 import threading
 import urllib.error
 import urllib.request
@@ -390,6 +392,96 @@ def test_fremder_inhalt(tmp_path) -> None:
         assert status == 200
         assert b"Traceback" not in body
         assert "MALFORMED_PARTICIPANTS" in body.decode()
+    finally:
+        _stop(server)
+
+
+def _read_response(sock: socket.socket) -> bytes:
+    data = b""
+    while b"\r\n\r\n" not in data:
+        chunk = sock.recv(4096)
+        if not chunk:
+            break
+        data += chunk
+    head, _, rest = data.partition(b"\r\n\r\n")
+    length = 0
+    for line in head.split(b"\r\n")[1:]:
+        name, _, value = line.partition(b":")
+        if name.lower() == b"content-length":
+            length = int(value.strip())
+    while len(rest) < length:
+        chunk = sock.recv(4096)
+        if not chunk:
+            break
+        rest += chunk
+    return head
+
+
+def _bestand(path) -> tuple:
+    db = sqlite3.connect(path)
+    try:
+        claims = db.execute(
+            "SELECT claim_id, data, I, h_prev FROM claims ORDER BY claim_id"
+        ).fetchall()
+        objects = db.execute(
+            "SELECT hash, kind, data FROM objects ORDER BY hash"
+        ).fetchall()
+        keys = db.execute(
+            "SELECT pub, seed FROM sim_keys ORDER BY pub"
+        ).fetchall()
+    finally:
+        db.close()
+    return claims, objects, keys
+
+
+def test_verbindung(tmp_path) -> None:
+    """Verbindung (D477)."""
+    path = tmp_path / "bestand.sqlite"
+    SqliteStore(path).close()
+    server = _start(path, lambda: NOW)
+    try:
+        host, port = server.server_address
+        sock = socket.create_connection((host, port))
+        sock.settimeout(3)
+        try:
+            sock.sendall(
+                f"GET /scopes HTTP/1.1\r\nHost: {host}:{port}\r\n\r\n".encode()
+            )
+            head = _read_response(sock)
+            assert b"connection: close" in head.lower()
+            request = urllib.request.Request(
+                f"http://{host}:{port}/scopes", method="GET"
+            )
+            with urllib.request.urlopen(request, timeout=3) as response:
+                assert response.status == 200
+                response.read()
+        finally:
+            sock.close()
+    finally:
+        _stop(server)
+
+
+def test_zweiter_lauf(tmp_path) -> None:
+    """Zweiter Lauf (D477)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    before = _bestand(path)
+    anlegen(path)
+    assert _bestand(path) == before
+
+
+def test_verfassung_des_vereinslebens(tmp_path) -> None:
+    """Verfassung des Vereinslebens (D477)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: NOW)
+    try:
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_res.hex()}")
+        assert status == 200
+        view = json.loads(body)
+        kinds = [item["kind"] for item in view["state"]["policy_findings"]]
+        assert "CONSTITUTION_UNAVAILABLE" not in kinds
     finally:
         _stop(server)
 

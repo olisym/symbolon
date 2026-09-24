@@ -267,10 +267,13 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
             return self.rfile.read(length)
 
         def _send(self, status: int, payload: object) -> None:
+            """Antwort und Schließen der Verbindung (D477 Beschluss 1)."""
             encoded = json.dumps(json_value(payload)).encode("utf-8")
+            self.close_connection = True
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(encoded)))
+            self.send_header("Connection", "close")
             self.end_headers()
             self.wfile.write(encoded)
 

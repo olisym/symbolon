@@ -20141,3 +20141,50 @@ Verfassung, sonst wäre sie nicht die Verfassung der Epoche 1 und der Vermerk en
 
 **Geändert.** `symbolon/node/`, `tests/node/test_node.py`, `tools/verein.py` (über den Merge);
 `07-decisions.md`.
+
+### D476 — P3: die Schnittstelle des S-Node
+
+**Anlass.** D471 Beschluss 5. Gelesen: `symbolon/atom.py` (`core_map`, `core_bytes`,
+`build_signed`, `sign_preimage`, `id_genesis_anchor`), `symbolon/node/store.py`,
+`symbolon/node/view.py`, `tools/autor.py`.
+
+**Beschluss 1 — acht Pfade, JSON, Bytes als Hex.** Lesen: `GET /scopes` (die Hashes aller Genesis
+im Bestand), `GET /scopes/<scope>` (die Sicht nach D473 und D474), `GET /forks` (die
+Gabelungsbeweise). Schreiben: `POST /objects` (Art und Bytes), `POST /claims` (signierte Bytes),
+`POST /prepare` (Vorbereiten nach D471 Beschluss 1), `POST /submit` (Kern und Signatur),
+`POST /sim/sign` (Unterschrift einer simulierten Person). Ein abgewiesener Aufruf antwortet mit
+einem Fehlercode und dem Namen der Abweisung, nie mit einem Stacktrace.
+
+**Beschluss 2 — Vorbereiten nimmt Felder, keine Absichten.** `POST /prepare` nimmt `I`, `p`,
+`J`, `v` als Hex der fertigen Bytes, `N` und `t_exp`, setzt `version`, `t` und `h_prev` und gibt
+die `core_bytes` zurück. Absichten wie „Ja zu diesem Antrag“, aus denen der S-Node die Felder
+selbst ableitet, kommen mit der Oberfläche, weil erst sie sie braucht. *Verworfen:* Absichten
+schon jetzt. Sie verdoppelten den Umfang von P3, ohne dass ein Skript sie braucht.
+
+**Beschluss 3 — der Vorgänger kommt vom Gerät, wenn es ihn nennt.** Nennt der Aufruf `h_prev`,
+nimmt der S-Node ihn (D471 Beschluss 2). Sonst schlägt er die Spitze der Kette von `I` im Bestand
+vor: den Claim von `I`, auf den kein anderer Claim von `I` zeigt, oder den Genesis-Anker aus
+`01 §4`, wenn der Bestand keinen Claim von `I` hat. Hat die Kette mehr als eine Spitze, schlägt er
+keine vor und weist ab: er würde sonst eine Seite einer Gabelung wählen. `t` ist die Uhr des
+S-Node, mindestens aber `t` des Vorgängers, wenn der im Bestand liegt; sonst entstünde eine
+Zeitrückdatierung (`01 §6`).
+
+**Beschluss 4 — Signieren bleibt beim Gerät, auch für Simulierte.** `POST /submit` fügt einem
+Kern die Signatur an und liefert das Ergebnis über `submit_claim` ein; die Prüfung ist dieselbe wie
+für jeden fremden Claim. Simulierte Personen haben Seeds in einer eigenen Tabelle des Bestands; sie
+werden nur über Python eingetragen, nie über die Schnittstelle, und `POST /sim/sign` signiert mit
+ihnen über denselben Weg aus Vorbereiten und Einliefern.
+
+**Beschluss 5 — nur lokal, ein Faden.** Der Server bindet an `127.0.0.1` und bedient eine Anfrage
+nach der anderen; der Bestand gehört dem Faden, der bedient. Ein Rumpf über einem MiB wird
+abgewiesen. Keine CORS-Kopfzeilen: die Oberfläche kommt später vom selben Ursprung.
+*Verworfen:* mehrere Fäden. Sie brauchten Sperren um SQLite und brächten einem einzelnen Menschen
+nichts.
+
+**Beschluss 6 — die JSON-Form ist generisch und bricht nicht an fremdem Inhalt.** Dataclasses
+werden Objekte ihrer Felder, Enums ihr Wert, Bytes Hex, Tupel und Listen Listen, Mengen sortierte
+Listen, Abbildungen Objekte mit Bytes-Schlüsseln als Hex und Zahlen als Text. Jeder andere Wert,
+wie er in einer fremden Verfassung stehen kann, wird als Text seines `repr` ausgegeben. Die
+Richtung ist die aus D474.
+
+**Geändert.** `07-decisions.md`.

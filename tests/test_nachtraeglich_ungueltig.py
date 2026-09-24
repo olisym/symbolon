@@ -13,10 +13,10 @@ _T_EXP = 5000
 
 def _welt1():
     """A bürgt für C, B widerruft fremd, B hängt einen Vouch an den Widerruf."""
-    scope = scope_id("welt1")
-    A = Identity("A")
-    B = Identity("B")
-    C = Identity("C")
+    scope = scope_id("o81-welt1")
+    A = Identity("o81-A")
+    B = Identity("o81-B")
+    C = Identity("o81-C")
     v = A.vouch(C, n=4, scope=scope, t=1, t_exp=_T_EXP)
     widerruf = B.revoke(v, t=2)
     nach = B.vouch(C, n=4, scope=scope, t=3, t_exp=_T_EXP)
@@ -57,11 +57,11 @@ def test_classify_nachfolger_pending() -> None:
 
 def test_ungueltiges_geschwister_flaggt_nicht() -> None:
     """Fremder Genesis-Widerruf ist kein Equivocation-Geschwister (01 §4, 01 §6)."""
-    scope = scope_id("welt2")
-    A2 = Identity("A2")
-    C2 = Identity("C2")
-    erste = Identity("B")
-    zweite = Identity("B")
+    scope = scope_id("o81-welt2")
+    A2 = Identity("o81-A2")
+    C2 = Identity("o81-C2")
+    erste = Identity("o81-B2")
+    zweite = Identity("o81-B2")
     vouch = A2.vouch(C2, n=4, scope=scope, t=1, t_exp=_T_EXP)
     widerruf = erste.revoke(vouch, t=2)
     X = zweite.vouch(C2, n=4, scope=scope, t=2, t_exp=_T_EXP)

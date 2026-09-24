@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id
-from symbolon.domains import DOM_NUC_GEN
+from symbolon.genesis import genesis_scope
 from symbolon.governance.epoch import verify_ratification
 from symbolon.governance.findings import (
     Finding,
@@ -57,7 +55,7 @@ def resolve_epoch(
     now: int,
 ) -> EpochResolution:
     """Leitet die geltende Epoche aus der Kette der Übergänge her (04-governance.md §4.5)."""
-    computed = hashlib.sha256(DOM_NUC_GEN + cbor_canon.encode(genesis_obj)).digest()
+    computed = genesis_scope(genesis_obj)
     if scope != computed:
         raise ValueError("genesis_obj does not match scope")
 

@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 
-from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id
-from symbolon.domains import DOM_NUC_GEN
 from symbolon.findings import Finding, NucleusFinding, dedupe_sort
+from symbolon.genesis import genesis_scope
 from symbolon.index import classify_all
 from symbolon.policy import NucleusPolicy, constitution_hash as hash_constitution
 from symbolon.predicates import is_nuc_name
-from symbolon.verifier import ClaimStore, State
+from symbolon.verifier import ClaimStore, State, _predecessor_known_and_valid
 
 _J_TAG_IDENTITY = 1
 _J_TAG_CLAIM_REF = 2
@@ -28,19 +26,21 @@ class KeyResolution:
 
 
 def _on_author_chain(earlier: Claim, later: Claim, store: ClaimStore) -> bool:
-    """True gdw. ``earlier`` auf dem ``h_prev``-Pfad von ``later`` liegt (D154, D155 a)."""
+    """True gdw. ``earlier`` über gültige Vorgänger von ``later`` liegt (01 §6, D462)."""
     target = claim_id(earlier)
     seen: set[bytes] = set()
-    cid = later.h_prev
-    while cid not in seen:
-        if cid == target:
-            return True
-        seen.add(cid)
-        pred = store.get(cid)
-        if pred is None:
+    current = later
+    while True:
+        cid = claim_id(current)
+        if cid in seen:
             return False
-        cid = pred.h_prev
-    return False
+        seen.add(cid)
+        ok, pred = _predecessor_known_and_valid(current, store)
+        if not ok or pred is None:
+            return False
+        if claim_id(pred) == target:
+            return True
+        current = pred
 
 
 def _earliest_on_chain(
@@ -140,9 +140,7 @@ def resolve_authorized_keys(
     policy: NucleusPolicy | None = None,
 ) -> KeyResolution:
     """Anker aus Genesis und Verfassung, dann Köpfe der Ketten (00 §6.4 Schritt 1, D161)."""
-    computed_scope = hashlib.sha256(
-        DOM_NUC_GEN + cbor_canon.encode(genesis_obj)
-    ).digest()
+    computed_scope = genesis_scope(genesis_obj)
     if scope != computed_scope:
         raise ValueError("genesis_obj does not match scope")
 

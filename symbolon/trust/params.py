@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 
-from symbolon import cbor_canon
-from symbolon.domains import DOM_NUC_GEN
+from symbolon.genesis import genesis_scope
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,7 +41,7 @@ def resolve_trust_params(
 ) -> TrustParams:
     """Kalibrierung aus Genesis oder out-of-band (02-trust-flow.md §8.1, D147)."""
     if (
-        hashlib.sha256(DOM_NUC_GEN + cbor_canon.encode(genesis_obj)).digest()
+        genesis_scope(genesis_obj)
         != scope
     ):
         raise ValueError("genesis_obj does not match scope")

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -10,7 +9,7 @@ from enum import Enum
 
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id
-from symbolon.domains import DOM_NUC_GEN
+from symbolon.genesis import genesis_scope
 from symbolon.governance.findings import (
     Finding,
     GovernanceFinding,
@@ -190,7 +189,7 @@ def decide(
     if proposal.scope != epoch.scope:
         raise ValueError("proposal scope does not match epoch scope")
     if (
-        hashlib.sha256(DOM_NUC_GEN + cbor_canon.encode(genesis_obj)).digest()
+        genesis_scope(genesis_obj)
         != epoch.scope
     ):
         raise ValueError("genesis_obj does not match epoch scope")

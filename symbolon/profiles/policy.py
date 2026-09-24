@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 
-from symbolon import cbor_canon
-from symbolon.domains import DOM_NUC_GEN
+from symbolon.genesis import genesis_scope
 from symbolon.policy import NucleusPolicy, constitution_hash as hash_constitution
 from symbolon.profiles.findings import Finding, ProfileFinding, dedupe_sort
 
@@ -32,9 +30,7 @@ def resolve_policy(
     entsteht im Konstruktor von ``NucleusPolicy`` (D84), nicht hier.
     ``genesis_obj[4]`` wird nicht gelesen (D168). Hash-Abweichung ist ValueError (D167).
     """
-    computed_scope = hashlib.sha256(
-        DOM_NUC_GEN + cbor_canon.encode(genesis_obj)
-    ).digest()
+    computed_scope = genesis_scope(genesis_obj)
     if scope != computed_scope:
         raise ValueError("genesis_obj does not match scope")
 

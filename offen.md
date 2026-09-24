@@ -369,3 +369,8 @@ Zwei Arten, Änderungen als Abschnitt 2 im Index (D445); `rs/FRAGEN.md` liegt im
 ### O79 Sieben Normen aus `02 §8` und `§10` sind ungebunden — erledigt (D449)
 
 Gebunden in `tests/trust/test_bindung.py`, je mit Rücknahmeprobe (D448, D449).
+
+### O80 `disjoint_paths` im Fenster und drei ungebundene Normen aus `02`
+
+Aus D450. `disjoint_paths` wird im Fenster als eigenes Minimum gerechnet; `C(d)` einmal gerundet,
+`vouch@1` und `now` ohne `bool` werden gebunden. Auftrag `o80-fenster`.

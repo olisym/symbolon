@@ -860,7 +860,11 @@ zwei Verifizierer über demselben Bestand mit denselben Argumenten dieselbe Antw
 > zwischen den Bruchstellen konstant ist. Das Ergebnis der Anfrage ist das **Minimum** über
 > die ausgewerteten Punkte; dazu tritt als zweite Zahl die **obere Schranke**, das Maximum
 > über dieselben Punkte. Gemeldet werden die Vermerke des Punktes, der das Minimum
-> geliefert hat; bei mehreren gilt der kleinste Zeitpunkt (D406).
+> geliefert hat; bei mehreren gilt der kleinste Zeitpunkt (D406). Vom selben Punkt stammt der
+> Schnitt (§4): er erklärt den Wert. `disjoint_paths` ist dagegen ein **eigenes Minimum** über
+> dieselben Punkte. Die Zahl ist nach §8 eine Gate-Grösse und muss wie der Wert an jedem Punkt
+> des Fensters gelten. Wert und `disjoint_paths` können deshalb von verschiedenen Punkten
+> stammen; wer beide zu einem Zeitpunkt braucht, fragt punktförmig (D450).
 
 > **Gemischt wird nicht.** Kanten gegen `hi` und Budget gegen `lo` zu prüfen erhält zwar
 > `Aktiv-Set ⊆ Budget-Set`, rechnet `now` aber als zwei unabhängige Werte und enthält

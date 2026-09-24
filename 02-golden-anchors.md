@@ -397,9 +397,8 @@ anderen Anker:
 
 - **Vermerke vereinigt statt vom Minimum-Punkt genommen.** Liefert `OVERCOMMITTED_AUTHOR`, obwohl
   der zurückgegebene Wert von `601` stammt, wo BOB nach seinen eigenen Zahlen nichts vorzuwerfen
-  ist. Dass auch `cut` und `disjoint_paths` aus **einem** Punkt stammen müssen, steht in
-  `02 §11.1`; dieser Anker belegt es **nicht**, weil beide an allen vier Punkten gleich sind
-  (D408).
+  ist. Woher `cut` und `disjoint_paths` im Fenster stammen, regelt `02 §11.1` seit D450. Dieser
+  Anker belegt es **nicht**, weil beide an allen vier Punkten gleich sind (D408).
 - **Gemischte Auswertung** — Kanten gegen `hi`, Budget gegen `lo`. Liefert `0`: BOBs Pfad fällt
   über das Budget von `500`, CAROLs über die Kante von `700`. **Kein Punkt des Fensters trägt
   diesen Wert**, und genau darum ist die Mischung in `02 §11.1` ausgeschlossen.

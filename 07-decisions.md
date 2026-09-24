@@ -18822,3 +18822,82 @@ D448, Schwächste Stelle, bleibt: Gemessen ist nur, wofür eine Mutation geschri
 
 **Geändert.** `tests/trust/test_bindung.py` (Fix); `07-decisions.md`; `offen.md` (O79 in der
 Schliessform).
+
+### D450 — Bindungsmessung, zweiter Teil; `disjoint_paths` im Fenster; O80
+
+**Anlass.** D448 hat `02 §3`, `§4`, `§5`, `§8.1` und `§11` nicht gemessen. Die Entscheidung stand
+vorher fest: Eine neue ungebundene Mechanik eröffnet einen Posten, keine schliesst die Schicht.
+
+**Messung, selbst gefahren, ohne Bytecode.** Main am `5370ea2`, 44 Mutationen in `graph.py`,
+`flow.py`, `groups.py`, `params.py` und `relax.py`, je eine Mechanik. Gebunden sind 39.
+Deterministisch ungebunden sind drei:
+
+- **`C(d)` einmal am Ende gerundet** (`§3`). Schrittweises Runden bleibt grün, weil jede
+  Testwelt mit `γ = ½` und einer Zweierpotenz als `C₀` rechnet. Gegenbeispiel `C₀ = 2, γ = ¾,
+  d = 2`: am Ende gerundet `1`, schrittweise `0`.
+- **Nur `vouch@1`** (`§2`). Ohne die Versionsprüfung zählt ein `vouch@2` als Kante.
+- **`now` ist kein `bool`** (`§11.1`, `§11.2`). `TrustParams` weist `bool` zurück und ist
+  gebunden, `trust()` nimmt `True` als `now = 1`.
+
+Zwei weitere überlebten, und sie sind keine Bindungslücke, sondern eine Normlücke: Von welchem
+Punkt eines Fensters `disjoint_paths` und der Schnitt stammen. `§11.1` normiert den Wert, die
+obere Schranke und die Vermerke, sonst nichts. `02-golden-anchors.md` bei Anker 5d und D408
+berufen sich dafür auf `§11.1`, und dort steht es nicht. Die Wirkung liegt allein im Code. Das
+ist das Muster aus D443 ein zweites Mal, und D408 hat es gegen Prüfregel 80 übersehen, die es
+damals noch nicht gab.
+
+**Die Lücke hat eine Wirkung.** Welt: Anker `A` bürgt mit `n = 2` für `B` und mit `n = 1` für `C`
+und `E`. `B` bürgt mit `n = 4` für `T` und mit `n = 1` bis `1500` für `Z`, `C` und `E` bürgen je
+mit `n = 1` bis `1500` für `T`. Parameter `TP-02`. An `1000` ist `B` über-committet
+(`4 + 1 > 4`) und trägt keine Kante, `T` erhält `2 + 2 = 4` über zwei Bürgen. An `1501` sind
+`C→T` und `E→T` abgelaufen, `B` ist entlastet, und `T` erhält `8` über einen Bürgen. Das Fenster
+`[1000, 2000]` liefert Wert `4` und heute `disjoint_paths = 2`. Eine Policy „zwei knotendisjunkte
+Pfade" ginge durch, obwohl an einem zulässigen Zeitpunkt nur ein Bürge trägt.
+
+**Beschluss 1 — `disjoint_paths` ist im Fenster ein eigenes Minimum über die Punkte.** Die Zahl
+ist nach `§8` eine Gate-Grösse. Der Grund, aus dem D406 den Wert als Minimum nimmt, gilt für sie
+genauso: Der Verifizierer weiss nicht, welcher Punkt der wahre ist.
+
+**Beschluss 2 — Schnitt und Vermerke stammen vom Punkt des Werts.** Der Schnitt erklärt den Wert
+und ist kein Gate; seine Ausgabeform normiert `§4` nicht. Die Vermerke regelt D406 unverändert.
+
+**Beschluss 3 — O80 und ein Auftrag.** Code: `disjoint_paths` im Fenster als Minimum. Tests für
+die drei Bindungslücken und für beide Beschlüsse, je mit Rücknahmeprobe.
+
+**Verworfen — `disjoint_paths` vom Punkt des Werts** (heutiger Code). Das hält alle Zahlen an
+einem Zustand. Aber es überschätzt die Unabhängigkeit, wie die Welt oben zeigt, und genau in die
+unsichere Richtung.
+
+**Verworfen — beide Zahlen zurückgeben.** Ein zweites Feld für eine Grösse, von der nur eine Form
+eine Garantie trägt. Wer den Zustand eines Punktes braucht, fragt mit `lo = hi`.
+
+**Nicht „gemischt" im Sinn von D406.** D406 verbietet, innerhalb **einer** Auswertung zwei
+Zeitpunkte zu benutzen, weil das einen Wert liefert, den kein Punkt trägt. Hier trägt jede Zahl
+ein Punkt, nur das Paar nicht. Jede Zahl gilt an jedem Punkt des Fensters, und das ist die
+Garantie, die ein Gate braucht.
+
+**Golden Numbers, am Code gemessen**, der Fensterfall mit der Änderung aus Beschluss 1:
+
+- **Fenster** (Welt oben), Ziel `T`, `[1000, 2000]`: Wert `4`, obere Schranke `8`,
+  `disjoint_paths = 1`, Vermerk `OVERCOMMITTED_AUTHOR` auf `B`. Punktweise `1000`: `4` und `2`,
+  `1501`: `8` und `1`.
+- **Schnitt.** Anker `A` bürgt mit `n = 2` für `B` und `C`. `B` und `C` bürgen je mit `n = 4` für
+  `T`, `C` zusätzlich mit `n = 1` bis `1500` für `Z`. An `1000` ist `C` über-committet, Wert `8`,
+  Schnitt leer. An `1501` Wert `16`, die interne Kante von `A` bindet, Schnitt `(A)`. Das Fenster
+  `[1000, 2000]` liefert Wert `8`, Schnitt leer, `disjoint_paths = 1`.
+- **`C(d)`** mit `C₀ = 2, γ = ¾, D = 4`, Kette `A → B → X → T`, jeweils `n = 4`: `C(X) = 1`,
+  `cap(X→T) = 1`, Wert `1`, keine Vermerke. Schrittweise gerundet `0` mit `SUBGRANULAR_VOUCH`.
+- **`vouch@2`** mit `v` für `n = 4`, sonst wie ein Vouch: Wert `0`, keine Vermerke. Ohne
+  Versionsprüfung `16`.
+- **`now = True`**: `ValueError`.
+
+Mit der Änderung aus Beschluss 1 laufen alle 950 Tests grün. Kein Fenstertest trennt die beiden
+Fassungen, und `tools/ref_block.py` und `tools/sim` werten nur Punkte aus.
+
+**Schwächste Stelle.** Wie in D448: Gemessen ist, wofür eine Mutation geschrieben wurde. Das
+Deckungsverhältnis über beide Teile ist 73 von 85. Die zwölf Lücken lagen gleichmässig über die
+Abschnitte verteilt, nicht in einem. Die Rust-Fassung steht auf `573db57` und liest Beschluss 1
+nicht; ein Nachzug folgt erst, wenn eine Entscheidung daran hängt (D409 Beschluss 3).
+
+**Geändert.** `02-trust-flow.md` (`§11.1`); `02-golden-anchors.md` (Anker 5d, ein Satz);
+`07-decisions.md`; `offen.md` (O80 neu).

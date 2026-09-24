@@ -20255,3 +20255,115 @@ Nächstes Phase 3, die Oberfläche (`ROADMAP.md §5`), mit den Absichten aus D47
 
 **Geändert.** `symbolon/node/`, `tools/verein_node.py`, `tests/node/test_api.py` (über den
 Merge); `07-decisions.md`.
+
+### D479 — Phase 3: Absichten, Gerät im Browser, Weltuhr und der Schnitt in drei Aufträge
+
+**Anlass.** `ROADMAP.md §5`, D476 Beschluss 2. Gelesen: `szenario-verein §3` bis
+`szenario-verein §7`, D471, D473, D476 bis D478, `symbolon/node/api.py`, `symbolon/node/store.py`,
+`symbolon/node/view.py`, `tools/verein_node.py`, `tools/verein.py`, `claim_set` in
+`tools/example_nucleus.py`, `decide` in `symbolon/governance/tally.py`, `derive` und
+`build_groups` in `symbolon/trust/`, die Verfassungstabellen in `00 §5` und `04 §1.1`.
+
+**Befund 1 — an der echten Uhr ist das Vereinsleben leer.** Die Bürgschaften des Grundbestands
+tragen `t_exp = 1001000`, gerechnet auf `NOW = 1000` (`example-nucleus §7`). Der S-Node rechnet mit
+der Uhr des Rechners. Gemessen am Bestand aus `tools/verein_node.py`: bei `now = 1000` trägt die
+Ableitung vier Kanten und Chris steht in Distanz 1; bei der Uhr vom September 2026 trägt sie keine
+Kante, nur die beiden Anker. Annas Budget ist dort frei, und die Warnung aus `szenario-verein §3`
+käme nie. Der Bestand ist richtig, die Uhr passt nicht zu ihm.
+
+**Befund 2 — im Browser schützt Beschluss 2 aus D471 gegen Fehler, nicht gegen Bosheit.** Die
+Seite kommt vom S-Node (D476 Beschluss 5), also auch der Code, der prüft und unterschreibt. Ein
+böswilliger S-Node liefert einen Prüfer, der alles durchlässt; der nicht exportierbare Schlüssel
+verhindert nur, dass er den Schlüssel mitnimmt, nicht, dass er mit ihm unterschreibt. Die Prüfung
+im Browser fängt einen fehlerhaften S-Node. Gegen einen böswilligen hilft erst ein Gerät, dessen
+Code nicht vom S-Node kommt, wie es D471 Beschluss 1 für später vorsieht.
+
+**Befund 3 — ein S-Node zeigt die Gabelung nur nach dem Austausch.** `szenario-verein §5.2` hat
+zwei Rechner mit verschiedenem Wissen. Ein einzelner S-Node hat beide Stimmen Brunos, sobald er
+sie hat; den Zustand davor zeigt er nicht. Die Tabelle aus `szenario-verein §5.2` im Betrieb zu
+sehen verlangt zwei S-Nodes und gehört zu Phase 4 (`ROADMAP.md §6`).
+
+**Beschluss 1 — die Weltuhr.** `python -m symbolon.node` nimmt `--uhr-ab T`: die Uhr des S-Node
+ist dann `T` plus die seit dem Start vergangenen Sekunden. Ohne die Angabe bleibt es die Uhr des
+Rechners. Für den Verein ist `T = 1000`. Nach einem Neustart beginnt die Weltuhr wieder bei `T`;
+die Kette bleibt trotzdem monoton, weil `t` nie unter den Vorgänger fällt (D476 Beschluss 3).
+*Verworfen:* den Grundbestand auf die echte Uhr umrechnen. Die Claims des Beispielnukleus hätten
+dann andere Zeitstempel als `example-nucleus §7` und müssten neu gebaut werden, wo eine
+Einstellung am S-Node genügt. *Verworfen:* Bürgschaften ohne `t_exp`. Das änderte die Welt, und
+ein Budget ohne `t_exp` wird nie wieder frei (`02 §6.2`).
+
+**Beschluss 2 — Absichten über einen Pfad.** `POST /intent` nimmt `art` und die Parameter der
+Absicht, leitet daraus `p`, `J`, `v`, `N` und `t_exp` ab und bereitet wie `POST /prepare` vor; die
+Antwort ist die von `/prepare` und dazu `warnings`. Ein mitgegebenes `h_prev` nimmt der S-Node wie
+dort (D476 Beschluss 3). `POST /sim/intent` tut dasselbe für eine simulierte Person, unterschreibt
+und liefert ein, wie `POST /sim/sign` (D476 Beschluss 4), auch wenn Warnungen anstehen, und gibt
+`claim_id` und `warnings` zurück. Die Arten tragen die Namen ihrer Prädikate:
+
+| `art` | Parameter | abgeleitet |
+|---|---|---|
+| `accept-rules` | `scope`, wahlweise `constitution` | `J = [3, constitution]`, ohne Angabe die Verfassung der geltenden Epoche |
+| `propose` | `scope`, `change` | neue Verfassung und Vorschlag als Objekte, `J = [3, proposal_hash]` |
+| `vote` | `proposal`, `choice` `yes` oder `no` | `J = [3, proposal]`, `v = {0: 1}` oder `v = {0: 0}` |
+| `ratify` | `proposal` | `v = {0: yes}`, `yes` aus `decide` in der Sicht |
+| `vouch` | `scope`, `subject`, `n`, `t_exp` | `J = [1, subject]`, `v = {0: n}` |
+| `obligation` | `scope`, `creditor`, `amount`, `unit` | `J = [1, creditor]`, `v = {0: amount, 1: unit}` |
+| `receipt` | `obligation` | `J = [2, obligation]`, ohne `v`, Scope der Obligation |
+
+`p` ist jeweils `nuc:<scope>/<art>@1`, `N` der Scope. Die Wahl von `vote` kodiert `04 §2.2`.
+
+**Beschluss 3 — `propose` leitet die Verfassung aus der geltenden ab.** Grundlage ist das
+Verfassungsobjekt der geltenden Epoche, Vorgänger ihr `epoch_id`. `change` ist genau eines von
+`add` (ein Schlüssel kommt in `participants`, byteweise einsortiert, `04 §1.1`), `remove` (ein
+Schlüssel geht, die Liste bleibt nicht leer, `04 §3.5`) und `set` (ein Textfeld wird gesetzt, wie
+`beitrag` in `szenario-verein §4`). `set` weist jeden Schlüssel ab, den die Verfassungstabellen in
+`00 §5` und `04 §1.1` nennen, und jeden, den die Grundlage mit einem Wert trägt, der kein Text ist:
+ein Textfeld kann keine Rechnung ändern. Verfassung und Vorschlag werden als Objekte eingeliefert,
+bevor der Kern zurückgeht. *Verworfen:* eine ganze Verfassung als Parameter. Der Browser
+bräuchte dann den kanonischen Kodierer, den D471 Beschluss 1 ihm erspart.
+
+**Beschluss 4 — Abweisungen und Warnungen.** Eine Absicht, aus der kein wirksamer Claim werden
+kann, wird mit ihrem Namen abgewiesen: ein Vorschlag, der nicht auf die geltende Epoche zeigt,
+eine Ratifizierung ohne `PASSED`, ein `add` eines Teilnehmers, ein `remove` eines Nichtteilnehmers,
+ein `n` außerhalb von `1` bis `D`, eine Quittung, deren Autor nicht der Gläubiger ist
+(`03 §3.3.2`). Eine Absicht, deren Claim wirksam wäre und dem Unterschreibenden schadet, bekommt
+eine Warnung und wird vorbereitet: `BUDGET_FULL`, wenn die Bürgschaft den Autor nach `02 §3.1`
+überbuchte, gerechnet über dieselbe Budgetmenge wie `derive`; `ALREADY_VOTED`, wenn der Autor zu
+diesem Vorschlag schon eine Stimme im Bestand hat (`04 §3.1`). Die dritte Warnung aus
+`szenario-verein §7`, der Betrag in der Quittung, entfällt: `receipt` hat keinen Betrag.
+
+**Beschluss 5 — ein Adressbuch, kein Protokoll.** Der S-Node führt eine Tabelle, die einem
+öffentlichen Schlüssel einen Namen zuordnet, wie ein Mailprogramm sein Adressbuch. `GET /names`
+gibt Schlüssel, Namen und ob die Person simuliert ist (D471 Beschluss 3); `POST /names` setzt einen
+Namen. Der Lader trägt die fünf Namen aus `szenario-verein §2` ein. Namen sind lokal, kein Claim,
+und nichts rechnet mit ihnen. *Verworfen:* ein Namens-Claim. Er wäre neues Protokoll, das kein
+Ablauf des Vereins braucht (`ROADMAP.md §1`). Dazu `GET /objects/<hash>` mit Art und Bytes, damit
+die Oberfläche Verfassungen zeigen und vergleichen kann (`szenario-verein §4`).
+
+**Beschluss 6 — das Gerät im Browser.** Ein Ed25519-Schlüssel aus WebCrypto, nicht exportierbar,
+in IndexedDB, daneben die Spitze der eigenen Kette. Vor dem Unterschreiben dekodiert das Gerät den
+Kern, kodiert ihn für das Schema aus `01 §3` neu und vergleicht Byte für Byte; es weist ab, was
+nicht gleich ist, was Schlüssel doppelt oder außerhalb von `0` bis `8` trägt und was nicht sein
+`I` und seine Spitze als `h_prev` nennt. Der Vergleich ist so streng, weil sonst die Prüfung von
+`I` und `h_prev` ein anderes Feld lesen könnte als jeder Verifier. Die `claim_id` rechnet das
+Gerät selbst und rückt seine Spitze erst vor, wenn der S-Node denselben Wert zurückgibt. Fehlt die
+Spitze oder weicht der Vorschlag des S-Node von ihr ab, hält das Gerät an, bis der Mensch eine
+Spitze ausdrücklich bestätigt (D471 Beschluss 2). Nach Befund 2 schützt das gegen einen
+fehlerhaften S-Node. *Verworfen:* auf die Prüfung im Browser verzichten, weil der S-Node beim
+Einliefern ohnehin prüft. Der S-Node prüft die Form, nicht, ob der Kern die Spitze des Geräts
+nennt; eine Gabelung trüge die Unterschrift des Menschen.
+
+**Beschluss 7 — Oli ist die fünfte Person.** Der Mensch am Browser legt eine eigene Identität an,
+bekommt eine Bürgschaft und wird aufgenommen; die vier Menschen und die Kasse bleiben simuliert.
+Seine Aufnahme macht den Verein fünfköpfig, die Zahlen aus `szenario-verein.md` gelten dann nicht
+mehr für den laufenden Verein. Verankert bleiben sie in `tools/verein.py`. Die Gabelung spielt
+Bruno über ein Skript, das seine zwei Stimmen mit seinem Seed baut und über `POST /claims`
+einliefert: das Gerät des Menschen lässt ihn nicht gabeln, und das zeigt die Demo mit.
+
+**Beschluss 8 — drei Aufträge.** `p4-absichten`: Beschluss 1 bis 5, ohne Browser. `p5-geraet`:
+statische Dateien vom S-Node unter `default-src 'self'`, das Gerät nach Beschluss 6 und eine Seite,
+die eine Identität anlegt und einen Claim unterschreibt. `p6-oberflaeche`: die Bildschirme aus
+`szenario-verein §3` bis `szenario-verein §6`, die Aufgaben nach `szenario-verein §7`, die Sicht
+auf die Gabelung und die Skripte für die simulierten Personen. Wie das Gerät getestet wird,
+entscheidet der Eintrag vor `p5-geraet`.
+
+**Geändert.** `07-decisions.md`.

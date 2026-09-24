@@ -81,6 +81,28 @@ def test_zeile_7_schluessel_0_ist_int_eins() -> None:
     assert type(obj_04[0]) is int and obj_04[0] == 1
 
 
+def _unlesbar(data: bytes) -> None:
+    assert cbor_canon.keys_admissible(data) is False
+    assert _decode_weight(data, 8) == (None, TrustFinding.UNPARSABLE_VOUCH_PAYLOAD)
+    assert read_v_03(data) == (None, (ProfileFinding.UNPARSABLE_V,))
+    assert read_v_04(data) == (None, GovernanceFinding.UNPARSABLE_V)
+
+
+def test_map_in_array() -> None:
+    """Map in einem Array ist unlesbar (02 §3.1, D458, K4)."""
+    _unlesbar(bytes.fromhex("a200010181a1f400"))
+
+
+def test_map_unter_tag() -> None:
+    """Map unter einem Tag ist unlesbar (02 §3.1, D458, K6)."""
+    _unlesbar(bytes.fromhex("a2000101c1a1f400"))
+
+
+def test_map_in_indefinitem_array() -> None:
+    """Map in einem indefiniten Array ist unlesbar (02 §3.1, D458, K7)."""
+    _unlesbar(bytes.fromhex("a20001019fa1f400ff"))
+
+
 def test_indefinite_map_mit_unzulaessigem_schluessel() -> None:
     """Indefinite Map mit bool-Schlüssel ist unlesbar (02 §3.1, D456)."""
     data = bytes.fromhex("bff400ff")

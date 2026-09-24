@@ -39,6 +39,21 @@ from tools.example_nucleus import (
 DOC_KASSE = bytes.fromhex(
     "d54207da194977dcf46adbfec2bc2e75b52d5a8a42184fedfdc00024f0e3e8da"
 )
+DOC_CONSTITUTION_HASH_3 = bytes.fromhex(
+    "1675cd589aabf17567cadbf3bf5b5742dfbd9f089aa8e01726908a20755016fb"
+)
+DOC_PROPOSAL_3 = bytes.fromhex(
+    "6747ee5cfa15f66ddecaadc340ea304ea96a171c751505442b70093df0572b14"
+)
+DOC_EPOCH_ID_3 = bytes.fromhex(
+    "c68caa1b9fb24a2958f2ead77a4c85088e5e69d90bddc14f7b22fefd865c4887"
+)
+DOC_CONSTITUTION_HASH_4 = bytes.fromhex(
+    "a3533705454f0fafc65400a4c43b515a2dac659d0345a345f34d18fa7f4b7d47"
+)
+DOC_PROPOSAL_4 = bytes.fromhex(
+    "c22fe60ed5336899b18cef8f9f5fc327b4124fad86431893e3231629ad2be446"
+)
 BEITRAG = "24 Euro im Jahr, fällig im Januar, an die Kasse"
 EUR_CENT = bytes.fromhex("4555522d43656e74")
 
@@ -123,18 +138,42 @@ def build() -> Verein:
         key for key in ex.constitution_2["participants"] if key != ex.bruno.pub
     ]
     hash_3 = constitution_hash(constitution_3)
+    if hash_3 != DOC_CONSTITUTION_HASH_3:
+        raise AssertionError(
+            f"CONSTITUTION_HASH_3: got {hash_3.hex()}, "
+            f"expected {DOC_CONSTITUTION_HASH_3.hex()}"
+        )
     hash_4 = constitution_hash(constitution_4)
+    if hash_4 != DOC_CONSTITUTION_HASH_4:
+        raise AssertionError(
+            f"CONSTITUTION_HASH_4: got {hash_4.hex()}, "
+            f"expected {DOC_CONSTITUTION_HASH_4.hex()}"
+        )
     proposal_3 = Proposal(
         scope=ex.N_gov,
         predecessor=ex.epoch_2.epoch_id,
         constitution_hash=hash_3,
     )
     epoch_3 = Epoch(scope=ex.N_gov, index=3, constitution_hash=hash_3)
+    if epoch_3.epoch_id != DOC_EPOCH_ID_3:
+        raise AssertionError(
+            f"EPOCH_ID_3: got {epoch_3.epoch_id.hex()}, expected {DOC_EPOCH_ID_3.hex()}"
+        )
+    if proposal_3.proposal_hash != DOC_PROPOSAL_3:
+        raise AssertionError(
+            f"PROPOSAL_3: got {proposal_3.proposal_hash.hex()}, "
+            f"expected {DOC_PROPOSAL_3.hex()}"
+        )
     proposal_4 = Proposal(
         scope=ex.N_gov,
         predecessor=epoch_3.epoch_id,
         constitution_hash=hash_4,
     )
+    if proposal_4.proposal_hash != DOC_PROPOSAL_4:
+        raise AssertionError(
+            f"PROPOSAL_4: got {proposal_4.proposal_hash.hex()}, "
+            f"expected {DOC_PROPOSAL_4.hex()}"
+        )
     return Verein(
         ex=ex,
         anna=cs.anna,

@@ -20068,3 +20068,47 @@ Auszählung meldet sie nicht (D469).
 `example_nucleus.py` es für seine Objekte tut (D472).
 
 **Geändert.** `07-decisions.md`.
+
+### D474 — Prüfung `p2-node`: fremder Inhalt bricht die Sicht; Nachtrag vor dem Merge
+
+**Geprüft.** Commit `89335f5` auf `p2-node`, Basis `6a5c9f3`. Der Diff im Spiegel nennt
+`symbolon/node/` mit `store.py` und `view.py`, `tests/node/test_node.py` und die fünf Konstanten
+in `tools/verein.py`, und deckt sich mit dem Bericht. Im Klon ohne Bytecode sind es 1071 Tests,
+alle grün. Beide Rücknahmeproben selbst nachgefahren: `claim_from_bytes` statt
+`structural_check` macht genau `test_reject_claim` rot, `constitution_obj=None` genau
+`test_aufnahme`. Die Namen der Lesefunktionen und Sichttypen hat das Werkzeug gemeldet; sie
+bleiben.
+
+**Befund.** Der Bestand nimmt Objekte, deren Hash stimmt, und die Sicht bricht an ihrem Inhalt.
+Gemessen, je ein Bestand mit einem Genesis und seiner Verfassung:
+
+| Inhalt | `submit_object` | `scope_view` |
+|---|---|---|
+| Verfassung mit `participants = 5` | angenommen | `TypeError` |
+| Verfassung mit `participants = [h'78']` | angenommen | Teil Verein mit einem Teilnehmer `NONE` |
+| Genesis mit `root_keys = 5` oder ohne Key 1 | angenommen | `ValueError` aus `resolve_authorized_keys` |
+| Genesis mit formwidrigem Key 9 | angenommen | `ValueError` aus `resolve_trust_params` |
+
+Das widerspricht der Richtung aus `04 §4.5` Beschaffung: den Inhalt fremder Objekte kontrolliert
+der Aufrufer nicht, deshalb Vermerk und nicht Ausnahme. Ab P3 kommen Objekte von außen; eine Sicht,
+die an einem eingelieferten Objekt bricht, lässt jeden, der ein Objekt einliefern kann, die
+Anzeige eines Scopes abschalten. Die Lücke lag in D473, nicht im Lauf: der Auftrag hat die Lage
+nicht genannt.
+
+**Beschluss 1 — ein Genesis, an dem die Auflösung scheitert, gibt es nicht.** Die Auflösungen
+behandeln einen formwidrigen Genesis als Aufruferfehler (`03 §1.2`, `00 §4.0`). Der Bestand
+übernimmt diese Grenze beim Einliefern: ein Genesis wird nur angenommen, wenn `resolve_state` über
+einem leeren Bestand und, bei vorhandenem Key 9, `resolve_trust_params` ohne `ValueError`
+durchlaufen. *Verworfen:* eine eigene Formprüfung des Genesis im Bestand. Sie wäre eine zweite
+Fassung derselben Regeln und liefe mit der ersten auseinander.
+
+**Beschluss 2 — der Teil Verein verlangt eine wohlgeformte Liste.** Er entsteht, wenn
+`participants_wellformed` die Verfassung der erreichten Epoche annimmt. Deklariert sie
+`participants` in anderer Form, fehlt der Teil, und die Sicht trägt den Vermerk
+`MALFORMED_PARTICIPANTS` mit dem Hash dieser Verfassung als Subjekt (`04 §3.5`, D198). Die Sicht
+bekommt dafür ein Feld für Vermerke.
+
+**Beschluss 3 — Nachtrag auf demselben Branch.** Der Auftrag `p2-nachtrag` setzt beide Beschlüsse
+auf `p2-node` um, mit den vier gemessenen Lagen als Tests. Gemergt wird danach.
+
+**Geändert.** `07-decisions.md`.

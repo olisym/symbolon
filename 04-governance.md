@@ -833,7 +833,8 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
 
 - **Eine Stimme lässt sich nicht zurücknehmen.** Ohne Frist gibt es kein Fenster, nach dem es
   gleichgültig wäre; ohne Unwiderruflichkeit gibt es keine Monotonie (D97). Wer seine Meinung
-  ändert, hilft dem einmal bedachten Vorschlag weiter — und nur ihm.
+  ändert und ein zweites Mal abstimmt, nimmt beiden Stimmen die Wirkung: auf denselben Vorschlag
+  nach `§3.1`, als zweites Ja auf einen anderen derselben Epoche nach `§4.4` (D470).
 
 - **Agenda-Macht bleibt, ist aber klein.** Der Vorschlagende wählt den Inhalt. Er wählt weder die
   Wählerschaft noch einen Kantenschnitt noch einen Zweckkontext; all das ist mit dem Snapshot

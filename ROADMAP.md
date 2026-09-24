@@ -35,6 +35,8 @@ und alle sehen die Kollision mit beiden Unterschriften als Beweis (`08 §2.2`).
 
 Ergebnis: ein Szenario-Dokument. Welche Claims, wer unterschreibt was, was jeder Bildschirm zeigt,
 was fehlt. Was fehlt, bekommt einen Registereintrag, bevor gebaut wird.
+Geschrieben ist es als `szenario-verein.md` (D468); was es von Phase 2 verlangt, steht in
+`szenario-verein §7`.
 
 ## 4. Phase 2 — S-Node, Version 0
 

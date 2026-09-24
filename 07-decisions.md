@@ -19852,3 +19852,105 @@ ein Szenario sie anfasst. Im Code gibt es keinen Bond.
 **Geändert.** `02-trust-flow.md`, `03-profiles.md`, `05-enforcement.md`, `06-services.md`,
 `VISION.md` (je ein Vorbehalt); `ROADMAP.md` (`ROADMAP.md §8`); `07-decisions.md`; `offen.md` (O88
 erledigt).
+
+### D468 — Phase 1: der Verein auf Papier
+
+**Anlass.** `ROADMAP.md §3`. Gelesen vor jeder Position: `04` vollständig, `03 §1`, `03 §3`,
+`03 §4` und `03 §5`, `00 §2` bis `00 §5` und `00 §7`, `01 §4` und `01 §7`, `08 §1` bis `08 §3`,
+`05 §1` bis `05 §3`, `02 §8`, `example-nucleus.md`, dazu `membership()` und die Stimmschleife in
+`tally.py`. Das Ergebnis ist `szenario-verein.md`. Die Beschlüsse 2 und 3 und das Thema hat Oli
+entschieden.
+
+**Beschluss 1 — der Verein baut auf dem Beispielnukleus.** Dieselben Identitäten, dieselben zwei
+Scopes, Doras Aufnahme ist die aus `example-nucleus §5`; neu sind Bürgschaft, Satzungsänderung,
+Beitrag und Gabelung (`szenario-verein §1`). Thema ist eine Laufgruppe als kleiner Sportverein.
+*Verworfen:* ein frischer Satz Identitäten. Er wäre ein zweiter Anker neben dem, den
+`tools/example_nucleus.py` schon gegen die Implementierung prüft, und gewönne nichts. Die Bytes der
+neuen Objekte rechnet Phase 2 mit demselben Werkzeug, nicht dieses Dokument.
+
+**Beschluss 2 — Gläubigerin der Beiträge ist eine eigene Identität KASSE.** Seed `0x15×32`,
+öffentlicher Schlüssel `d54207da194977dcf46adbfec2bc2e75b52d5a8a42184fedfdc00024f0e3e8da`,
+abgeleitet mit `cryptography` aus dem Seed. Den Schlüssel hält die Kassenwartin auf einem Gerät.
+Das Mitglied schuldet dem Verein, nicht einer Person, und der Bildschirm kann es so sagen.
+*Verworfen:* die Kassenwartin persönlich als Gläubigerin. Der Beitrag würde zur Privatschuld und
+hinge beim Amtswechsel an ihr. *Verworfen:* ein Wurzelschlüssel des Nukleus als Gläubiger. Er
+gehört dem Governance-Scope, der Beitrag dem Ressourcen-Scope (`00 §4.2`). *Getragen:* die Quittung
+wird byteweise gegen den Gläubiger geprüft (`03 §3.3.2`), eine Rolle gibt es nicht. Ein Amtswechsel
+ist eine Schlüsselübergabe, und wer den Schlüssel einmal hatte, kann weiter quittieren. Offen als
+O89.
+
+**Beschluss 3 — nach jedem Epochenwechsel bestätigt jedes Mitglied selbst.** Auch nach einer
+reinen Aufnahme, bei der sich nur `participants` ändert. Die Annahme ist die eigene Einwilligung
+(D60); eine Automatik im Werkzeug unterschriebe in fremdem Namen. Im Verein wiegt der Preis wenig:
+das Stimmrecht hängt an `participants` (`04 §6.3`), der Beitrag an keiner Mitgliedschaft
+(`03 §5`). Der Bildschirm führt die offene Bestätigung als Aufgabe (`szenario-verein §3`).
+*Verworfen:* eine Werkzeugautomatik mit einmaliger Erlaubnis. *Verworfen:* eine Protokolländerung,
+nach der eine Aufnahme keine Neubestätigung verlangt; sie löste die Bindung beider Konjunkte an
+dasselbe Objekt (`04 §6.2`) für eine Klasse von Änderungen und bräuchte ein Szenario, das es nicht
+gibt (D467 Beschluss 3).
+
+**Beschluss 4 — Bürgschaft und Aufnahme bleiben getrennt.** Die Bürgschaft liegt im
+Ressourcen-Scope, die Aufnahme im Governance-Scope, und kein Mechanismus verknüpft sie. Verlangt
+eine Satzung eine Bürgschaft, setzen die Abstimmenden das durch; der Bildschirm zeigt die
+Bürgschaft neben dem Antrag. Die Budgetrechnung dazu steht in `szenario-verein §3`: Anna und Bruno
+stehen bei `Σ n = 100 = D`, jede weitere Bürgschaft ließe alle ihre Kanten fallen, bürgen kann nur
+Chris.
+
+**Beschluss 5 — die Antwort des Vereins auf den Regelbruch.** D467 Beschluss 1 nennt „einen
+Regelbruch bestrafen“ als eines der fünf Teilprobleme. Im Verein: die gegabelte Stimme fällt weg
+und mit ihr eine darauf gestützte Epoche (`04 §8`); der Gabelnde ist geflaggt, gleich in welchem
+Scope, und seine Bürgschaften tragen bei der Voreinstellung keine Kante mehr (`02 §8`); der
+Ausschluss ist ein Mitgliedschaftsantrag, bei vier Mitgliedern mit drei Ja, den der Betroffene mit
+einer Nein-Stimme nicht aufhält. Kein Pfand, keine Verwahrung. Was bleibt, sind Wurzel, Anker und
+Schlichterrolle in einem Scope ohne Governance; der Ausweg ist ein neuer Scope, für die Schlichter
+in O35 geführt (`szenario-verein §5.3`).
+
+**Geändert.** `szenario-verein.md` (neu); `ROADMAP.md` (`ROADMAP.md §3`); `07-decisions.md`;
+`offen.md` (O89 neu).
+
+### D469 — Die Gabelung schweigt in der Auszählung
+
+**Befund.** Zwei Stimmen desselben Autors auf denselben Vorgänger tragen beide
+`equivocation-flagged` (`01 §4`). Bedingung 6 in `04 §3.1` lässt sie fallen, ohne Vermerk; `04 §3.1`
+nennt das ausdrücklich. Ein `ratify@1`, das eine solche Stimme zitiert, trägt nicht
+(`UNSUPPORTED_RATIFICATION`), und die angehängten Vermerke der Auszählung (D203) sagen nichts über
+die Gabelung. Wer nur die Auszählung liest, sieht eine Epoche zurückfallen und erfährt nicht,
+warum.
+
+**Beschluss.** Kein Vermerk in der Auszählung. Der Beweis hat einen Produzenten, den Zustand der
+Claims; ein zweiter Kanal für denselben Befund trüge ein anderes Subjekt und liefe auseinander,
+dieselbe Begründung wie in `03 §1.2`. Den Beweis zeigt der S-Node aus dem Zustand der Claims, in
+jedem Scope, in dem der Autor vorkommt (`szenario-verein §7`). *Verworfen:* ein Vermerk
+`EQUIVOCATED_VOTE` in `tally`. Er verdoppelte `equivocation-flagged` und verlangte eine Regel, wann
+er neben `AMBIGUOUS_VOTE` steht.
+
+**Geändert.** `07-decisions.md`.
+
+### D470 — Veraltete Sätze auf dem Weg des Vereins
+
+**Befund.** Beim Lesen für D468 standen zwölf Stellen gegen `04`, einige mit Verweisen auf einen
+Abschnitt, der heute etwas anderes enthält.
+
+| Stelle | stand dort | gilt |
+|---|---|---|
+| `00 §2`, Tabelle | Änderung per „Gov-Spec §5“ | Ratifizierung, `04 §4` |
+| `00 §4`, Keys 5 bis 7 | „Gov-Spec §5“, „§4“, „§3“ | `04 §3.4`, `04 §3.5`, `04 §5` |
+| `00 §5.3` | Ratifizierung *ist* die Re-Akzeptanz per `accept-rules@1` | `ratify@1` entscheidet, die Annahme bindet nur den Annehmenden (`04 §7.1`) |
+| `00 §7` | Governance-Pfad „Gov-Spec §5“ | `04 §3` |
+| `00 §9` | `amendment_rule` unveränderlich, wer ändern will, forkt | änderbar, nicht kaperbar, `04 §3.4` |
+| `01 §7.2` | Ratifizierung durch Komposition t-of-n oder FROST-Annahme | `ratify@1` nach `04 §4`, `vote_mode = 1` nach `04 §5` |
+| `03 §1.2` | „Nukleus-Spec §5.3, Gov-Spec §5“ | `04 §4.5` |
+| `03 §4` | „Nukleus-Spec §5.3“ | `04 §4` |
+| `03 §5` | Kompositionspfad liefert `APPLICANT` | mit `constitution_obj` gilt `participants` als Aufnahme (`04 §6.2`) |
+| `04 §8` | wer seine Meinung ändert, hilft dem bedachten Vorschlag weiter | eine zweite Stimme nimmt beiden die Wirkung (`04 §3.1`, `04 §4.4`) |
+
+Die letzte Zeile war sachlich falsch, nicht nur veraltet: nach `04 §3.1` verliert der Vorschlag das
+Ja. `szenario-verein §5.1` hätte ohne die Korrektur dem Layer widersprochen.
+
+**Beschluss.** Die Stellen sind berichtigt, ohne Änderung an einer Regel. `03-prompt.md` behält
+seinen Wortlaut: es ist der Auftrag, mit dem `03` gebaut wurde, und beschreibt den Plan von damals.
+*Verworfen:* bis zu einer Leserunde warten. `ROADMAP.md §9` lässt die Härtung ruhen, außer eine
+Anwendung stolpert, und der Verein ist über `00 §5.3` und `04 §8` gestolpert.
+
+**Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `03-profiles.md`,
+`04-governance.md`, `07-decisions.md`.

@@ -46,7 +46,7 @@ ist ein Profil.
 | Objekt | Lebensdauer | Adressierung | Ändert sich per |
 |--------|-------------|--------------|-----------------|
 | **Genesis** | unveränderlich | `N = H(genesis)` (§3) | nie |
-| **Verfassung** | versioniert | Content-Hash, `accept-rules@1` zeigt darauf | Governance-Amendment (Gov-Spec §5) |
+| **Verfassung** | versioniert | Content-Hash, `accept-rules@1` zeigt darauf | Ratifizierung (`04 §4`) |
 | **Schlüssel-Nachfolge** | fortlaufend | Kette von `rotate-key@1`-Claims ab Genesis-Key | Rotation / Governance (§6) |
 
 Die drei sind bewusst entkoppelt: **`N` bleibt fix**, während Verfassung und Schlüssel wandern.
@@ -134,9 +134,9 @@ Nukleus). Pflichtfelder:
 | 2 | `key_mode` | uint | `0` = Einzelschlüssel, `1` = FROST-Gruppenschlüssel. |
 | 3 | `anchor_set` | array[bytes32] | Der **Nukleus-Seed** (Trust-Flow-Spec §6.3): das out-of-band etablierte Ankerset. |
 | 4 | `constitution_hash` | bytes32 | Hash der Verfassung der **Epoche 1** (§5). Spätere Fassungen entstehen per Ratifizierung; welche gilt, ist Parameter der Auflösung und wird nicht aus dem Genesis gelesen (D167, Profile-II §1.2). |
-| 5 | `amendment_rule` | uint | Schwellenklasse für Verfassungsänderung (§5, Gov-Spec §5). `0` = `ordinary`, `1` = `membership`, `2` = `amendment` (D104). |
-| 6 | `weight_mode` | uint | `0` = Kopfzahl, `1` = zweck-gescopt gewichtet (Gov-Spec §4). |
-| 7 | `vote_mode` | uint | `0` = Komposition (Default), `1` = FROST-Opt-in (Gov-Spec §3). Löst DR-015. |
+| 5 | `amendment_rule` | uint | Schwellenklasse für Verfassungsänderung (§5, `04 §3.4`). `0` = `ordinary`, `1` = `membership`, `2` = `amendment` (D104). |
+| 6 | `weight_mode` | uint | `0` = Kopfzahl, `1` = zweck-gescopt gewichtet (`04 §3.5`, D98). |
+| 7 | `vote_mode` | uint | `0` = Komposition (Default), `1` = FROST-Opt-in (`04 §5`). Löst DR-015. |
 | 8 | `parent_scope` | bytes32 (optional) | **Rein deklarativ.** Behauptete Zugehörigkeit oder Nachfolge; ohne mechanische Folge (§4.1, D114). |
 | 9 | `trust_params` | map (optional) | `{0: C₀, 1: γ_num, 2: γ_den, 3: D}`, alle uint. Kalibrierung des Trust-Flow (Trust-Flow-Spec §8, D115). Fehlt der Key, sind die Parameter out-of-band. |
 
@@ -272,9 +272,10 @@ schlechter: eine einzelne Fehldeklaration nähme dem Nukleus auch den Schuldensc
 
 ### 5.3 Lebenszyklus
 
-Verfassungsupdate ⇒ neues Objekt ⇒ neuer Hash. Ratifizierung *ist* die Re-Akzeptanz per
-`accept-rules@1` auf den neuen Hash über die `amendment`-Schwelle (Gov-Spec §5). **`N` bleibt
-fix**, weil `N` aus dem *Genesis*, nicht aus der Verfassung abgeleitet ist.
+Verfassungsupdate ⇒ neues Objekt ⇒ neuer Hash. Welche Fassung gilt, entscheidet ein `ratify@1`
+über die Schwelle der Klasse (`04 §4`). Die `accept-rules@1` eines Mitglieds auf den neuen Hash
+entscheidet über seine eigene Mitgliedschaft, nicht über das Zustandekommen (`04 §7.1`, D470).
+**`N` bleibt fix**, weil `N` aus dem *Genesis*, nicht aus der Verfassung abgeleitet ist.
 
 ### 5.4 `nucleus_keys` — Träger der Governance-Rotation (D150)
 
@@ -501,7 +502,7 @@ akt.I ∈ resolve_current_key(akt.N)
   handeln. Dasselbe gilt für `nucleus_keys` (§5.4) und für `arbitration.arbitrators` (§5.1): drei
   Autoritätslisten, dieselbe Regel. **Eine Schwelle trägt in v1 keine von ihnen.** Wer `k`-von-`n`
   will, hat zwei Wege, die es schon gibt: `key_mode = 1` mit FROST (§6.5) auf der Signaturebene,
-  oder den Governance-Pfad gegen `thresholds` (Gov-Spec §5). Ein dritter Weg wäre ein
+  oder den Governance-Pfad gegen `thresholds` (`04 §3`). Ein dritter Weg wäre ein
   Verfassungsknopf nach §5 und kein Protokolldefault — und er wäre für alle drei Listen zugleich
   zu entscheiden, nicht für eine.
 - `akt.N` MUSS gesetzt sein und zum aufgelösten Scope passen (Atom-Spec §2.2, Bindungsregel).
@@ -542,10 +543,10 @@ radiale Prinzip bleibt intakt.
   entstehen out-of-band. Die gesamte Sybil- und Autoritätssicherheit steht und fällt mit der
   Integrität dieser Gründungszeremonie — kein Protokollmechanismus kann eine vergiftete Gründung
   intern erkennen. Bewusst akzeptiert; eine Multi-Party-Seed-Zeremonie ist Policy, kein v1-Core.
-- **`amendment_rule` in v1 unveränderlich** (Gov-Spec §5): Wer die Meta-Regel ändern will, **forkt**
-  einen neuen Nukleus (neues `N`) und nimmt Mitglieder per Re-Akzeptanz mit. Verhindert
-  Governance-Capture der Änderungsregel selbst. Trade-off: weniger Flexibilität, keine
-  Capture-Fläche.
+- **Die Änderungsregel ist änderbar, aber nicht kaperbar** (`04 §3.4`). `genesis[5]` wählt die
+  Klasse und bleibt fest; die Schwelle der Klasse steht in der Verfassung, und ihre Änderung trägt
+  das Maximum aus alter und neuer Schwelle. Die Vorfassung — unveränderlich, wer ändern wolle,
+  forke — ist mit `04 §3.4` entfallen (D470).
 - **Governance-Rotation als Capture-Vektor.** Der Notfallpfad §6.2 könnte theoretisch von einer
   Mehrheit missbraucht werden, um einen legitimen Schlüsselhalter zu enteignen. Mitigation: hohe
   (`amendment`-)Schwelle + der Halter kann per Exit/Fork ausweichen (er behält seine *eigene*

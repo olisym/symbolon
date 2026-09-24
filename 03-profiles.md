@@ -58,7 +58,7 @@ C.N  →  Genesis-Objekt          →  Scope-Nachrechnung
 ```
 
 **`constitution_hash` ist Parameter, keine Auflösung (D167).** Welche Fassung gilt, entscheidet
-die Ratifizierung (Nukleus-Spec §5.3, Gov-Spec §5); `genesis[4]` bindet die **Epoche 1** und wird
+die Ratifizierung (`04 §4.5`); `genesis[4]` bindet die **Epoche 1** und wird
 hier nicht gelesen. Dieselbe Naht wie in `membership` (§4) und `resolve_authorized_keys`
 (Nukleus-Spec §6.4).
 
@@ -620,7 +620,7 @@ ungültig — niemand wird ohne Konsens gebunden —, aber der Zustand muss bene
 [object-hash, H(Verfassung)]` bindet eine Mitgliedschaft an eine **Version**. Nach einem
 Amendment sind alte Annahmen strukturell weiter aktiv, zeigen aber auf den vorigen Hash;
 welche Version gilt, entscheidet die Ratifizierung über die `amendment`-Schwelle
-(Nukleus-Spec §5.3) — eine Governance-Frage. Diese Schicht vergleicht byte-weise: eine Annahme
+(`04 §4`) — eine Governance-Frage. Diese Schicht vergleicht byte-weise: eine Annahme
 auf einen anderen Hash zählt für die abgefragte Version **gar nicht**. Vermerk
 `CONSTITUTION_VERSION_MISMATCH`.
 
@@ -658,10 +658,10 @@ Hirschmans Exit, strukturell verankert.
 - **`membership()` prüft `constitution_hash` und `policy` nicht gegeneinander.** Ein Aufrufer
   kann eine Policy übergeben, die aus einer anderen Verfassungsversion aufgelöst wurde. Heute
   folgenlos (keines der beiden Prädikate ist irrevocable); wird relevant, sobald es eines wird.
-- **Der Kompositionspfad aus Governance-Spec §3 wird nicht gewertet.** Bei `vote_mode = 0`
-  entsteht Mitgliedschaft durch Auszählung, ohne einzelnen `grant-membership`-Autor. Diese
-  Schicht wertet **nur** den claim-basierten Pfad; ein Nukleus im Kompositionsmodus bekommt für
-  seine ratifizierten Mitglieder `APPLICANT`, nicht `MEMBER`.
+- **Der Epochenpfad läuft über `constitution_obj`** (`04 §6.2`). Bei `vote_mode = 0` gibt es
+  keinen einzelnen `grant-membership`-Autor; die Aufnahme ist der Eintrag in `participants`.
+  Reicht der Aufrufer das Verfassungsobjekt nicht, wertet `membership()` nur den claim-basierten
+  Pfad, und ein ratifiziertes Mitglied erscheint als `APPLICANT` (D470).
 - **Keine Schlüsselauflösung.** `authorized_keys` ist Parameter; `resolve_current_key` und
   `rotate-key@1` samt Diebstahlsfällen (Nukleus-Spec §6.3) liegen außerhalb. Wer eine veraltete
   Schlüsselmenge übergibt, bekommt ein veraltetes Ergebnis — sichtbar, aber nicht erkannt.

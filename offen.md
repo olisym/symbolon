@@ -405,3 +405,9 @@ Gebunden in `tests/nucleus/test_bindung_keys.py`, Welten G1 bis G7 aus D464.
 ### O88 Den Bond recherchieren — erledigt (D467)
 
 Das Wort ist ausgemustert, fünf Teilprobleme gehen an ihre Szenarien, nichts baut auf Verwahrung.
+
+### O89 Ein Amtswechsel der Kasse ist eine Schlüsselübergabe
+
+Die Quittung wird byteweise gegen den Gläubiger geprüft (`03 §3.3.2`); wer den Schlüssel der Kasse
+einmal hatte, kann weiter quittieren. Aus D468 Beschluss 2. Öffnet mit einem Szenario, in dem das
+Amt wechselt.

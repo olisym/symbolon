@@ -613,9 +613,10 @@ Referenz-Vektor: **TV1** (Genesis-Vouch Alice → Bob, Anhang C).
   `accept-rules@1` für den neuen Hash aus **und** supersediert (`core/supersede@1`,
   `J = [claim-ref, alte_annahme.claim_id]`) die vorige Annahme. Ordnung via eigene Kette,
   nie Wall-Clock.
-- **Kollektive Ratifizierung — zwei Wege, beide außerhalb des Atoms:**
-  1. *Komposition:* N Einzel-Annahmen + Interpretationsregel „ab t-of-n gilt ratifiziert".
-  2. *FROST:* der Nukleus-Gruppenschlüssel co-signiert **eine** Ratifizierungs-Annahme.
+- **Kollektive Ratifizierung** liegt außerhalb des Atoms und ist in `04 §4` normiert: ein
+  `ratify@1` mit der Zeugenmenge der zählenden Ja-Stimmen. Die Annahme ratifiziert nicht; sie
+  entscheidet über die eigene Mitgliedschaft (`04 §7.1`). Den zweiten Pfad, `vote_mode = 1`,
+  führt `04 §5` (D470).
 - **Interpretation (Policy):** Mitgliedschaft / Konsens-Stufe 1.
 
 Referenz-Vektoren: **TV2** (Alice, verkettet auf TV1) und **TV4** (Bob, Genesis; Anhang C).

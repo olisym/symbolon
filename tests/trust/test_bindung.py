@@ -1,4 +1,4 @@
-"""Bindung von zehn Normen aus 02 §3.1, 02 §8 und 02 §10, D448, D450."""
+"""Bindung von zehn Normen aus 02 §2, 02 §3, 02 §3.1, 02 §8, 02 §10 und 02 §11 (D448, D450)."""
 
 from __future__ import annotations
 

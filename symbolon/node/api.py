@@ -16,8 +16,15 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign
 from symbolon.errors import VerifierError
+from symbolon.governance.objects import Proposal
+from symbolon.governance.tally import TallyState
+from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import fork_evidence, scope_view
+from symbolon.policy import constitution_hash
+from symbolon.predicates import is_nuc_name
+from symbolon.trust.groups import build_groups
+from symbolon.trust.params import resolve_trust_params
 
 _LIMIT = 1048576
 _HOST = "127.0.0.1"
@@ -148,6 +155,246 @@ def _submit(store: SqliteStore, core: bytes, sigma: bytes) -> bytes:
     return claim_id(claim)
 
 
+# Schlüssel der Verfassungstabellen, die set abweist (D479 Beschluss 3).
+# irrevocable_predicates, thresholds, arbitration, enforcement_policy, nucleus_keys: 00 §5.
+# participants, thresholds: 04 §1.1.
+_RESERVED = frozenset(
+    {
+        "irrevocable_predicates",
+        "thresholds",
+        "arbitration",
+        "enforcement_policy",
+        "nucleus_keys",
+        "participants",
+    }
+)
+
+_ARTS = frozenset(
+    {
+        "accept-rules",
+        "propose",
+        "vote",
+        "ratify",
+        "vouch",
+        "obligation",
+        "receipt",
+    }
+)
+
+
+class _Named(Exception):
+    """Abweisung einer Absicht mit ihrem Namen (D479 Beschluss 4)."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+        self.name = name
+
+
+def _text(value: object, key: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{key} is not text")
+    return value
+
+
+def _whole(value: object, key: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{key} is not an integer")
+    return value
+
+
+def _scope_of(store: SqliteStore, raw: object) -> bytes:
+    scope = _hex(raw, 32)
+    if scope not in store.all_genesis():
+        raise _Named("UNKNOWN_SCOPE")
+    return scope
+
+
+def _current(store: SqliteStore, scope: bytes, now: int):
+    """Geltende Epoche und ihre Verfassung (D479 Beschluss 3, 04 §1.1)."""
+    view = scope_view(store, scope, now)
+    return view, view.state.epoch, view.state.constitution_obj
+
+
+def _proposal_of(store: SqliteStore, raw: object) -> tuple[bytes, Proposal]:
+    digest = _hex(raw, 32)
+    found = store.all_proposals().get(digest)
+    if found is None:
+        raise _Named("UNKNOWN_PROPOSAL")
+    return digest, found
+
+
+def _require_current(store: SqliteStore, proposal: Proposal, now: int):
+    view, epoch, _constitution = _current(store, proposal.scope, now)
+    if proposal.predecessor != epoch.epoch_id:
+        raise _Named("NOT_CURRENT")
+    return view, epoch
+
+
+def _budget_of(store: SqliteStore, scope: bytes, author: bytes, now: int) -> tuple[int, int]:
+    """Summe aus Schritt 4 von derive, über build_groups (D479 Beschluss 4, 02 §3.1)."""
+    genesis = store.all_genesis()[scope]
+    params = resolve_trust_params(scope=scope, genesis_obj=genesis)
+    groups, _findings = build_groups(
+        store.all_claims(), classify_all(store, now), scope, params.D, now
+    )
+    total = 0
+    for (who, _subject), group in groups.items():
+        if who == author:
+            total += group.n_budget
+    return total, params.D
+
+
+def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes:
+    """Neue Verfassung und Vorschlag aus der geltenden Epoche (D479 Beschluss 3, 04 §1.1, 04 §2.4, 04 §3.5)."""
+    if not isinstance(change, dict) or len(change) != 1 or not set(change) <= {"add", "remove", "set"}:
+        raise _Named("INVALID_CHANGE")
+    _view, epoch, constitution = _current(store, scope, now)
+    if not isinstance(constitution, dict) or not isinstance(constitution.get("participants"), list):
+        raise _Named("INVALID_CHANGE")
+    updated = dict(constitution)
+    if "add" in change:
+        key = _hex(change["add"], 32)
+        if key in updated["participants"]:
+            raise _Named("ALREADY_PARTICIPANT")
+        updated["participants"] = sorted([*updated["participants"], key])
+    elif "remove" in change:
+        key = _hex(change["remove"], 32)
+        if key not in updated["participants"]:
+            raise _Named("NOT_PARTICIPANT")
+        remaining = [item for item in updated["participants"] if item != key]
+        if not remaining:
+            raise _Named("EMPTY_PARTICIPANTS")
+        updated["participants"] = remaining
+    else:
+        spec = change["set"]
+        if not isinstance(spec, dict) or set(spec) != {"field", "text"}:
+            raise _Named("INVALID_CHANGE")
+        field = _text(spec["field"], "field")
+        text = _text(spec["text"], "text")
+        if field in _RESERVED:
+            raise _Named("RESERVED_FIELD")
+        current = constitution.get(field)
+        if current is not None and not isinstance(current, str):
+            raise _Named("RESERVED_FIELD")
+        updated[field] = text
+    digest = constitution_hash(updated)
+    store.submit_object(ObjectKind.CONSTITUTION, cbor_canon.encode(updated))
+    proposal = Proposal(scope=scope, predecessor=epoch.epoch_id, constitution_hash=digest)
+    store.submit_object(
+        ObjectKind.PROPOSAL,
+        cbor_canon.encode(
+            {0: proposal.scope, 1: proposal.predecessor, 2: proposal.constitution_hash}
+        ),
+    )
+    return proposal.proposal_hash
+
+
+def _intent_body(
+    store: SqliteStore, body: Mapping[str, Any], now: int
+) -> tuple[dict[str, Any], list[str]]:
+    """Ableitung einer Absicht auf den Rumpf von _prepare (D479 Beschluss 2, 04 §2.1, 04 §2.2, 04 §2.3)."""
+    author = _hex(_require(body, "I"), 32)
+    art = _text(_require(body, "art"), "art")
+    if art not in _ARTS:
+        raise _Named("UNKNOWN_ART")
+    warnings: list[str] = []
+    fields: dict[str, Any] = {"I": author.hex()}
+    if "h_prev" in body:
+        fields["h_prev"] = body["h_prev"]
+    if art == "accept-rules":
+        scope = _scope_of(store, _require(body, "scope"))
+        if "constitution" in body:
+            constitution = _hex(body["constitution"], 32)
+        else:
+            _view, epoch, _constitution = _current(store, scope, now)
+            constitution = epoch.constitution_hash
+        fields.update(p=f"nuc:{scope.hex()}/accept-rules@1", J=[3, constitution.hex()], N=scope.hex())
+    elif art == "propose":
+        scope = _scope_of(store, _require(body, "scope"))
+        proposal = _change(store, scope, _require(body, "change"), now)
+        fields.update(p=f"nuc:{scope.hex()}/propose@1", J=[3, proposal.hex()], N=scope.hex())
+    elif art == "vote":
+        digest, proposal = _proposal_of(store, _require(body, "proposal"))
+        _require_current(store, proposal, now)
+        choice = _text(_require(body, "choice"), "choice")
+        if choice not in {"yes", "no"}:
+            raise ValueError("choice is not yes or no")
+        encoded = cbor_canon.encode({0: 1 if choice == "yes" else 0})
+        fields.update(
+            p=f"nuc:{proposal.scope.hex()}/vote@1",
+            J=[3, digest.hex()],
+            v=encoded.hex(),
+            N=proposal.scope.hex(),
+        )
+        for claim in store.all_claims():
+            if (
+                claim.I == author
+                and claim.N == proposal.scope
+                and claim.J == (3, digest)
+                and is_nuc_name(claim, "vote")
+            ):
+                warnings.append("ALREADY_VOTED")
+                break
+    elif art == "ratify":
+        digest, proposal = _proposal_of(store, _require(body, "proposal"))
+        view, _epoch = _require_current(store, proposal, now)
+        tally = None
+        if view.verein is not None:
+            for key, result in view.verein.decisions:
+                if key == digest:
+                    tally = result
+                    break
+        if tally is None or tally.state is not TallyState.PASSED:
+            raise _Named("NOT_PASSED")
+        fields.update(
+            p=f"nuc:{proposal.scope.hex()}/ratify@1",
+            J=[3, digest.hex()],
+            v=cbor_canon.encode({0: list(tally.yes)}).hex(),
+            N=proposal.scope.hex(),
+        )
+    elif art == "vouch":
+        scope = _scope_of(store, _require(body, "scope"))
+        subject = _hex(_require(body, "subject"), 32)
+        weight = _whole(_require(body, "n"), "n")
+        expiry = _whole(_require(body, "t_exp"), "t_exp")
+        total, limit = _budget_of(store, scope, author, now)
+        if weight < 1 or weight > limit:
+            raise _Named("INVALID_WEIGHT")
+        if total + weight > limit:
+            warnings.append("BUDGET_FULL")
+        fields.update(
+            p=f"nuc:{scope.hex()}/vouch@1",
+            J=[1, subject.hex()],
+            v=cbor_canon.encode({0: weight}).hex(),
+            N=scope.hex(),
+            t_exp=expiry,
+        )
+    elif art == "obligation":
+        scope = _scope_of(store, _require(body, "scope"))
+        creditor = _hex(_require(body, "creditor"), 32)
+        amount = _whole(_require(body, "amount"), "amount")
+        unit = _text(_require(body, "unit"), "unit").encode("utf-8")
+        fields.update(
+            p=f"nuc:{scope.hex()}/obligation@1",
+            J=[1, creditor.hex()],
+            v=cbor_canon.encode({0: amount, 1: unit}).hex(),
+            N=scope.hex(),
+        )
+    else:
+        digest = _hex(_require(body, "obligation"), 32)
+        obligation = store.get(digest)
+        if obligation is None or not is_nuc_name(obligation, "obligation") or obligation.N is None:
+            raise _Named("UNKNOWN_OBLIGATION")
+        if author != obligation.J[1]:
+            raise _Named("NOT_CREDITOR")
+        fields.update(
+            p=f"nuc:{obligation.N.hex()}/receipt@1",
+            J=[2, digest.hex()],
+            N=obligation.N.hex(),
+        )
+    return fields, warnings
+
+
 class _Forked(Exception):
     """Mehr als eine Spitze (D476 Beschluss 3)."""
 
@@ -182,6 +429,8 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
                 self._send(409, "more than one tip")
             except _Missing:
                 self._send(404, "not found")
+            except _Named as exc:
+                self._send(400, exc.name)
             except VerifierError as exc:
                 self._send(400, type(exc).__name__)
             except ValueError as exc:
@@ -203,7 +452,25 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
             if not post and path == "/forks":
                 self._send(200, fork_evidence(store, clock()))
                 return
-            if post and path in {"/objects", "/claims", "/prepare", "/submit", "/sim/sign"}:
+            if not post and path == "/names":
+                self._send(200, _names(store))
+                return
+            if not post and path.startswith("/objects/"):
+                found = store.object_at(_hex(path[len("/objects/") :], 32))
+                if found is None:
+                    raise _Missing()
+                self._send(200, {"kind": found[0], "data": found[1]})
+                return
+            if post and path in {
+                "/objects",
+                "/claims",
+                "/prepare",
+                "/submit",
+                "/sim/sign",
+                "/intent",
+                "/sim/intent",
+                "/names",
+            }:
                 body = self._json_body()
                 if path == "/objects":
                     kind = ObjectKind(_require(body, "kind"))
@@ -218,6 +485,20 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
                     prepared = _prepare(store, body, clock)
                     self._send(200, _prepared_body(prepared))
                     return
+                if path == "/intent":
+                    fields, warnings = _intent_body(store, body, clock())
+                    prepared = _prepare(store, fields, clock)
+                    answered = _prepared_body(prepared)
+                    answered["warnings"] = warnings
+                    self._send(200, answered)
+                    return
+                if path == "/names":
+                    name = _require(body, "name")
+                    if not isinstance(name, str) or not 1 <= len(name) <= 64:
+                        raise ValueError("name is not 1 to 64 characters")
+                    store.add_name(_hex(_require(body, "I"), 32), name)
+                    self._send(200, {})
+                    return
                 if path == "/submit":
                     cid = _submit(
                         store,
@@ -229,6 +510,17 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
                 seed = store.sim_seed(_hex(_require(body, "I"), 32))
                 if seed is None:
                     raise _Missing()
+                if path == "/sim/intent":
+                    fields, warnings = _intent_body(
+                        store,
+                        {key: value for key, value in body.items() if key != "h_prev"},
+                        clock(),
+                    )
+                    prepared = _prepare(store, fields, clock)
+                    sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
+                    cid = _submit(store, core_bytes(prepared), sigma)
+                    self._send(200, {"claim_id": cid, "warnings": warnings})
+                    return
                 prepared = _prepare(
                     store, {key: value for key, value in body.items() if key != "h_prev"}, clock
                 )
@@ -278,6 +570,16 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
             self.wfile.write(encoded)
 
     return Handler
+
+
+def _names(store: SqliteStore) -> list[dict[str, object]]:
+    """Adressbuch: Schlüssel, Name, simuliert (D479 Beschluss 5, D471 Beschluss 3)."""
+    named = store.all_names()
+    simulated = store.sim_pubs()
+    rows = []
+    for pub in sorted(set(named) | simulated):
+        rows.append({"I": pub, "name": named.get(pub), "simulated": pub in simulated})
+    return rows
 
 
 def _prepared_body(claim: Claim) -> dict[str, object]:

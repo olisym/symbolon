@@ -49,6 +49,10 @@ class SqliteStore:
                 pub BLOB PRIMARY KEY,
                 seed BLOB NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS names (
+                pub BLOB PRIMARY KEY,
+                name TEXT NOT NULL
+            );
             """
         )
         self._db.commit()
@@ -198,3 +202,31 @@ class SqliteStore:
         if row is None:
             return None
         return row[0]
+
+    def sim_pubs(self) -> set[bytes]:
+        """Öffentliche Schlüssel der simulierten Personen (D471 Beschluss 3, D479 Beschluss 5)."""
+        rows = self._db.execute("SELECT pub FROM sim_keys").fetchall()
+        return {row[0] for row in rows}
+
+    def add_name(self, pub: bytes, name: str) -> None:
+        """Setzt den Namen eines Schlüssels, auch wiederholt (D479 Beschluss 5)."""
+        self._db.execute(
+            "INSERT INTO names (pub, name) VALUES (?, ?) "
+            "ON CONFLICT(pub) DO UPDATE SET name = excluded.name",
+            (pub, name),
+        )
+        self._db.commit()
+
+    def all_names(self) -> dict[bytes, str]:
+        """Namen des Adressbuchs, Abbildung vom Schlüssel auf den Namen (D479 Beschluss 5)."""
+        rows = self._db.execute("SELECT pub, name FROM names").fetchall()
+        return {row[0]: row[1] for row in rows}
+
+    def object_at(self, digest: bytes) -> tuple[str, bytes] | None:
+        """Art und Bytes eines Objekts, oder None (D479 Beschluss 5)."""
+        row = self._db.execute(
+            "SELECT kind, data FROM objects WHERE hash = ?", (digest,)
+        ).fetchone()
+        if row is None:
+            return None
+        return row[0], row[1]

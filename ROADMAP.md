@@ -19,7 +19,7 @@ Schlüsselrotation, Widerspruchserkennung. Keine Anwendung soll neues Protokoll 
 ## 2. Phase 0 — Neuausrichtung
 
 D466. Restack ist abgekoppelt, die Härtung ruht, diese Roadmap gilt, das erste Szenario ist ein
-Verein. Offen aus dieser Phase: die Frage, ob es den Bond überhaupt geben soll (O88).
+Verein. Aus dieser Phase: der Bond ist ausgemustert (D467).
 
 ## 3. Phase 1 — Der Verein auf Papier
 
@@ -65,7 +65,7 @@ Referenzpfad RNS/LXMF).
 
 Bewusst offen. Kandidaten sind die Food-Koop, ein freier Markt, eine Versicherung, ein
 Sicherheitsdienst. Was davon kommt und in welcher Reihenfolge, entscheidet sich nach Phase 5.
-Szenarien, die den Bond brauchen, warten auf O88.
+Den Bond gibt es nicht mehr; was er lösen sollte, beantwortet jedes Szenario für sich (D467).
 
 ## 9. Was ruht
 

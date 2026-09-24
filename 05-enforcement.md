@@ -31,6 +31,11 @@ Severity steigt nach oben. Jede Stufe nutzt ein **bestehendes** Primitiv.
 
 Keiner dieser Punkte ist ein neues Atom-Feld. Das Mandat ist Komposition (§7).
 
+**Unter Vorbehalt (D467).** Stufe 3 und das bond-bewehrte Mandat in Stufe 5 hängen am Bond. Das Wort
+„Bond“ ist ausgemustert: darunter lagen fünf verschiedene Probleme, die je ihr Szenario beantwortet.
+Kein Mechanismus baut auf einer Stelle auf, die fremden Wert verwahrt oder einzieht. Der Text hier
+bleibt, bis ein Szenario ihn anfasst.
+
 ---
 
 ## 2. Reputation & Trust als Stufen 1–2 (Selbstheilung eingebaut)

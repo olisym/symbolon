@@ -45,6 +45,8 @@ der Beweis, dass es kein Wunschbild ist, sondern Infrastruktur.
   *bedingte* Verbindlichkeit, fällig bei einem Ereignis) und Bonds hinterlegt. Kein teures
   Gebäude, kein Vorstand — ein Schlüsselsatz und Claims. Reputation über zweck-gescopten
   Trust-Flow. Versichert-sein heißt Mitglied im Versicherer-Nukleus sein.
+  Das Hinterlegen von Bonds steht unter Vorbehalt (D467); als Muster ohne Konzern dient eine
+  kleine Gruppe, die Risiken unter sich teilt.
 - **Rechtsprechungs-Dienstleister.** Schiedsstellen und Gerichte als *konkurrierende Dienste*.
   Ein Urteil bindet nur, wenn beide Streitparteien sich vorab auf den Schlichter geeinigt haben
   (direkt oder delegiert über ihre Versicherer, die vertrauenswürdige Schlichter in ihrem

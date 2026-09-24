@@ -402,11 +402,6 @@ Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py
 
 Gebunden in `tests/nucleus/test_bindung_keys.py`, Welten G1 bis G7 aus D464.
 
-### O88 Den Bond recherchieren, bevor irgendetwas auf ihm aufbaut
+### O88 Den Bond recherchieren — erledigt (D467)
 
-Aus D466 Beschluss 5. Wer hält den Wert, der verloren gehen kann? Jede verwahrende Stelle ist
-Machtkonzentration und Honigtopf. Zu prüfen: Verwahrung und Slashing in bestehenden Systemen und
-ihre Schäden; Formen ohne Verwahrer (Selbstverwahrung mit Zeitsperre, Verbrennen, Schlüsselpreisgabe
-bei Widerspruch, soziale Sicherheit über Bürgen, Pfand je Geschäft mit gewähltem Schlichter); und ob
-Reputation und Ausschluss (`05 §1` Stufen 1, 2 und 4) allein tragen. Ergebnis: ein Eintrag, der den
-Bond behält, ersetzt oder streicht.
+Das Wort ist ausgemustert, fünf Teilprobleme gehen an ihre Szenarien, nichts baut auf Verwahrung.

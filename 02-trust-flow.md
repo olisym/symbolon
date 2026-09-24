@@ -538,6 +538,11 @@ Projektion.
 
 ### 6.1 Bond: Oberseite verboten, Unterseite erlaubt
 
+**Unter Vorbehalt (D467).** Die Oberseite bleibt verboten: nichts, was jemand hinterlegt, gibt
+Kapazität oder Gewicht. Das Wort „Bond“ ist ausgemustert: darunter lagen fünf verschiedene Probleme,
+die je ihr Szenario beantwortet. Kein Mechanismus baut auf einer Stelle auf, die fremden Wert
+verwahrt oder einzieht. Der Text hier bleibt, bis ein Szenario ihn anfasst.
+
 - Die Kapazitätsfunktion `C(·)` liest `v.bond_ref` **nicht**. Zwei Menschen an gleicher
   struktureller Position bekommen identische Kapazität, egal ob reich oder arm.
 - Die **einzige** Protokollwirkung eines Bonds: er macht den Vouch unter einem

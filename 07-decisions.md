@@ -19793,3 +19793,62 @@ finden. Oli will das nicht. Der Spiegel besteht und bleibt die Lesequelle des Su
 englische Schale wird nicht geschrieben. Beteiligte werden simuliert (`ROADMAP.md §6`).
 
 **Geändert.** `ROADMAP.md` (neu); `07-decisions.md`; `offen.md` (O52 und O53 entfallen, O88 neu).
+
+### D467 — O88 geschlossen: das Wort „Bond“ ausgemustert, fünf Teilprobleme, keine Verwahrung
+
+**Anlass.** O88 aus D466, Runde A der Recherche und die Aussprache danach. Oli hat sich jede
+Folgerung unten zu eigen gemacht.
+
+**Was die Recherche fand.** Gefährlich ist nicht das Pfand, sondern drei Dinge um es herum. Eine
+verwahrende Stelle in der Mitte: Bisq ist vom 2-von-3-Pfand mit Schlichterschlüssel auf 2-von-2
+umgestiegen, weil ein unehrlicher oder gehackter Schlichter stehlen konnte; eine Cashu-Mint kann das
+Geld allein veruntreuen. Pooling wegen hoher Einstiegssummen: bei Ethereum hielt Lido 2022 rund 30
+und 2025 rund 27 Prozent des gestakten Bestands. Ein Einsatz, der Einfluss kauft: selbst
+JoinMarket gewichtet quadratisch und belohnt damit Bündelung. Gegen das Dritte schützt `02 §6.1`
+schon, gegen die ersten beiden nichts. Ohne Verwahrer funktionieren: selbst gesperrte Pfänder
+(Fidelity Bonds, BIP 46), Pfand je Geschäft ohne Schlichterschlüssel (Bisq ab 1.2), Reputation statt
+Pfand für Neulinge (Bisq Easy), Risikoteilung in kleinen Gruppen (Broodfonds, 20 bis 50 Personen),
+soziale Sicherheit über Vertrauensnetze (Karlan, Mobius, Rosenblat, Szeidl, QJE 2009; dort ist
+Vertrauen der größte leihbare Betrag, also ein Max-Flow wie in `02`). Signaturen, die bei einem
+Widerspruch den Schlüssel preisgeben (Poettering und Stebila, ESORICS 2014; Ruffing, Kate,
+Schröder, CCS 2015), passen genau auf `(I, h_prev)`, machen aber einen ehrlichen Fehler, etwa ein
+doppelt signierendes Backup, zur Katastrophe.
+
+**Beschluss 1 — das Wort „Bond“ ist ausgemustert.** Darunter lagen fünf verschiedene Probleme:
+Identitäten teuer machen, ein einzelnes Geschäft absichern, einen Regelbruch bestrafen, Risiken
+teilen, einen Dienstleister glaubwürdig machen. Jedes bekommt seine Antwort in dem Szenario, das es
+braucht, nicht vorab im Protokoll.
+
+**Beschluss 2 — nichts baut auf Verwahrung.** Kein Mechanismus setzt eine Stelle voraus, die
+fremden Wert hält oder einzieht, und kein Einsatz gibt Kapazität oder Gewicht. Wo Beteiligte Geld
+brauchen, vereinbaren sie es außerhalb des Protokolls und verweisen per Hash darauf, wie `03 §3.2`
+es für Trägerwert schon vorsieht. Einigt sich eine Gruppe auf einen gemeinsamen Topf mit
+verteilter Verwahrung, ist das ihre Vereinbarung, klein und auf sie begrenzt.
+
+**Beschluss 3 — keine Protokolländerung ohne Szenario.** Signaturen mit Schlüsselpreisgabe würden
+das Atom ändern (`01`). Sie bleiben geparkt, bis ein Fall sie verlangt und die Folgen für Anwender
+beherrschbar sind. Wer eine Anwendung benutzt, liest keine Konsequenzen.
+
+**Beschluss 4 — Wahrheit und Durchsetzung sind Anwendungsfragen, keine Grundlagenlücken.** Das
+Protokoll stellt nicht fest, ob ein Versicherungsfall eingetreten ist (`08 §2.1`). Das tun Menschen,
+deren Aussagen zurechenbar sind und deren Widersprüche kollidieren. Die Durchsetzung bleiben
+Reputation, Vertrauensentzug und Ausschluss (`05 §1` Stufen 1, 2 und 4). Die Grundlagen sind für
+den Weg der Roadmap fertig.
+
+**Beschluss 5 — die Texte, die den Bond tragen, bekommen einen Vorbehalt.** `02 §6.1`, `03 §2.3`,
+`05 §1` Stufen 3 und 5, `06 §7` und die Versicherung in `VISION §3`. Umgeschrieben werden sie, wenn
+ein Szenario sie anfasst. Im Code gibt es keinen Bond.
+
+**Festgehalten aus der Aussprache, nicht beschlossen.**
+- Eine eigene Währung ist schon angelegt: `obligation@1` mit `unit_ref` (`03 §3.3`), wertlos, bis
+  jemand sie annimmt, der Preis bildet sich außerhalb. Kandidat für ein späteres Szenario.
+- Olis Bild einer Versicherung: der Beitrag ist weg, Auszahlungen sind für die Mitglieder nicht
+  einsehbar, bekannt ist nur, dass genug da ist, ein Überschuss fließt am Periodenende zurück. Das
+  bringt einen Topf mit verteilter Verwahrung zurück, etwa eine Föderation wie Fedimint, und
+  verschiebt Vertrauen auf den, der die Fälle prüft. Wird mit dem Versicherungsszenario entschieden.
+- Vertrauen ist unter Fremden gefährlich; der Trust-Flow begrenzt den Schaden eines Unterwanderers
+  auf das Vertrauen, das ihm zugeflossen ist.
+
+**Geändert.** `02-trust-flow.md`, `03-profiles.md`, `05-enforcement.md`, `06-services.md`,
+`VISION.md` (je ein Vorbehalt); `ROADMAP.md` (`ROADMAP.md §8`); `07-decisions.md`; `offen.md` (O88
+erledigt).

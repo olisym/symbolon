@@ -200,6 +200,11 @@ Protokoll-Zwang — konsistent mit „detect-not-prevent" und dem freien Dienst-
 
 ## 7. Staking — Dienst-Bond (downside-only)
 
+**Unter Vorbehalt (D467).** Die Glaubwürdigkeit eines Dienstes trägt bis dahin seine Reputation. Das
+Wort „Bond“ ist ausgemustert: darunter lagen fünf verschiedene Probleme, die je ihr Szenario
+beantwortet. Kein Mechanismus baut auf einer Stelle auf, die fremden Wert verwahrt oder einzieht.
+Der Text hier bleibt, bis ein Szenario ihn anfasst.
+
 Ein Dienst-Bond ist ein `bond_ref` im Deskriptor (§2.1) und folgt **exakt** der Bond-Semantik aus
 Trust-Flow §6.1:
 

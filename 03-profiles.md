@@ -236,6 +236,11 @@ Frage: **bindet dieses Verdikt?** (§2.4)
 
 ### 2.3 Wann ein Bond schlitzt (V2)
 
+**Unter Vorbehalt (D467).** Die Einteilung objektiv, Über-Commitment und subjektiv bleibt gültig;
+offen ist, was statt eines Slash folgt. Das Wort „Bond“ ist ausgemustert: darunter lagen fünf
+verschiedene Probleme, die je ihr Szenario beantwortet. Kein Mechanismus baut auf einer Stelle auf,
+die fremden Wert verwahrt oder einzieht. Der Text hier bleibt, bis ein Szenario ihn anfasst.
+
 - **Objektiver Fehler** (Equivocation): der Beweis ist selbst-validierend — zwei gültige
   Signaturen, gleiches `(I, h_prev)`, verschiedene `claim_id` (Atom-Spec §4). Es braucht
   **kein** Verdikt; der Slash läuft **mechanisch** in der ökonomischen Schicht.

@@ -19,9 +19,8 @@ Implementierung geprüft. Der Verein übernimmt das unverändert (D468 Beschluss
 Identitäten, dieselben Hashes, dieselbe Aufnahme. Neu sind die Bürgschaft vor der Aufnahme, die
 Satzungsänderung, der Beitrag und die Gabelung.
 
-Die Bytes der neuen Objekte (die Satzung mit Beitrag, ihre Vorschläge, die Claims ab `V1`) rechnet
-Phase 2 mit demselben Werkzeug. Getippte Hashes veralten still; deshalb stehen hier nur Namen und
-die Arithmetik, die sich ohne Bytes prüfen lässt.
+Die neuen Objekte rechnet `tools/verein.py` mit demselben Werkzeug und prüft dabei jeden Zustand
+aus diesem Dokument (D472). Ihre Hashes stehen in `§9`, aus der Ausgabe des Laufs kopiert.
 
 ---
 
@@ -305,3 +304,23 @@ Keiner der drei Abläufe braucht neues Protokoll. Gefunden wurde:
 - **Die Auszählung schweigt über Gabelungen.** Getragen, der S-Node zeigt sie (D469).
 - **Sätze in `00`, `01`, `03` und `04`, die nicht mehr stimmen,** wurden beim Lesen gefunden und
   berichtigt (D470).
+
+---
+
+## 9. Die gerechneten Objekte
+
+Ausgabe von `python -m tools.verein` am Commit `2d70cca`, kopiert, nicht abgeschrieben (D472).
+
+```
+constitution_3  1675cd589aabf17567cadbf3bf5b5742dfbd9f089aa8e01726908a20755016fb
+proposal_3      6747ee5cfa15f66ddecaadc340ea304ea96a171c751505442b70093df0572b14
+epoch_3         c68caa1b9fb24a2958f2ead77a4c85088e5e69d90bddc14f7b22fefd865c4887
+constitution_4  a3533705454f0fafc65400a4c43b515a2dac659d0345a345f34d18fa7f4b7d47
+proposal_4      c22fe60ed5336899b18cef8f9f5fc327b4124fad86431893e3231629ad2be446
+KASSE           d54207da194977dcf46adbfec2bc2e75b52d5a8a42184fedfdc00024f0e3e8da
+```
+
+`constitution_3` ist die Satzung mit Beitrag aus `§4`, `proposal_3` ihr Antrag auf Epoche 2,
+`epoch_3` die Epoche, die er öffnet. `constitution_4` und `proposal_4` sind der Ausschluss aus
+`§5.3`. Die Claims `V1` bis `V21` tragen keine festen Hashes: ihre Zeitstempel sind Parameter der
+Welt, nicht Teil des Szenarios.

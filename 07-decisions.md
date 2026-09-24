@@ -20002,3 +20002,29 @@ Die Hashes der neuen Objekte werden erst verankert, wenn `szenario-verein.md` si
 von P1 trägt.
 
 **Geändert.** `07-decisions.md`.
+
+### D472 — Abnahme `p1-verein`; die Hashes des Vereins verankert
+
+**Geprüft.** Commit `2d70cca` auf `p1-verein`, Basis `980474d`. Der Diff im Spiegel nennt nur
+`tools/verein.py` und `tests/test_verein.py` und ist vollständig gelesen. Im Klon ohne Bytecode
+sind es 1065 Tests, alle grün; `python -m tools.verein` druckt dieselbe Tabelle wie der Bericht.
+Jede der 15 Prüfungen aus dem Auftrag ist eine eigene Funktion mit eigenem Test und nennt ihren
+Abschnitt. Keine Rechnung widerspricht `szenario-verein.md`.
+
+**Rücknahmeproben selbst nachgefahren**, in der Sache. `include_flagged=True` in Prüfung 12 macht
+genau `test_flagged_trust` rot. Für D469 in Prüfung 10: eine Zeile in der Stimmschleife von
+`symbolon/governance/tally.py`, die für eine nicht aktive Stimme einen Vermerk mit ihrer
+`claim_id` anhängt, macht genau `test_exchange` rot. Die Prüfung sieht also, wenn die Auszählung
+über die Gabelung zu sprechen beginnt.
+
+**Die zweite Probe im Auftrag war falsch gestellt.** Sie verlangte, den Ja-Zweig mit `signieren`
+statt `gabeln` zu erzeugen; der Auftrag ließ ihn aber schon mit `signieren` entstehen. Das Werkzeug
+hat das gemeldet und die sinnvolle Umkehrung gefahren: das Ja rückt die Spitze vor, bevor das Nein
+gegabelt wird. Die Meldung war richtig; die Probe oben ersetzt sie in der Sache.
+
+**Beschluss.** Gemergt. Die Hashes der neuen Objekte stehen in `szenario-verein §9`, aus der
+Ausgabe kopiert. Konstanten in `tools/verein.py`, die sie gegen das Dokument halten, baut der erste
+Schritt von P2 mit, so wie `example_nucleus.py` es für seine Objekte tut.
+
+**Geändert.** `tools/verein.py` und `tests/test_verein.py` (über den Merge);
+`szenario-verein.md`; `07-decisions.md`.

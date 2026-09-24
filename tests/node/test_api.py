@@ -21,11 +21,28 @@ from cryptography.hazmat.primitives.serialization import (
 from symbolon import cbor_canon
 from symbolon.atom import claim_id, id_genesis_anchor, signed_bytes
 from symbolon.domains import DOM_CID, DOM_SIG
+from symbolon.governance.objects import Epoch
 from symbolon.node.api import serve
 from symbolon.node.store import SqliteStore
+from symbolon.node.__main__ import uhr_ab
 from symbolon.policy import constitution_hash
+from symbolon.trust.params import resolve_trust_params
 from tools.example_nucleus import NOW, _nuc
-from tools.verein import _T_ANNA, _T_BRUNO, _T_CHRIS, _accept, _fork_bruno, build
+from tools.verein import (
+    BEITRAG,
+    DOC_CONSTITUTION_HASH_3,
+    DOC_CONSTITUTION_HASH_4,
+    DOC_EPOCH_ID_3,
+    DOC_PROPOSAL_3,
+    DOC_PROPOSAL_4,
+    _T_ANNA,
+    _T_BRUNO,
+    _T_CHRIS,
+    _accept,
+    _fork_bruno,
+    _obligation,
+    build,
+)
 from tools.verein_node import anlegen
 
 
@@ -484,6 +501,418 @@ def test_verfassung_des_vereinslebens(tmp_path) -> None:
         assert "CONSTITUTION_UNAVAILABLE" not in kinds
     finally:
         _stop(server)
+
+
+def _intent(server, who, art: str, **fields):
+    payload = {"I": who.hex(), "art": art, **fields}
+    return _call(server, "POST", "/sim/intent", payload)
+
+
+def _yes(server, world, proposal: bytes) -> None:
+    for who in (world.anna, world.chris, world.dora):
+        status, body = _intent(server, who.pub, "vote", proposal=proposal.hex(), choice="yes")
+        assert status == 200, body
+    status, body = _intent(server, world.bruno.pub, "vote", proposal=proposal.hex(), choice="yes")
+    assert status == 200, body
+    status, body = _intent(server, world.bruno.pub, "vote", proposal=proposal.hex(), choice="no")
+    assert status == 200, body
+
+
+def _epoch_id(view: dict) -> bytes:
+    epoch = view["state"]["epoch"]
+    return Epoch(
+        scope=bytes.fromhex(epoch["scope"]),
+        index=epoch["index"],
+        constitution_hash=bytes.fromhex(epoch["constitution_hash"]),
+    ).epoch_id
+
+
+def _decision_yes(view: dict, proposal: bytes) -> list[str]:
+    for digest, tally in view["verein"]["decisions"]:
+        if digest == proposal.hex():
+            return tally["yes"]
+    raise AssertionError("proposal missing from decide")
+
+
+def test_weg_zur_epoche_3(tmp_path) -> None:
+    """Weg zur Epoche 3 (D479 Beschluss 2, szenario-verein §4, szenario-verein §5.1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"set": {"field": "beitrag", "text": BEITRAG}},
+        )
+        assert status == 200, body
+        opened = SqliteStore(path)
+        proposed = opened.get(bytes.fromhex(json.loads(body)["claim_id"]))
+        assert proposed is not None
+        assert proposed.J[1] == DOC_PROPOSAL_3
+        opened.close()
+        status, body = _call(server, "GET", f"/objects/{DOC_CONSTITUTION_HASH_3.hex()}")
+        assert status == 200
+        assert json.loads(body)["kind"] == "constitution"
+        _yes(server, world, DOC_PROPOSAL_3)
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_gov.hex()}")
+        yes = _decision_yes(json.loads(body), DOC_PROPOSAL_3)
+        status, body = _intent(server, world.anna.pub, "ratify", proposal=DOC_PROPOSAL_3.hex())
+        assert status == 200, body
+        opened = SqliteStore(path)
+        ratified = opened.get(bytes.fromhex(json.loads(body)["claim_id"]))
+        opened.close()
+        assert ratified is not None
+        assert cbor_canon.decode(ratified.v)[0] == [bytes.fromhex(item) for item in yes]
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_gov.hex()}")
+        assert _epoch_id(json.loads(body)) == DOC_EPOCH_ID_3
+    finally:
+        _stop(server)
+
+
+def test_ausschluss(tmp_path) -> None:
+    """Ausschluss (D479 Beschluss 3, szenario-verein §5.3)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"set": {"field": "beitrag", "text": BEITRAG}},
+        )
+        assert status == 200, body
+        _yes(server, world, DOC_PROPOSAL_3)
+        status, body = _intent(server, world.anna.pub, "ratify", proposal=DOC_PROPOSAL_3.hex())
+        assert status == 200, body
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"remove": world.bruno.pub.hex()},
+        )
+        assert status == 200, body
+        opened = SqliteStore(path)
+        proposed = opened.get(bytes.fromhex(json.loads(body)["claim_id"]))
+        opened.close()
+        assert proposed is not None
+        assert proposed.J[1] == DOC_PROPOSAL_4
+        status, body = _call(server, "GET", f"/objects/{DOC_CONSTITUTION_HASH_4.hex()}")
+        assert status == 200
+        assert json.loads(body)["kind"] == "constitution"
+    finally:
+        _stop(server)
+
+
+def test_ratify_zu_frueh(tmp_path) -> None:
+    """ratify zu früh und Stimme auf eine alte Epoche (D479 Beschluss 4, 04 §2.2, 04 §2.3)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server, world.anna.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes"
+        )
+        assert status == 200, body
+        status, body = _intent(server, world.anna.pub, "ratify", proposal=DOC_PROPOSAL_3.hex())
+        assert status == 400
+        assert json.loads(body) == "NOT_PASSED"
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "vote",
+            proposal=world.ex.proposal.proposal_hash.hex(),
+            choice="yes",
+        )
+        assert status == 400
+        assert json.loads(body) == "NOT_CURRENT"
+    finally:
+        _stop(server)
+
+
+def test_add_sortiert(tmp_path) -> None:
+    """add sortiert ein (D479 Beschluss 3, 04 §1.1, 04 §3.5)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_gov.hex()}")
+        members = [bytes.fromhex(item[0]) for item in json.loads(body)["verein"]["membership"]]
+        fresh = None
+        for index in range(1, 64):
+            seed = bytes([index]) + bytes(31)
+            candidate = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+            if all(candidate <= member for member in members):
+                fresh = candidate
+                break
+        assert fresh is not None
+        assert all(fresh <= member for member in members)
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"add": fresh.hex()},
+        )
+        assert status == 200, body
+        opened = SqliteStore(path)
+        proposed = opened.get(bytes.fromhex(json.loads(body)["claim_id"]))
+        opened.close()
+        assert proposed is not None
+        status, body = _call(server, "GET", f"/objects/{proposed.J[1].hex()}")
+        proposal = cbor_canon.decode(bytes.fromhex(json.loads(body)["data"]))
+        status, body = _call(server, "GET", f"/objects/{proposal[2].hex()}")
+        constitution = cbor_canon.decode(bytes.fromhex(json.loads(body)["data"]))
+        assert constitution["participants"] == sorted(constitution["participants"])
+        assert fresh in constitution["participants"]
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_gov.hex()}")
+        view = json.loads(body)
+        tally = next(
+            item[1] for item in view["verein"]["decisions"] if item[0] == proposed.J[1].hex()
+        )
+        assert "MALFORMED_PARTICIPANTS" not in [finding["kind"] for finding in tally["findings"]]
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"add": world.anna.pub.hex()},
+        )
+        assert status == 400
+        assert json.loads(body) == "ALREADY_PARTICIPANT"
+    finally:
+        _stop(server)
+
+
+def test_set_protokollfeld(tmp_path) -> None:
+    """set auf ein Protokollfeld (D479 Beschluss 3, 00 §5, 04 §1.1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        for field in ("participants", "thresholds"):
+            status, body = _intent(
+                server,
+                world.anna.pub,
+                "propose",
+                scope=world.ex.N_gov.hex(),
+                change={"set": {"field": field, "text": "x"}},
+            )
+            assert status == 400
+            assert json.loads(body) == "RESERVED_FIELD"
+    finally:
+        _stop(server)
+
+
+def test_budget(tmp_path) -> None:
+    """Budget (D479 Beschluss 4, 02 §3.1)."""
+    world = build()
+    limit = resolve_trust_params(
+        scope=world.ex.N_res, genesis_obj=world.ex.genesis_res
+    ).D
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "vouch",
+            scope=world.ex.N_res.hex(),
+            subject=world.dora.pub.hex(),
+            n=1,
+            t_exp=1001000,
+        )
+        assert status == 200, body
+        assert "BUDGET_FULL" in json.loads(body)["warnings"]
+        status, body = _intent(
+            server,
+            world.chris.pub,
+            "vouch",
+            scope=world.ex.N_res.hex(),
+            subject=world.dora.pub.hex(),
+            n=50,
+            t_exp=1001000,
+        )
+        assert status == 200, body
+        assert json.loads(body)["warnings"] == []
+        for weight in (0, limit + 1):
+            status, body = _intent(
+                server,
+                world.chris.pub,
+                "vouch",
+                scope=world.ex.N_res.hex(),
+                subject=world.dora.pub.hex(),
+                n=weight,
+                t_exp=1001000,
+            )
+            assert status == 400
+            assert json.loads(body) == "INVALID_WEIGHT"
+    finally:
+        _stop(server)
+    later = tmp_path / "spaeter.sqlite"
+    anlegen(later)
+    server = _start(later, lambda: 1001001)
+    try:
+        status, body = _intent(
+            server,
+            world.anna.pub,
+            "vouch",
+            scope=world.ex.N_res.hex(),
+            subject=world.dora.pub.hex(),
+            n=1,
+            t_exp=2001001,
+        )
+        assert status == 200, body
+        assert json.loads(body)["warnings"] == []
+    finally:
+        _stop(server)
+
+
+def test_zweite_stimme(tmp_path) -> None:
+    """Zweite Stimme (D479 Beschluss 4, 04 §3.1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes"
+        )
+        assert status == 200, body
+        assert json.loads(body)["warnings"] == []
+        status, body = _intent(
+            server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="no"
+        )
+        assert status == 200, body
+        assert "ALREADY_VOTED" in json.loads(body)["warnings"]
+        status, body = _intent(
+            server, world.chris.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes"
+        )
+        assert status == 200, body
+        assert json.loads(body)["warnings"] == []
+    finally:
+        _stop(server)
+
+
+def test_beitrag(tmp_path) -> None:
+    """Beitrag (D479 Beschluss 2, szenario-verein §6, 03 §3.3.2)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    expected = _obligation(world).v
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _intent(
+            server,
+            world.dora.pub,
+            "obligation",
+            scope=world.ex.N_res.hex(),
+            creditor=world.kasse.pub.hex(),
+            amount=2400,
+            unit="EUR-Cent",
+        )
+        assert status == 200, body
+        opened = SqliteStore(path)
+        obligation = opened.get(bytes.fromhex(json.loads(body)["claim_id"]))
+        opened.close()
+        assert obligation is not None
+        assert obligation.v == expected
+        status, body = _intent(
+            server, world.kasse.pub, "receipt", obligation=claim_id(obligation).hex()
+        )
+        assert status == 200, body
+        status, body = _call(server, "GET", f"/scopes/{world.ex.N_res.hex()}")
+        view = json.loads(body)
+        settled = {
+            item[0]: item[1]["state"] for item in view["vereinsleben"]["settlements"]
+        }
+        assert settled[claim_id(obligation).hex()] == "SETTLED"
+        status, body = _intent(
+            server, world.chris.pub, "receipt", obligation=claim_id(obligation).hex()
+        )
+        assert status == 400
+        assert json.loads(body) == "NOT_CREDITOR"
+    finally:
+        _stop(server)
+
+
+def test_intent_geraet(tmp_path) -> None:
+    """intent für ein Gerät (D479 Beschluss 2, D476 Beschluss 3)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    given = id_genesis_anchor(world.dora.pub)
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _call(
+            server,
+            "POST",
+            "/intent",
+            {
+                "I": world.dora.pub.hex(),
+                "art": "accept-rules",
+                "scope": world.ex.N_gov.hex(),
+                "h_prev": given.hex(),
+            },
+        )
+        assert status == 200, body
+        prepared = json.loads(body)
+        core = bytes.fromhex(prepared["core"])
+        assert cbor_canon.decode(core)[8] == given
+        sigma = Ed25519PrivateKey.from_private_bytes(_seed(world.dora)).sign(DOM_SIG + core)
+        status, body = _call(
+            server, "POST", "/submit", {"core": core.hex(), "sigma": sigma.hex()}
+        )
+        assert status == 200, body
+        assert json.loads(body)["claim_id"] == prepared["claim_id"]
+    finally:
+        _stop(server)
+
+
+def test_adressbuch(tmp_path) -> None:
+    """Adressbuch (D479 Beschluss 5, szenario-verein §2)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    anlegen(path)
+    world = build()
+    server = _start(path, lambda: 1000)
+    try:
+        status, body = _call(server, "GET", "/names")
+        assert status == 200, body
+        rows = json.loads(body)
+        named = {row["name"]: row for row in rows}
+        assert set(named) == {"ANNA", "BRUNO", "CHRIS", "DORA", "KASSE"}
+        assert all(row["simulated"] for row in rows)
+        fresh = Ed25519PrivateKey.from_private_bytes(bytes([9]) + bytes(31)).public_key().public_bytes_raw()
+        status, body = _call(
+            server, "POST", "/names", {"I": fresh.hex(), "name": "OLI"}
+        )
+        assert status == 200, body
+        status, body = _call(server, "GET", "/names")
+        rows = json.loads(body)
+        added = next(row for row in rows if row["I"] == fresh.hex())
+        assert added["name"] == "OLI"
+        assert added["simulated"] is False
+    finally:
+        _stop(server)
+
+
+def test_weltuhr() -> None:
+    """Weltuhr (D479 Beschluss 1)."""
+    clock = uhr_ab(1000)
+    assert clock() == 1000
+    assert clock() >= 1000
 
 
 def test_nur_lokal(tmp_path) -> None:

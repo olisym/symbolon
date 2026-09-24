@@ -47,8 +47,16 @@ def anlegen(path: str | Path) -> None:
         store.submit_object(ObjectKind.PROPOSAL, _proposal_bytes(proposal))
     for claim in world.base.values():
         store.submit_claim(signed_bytes(claim))
-    for author in (world.anna, world.bruno, world.chris, world.dora, world.kasse):
+    named = (
+        (world.anna, "ANNA"),
+        (world.bruno, "BRUNO"),
+        (world.chris, "CHRIS"),
+        (world.dora, "DORA"),
+        (world.kasse, "KASSE"),
+    )
+    for author, name in named:
         store.add_sim_key(_seed(author))
+        store.add_name(author.pub, name)
     store.close()
 
 

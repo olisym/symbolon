@@ -19748,3 +19748,48 @@ Ergebnis stünde vorher fest: die zwölf Überlebenden, die D464 als Deklaration
 abgeschlossen.
 
 **Geändert.** `07-decisions.md`; `offen.md` (O87 erledigt).
+
+### D466 — Neuausrichtung: Restack abgekoppelt, Härtung ruht, Roadmap, der Verein zuerst; O88
+
+**Anlass.** Nach D465 war kein Posten fällig, und Oli hat die Frage gestellt, ob die Arbeit noch
+weiterführt. Die ehrliche Antwort: Die letzten Runden waren überwiegend Selbstprüfung. Die Befunde
+waren echt (D456, D462, D464), aber sie härten ein Protokoll, das noch niemand benutzt hat, auch
+sein Autor nicht. Das Verhältnis von Härtung zu sichtbarer Anwendung ist gekippt. Ein Protokoll,
+dessen Aussagen kollidieren können sollen (`08 §2.2`), muss man kollidieren sehen können.
+
+**Beschluss 1 — Restack ist kein Auslöser.** Der Merkposten aus `sitzungsstart-00ch.md` entfällt.
+Die Frist ist ein Termin in Olis Kalender. Kein Arbeitsschritt wird an den Antrag gebunden, und der
+Antrag wird höchstens mit dem dann erreichten Stand nachgetragen.
+
+**Beschluss 2 — die Härtung ruht.** Keine Lese- und Mutationsrunden über bestehenden Code, außer
+eine Anwendung stolpert über einen Fehler. Das Register und die Abnahmeregeln bleiben: jede
+normative Entscheidung bekommt ihren Eintrag, jeder Lauf seine Abnahme am Diff.
+
+**Beschluss 3 — `ROADMAP.md` gilt.** Phasen 0 bis 5 nach `ROADMAP.md §2` bis `ROADMAP.md §7`: der
+Verein auf Papier, der S-Node als Lebensraum (`VISION §5`, `06 §2`), eine Oberfläche, eine
+Simulation mit vielen Personen, Reticulum als Transport. `ROADMAP.md §8` lässt bewusst offen, was
+danach kommt. Die Roadmap ist Plan, nicht Norm; sie ändert sich über das Register.
+
+**Beschluss 4 — der Verein ist das erste Szenario.** Drei Abläufe: beitreten mit Bürgschaft, Antrag
+und Abstimmung über die Satzung, Beitrag als Obligation mit Quittung. Dazu die sichtbare Kollision
+einer doppelten Stimme. Alle nötigen Bausteine sind gebaut.
+
+*Verworfen — die Food-Koop zuerst.* Sie hat Anbau, Arbeitsstunden, Ernteanteile und Verteilung,
+also vier Abläufe auf einmal, und zeigt den Kern nicht besser als der Verein.
+
+*Verworfen — der Differenzlauf gegen die Rust-Fassung zuerst.* Er schlösse die schwächste Stelle
+von D456 und D462, ist aber wieder Härtung. D409 Beschluss 3 gilt weiter.
+
+**Beschluss 5 — der Bond steht unter Vorbehalt (O88).** Oli hat eine Sorge benannt, die der Text
+bisher nicht beantwortet. `02 §6.1` und `06 §7` beschränken den Bond: keine Kapazität, kein
+Stimmgewicht, nur Verlustrisiko. Offen ist aber, wer den Wert hält, der verloren gehen kann.
+`03 §2.3` lässt den Slash „mechanisch in der ökonomischen Schicht" laufen, und diese Schicht gibt es
+nicht. Jede verwahrende Stelle wäre eine Machtkonzentration und ein Honigtopf. Im Code gibt es
+keinen Bond. Vor jeder Nutzung wird recherchiert, ob es den Bond geben soll, in welcher Form, oder
+ob etwas anderes seine Aufgabe übernimmt. Bis dahin baut kein Szenario auf ihm auf.
+
+**Beschluss 6 — O52 und O53 entfallen.** Beide dienten dazu, über das Repositorium Menschen zu
+finden. Oli will das nicht. Der Spiegel besteht und bleibt die Lesequelle des Supervisors; eine
+englische Schale wird nicht geschrieben. Beteiligte werden simuliert (`ROADMAP.md §6`).
+
+**Geändert.** `ROADMAP.md` (neu); `07-decisions.md`; `offen.md` (O52 und O53 entfallen, O88 neu).

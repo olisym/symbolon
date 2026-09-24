@@ -243,15 +243,13 @@ stehen namentlich in der Liste.
 
 Apache-2.0 für den Code, CC-BY-4.0 für Spec, Register und Prüfregeln.
 
-### O52 Öffentliches Repository und Spiegel
+### O52 Öffentliches Repository und Spiegel — entfällt (D466)
 
-Gitea bleibt primär, GitHub wird Spiegel. Sichtbarkeit ist die einzige Möglichkeit, die vier
-Menschen aus `08 §2.2` zu finden.
+Der Spiegel besteht. Der Zweck, darüber Menschen zu finden, entfällt; Beteiligte werden simuliert.
 
-### O53 Englische Schale
+### O53 Englische Schale — entfällt (D466)
 
-README, LICENSE, CONTRIBUTING und ein Dokument zur Methode auf Englisch. Neu geschrieben, nicht
-übersetzt. Die Werkstatt bleibt deutsch.
+Diente der Sichtbarkeit nach außen, die mit D466 kein Ziel mehr ist.
 
 ### O54 Normative Sprache der Layer-Dateien — erledigt (D329)
 
@@ -403,3 +401,12 @@ Gebunden in `test_bindung_03.py`, `test_bindung_04.py` und `test_v_schluessel.py
 ### O87 Rotationsbedingungen und drei Formprüfungen binden — erledigt (D465)
 
 Gebunden in `tests/nucleus/test_bindung_keys.py`, Welten G1 bis G7 aus D464.
+
+### O88 Den Bond recherchieren, bevor irgendetwas auf ihm aufbaut
+
+Aus D466 Beschluss 5. Wer hält den Wert, der verloren gehen kann? Jede verwahrende Stelle ist
+Machtkonzentration und Honigtopf. Zu prüfen: Verwahrung und Slashing in bestehenden Systemen und
+ihre Schäden; Formen ohne Verwahrer (Selbstverwahrung mit Zeitsperre, Verbrennen, Schlüsselpreisgabe
+bei Widerspruch, soziale Sicherheit über Bürgen, Pfand je Geschäft mit gewähltem Schlichter); und ob
+Reputation und Ausschluss (`05 §1` Stufen 1, 2 und 4) allein tragen. Ergebnis: ein Eintrag, der den
+Bond behält, ersetzt oder streicht.

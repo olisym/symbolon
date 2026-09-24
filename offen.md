@@ -370,7 +370,6 @@ Zwei Arten, Änderungen als Abschnitt 2 im Index (D445); `rs/FRAGEN.md` liegt im
 
 Gebunden in `tests/trust/test_bindung.py`, je mit Rücknahmeprobe (D448, D449).
 
-### O80 `disjoint_paths` im Fenster und drei ungebundene Normen aus `02`
+### O80 `disjoint_paths` im Fenster und drei ungebundene Normen aus `02` — erledigt (D451)
 
-Aus D450. `disjoint_paths` wird im Fenster als eigenes Minimum gerechnet; `C(d)` einmal gerundet,
-`vouch@1` und `now` ohne `bool` werden gebunden. Auftrag `o80-fenster`.
+Minimum über die Punkte in `flow.py`, gebunden in `test_fensterpunkte.py` und `test_bindung.py`.

@@ -18901,3 +18901,32 @@ nicht; ein Nachzug folgt erst, wenn eine Entscheidung daran hängt (D409 Beschlu
 
 **Geändert.** `02-trust-flow.md` (`§11.1`); `02-golden-anchors.md` (Anker 5d, ein Satz);
 `07-decisions.md`; `offen.md` (O80 neu).
+
+### D451 — Abnahme `o80-fenster`; O80 erledigt
+
+**Abnahme.** Branch `o80-fenster`, Commit `e43afe7` auf `49845d2`. Geändert sind
+`symbolon/trust/flow.py` und `tests/trust/test_bindung.py`, neu ist
+`tests/trust/test_fensterpunkte.py`. Der Commit war nicht gepusht. Nach Prüfregel 59 habe ich den
+Diff nachgebaut und über die Blobs `a9b5fa5`, `eab8639` und `81ba299` verankert. 955 Tests sind
+grün, `ruff` ist sauber.
+
+**Rücknahmeproben, selbst gefahren,** ohne Bytecode. R1 bis R5 färben je genau ihren Fall rot.
+Die Extra-Röte gegen die volle Suite war für alle fünf schon in D450 gemessen, der Bericht
+bestätigt sie mit je 954 grünen Tests.
+
+**Ein Defekt, vor dem Merge behoben.** Der Modul-Docstring von `test_bindung.py` nannte
+`§3.1`, `§8` und `§10`. Die drei neuen Fälle binden aber `§2`, `§3` und `§11`. Die Ursache ist
+der Auftrag, der den Docstring mit einer Auslassung vorgab. Behoben mit einem Splice des
+Supervisors.
+
+**Beschluss — O80 ist erledigt.** `disjoint_paths` ist im Fenster das Minimum über die Punkte, der
+Schnitt stammt nachweislich vom Punkt des Werts, und die drei Bindungslücken aus D450 sind
+geschlossen.
+
+**Stand der Bindungsmessung über `02`.** 85 Mutationen in zwei Teilen. Alle 73 gebundenen und die
+zwölf gefundenen Lücken sehen jetzt einen Test. Die zwölf teilen sich in zehn Bindungslücken und
+eine Normlücke mit zwei Mutanten. Offen bleibt, was D448 und D450 als Schwächste Stelle nennen: Nur
+gemessen ist, wofür eine Mutation geschrieben wurde.
+
+**Geändert.** `tests/trust/test_bindung.py` (Fix); `07-decisions.md`; `offen.md` (O80 in der
+Schliessform).

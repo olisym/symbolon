@@ -21673,3 +21673,20 @@ eine Liste von Paaren im Test hat D511 verworfen. Offen, ohne Auftrag; wer die d
 
 **Geändert.** `symbolon/node/static/style.css`, `tests/node/test_stil.py` (über den Merge);
 `07-decisions.md`.
+
+### D513 — Schluss der Sitzung 00cl; Phase 4 beginnt
+
+**Anlass.** Die Befunde aus Olis Durchläufen an der Seite sind abgearbeitet (D498 bis D512). Oli
+stimmt Phase 4 zu, mehrere S-Nodes, die Claims austauschen (`ROADMAP.md §6`).
+
+**Beschluss 1 — der Weg in Phase 4, besprochen, noch nicht entschieden.** Zuerst nachlesen, wie
+Secure Scuttlebutt und Nostr NIP-77 Knoten mit signierten Logs abgleichen; dann der Abgleich als
+eigener Beschluss. Die Knoten laufen zuerst als Prozesse auf Olis Rechner, mit einem Schalter
+„getrennt“ statt echter Netztrennung, und erst danach in Containern im Homelab. Grund: der Code
+ändert sich in dieser Phase ständig, und jedes Abbild neu zu bauen bremst. Oli: „lass es uns so
+machen“.
+
+**Beschluss 2 — Sitzungsschluss.** `sitzungsstart-00cl.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt; `sitzungsstart-00ck.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cl.md`, `archiv/sitzungsstart-00ck.md`.

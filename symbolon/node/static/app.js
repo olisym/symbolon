@@ -1,6 +1,6 @@
-// Seite nach dem Klickmodell: links die Person, was ansteht, Widersprüche und der Verein in
-// Sätzen, darunter eingeklappt die Abschnitte; rechts die Regie mit der Geschichte
-// (D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
+// darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
+// Geschichte (D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -34,6 +34,7 @@ import {
   personImSatz,
   regieReihenfolge,
   standZeile,
+  tabTitel,
   tageAusKern,
   tilgungInWorten,
   verfassungsAenderungen,
@@ -44,6 +45,10 @@ import {
 
 
 let handelnAls = "geraet";
+
+// Der gewählte Tab überdauert ein Zeichnen, nicht ein Neuladen; beim ersten Laden „Im Verein“
+// (D506 Beschluss 2).
+let gewaehlterTab = "Im Verein";
 
 function hex(bytes) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -834,12 +839,13 @@ function vereinGerade(view, kontext) {
   return bereich;
 }
 
-function eingeklappt(titel, offen, satz) {
-  const details = element("details", "abschnitt");
-  details.open = offen;
-  details.append(element("summary", null, titel));
-  if (satz) details.append(zeile(satz, "leise"));
-  return details;
+// Ein Abschnitt steht in seinem Tab offen, mit dem erklärenden Satz, ohne Einklappen
+// (D506 Beschluss 2).
+function abschnittOffen(titel, satz) {
+  const abschnitt = element("section", "abschnitt");
+  abschnitt.append(element("h2", null, titel));
+  if (satz) abschnitt.append(zeile(satz, "leise"));
+  return abschnitt;
 }
 
 // Jede Auswahl einer Person beginnt leer mit „Person wählen …“ (D494 Beschluss 2).
@@ -924,10 +930,8 @@ function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) 
 }
 
 function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, handeln) {
-  const offen = antraege.some((antrag) => antrag.state === "PENDING");
-  const abschnitt = eingeklappt(
+  const abschnitt = abschnittOffen(
     "Anträge",
-    offen,
     "Eine Änderung der Satzung gilt, wenn genug Ja-Stimmen da sind und jemand den Beschluss " +
       "feststellt. Eine Stimme lässt sich nicht zurücknehmen.",
   );
@@ -971,9 +975,8 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, h
 }
 
 function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
-  const abschnitt = eingeklappt(
+  const abschnitt = abschnittOffen(
     "Vertrauen",
-    false,
     "Wer für wen bürgt. Jeder Bürge hat ein festes Budget; wer es überzieht, dessen " +
       "Bürgschaften fallen alle aus.",
   );
@@ -1032,9 +1035,8 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
 }
 
 function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
-  const abschnitt = eingeklappt(
+  const abschnitt = abschnittOffen(
     "Beiträge",
-    false,
     "Wer wem was schuldet. Die Schuld unterschreibt der Schuldner selbst, die Quittung der Empfänger.",
   );
   if (res === null) {
@@ -1082,9 +1084,8 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
 }
 
 function kasseAbschnitt(view, obligationen, namenListe, namen, identitaet, handeln) {
-  const abschnitt = eingeklappt(
+  const abschnitt = abschnittOffen(
     "Kasse",
-    false,
     "Für einen Empfänger: wer zugesagt hat, wer quittiert ist, wer fehlt.",
   );
   const auswahl = auswahlNamen(namenListe);
@@ -1113,9 +1114,8 @@ function kasseAbschnitt(view, obligationen, namenListe, namen, identitaet, hande
 }
 
 function mitgliederAbschnitt(view, namen) {
-  const abschnitt = eingeklappt(
+  const abschnitt = abschnittOffen(
     "Mitglieder",
-    false,
     "Wer auf der Mitgliederliste steht und wer die geltende Satzung bestätigt hat. Abstimmen " +
       "darf jeder auf der Liste; gebunden ist nur, wer bestätigt hat.",
   );
@@ -1191,7 +1191,47 @@ async function zeichnenInhalt() {
   frage.id = "frage";
   frage.hidden = true;
 
-  // Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen ist (D494 Beschluss 1).
+  // Fünf Tabs unter dem festen Kopf, in der Reihenfolge aus D506 Beschluss 2; die Zählungen
+  // sind dieselben wie in „Im Verein gerade“, und nur der gewählte Tab wird gebaut.
+  const tabs = [
+    ["Im Verein", 0, () => [vereinGerade(govView, kontext)]],
+    [
+      "Anträge",
+      antraege.filter((antrag) => antrag.state === "PENDING").length,
+      () => [antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln)],
+    ],
+    ["Vertrauen", 0, () => [vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln)]],
+    [
+      "Beiträge und Kasse",
+      obligationen.filter((schuld) => schuld.state === "OPEN").length,
+      () => [
+        beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln),
+        kasseAbschnitt(govView, obligationen, namenListe, namen, identitaet, handeln),
+      ],
+    ],
+    ["Mitglieder", 0, () => [mitgliederAbschnitt(govView, namen)]],
+  ];
+  const leiste = element("div", "tabs");
+  leiste.setAttribute("role", "tablist");
+  let inhalt = [];
+  for (const [name, offen, bauen] of tabs) {
+    const tab = knopf(
+      tabTitel(name, offen),
+      () => {
+        gewaehlterTab = name;
+        void zeichnen();
+      },
+      "tab",
+    );
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-selected", String(name === gewaehlterTab));
+    leiste.append(tab);
+    if (name === gewaehlterTab) inhalt = bauen();
+  }
+
+  // Kopf, Meldung, Frage, „Jetzt zu tun“ und Widersprüche stehen immer oben, nie in einem Tab
+  // (D506 Beschluss 1). Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen
+  // ist (D494 Beschluss 1).
   const titel = namen.get(identitaet) ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
   links.append(
     kopfBereich(titel, mitgliedschaftVon(govView, identitaet)),
@@ -1199,12 +1239,8 @@ async function zeichnenInhalt() {
     frage,
     jetztBereich(tasks, kontext, handeln),
     ...(await widerspruchKarten(forks, kontext)),
-    vereinGerade(govView, kontext),
-    antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln),
-    vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln),
-    beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln),
-    kasseAbschnitt(govView, obligationen, namenListe, namen, identitaet, handeln),
-    mitgliederAbschnitt(govView, namen),
+    leiste,
+    ...inhalt,
   );
   seite.replaceChildren(links, regie);
 }

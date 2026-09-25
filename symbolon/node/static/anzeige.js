@@ -4,8 +4,8 @@
 // Abweisungen. Ein unbekannter Warnungs- oder Abweisungsname erscheint wörtlich (D486 Beschluss 3).
 // Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
 // (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5, die Geschichte der
-// Demonstration (D494 Beschluss 3, D496 Beschluss 1) und Zeit relativ zur Uhr des S-Node
-// (D496 Beschluss 2).
+// Demonstration (D494 Beschluss 3, D496 Beschluss 1), Zeit relativ zur Uhr des S-Node
+// (D496 Beschluss 2) und die Beschriftung eines Tabs (D506 Beschluss 2 und 4).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -444,6 +444,12 @@ export function erfolgSatz(art, felder) {
 // Die Fassung der Satzung statt der Epoche (D494 Beschluss 5).
 export function fassungSatz(index) {
   return `Es gilt die ${index}. Fassung der Satzung.`;
+}
+
+// Die Beschriftung eines Tabs: „ · <n> offen“ hinter dem Namen, wenn n nicht null ist; bei null
+// nur der Name (D506 Beschluss 2 und 4).
+export function tabTitel(name, offen) {
+  return offen === 0 ? name : `${name} · ${offen} offen`;
 }
 
 // Ein Satz je Person im Vertrauen, aus dem Abstand zum Anker (D494 Beschluss 5, 02 §3).

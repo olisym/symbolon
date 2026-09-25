@@ -21209,3 +21209,48 @@ ergibt 1, ein Tag und eine Sekunde ergibt 2; einer davon mit `BigInt`, wie `app.
 übergibt. Der zweite Fall sieht das Abrunden, der vierte das kaufmännische Runden.
 
 **Geändert.** `07-decisions.md`.
+
+### D499 — Abnahme `p13-tage`; ein Kern mit `t_exp` nicht nach `t` erscheint zur Unterschrift
+
+**Geprüft.** Commit `6f696c5` auf `p13-tage`, Basis `78172af`, der Diff von `anzeige.js` und
+`selbsttest.js` ganz aus dem Spiegel. 1130 Tests grün, im Node 130 von 130 Fällen. `tageAusKern`
+rundet nach D498 Beschluss 1 auf; die vier Fälle stehen wie beauftragt, die Eingaben aus 86400
+gerechnet, der zweite mit `BigInt`.
+
+**Rücknahmeproben.** Beide aus dem Bericht nachgefahren, Ergebnis wie dort: mit `Math.floor` drei
+Fälle rot, mit `Math.round` zwei. Eigene Proben: `Math.floor` plus 1 macht den Fall „genau
+365 Tage“ rot (366), ein Teiler 86401 den Fall „ein Tag und eine Sekunde“ (1). Ohne die
+Umwandlung mit `Number` bricht der Selbsttest am Fall mit `BigInt` mit einem `TypeError` ab,
+statt einen Fall rot zu zeigen; sichtbar ist das, ein roter Fall ist es nicht.
+
+**Befund — die Meldung des Werkzeugs, nachgelesen.** Das Feld „Tage“ im Formular „Bürgen“ trägt
+nur `min = "1"`, das der Browser beim Klick nicht erzwingt. Mit 0 Tagen wird `t_exp` gleich dem
+`/now` beim Zeichnen, und `_prepare` in `symbolon/node/api.py` setzt `t` auf die Uhr des S-Node,
+also gleich oder später. `_prepare` prüft `t_exp` nur auf eine ganze Zahl, das Gerät prüft das
+Schema. Die Seite zeigt dann „für 0 Tage“ und bietet „Unterschreiben“ an. Das Protokoll hält:
+`_submit` liefert über `structural_check` ein, und der weist nach `01 §6` Punkt 7 mit
+`IncoherentExpiry` ab, im Vektor `INCOHERENT_EXPIRY`. Die Lücke liegt an der Seite: sie lässt
+unterschreiben, was nicht eingeliefert werden kann. Das widerspricht D492 in der Sache; eine
+Unterschrift soll einen Satz tragen, der auch eintritt.
+
+**Beschluss 1 — gemergt.**
+
+**Beschluss 2 — wo `01 §6` Punkt 7 vor der Unterschrift geprüft wird.** In `_prepare`, nach dem
+Setzen von `t`: ist das Prädikat kein `core/*` und `t_exp` nicht größer als `t`, wird die
+Absicht mit dem Namen `INCOHERENT_EXPIRY` abgewiesen, wie `INVALID_WEIGHT` (D479 Beschluss 4).
+Nur der S-Node kennt `t`, bevor der Kern entsteht; `_prepare` bedient alle Wege der Absicht, also
+gilt die Prüfung für jede Art mit `t_exp`, nicht nur für die Bürgschaft. Die Seite nennt die
+Abweisung in einem Satz.
+
+Verworfen:
+
+- **Nur das Formular** mit einer Prüfung vor dem Klick. Es deckt einen Weg von vielen; ein anderes
+  Werkzeug schickt dieselbe Absicht an `POST /intent`.
+- **Nur das Gerät** vor dem Signieren. Es sieht den Fehler erst, wenn der Kern schon gebaut ist,
+  und hätte keinen Satz, der sagt, was der Mensch ändern soll. Als zweite Schranke bleibt es ein
+  Kandidat, nicht Teil dieses Schritts.
+
+**Beschluss 3 — Auftrag `p14-ablauf`.** Nach Lesen von `_prepare`, `_intent_body`, der Anzeige der
+Abweisungen und ihrer Tests; er kommt als nächster kleiner Auftrag.
+
+**Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.

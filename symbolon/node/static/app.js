@@ -1,6 +1,6 @@
 // Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
 // darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
-// Geschichte (D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// Geschichte (D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -40,6 +40,7 @@ import {
   verfassungsAenderungen,
   vertrauenSatz,
   wertInWorten,
+  widerspruchOben,
   zeitpunktInWorten,
 } from "./anzeige.js";
 
@@ -754,7 +755,8 @@ function jetztBereich(tasks, kontext, handeln) {
   return bereich;
 }
 
-// Eine Widerspruchskarte je Gabelung (D492 Beschluss 5, szenario-verein §5.2, 02 §8).
+// Eine Widerspruchskarte je Gabelung, dazu ob sie oben steht (D507 Beschluss 1, D492 Beschluss 5,
+// szenario-verein §5.2, 02 §8).
 async function widerspruchKarten(forks, kontext) {
   const karten = [];
   for (const gruppe of forks) {
@@ -794,15 +796,15 @@ async function widerspruchKarten(forks, kontext) {
         `Gemeinsamer Vorgänger: ${gruppe.h_prev}`,
       ]),
     );
-    karten.push(karte);
+    karten.push({ karte, oben: widerspruchOben(claims, kontext.antraege) });
   }
   return karten;
 }
 
-// „Im Verein gerade“ in Sätzen (D492 Beschluss 5, D487 Beschluss 2).
+// Der Verein in Sätzen, ohne eigene Marke: der Tab nennt den Bereich (D507 Beschluss 2,
+// D492 Beschluss 5, D487 Beschluss 2).
 function vereinGerade(view, kontext) {
   const bereich = element("section", "gerade");
-  bereich.append(marke("Im Verein gerade"));
   if (!view || !view.verein) {
     bereich.append(zeile("Kein Verein."));
     return bereich;
@@ -1191,10 +1193,16 @@ async function zeichnenInhalt() {
   frage.id = "frage";
   frage.hidden = true;
 
+  // Ein Widerspruch steht oben, solange über den Antrag abgestimmt wird, sonst im Tab „Im
+  // Verein“ unter den Sätzen (D507 Beschluss 1).
+  const widersprueche = await widerspruchKarten(forks, kontext);
+  const oben = widersprueche.filter((eintrag) => eintrag.oben).map((eintrag) => eintrag.karte);
+  const unten = widersprueche.filter((eintrag) => !eintrag.oben).map((eintrag) => eintrag.karte);
+
   // Fünf Tabs unter dem festen Kopf, in der Reihenfolge aus D506 Beschluss 2; die Zählungen
   // sind dieselben wie in „Im Verein gerade“, und nur der gewählte Tab wird gebaut.
   const tabs = [
-    ["Im Verein", 0, () => [vereinGerade(govView, kontext)]],
+    ["Im Verein", 0, () => [vereinGerade(govView, kontext), ...unten]],
     [
       "Anträge",
       antraege.filter((antrag) => antrag.state === "PENDING").length,
@@ -1211,10 +1219,15 @@ async function zeichnenInhalt() {
     ],
     ["Mitglieder", 0, () => [mitgliederAbschnitt(govView, namen)]],
   ];
+  // Der Inhalt des gewählten Tabs steht in einem Element mit role="tabpanel"; jeder Tab
+  // verweist mit aria-controls darauf, das Element mit aria-labelledby auf den gewählten Tab
+  // (D507 Beschluss 2).
   const leiste = element("div", "tabs");
   leiste.setAttribute("role", "tablist");
-  let inhalt = [];
-  for (const [name, offen, bauen] of tabs) {
+  const inhalt = element("div");
+  inhalt.id = "tabinhalt";
+  inhalt.setAttribute("role", "tabpanel");
+  tabs.forEach(([name, offen, bauen], index) => {
     const tab = knopf(
       tabTitel(name, offen),
       () => {
@@ -1223,14 +1236,19 @@ async function zeichnenInhalt() {
       },
       "tab",
     );
+    tab.id = `tab-${index}`;
     tab.setAttribute("role", "tab");
     tab.setAttribute("aria-selected", String(name === gewaehlterTab));
+    tab.setAttribute("aria-controls", inhalt.id);
     leiste.append(tab);
-    if (name === gewaehlterTab) inhalt = bauen();
-  }
+    if (name === gewaehlterTab) {
+      inhalt.setAttribute("aria-labelledby", tab.id);
+      inhalt.append(...bauen());
+    }
+  });
 
-  // Kopf, Meldung, Frage, „Jetzt zu tun“ und Widersprüche stehen immer oben, nie in einem Tab
-  // (D506 Beschluss 1). Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen
+  // Kopf, Meldung, Frage und „Jetzt zu tun“ stehen immer oben, nie in einem Tab (D506
+  // Beschluss 1); ein Widerspruch nur bei offener Abstimmung (D507 Beschluss 1). Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen
   // ist (D494 Beschluss 1).
   const titel = namen.get(identitaet) ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
   links.append(
@@ -1238,9 +1256,9 @@ async function zeichnenInhalt() {
     meldungKnoten(),
     frage,
     jetztBereich(tasks, kontext, handeln),
-    ...(await widerspruchKarten(forks, kontext)),
+    ...oben,
     leiste,
-    ...inhalt,
+    inhalt,
   );
   seite.replaceChildren(links, regie);
 }

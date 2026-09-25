@@ -2,7 +2,7 @@
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
-// D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, 01 §4).
+// D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, 01 §4).
 
 import {
   artInWorten,
@@ -40,6 +40,7 @@ import {
   vertrauenSatz,
   warnungInWorten,
   wertInWorten,
+  widerspruchOben,
   zeitpunktInWorten,
 } from "./anzeige.js";
 
@@ -733,6 +734,32 @@ function feinschliffFaelle() {
   gleich("tabTitel: Anträge, 0", tabTitel("Anträge", 0), "Anträge");
   gleich("tabTitel: Anträge, 1", tabTitel("Anträge", 1), "Anträge · 1 offen");
   gleich("tabTitel: Beiträge und Kasse, 2", tabTitel("Beiträge und Kasse", 2), "Beiträge und Kasse · 2 offen");
+
+  // Ob ein Widerspruch oben steht, an Claims in der Form von GET /claims (D507 Beschluss 3).
+  const antrag = "ab".repeat(32);
+  const stimme = (wahl) => ({ p: "nuc:aabb/vote@1", value: { "0": wahl }, J: [3, antrag] });
+  const doppelt = [stimme(1), stimme(0)];
+  gleich(
+    "widerspruchOben: Ja und Nein zu einem Antrag PENDING",
+    widerspruchOben(doppelt, [{ proposal: antrag, state: "PENDING" }]),
+    true,
+  );
+  gleich(
+    "widerspruchOben: Ja und Nein zu einem Antrag PASSED",
+    widerspruchOben(doppelt, [{ proposal: antrag, state: "PASSED" }]),
+    false,
+  );
+  gleich(
+    "widerspruchOben: Ja und Nein zu einem Antrag, der nicht unter den Anträgen steht",
+    widerspruchOben(doppelt, [{ proposal: "cd".repeat(32), state: "PENDING" }]),
+    false,
+  );
+  const buergschaft = (punkte) => ({ p: "nuc:aabb/vouch@1", value: { "0": punkte }, J: [1, "01".repeat(32)] });
+  gleich(
+    "widerspruchOben: zwei Claims, die keine Stimmen sind",
+    widerspruchOben([buergschaft(50), buergschaft(60)], [{ proposal: antrag, state: "PENDING" }]),
+    false,
+  );
 
   return results;
 }

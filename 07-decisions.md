@@ -20687,3 +20687,68 @@ eine andere Hülle kann dieselbe Bibliothek nutzen. Neu gestellt wird die Frage,
 viele Menschen zugleich bedienen soll oder eine Rechnung eigene Maschinen braucht.
 
 **Geändert.** `07-decisions.md`.
+
+### D487 — Prüfung `p7-bildschirme` und Olis Durchlauf: die Frage steht zu weit unten
+
+**Geprüft.** Commit `41fd3d1` auf `p7-bildschirme`, Basis `c9b759f`, der ganze Diff aus dem
+Spiegel. 1113 Tests grün, in Node 48 von 48 Fällen. Zwei Proben selbst gebaut, beide rot an der
+Sache: ein Betrag ohne führende Null ergibt „24,0 €“, eine Kasse, die „quittiert“ nicht erkennt,
+zeigt „unterschrieben“. Gemessen: ein kanonischer Wert mit Tag in `v` bricht `GET /claims` nicht,
+die JSON-Form fällt auf den Text zurück. Die zwei Fehler, die der Bericht selbst behoben hat, sind
+echt.
+
+**Olis Durchlauf.** In Brave auf `41fd3d1` mit seinem Bestand: Bürgschaft, Aufnahme, Bestätigung,
+Beitrag und Quittung liefen durch. Er meldet vier Dinge.
+
+**Befund 1 — die Frage vor dem Unterschreiben steht unter der ganzen Seite.** `#dialog` und
+`#meldung` stehen in `index.html` hinter `#seite`. Wer oben einen Knopf drückt, sieht die Frage
+nicht. Oli hat bei einer Stimme Annas die Warnung zum vollen Budget gesehen, und die Stimme ging
+durch. Die wahrscheinliche Ursache ist ein zweiter Befund: eine Handlung kann beginnen, während
+die Frage einer anderen offen ist. Die neue Frage ersetzt die alte, deren Versprechen wird nie
+erfüllt, und handelt das Gerät, hält es die Sperre aus D481 Beschluss 3, bis die Seite neu lädt.
+
+**Befund 2 — nach einer Aufnahme sieht es aus, als seien alle neu.** Nach Epoche 3 stehen alle
+fünf als „Aufgenommen, Satzung noch nicht bestätigt“. Die Rechnung stimmt: nach jeder
+Ratifizierung ist jeder `GRANT_ONLY`, bis er die neue Fassung annimmt (`04 §6.3`, `04 §8`). Das
+Wort „Aufgenommen“ sagt etwas anderes.
+
+**Befund 3 — Brunos zweite Stimme löscht die erste, statt sie zu ändern.** Das ist die Regel:
+eine Stimme lässt sich nicht zurücknehmen, und eine zweite nimmt beiden die Wirkung
+(`04 §3.1`, `04 §8`). Ohne Frist gibt es keinen Zeitpunkt, ab dem eine Entscheidung fest wäre;
+wäre eine Stimme änderbar, könnte ein erreichtes `PASSED` wieder fallen, und niemand könnte sich
+darauf stützen (D97). Oli fragt zu Recht, ob man seine Wahl ändern können sollte; das hinge an
+einer Abstimmungsfrist, die es in v1 nicht gibt, und gehört zu den Kandidaten nach Phase 5. Der
+Mangel liegt in der Anzeige: der Antrag sagt nicht, dass Bruno zweimal gestimmt hat und keine
+seiner Stimmen zählt. `GET /proposals` führt die Vermerke der Auszählung nicht.
+
+**Befund 4 — die Seite erklärt nichts.** Die Felder stehen ohne Satz darüber, wozu sie da sind.
+
+**Befund 5 — aus der Prüfung.** Die Widersprüche zeigen eine Stimme als `{"0":1}`. Die Aufgaben
+nennen den Scope als Hex. „Quittieren“ in der Kasse fehlt, wenn die eigene Identität handelt,
+weil die Seite mit dem Wort `geraet` vergleicht. `ALREADY_PARTICIPANT` heißt „schon Mitglied“, wo
+es um die Liste geht (`04 §6.3`). Eine Änderung, deren Wert kein Text ist, erscheint als
+`[object Object]`. Ist der S-Node nicht erreichbar, bleibt die Seite leer. `tools/check_tree.py`
+kennt `.css` nicht.
+
+**Beschluss 1 — oben, was jetzt ansteht.** Unter dem Kopf steht ein Bereich mit Meldung, Frage und
+Aufgaben, auf breitem Bildschirm Frage und Aufgaben nebeneinander. Solange eine Frage offen ist,
+ist jeder andere Knopf der Seite gesperrt.
+
+**Beschluss 2 — Wörter.** `GRANT_ONLY` heißt „steht auf der Liste, hat die geltende Satzung noch
+nicht bestätigt“, `APPLICANT` „hat bestätigt, steht nicht auf der Liste“. Ist nach einem
+Epochenwechsel jemand `GRANT_ONLY`, sagt der Verein, dass sich die Satzung geändert hat und wer
+nicht neu bestätigt, stimmberechtigt bleibt, aber nicht gebunden ist (`szenario-verein §4`).
+`ALREADY_PARTICIPANT` und `NOT_PARTICIPANT` sprechen von der Mitgliederliste. Jeder Abschnitt
+bekommt einen Satz, wozu er da ist.
+
+**Beschluss 3 — die Stimmen beim Antrag.** `GET /proposals` gibt zu jedem Antrag `ambiguous`,
+die Autoren der Stimmen mit `AMBIGUOUS_VOTE`, sortiert. Der Antrag zeigt, wer Ja und wer Nein
+gesagt hat, und für jeden Autor in `ambiguous` den Satz aus `szenario-verein §5.1`, dass eine
+zweite Stimme beide ungültig macht.
+
+**Beschluss 4 — die Mängel aus Befund 5** werden im selben Nachtrag behoben: eine Stimme erscheint
+als „Ja“ oder „Nein“, der Scope als „Verein“ oder „Vereinsleben“, die eigene Identität kann
+quittieren, eine Änderung ohne Text erscheint als JSON, ein nicht erreichbarer S-Node als Satz,
+`.css` zählt in `tools/check_tree.py`.
+
+**Geändert.** `07-decisions.md`.

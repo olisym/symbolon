@@ -1,6 +1,6 @@
 // Gerät: Dekodieren, Prüfen, Schlüssel, die Entscheidungen des Ablaufs
 // (D481 Beschluss 2 bis 4, D482 Beschluss 1 bis 5, D486 Beschluss 3, D479 Beschluss 6,
-// 01 §2, 01 §3, 01 §4).
+// D492 Beschluss 1, 01 §2, 01 §3, 01 §4).
 
 const DOM_SIG = new TextEncoder().encode("claim-atom/v1/sig");
 const DOM_CID = new TextEncoder().encode("claim-atom/v1/cid");
@@ -213,6 +213,22 @@ export function pruefen(core, I, tip) {
   return { name: "ACCEPT", kern: value };
 }
 
+// Strenger Dekoder für v und für Objekte: dieselben Regeln wie für den Kern, ohne sein Schema
+// (D492 Beschluss 1, D481 Beschluss 2, 01 §3).
+export function dekodierenV(bytes) {
+  let value;
+  try {
+    const [decoded, end] = decodeItem(bytes, 0);
+    if (end !== bytes.length) return { name: "MALFORMED", wert: null };
+    value = decoded;
+  } catch (error) {
+    if (error && error.malformed) return { name: "MALFORMED", wert: null };
+    throw error;
+  }
+  if (!same(encode(value), bytes)) return { name: "NOT_CANONICAL", wert: null };
+  return { name: "ACCEPT", wert: value };
+}
+
 export function checkCore(core, author, tip) {
   return pruefen(core, author, tip).name;
 }
@@ -359,7 +375,7 @@ export function ablauf(subtle, { absicht, zeigen, einliefern }) {
     const core = hexToBytes(prepared.core);
     const { name, kern } = pruefen(core, zustand.pub, zustand.tip);
     if (name !== "ACCEPT") return { name };
-    if (!(await zeigen(kern, prepared.warnings ?? []))) return { abbruch: true };
+    if (!(await zeigen(kern, prepared))) return { abbruch: true };
     const signature = await signCore(core, record.privateKey, subtle);
     const id = await claimId(core, subtle);
     let antwort = null;

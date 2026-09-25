@@ -1,11 +1,12 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
-// 01 §4).
+// D489 Beschluss 3, D492 Beschluss 1 bis 3, 01 §4).
 
 import {
   artInWorten,
   checkCore,
   claimId,
+  dekodierenV,
   genesisAnchor,
   klaeren,
   neuerZustand,
@@ -14,9 +15,12 @@ import {
   verbuchen,
 } from "./geraet.js";
 import {
+  absichtSatz,
   abweisungInWorten,
   aenderungen,
+  antragTitel,
   betrag,
+  folgeZeilen,
   hinweisSatzungGeaendert,
   kassenZeilen,
   mitgliedschaftInWorten,
@@ -299,6 +303,17 @@ function anzeigeFaelle() {
     ]),
   );
   pruefe(
+    "hinweisSatzungGeaendert: ein APPLICANT ohne GRANT_ONLY, kein Hinweis (D489 Beschluss 3)",
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "APPLICANT" }],
+    ]) === null,
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "APPLICANT" }],
+    ]),
+  );
+  pruefe(
     "hinweisSatzungGeaendert: kein GRANT_ONLY, kein Hinweis",
     hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]) === null,
     hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]),
@@ -337,10 +352,147 @@ function anzeigeFaelle() {
   return results;
 }
 
+// Titel, Sätze der Absicht und der Folge, wörtlich aus D492 Beschluss 2 und 3, und der
+// strenge Dekoder für v (D492 Beschluss 1).
+function saetzeFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  const namen = new Map([
+    ["aa", "OLI"],
+    ["bb", "BRUNO"],
+  ]);
+  const ohne = { added: [], removed: [], fields: [] };
+
+  gleich("antragTitel: aufnehmen", antragTitel({ ...ohne, added: ["aa"] }, namen), "OLI aufnehmen");
+  gleich("antragTitel: ausschließen", antragTitel({ ...ohne, removed: ["bb"] }, namen), "BRUNO ausschließen");
+  gleich(
+    "antragTitel: Feld ohne alten Wert",
+    antragTitel({ ...ohne, fields: [{ field: "beitrag", old: null, new: "24 Euro" }] }, namen),
+    "beitrag festlegen",
+  );
+  gleich(
+    "antragTitel: Feld mit altem Wert",
+    antragTitel({ ...ohne, fields: [{ field: "beitrag", old: "12 Euro", new: "24 Euro" }] }, namen),
+    "beitrag ändern",
+  );
+  gleich(
+    "antragTitel: mehreres",
+    antragTitel({ ...ohne, added: ["aa"], fields: [{ field: "beitrag", old: null, new: "24 Euro" }] }, namen),
+    "Satzung ändern",
+  );
+
+  gleich(
+    "absichtSatz: accept-rules, geltende Fassung",
+    absichtSatz("accept-rules", { geltend: true }),
+    "Du bestätigst die geltende Satzung des Vereins.",
+  );
+  gleich(
+    "absichtSatz: accept-rules, frühere Fassung",
+    absichtSatz("accept-rules", { geltend: false }),
+    "Du bestätigst eine frühere Fassung der Satzung.",
+  );
+  gleich(
+    "absichtSatz: propose",
+    absichtSatz("propose", { titel: "beitrag festlegen" }),
+    "Du beantragst: beitrag festlegen.",
+  );
+  gleich(
+    "absichtSatz: vote",
+    absichtSatz("vote", { name: "ANNA", titel: "beitrag festlegen", wahl: "yes" }),
+    "Du stimmst Ja zu ANNAs Antrag „beitrag festlegen“.",
+  );
+  gleich(
+    "absichtSatz: ratify",
+    absichtSatz("ratify", { titel: "beitrag festlegen" }),
+    "Du stellst fest: Der Antrag „beitrag festlegen“ ist angenommen.",
+  );
+  gleich(
+    "absichtSatz: vouch",
+    absichtSatz("vouch", { name: "OLI", punkte: 50, datum: "1. Januar 1971" }),
+    "Du bürgst für OLI mit 50 Punkten bis 1. Januar 1971.",
+  );
+  gleich(
+    "absichtSatz: obligation",
+    absichtSatz("obligation", { betrag: "24,00 €", name: "KASSE" }),
+    "Du verpflichtest dich, 24,00 € an KASSE zu zahlen.",
+  );
+  gleich(
+    "absichtSatz: receipt",
+    absichtSatz("receipt", { name: "DORA", betrag: "24,00 €" }),
+    "Du bestätigst, dass DORA 24,00 € bezahlt hat.",
+  );
+  gleich(
+    "absichtSatz: fehlt der Name, kein Satz",
+    absichtSatz("vote", { name: null, titel: "beitrag festlegen", wahl: "yes" }),
+    null,
+  );
+
+  const stimme = { no: 0, n: 4, needed: 3, passes: false, counts: true };
+  gleich(
+    "folgeZeilen: vote, es fehlt noch eine",
+    folgeZeilen("vote", { ...stimme, yes: 2 }, { teilnehmer: true }),
+    ["Danach: 2 von 3 nötigen Ja-Stimmen", "Es fehlt noch eine."],
+  );
+  gleich(
+    "folgeZeilen: vote, es fehlen noch 2",
+    folgeZeilen("vote", { ...stimme, yes: 1 }, { teilnehmer: true }),
+    ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2."],
+  );
+  gleich(
+    "folgeZeilen: vote, passes",
+    folgeZeilen("vote", { ...stimme, yes: 3, passes: true }, { teilnehmer: true }),
+    [
+      "Danach: 3 von 3 nötigen Ja-Stimmen",
+      "Der Antrag ist dann angenommen; jemand muss den Beschluss noch feststellen.",
+    ],
+  );
+  gleich(
+    "folgeZeilen: vote, counts falsch, schon abgestimmt",
+    folgeZeilen("vote", { ...stimme, yes: 1, counts: false }, { teilnehmer: true }),
+    [
+      "Danach: 1 von 3 nötigen Ja-Stimmen",
+      "Es fehlen noch 2.",
+      "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
+    ],
+  );
+  gleich(
+    "folgeZeilen: vote, counts falsch, nicht auf der Liste",
+    folgeZeilen("vote", { ...stimme, yes: 1, counts: false }, { teilnehmer: false }),
+    [
+      "Danach: 1 von 3 nötigen Ja-Stimmen",
+      "Es fehlen noch 2.",
+      "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste.",
+    ],
+  );
+  gleich(
+    "folgeZeilen: vouch unter D",
+    folgeZeilen("vouch", { used: 50, D: 100 }, {}),
+    ["Danach: Du hast 50 von 100 Punkten vergeben."],
+  );
+  gleich(
+    "folgeZeilen: vouch über D",
+    folgeZeilen("vouch", { used: 101, D: 100 }, {}),
+    ["Danach: Du hast 101 von 100 Punkten vergeben.", "Dann zählt keine deiner Bürgschaften mehr."],
+  );
+
+  const lesen = (text) => {
+    const gelesen = dekodierenV(bytesFromHex(text));
+    return { name: gelesen.name, wahl: gelesen.wert instanceof Map ? String(gelesen.wert.get(0n)) : null };
+  };
+  gleich("dekodierenV: {0: 1} kanonisch", lesen("a10001"), { name: "ACCEPT", wahl: "1" });
+  gleich("dekodierenV: {0: 1} nicht kürzest kodiert", lesen("a1001801"), { name: "NOT_CANONICAL", wahl: null });
+  gleich("dekodierenV: Restbytes", lesen("a1000100"), { name: "MALFORMED", wahl: null });
+  gleich("dekodierenV: Float", lesen("a100f93c00"), { name: "MALFORMED", wahl: null });
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
   results.push(...anzeigeFaelle());
+  results.push(...saetzeFaelle());
   return results;
 }
 

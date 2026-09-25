@@ -2,6 +2,8 @@
 // Was aus den Antworten des S-Node Worte macht: der Stand eines Antrags, die Änderungen einer
 // Satzung, ein Betrag, die Zeilen der Kasse und die Wörter für Zustände, Warnungen und
 // Abweisungen. Ein unbekannter Warnungs- oder Abweisungsname erscheint wörtlich (D486 Beschluss 3).
+// Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
+// (D492 Beschluss 1 bis 3 und 5).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -141,10 +143,17 @@ const ABWEISUNGEN = new Map([
   ["NOT_PARTICIPANT", "Diese Person steht nicht auf der Mitgliederliste."],
   ["INVALID_WEIGHT", "Das Gewicht liegt außerhalb der erlaubten Spanne."],
   ["NOT_CREDITOR", "Nur der Gläubiger kann quittieren."],
+  ["NOT_A_TIP", "An dieser Stelle endet die Kette nicht. Angeschlossen wird nur an ein Ende."],
+  [
+    "more than one tip",
+    "Die Kette hat zwei Enden, weil zweimal an dieselbe Stelle unterschrieben wurde. " +
+      "Gewählt werden muss, an welches Ende angeschlossen wird.",
+  ],
 ]);
 
-// Eine Abweisung in Worten, aus D479 Beschluss 4; eine unbekannte erscheint mit ihrem Namen
-// (D486 Beschluss 3).
+// Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
+// mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3); eine unbekannte erscheint mit ihrem
+// Namen (D486 Beschluss 3).
 export function abweisungInWorten(name) {
   return wortAus(ABWEISUNGEN, name);
 }
@@ -157,4 +166,212 @@ export function wertInWorten(p, value) {
     if (value["0"] === 0) return "Nein";
   }
   return value === null || value === undefined ? "–" : JSON.stringify(value);
+}
+
+// Titel eines Antrags aus changes: genau eine Änderung benennt ihn, jede andere Zahl heißt
+// „Satzung ändern“ (D492 Beschluss 3).
+export function antragTitel(changes, namen) {
+  const anzahl = changes.added.length + changes.removed.length + changes.fields.length;
+  if (anzahl !== 1) return "Satzung ändern";
+  if (changes.added.length === 1) return `${nameVon(namen, changes.added[0])} aufnehmen`;
+  if (changes.removed.length === 1) return `${nameVon(namen, changes.removed[0])} ausschließen`;
+  const feld = changes.fields[0];
+  if (feld.old === null || feld.old === undefined) return `${feld.field} festlegen`;
+  return `${feld.field} ändern`;
+}
+
+// Der neue Wortlaut jedes Textfelds, als Zitat unter dem Titel (D492 Beschluss 3).
+export function antragZitate(changes) {
+  return changes.fields
+    .filter((feld) => typeof feld.new === "string")
+    .map((feld) => `„${feld.new}“`);
+}
+
+function hexVon(bytes) {
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function gleich(links, rechts) {
+  if (typeof links !== typeof rechts) return false;
+  if (links instanceof Uint8Array || rechts instanceof Uint8Array) {
+    return links instanceof Uint8Array && rechts instanceof Uint8Array && hexVon(links) === hexVon(rechts);
+  }
+  if (Array.isArray(links) || Array.isArray(rechts)) {
+    return (
+      Array.isArray(links) &&
+      Array.isArray(rechts) &&
+      links.length === rechts.length &&
+      links.every((wert, index) => gleich(wert, rechts[index]))
+    );
+  }
+  if (links instanceof Map || rechts instanceof Map) {
+    if (!(links instanceof Map && rechts instanceof Map) || links.size !== rechts.size) return false;
+    for (const [schluessel, wert] of links) {
+      if (!rechts.has(schluessel) || !gleich(wert, rechts.get(schluessel))) return false;
+    }
+    return true;
+  }
+  return links === rechts;
+}
+
+function feldAlsText(wert) {
+  if (wert === undefined) return null;
+  return typeof wert === "string" ? wert : "(kein Text)";
+}
+
+// Unterschiede zweier dekodierter Verfassungen in der Form von changes aus GET /proposals,
+// für einen Antrag, den /proposals noch nicht führt, weil sein propose@1 erst unterschrieben
+// wird (D492 Beschluss 1 und 3, D484 Beschluss 2). null, wenn eine keine Verfassung ist.
+export function verfassungsAenderungen(alt, neu) {
+  if (!(alt instanceof Map) || !(neu instanceof Map)) return null;
+  const liste = (verfassung) => {
+    const wert = verfassung.get("participants") ?? [];
+    return Array.isArray(wert) ? wert.filter((item) => item instanceof Uint8Array).map(hexVon) : [];
+  };
+  const vorher = new Set(liste(alt));
+  const nachher = new Set(liste(neu));
+  const schluessel = [...new Set([...alt.keys(), ...neu.keys()])]
+    .filter((key) => typeof key === "string" && key !== "participants")
+    .sort();
+  return {
+    added: [...nachher].filter((key) => !vorher.has(key)).sort(),
+    removed: [...vorher].filter((key) => !nachher.has(key)).sort(),
+    fields: schluessel
+      .filter((key) => !gleich(alt.get(key), neu.get(key)))
+      .map((key) => ({ field: key, old: feldAlsText(alt.get(key)), new: feldAlsText(neu.get(key)) })),
+  };
+}
+
+function vorhanden(felder, ...namen) {
+  return namen.every((name) => felder[name] !== null && felder[name] !== undefined && felder[name] !== "");
+}
+
+// Der Satz der Absicht je Art; fehlt ein nötiger Wert, null (D492 Beschluss 1 und 2).
+export function absichtSatz(art, felder) {
+  switch (art) {
+    case "accept-rules":
+      if (typeof felder.geltend !== "boolean") return null;
+      return felder.geltend
+        ? "Du bestätigst die geltende Satzung des Vereins."
+        : "Du bestätigst eine frühere Fassung der Satzung.";
+    case "propose":
+      if (!vorhanden(felder, "titel")) return null;
+      return `Du beantragst: ${felder.titel}.`;
+    case "vote": {
+      if (!vorhanden(felder, "name", "titel", "wahl")) return null;
+      const wahl = { yes: "Ja", no: "Nein" }[felder.wahl];
+      if (!wahl) return null;
+      return `Du stimmst ${wahl} zu ${felder.name}s Antrag „${felder.titel}“.`;
+    }
+    case "ratify":
+      if (!vorhanden(felder, "titel")) return null;
+      return `Du stellst fest: Der Antrag „${felder.titel}“ ist angenommen.`;
+    case "vouch":
+      if (!vorhanden(felder, "name", "punkte", "datum")) return null;
+      return `Du bürgst für ${felder.name} mit ${felder.punkte} Punkten bis ${felder.datum}.`;
+    case "obligation":
+      if (!vorhanden(felder, "betrag", "name")) return null;
+      return `Du verpflichtest dich, ${felder.betrag} an ${felder.name} zu zahlen.`;
+    case "receipt":
+      if (!vorhanden(felder, "name", "betrag")) return null;
+      return `Du bestätigst, dass ${felder.name} ${felder.betrag} bezahlt hat.`;
+    default:
+      return null;
+  }
+}
+
+// Die Folge aus effect, „Danach:“ vor der ersten Zeile; ohne effect keine Zeile
+// (D492 Beschluss 2, D490 Beschluss 2).
+export function folgeZeilen(art, effect, felder) {
+  if (!effect) return [];
+  const zeilen = [];
+  if (art === "vote") {
+    if (effect.needed !== null && effect.needed !== undefined) {
+      zeilen.push(`${effect.yes} von ${effect.needed} nötigen Ja-Stimmen`);
+      const fehlen = effect.needed - effect.yes;
+      if (effect.passes) {
+        zeilen.push("Der Antrag ist dann angenommen; jemand muss den Beschluss noch feststellen.");
+      } else if (fehlen === 1) {
+        zeilen.push("Es fehlt noch eine.");
+      } else {
+        zeilen.push(`Es fehlen noch ${fehlen}.`);
+      }
+    }
+    if (effect.counts === false) {
+      zeilen.push(
+        felder.teilnehmer === false
+          ? "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."
+          : "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
+      );
+    }
+  } else if (art === "propose") {
+    zeilen.push(`Angenommen ist der Antrag mit ${effect.needed} von ${effect.n} Ja-Stimmen.`);
+  } else if (art === "ratify") {
+    zeilen.push(`Es gilt Epoche ${effect.epoch}. Alle müssen die neue Satzung bestätigen.`);
+  } else if (art === "accept-rules") {
+    if (felder.geltend === true && effect.membership === "MEMBER") {
+      zeilen.push("Du bist Mitglied.");
+    } else if (felder.geltend === true && effect.membership === "APPLICANT") {
+      zeilen.push("Du hast die Satzung bestätigt, stehst aber nicht auf der Mitgliederliste.");
+    } else {
+      zeilen.push("Deine Mitgliedschaft ändert sich nicht.");
+    }
+  } else if (art === "vouch") {
+    zeilen.push(`Du hast ${effect.used} von ${effect.D} Punkten vergeben.`);
+    if (effect.used > effect.D) zeilen.push("Dann zählt keine deiner Bürgschaften mehr.");
+  } else if (art === "obligation") {
+    if (effect.settlement === "OPEN" && vorhanden(felder, "name")) {
+      zeilen.push(`Der Beitrag ist offen, bis ${felder.name} quittiert.`);
+    }
+  } else if (art === "receipt") {
+    if (effect.settlement === "SETTLED") zeilen.push("Der Beitrag ist bezahlt.");
+  }
+  if (zeilen.length > 0) zeilen[0] = `Danach: ${zeilen[0]}`;
+  return zeilen;
+}
+
+// Unter der Folge, sobald andere gleichzeitig handeln können (D492 Beschluss 2, D490 Beschluss 2).
+export const VORHERSAGE =
+  "Das ist eine Vorhersage. Handelt jemand anderes gleichzeitig, kann es anders kommen.";
+
+// Steht statt des Satzes, wenn die Seite ihn nicht bauen kann (D492 Beschluss 1).
+export const KEIN_SATZ = "Die Seite kann nicht lesen, was du unterschreiben würdest.";
+
+// Was die Frage vor dem Unterschreiben zeigt und ob sie Unterschreiben anbietet: ohne Satz
+// keine Unterschrift (D492 Beschluss 1 und 5).
+export function frageInhalt(art, felder, prepared) {
+  const satz = absichtSatz(art, felder);
+  const warnungen = (prepared.warnings ?? []).map(warnungInWorten);
+  if (satz === null) {
+    return { satz: KEIN_SATZ, folge: [], warnungen, unterschreiben: false };
+  }
+  return { satz, folge: folgeZeilen(art, prepared.effect, felder), warnungen, unterschreiben: true };
+}
+
+// Der Satz der Meldung nach dem Eintragen (D492 Beschluss 5).
+export function erfolgSatz(art, felder) {
+  switch (art) {
+    case "accept-rules":
+      return "Deine Bestätigung der Satzung ist eingetragen.";
+    case "propose":
+      return vorhanden(felder, "titel")
+        ? `Dein Antrag „${felder.titel}“ ist eingetragen.`
+        : "Dein Antrag ist eingetragen.";
+    case "vote":
+      return felder.wahl === "no"
+        ? "Deine Nein-Stimme ist eingetragen."
+        : "Deine Ja-Stimme ist eingetragen.";
+    case "ratify":
+      return "Die Feststellung des Beschlusses ist eingetragen.";
+    case "vouch":
+      return vorhanden(felder, "name")
+        ? `Deine Bürgschaft für ${felder.name} ist eingetragen.`
+        : "Deine Bürgschaft ist eingetragen.";
+    case "obligation":
+      return "Deine Zusage, den Beitrag zu zahlen, ist eingetragen.";
+    case "receipt":
+      return "Deine Quittung ist eingetragen.";
+    default:
+      return "Eingetragen.";
+  }
 }

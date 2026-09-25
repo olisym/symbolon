@@ -277,24 +277,40 @@ select, input {
   font: inherit;
 }
 
-details.abschnitt {
-  border-top: 1px solid #d6d1c4;
-  padding-top: 0.5rem;
-}
-
-details.abschnitt > summary {
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 1.15rem;
-  min-height: 2.75rem;
+/* Die Leiste der Tabs unter dem festen Kopf; der gewählte Tab ist gefüllt, auf schmalem
+   Bildschirm bricht die Leiste um (D506 Beschluss 1 und 2). */
+.tabs {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  border-bottom: 1px solid #d6d1c4;
+  padding-bottom: 0.6rem;
 }
 
-details.abschnitt[open] {
+button.tab {
+  color: #1f5fa8;
+  background: #ffffff;
+  border: 1px solid #d6d1c4;
+}
+
+button.tab[aria-selected="true"] {
+  font-weight: 700;
+  color: #ffffff;
+  background: #1f5fa8;
+  border-color: #1f5fa8;
+}
+
+/* Ein Abschnitt steht in seinem Tab offen (D506 Beschluss 2). */
+.abschnitt {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.abschnitt > h2 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.15rem;
 }
 
 details.einzelheiten > summary {

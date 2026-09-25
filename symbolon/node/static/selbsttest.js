@@ -1,7 +1,7 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
-// 01 §4).
+// D498 Beschluss 1 und 2, 01 §4).
 
 import {
   artInWorten,
@@ -32,6 +32,7 @@ import {
   personImSatz,
   regieReihenfolge,
   standZeile,
+  tageAusKern,
   vertrauenSatz,
   warnungInWorten,
   wertInWorten,
@@ -695,6 +696,14 @@ function feinschliffFaelle() {
   gleich("zeitpunktInWorten: eine Stunde", zeitpunktInWorten(jetzt - 3600, jetzt), "vor 1 Stunde");
   gleich("zeitpunktInWorten: ein Tag", zeitpunktInWorten(jetzt - 86400, jetzt), "vor 1 Tag");
   gleich("zeitpunktInWorten: zwei Tage", zeitpunktInWorten(jetzt - 172800, jetzt), "vor 2 Tagen");
+
+  // Die Tage einer Bürgschaft aufgerundet, an den Grenzen aus D498 Beschluss 2.
+  const tag = 86400;
+  const jahr = 1000 + 365 * tag;
+  gleich("tageAusKern: genau 365 Tage", tageAusKern(1000, jahr), 365);
+  gleich("tageAusKern: 365 Tage weniger drei Sekunden, als BigInt", tageAusKern(1003n, BigInt(jahr)), 365);
+  gleich("tageAusKern: eine Sekunde", tageAusKern(1000, 1001), 1);
+  gleich("tageAusKern: ein Tag und eine Sekunde", tageAusKern(1000, 1000 + tag + 1), 2);
 
   return results;
 }

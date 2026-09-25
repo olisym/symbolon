@@ -21608,3 +21608,36 @@ Satz. Die Schritte des Kapitels einzeln hat er nicht gesehen; das prüft der Sel
 **Beschluss 1 — gemergt.** Als Nächstes die Seite in Hell und Dunkel (D506 Beschluss 3).
 
 **Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.
+
+### D511 — Hell und Dunkel: Farben als Variablen, Dunkel nach dem System; Auftrag `p18-dunkel`
+
+**Gelesen.** `style.css` auf `b3b9ce0`: 52 feste Farben in einer flachen Datei, dazu eine
+Medienabfrage für schmale Bildschirme. Die Regie ist schon dunkel (`#2b2e33`), die Seite links
+hell. Knöpfe ohne Klasse und die Felder (`select`, `input`) nehmen die Farben des Browsers.
+`selbsttest.html` lädt dieselbe Datei. In `app.js`, `anzeige.js` und `index.html` steht keine Farbe.
+
+**Beschluss 1 — Farben als Variablen.** Jede Farbe in `style.css` wird eine Variable auf `:root`.
+Die Werte dort sind die heutigen: die Seite sieht hell aus wie bisher. `:root` setzt
+`color-scheme: light dark`, damit Felder und Knöpfe ohne Klasse der Einstellung folgen.
+
+**Beschluss 2 — Dunkel nach dem System.** Ein Block `@media (prefers-color-scheme: dark)` setzt
+dieselben Variablen neu: die Seite links dunkel, Karten eine Stufe heller als die Seite, die
+Regie dunkler als die Seite, damit beide getrennt bleiben; Blau, Orange und Grün heller, damit
+sie auf Dunkel lesbar sind. Jede Textfarbe erreicht auf ihrem Hintergrund in beiden Modi ein
+Kontrastverhältnis von mindestens 4,5 zu 1 (WCAG 2.1, Stufe AA). Kein Schalter (D506 Beschluss 3).
+
+**Beschluss 3 — ein Test hält es fest.** Ein Test liest `style.css` und prüft: außerhalb der
+beiden Blöcke mit Variablen steht keine Farbe; jede Variable ist in beiden Blöcken gesetzt; jede
+Regel, die `color` und `background` zugleich setzt, hält 4,5 zu 1 in beiden Modi, dazu der Text
+von `body` auf dem Hintergrund von `.links`. Die Paare kommen aus der Datei, nicht aus einer Liste
+im Test.
+
+Verworfen:
+
+- **Die Seite mit einem Filter umkehren** (`filter: invert`). Aus Blau würde Orange, aus der
+  Warnung eine grüne Fläche; die Farben tragen Bedeutung.
+- **Eine zweite Datei für Dunkel.** Zwei Orte für dieselbe Regel laufen auseinander.
+- **Die dunklen Werte ohne Messung wählen.** Dunkel wirkt schnell zu schwach; ohne Zahl merkt es
+  erst, wer die Seite nicht lesen kann.
+
+**Geändert.** `07-decisions.md`.

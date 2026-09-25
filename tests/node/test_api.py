@@ -783,7 +783,8 @@ def test_budget(tmp_path) -> None:
 
 
 def test_ablauf_vor_der_unterschrift(tmp_path) -> None:
-    """t_exp nicht nach t wird vor der Unterschrift abgewiesen (D500 Beschluss 1 und 3, 01 §6)."""
+    """t_exp nicht nach t wird vor der Unterschrift abgewiesen (D500 Beschluss 1 und 3,
+    D501 Beschluss 1, 01 §6)."""
     world = build()
     path = tmp_path / "bestand.sqlite"
     anlegen(path)
@@ -819,6 +820,7 @@ def test_ablauf_vor_der_unterschrift(tmp_path) -> None:
         uhr[0] = 1000
         status, body = _call(server, "POST", "/intent", {**vouch, "t_exp": uhr[0] + 1})
         assert status == 200, body
+        prepared = cbor_canon.decode(bytes.fromhex(json.loads(body)["core"]))
         status, body = _call(
             server,
             "POST",
@@ -831,6 +833,20 @@ def test_ablauf_vor_der_unterschrift(tmp_path) -> None:
             },
         )
         assert status == 200, body
+        status, body = _call(
+            server,
+            "POST",
+            "/prepare",
+            {
+                "I": world.chris.pub.hex(),
+                "p": prepared[3],
+                "J": [1, world.dora.pub.hex()],
+                "N": world.ex.N_res.hex(),
+                "v": prepared[4].hex(),
+                "t_exp": uhr[0],
+            },
+        )
+        assert (status, json.loads(body)) == (400, "INCOHERENT_EXPIRY")
     finally:
         _stop(server)
 

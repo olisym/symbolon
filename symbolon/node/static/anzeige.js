@@ -264,6 +264,13 @@ export function tageAusKern(t, tExp) {
   return Math.ceil((Number(tExp) - Number(t)) / 86400);
 }
 
+// Eine Eingabe als ganze Zahl: Number des Texts, wenn das ganz ist, sonst null
+// (D501 Beschluss 2).
+export function ganzeZahl(text) {
+  const zahl = Number(text);
+  return Number.isInteger(zahl) ? zahl : null;
+}
+
 // Ein Zeitpunkt als Abstand zur Uhr des S-Node aus GET /now, nie als Kalenderdatum
 // (D496 Beschluss 2, D495 Befund 1).
 export function zeitpunktInWorten(t, jetzt) {

@@ -20752,3 +20752,37 @@ quittieren, eine Änderung ohne Text erscheint als JSON, ein nicht erreichbarer 
 `.css` zählt in `tools/check_tree.py`.
 
 **Geändert.** `07-decisions.md`.
+
+### D488 — Abnahme `p7-bildschirme`; P8, Brunos Gabelung als Skript
+
+**Geprüft.** Nachtrag `d163f7e` auf `p7-bildschirme` gegen `41fd3d1`, der ganze Diff aus dem
+Spiegel. 1114 Tests grün, in Node 58 von 58 Fällen. Die Sperre während einer Frage ist im Code
+gelesen: `handeln` sperrt vor dem Versuch und gibt in `finally` frei, auch auf dem Weg über das
+Anhalten; die Knöpfe der Frage entstehen nach dem Sperren und bleiben bedienbar. Eine eigene
+Probe blieb grün: meldet der Hinweis auf die geänderte Satzung jeden, der nicht `MEMBER` ist,
+statt nur `GRANT_ONLY`, bemerkt es der Selbsttest nicht, weil kein Fall einen `APPLICANT` ohne
+`GRANT_ONLY` führt. Das ist eine Lücke im Auftrag, kein Mangel am Code; der Code folgt D487
+Beschluss 2. Die Meldung des Berichts zu `anlegenFormular` wird bei der nächsten Arbeit an der
+Seite mitgenommen.
+
+**Beschluss 1 — gemergt.** Nach dem Merge spielt Oli die Geschichte noch einmal durch.
+
+**Befund — was eine Gabelung über die Schnittstelle bewirkt, gemessen.** Zwei Absichten Brunos,
+Ja und Nein zu einem offenen Antrag, vorbereitet, bevor eine von ihnen eingeliefert ist, tragen
+dasselbe `h_prev` und dasselbe `t`. Mit Brunos Seed unterschrieben und über `POST /submit`
+eingeliefert: `GET /forks` zeigt eine Gruppe mit zwei Claims; der Antrag zählt keine der beiden
+Stimmen, auch nicht als doppelte (`szenario-verein §5.2`, D469); die Ableitung im Vereinsleben
+fällt von vier Kanten auf zwei, Brunos Bürgschaften tragen nicht mehr. Danach hat Brunos Kette
+zwei Spitzen, und jede weitere Absicht für ihn endet mit 409. Das ist die Regel, und die Regie
+zeigt es als Abweisung.
+
+**Beschluss 2 — `python -m tools.verein_gabel`.** Das Skript spricht mit dem laufenden S-Node über
+HTTP, nicht mit der Datei: der S-Node hält sie. Es wählt den einzigen Antrag auf `PENDING` oder den
+mit `--antrag` genannten, bereitet mit `POST /intent` Brunos Ja und Nein vor, bevor es eine
+einliefert, unterschreibt beide mit Brunos Seed aus derselben Quelle wie der Lader und liefert
+beide über `POST /submit` ein. Es gibt die zwei `claim_id` aus. Ohne offenen Antrag oder mit
+mehreren ohne `--antrag` bricht es mit einem Satz ab, der die Anträge nennt. *Verworfen:* ein Pfad
+im S-Node, der gabelt. Die Schnittstelle soll das nicht können (D484 Beschluss 3).
+
+**Geändert.** `symbolon/node/static/`, `symbolon/node/view.py`, `tests/node/test_lesen.py`,
+`tools/check_tree.py` (über den Merge); `07-decisions.md`.

@@ -17,11 +17,13 @@ from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign
 from symbolon.errors import VerifierError
 from symbolon.governance.objects import Proposal
-from symbolon.governance.tally import TallyState
+from symbolon.governance.tally import TallyResult, TallyState, reached
 from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
+    ScopeView,
     TaskView,
+    _needed,
     fork_evidence,
     obligations_view,
     proposals_view,
@@ -30,6 +32,8 @@ from symbolon.node.view import (
 )
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_nuc_name
+from symbolon.profiles.credit import SettlementState
+from symbolon.profiles.membership import MembershipState, membership
 from symbolon.trust.groups import build_groups
 from symbolon.trust.params import resolve_trust_params
 
@@ -296,10 +300,92 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
     return proposal.proposal_hash
 
 
+def _tally_of(view: ScopeView, digest: bytes) -> TallyResult | None:
+    if view.verein is None:
+        return None
+    for key, result in view.verein.decisions:
+        if key == digest:
+            return result
+    return None
+
+
+def _vote_effect(
+    store: SqliteStore, digest: bytes, proposal: Proposal, author: bytes, choice: str, voted: bool, now: int
+) -> dict[str, Any] | None:
+    """Ja und Nein nach der Stimme, aus proposals_view und reached (D490 Beschluss 2, 04 §3.1, 04 §3.2)."""
+    view = scope_view(store, proposal.scope, now)
+    tally = _tally_of(view, digest)
+    row = next((item for item in proposals_view(store, proposal.scope, now) if item.proposal == digest), None)
+    if row is None or tally is None or tally.threshold is None or row.n is None:
+        return None
+    yes, no = len(row.yes), len(row.no)
+    if author not in view.state.constitution_obj["participants"]:
+        counts = False
+    elif voted:
+        counts = False
+        if author in row.yes:
+            yes -= 1
+        if author in row.no:
+            no -= 1
+    else:
+        counts = True
+        if choice == "yes":
+            yes += 1
+        else:
+            no += 1
+    num, den = tally.threshold
+    return {
+        "yes": yes,
+        "no": no,
+        "needed": row.needed,
+        "n": row.n,
+        "passes": reached(yes, row.n, num, den),
+        "counts": counts,
+    }
+
+
+def _membership_effect(
+    store: SqliteStore, scope: bytes, constitution: bytes, author: bytes, now: int
+) -> dict[str, Any] | None:
+    """Zustand der Mitgliedschaft nach accept-rules (D490 Beschluss 2, 04 §6.1)."""
+    view, epoch, current = _current(store, scope, now)
+    if view.verein is None:
+        return None
+    if constitution == epoch.constitution_hash:
+        listed = author in current["participants"]
+        return {"membership": MembershipState.MEMBER if listed else MembershipState.APPLICANT}
+    before = membership(
+        store,
+        subject=author,
+        scope=scope,
+        constitution_hash=epoch.constitution_hash,
+        now=now,
+        authorized_keys=view.state.authorized_keys,
+        policy=view.state.policy,
+        constitution_obj=current,
+    )
+    return {"membership": before.state}
+
+
+def _receipt_effect(store: SqliteStore, obligation: Claim, now: int) -> dict[str, Any] | None:
+    """Zustand der Tilgung nach der Quittung, aus der Sicht (D490 Beschluss 2, 03 §3.3.2)."""
+    view = scope_view(store, obligation.N, now)
+    if view.vereinsleben is None:
+        return None
+    digest = claim_id(obligation)
+    state = next((result.state for key, result in view.vereinsleben.settlements if key == digest), None)
+    if state is None:
+        return None
+    return {"settlement": SettlementState.SETTLED if state is SettlementState.OPEN else state}
+
+
 def _intent_body(
     store: SqliteStore, body: Mapping[str, Any], now: int
-) -> tuple[dict[str, Any], list[str]]:
-    """Ableitung einer Absicht auf den Rumpf von _prepare (D479 Beschluss 2, 04 §2.1, 04 §2.2, 04 §2.3)."""
+) -> tuple[dict[str, Any], list[str], dict[str, Any] | None]:
+    """Ableitung einer Absicht auf den Rumpf von _prepare und ihre Folge
+
+    (D479 Beschluss 2, D490 Beschluss 2, 04 §2.1, 04 §2.2, 04 §2.3).
+    """
     author = _hex(_require(body, "I"), 32)
     art = _text(_require(body, "art"), "art")
     if art not in _ARTS:
@@ -316,10 +402,17 @@ def _intent_body(
             _view, epoch, _constitution = _current(store, scope, now)
             constitution = epoch.constitution_hash
         fields.update(p=f"nuc:{scope.hex()}/accept-rules@1", J=[3, constitution.hex()], N=scope.hex())
+        effect = _membership_effect(store, scope, constitution, author, now)
     elif art == "propose":
         scope = _scope_of(store, _require(body, "scope"))
         proposal = _change(store, scope, _require(body, "change"), now)
         fields.update(p=f"nuc:{scope.hex()}/propose@1", J=[3, proposal.hex()], N=scope.hex())
+        tally = _tally_of(scope_view(store, scope, now), proposal)
+        effect = (
+            None
+            if tally is None
+            else {"needed": _needed(tally.threshold, tally.n), "n": tally.n}
+        )
     elif art == "vote":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
         _require_current(store, proposal, now)
@@ -333,24 +426,20 @@ def _intent_body(
             v=encoded.hex(),
             N=proposal.scope.hex(),
         )
-        for claim in store.all_claims():
-            if (
-                claim.I == author
-                and claim.N == proposal.scope
-                and claim.J == (3, digest)
-                and is_nuc_name(claim, "vote")
-            ):
-                warnings.append("ALREADY_VOTED")
-                break
+        voted = any(
+            claim.I == author
+            and claim.N == proposal.scope
+            and claim.J == (3, digest)
+            and is_nuc_name(claim, "vote")
+            for claim in store.all_claims()
+        )
+        if voted:
+            warnings.append("ALREADY_VOTED")
+        effect = _vote_effect(store, digest, proposal, author, choice, voted, now)
     elif art == "ratify":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
-        view, _epoch = _require_current(store, proposal, now)
-        tally = None
-        if view.verein is not None:
-            for key, result in view.verein.decisions:
-                if key == digest:
-                    tally = result
-                    break
+        view, epoch = _require_current(store, proposal, now)
+        tally = _tally_of(view, digest)
         if tally is None or tally.state is not TallyState.PASSED:
             raise _Named("NOT_PASSED")
         fields.update(
@@ -359,6 +448,7 @@ def _intent_body(
             v=cbor_canon.encode({0: list(tally.yes)}).hex(),
             N=proposal.scope.hex(),
         )
+        effect = {"epoch": epoch.index + 1}
     elif art == "vouch":
         scope = _scope_of(store, _require(body, "scope"))
         subject = _hex(_require(body, "subject"), 32)
@@ -376,6 +466,7 @@ def _intent_body(
             N=scope.hex(),
             t_exp=expiry,
         )
+        effect = {"used": total + weight, "D": limit}
     elif art == "obligation":
         scope = _scope_of(store, _require(body, "scope"))
         creditor = _hex(_require(body, "creditor"), 32)
@@ -387,6 +478,7 @@ def _intent_body(
             v=cbor_canon.encode({0: amount, 1: unit}).hex(),
             N=scope.hex(),
         )
+        effect = {"settlement": SettlementState.OPEN}
     else:
         digest = _hex(_require(body, "obligation"), 32)
         obligation = store.get(digest)
@@ -399,7 +491,8 @@ def _intent_body(
             J=[2, digest.hex()],
             N=obligation.N.hex(),
         )
-    return fields, warnings
+        effect = _receipt_effect(store, obligation, now)
+    return fields, warnings, effect
 
 
 class _Forked(Exception):
@@ -562,10 +655,11 @@ def _handler(
                     self._send(200, _prepared_body(prepared))
                     return
                 if path == "/intent":
-                    fields, warnings = _intent_body(store, body, clock())
+                    fields, warnings, effect = _intent_body(store, body, clock())
                     prepared = _prepare(store, fields, clock)
                     answered = _prepared_body(prepared)
                     answered["warnings"] = warnings
+                    answered["effect"] = effect
                     self._send(200, answered)
                     return
                 if path == "/names":
@@ -587,7 +681,7 @@ def _handler(
                 if seed is None:
                     raise _Missing()
                 if path == "/sim/intent":
-                    fields, warnings = _intent_body(
+                    fields, warnings, effect = _intent_body(
                         store,
                         {key: value for key, value in body.items() if key != "h_prev"},
                         clock(),
@@ -595,7 +689,7 @@ def _handler(
                     prepared = _prepare(store, fields, clock)
                     sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
                     cid = _submit(store, core_bytes(prepared), sigma)
-                    self._send(200, {"claim_id": cid, "warnings": warnings})
+                    self._send(200, {"claim_id": cid, "warnings": warnings, "effect": effect})
                     return
                 prepared = _prepare(
                     store, {key: value for key, value in body.items() if key != "h_prev"}, clock

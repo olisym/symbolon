@@ -20925,3 +20925,61 @@ ist. Die Aufträge verlangen den Diff nicht mehr.
 
 **Geändert.** `symbolon/node/api.py`, `tests/node/test_vorschau.py` (über den Merge);
 `AGENTS.md`, `07-decisions.md`.
+
+### D492 — P10: Sätze der Absicht und der Folge, Titel der Anträge, das Ende nach einer Gabelung
+
+**Anlass.** D490 Beschluss 3 und 4, D489 Beschluss 3. Gelesen: die Seite in
+`symbolon/node/static/`, `symbolon/node/api.py`, das Klickmodell aus D490 Befund 3.
+
+**Beschluss 1 — kein Satz, keine Unterschrift.** Die Frage vor dem Unterschreiben beginnt mit einem
+Satz der Absicht, gebaut aus dem dekodierten Kern (Art, Subjekt, `v`) und aus Sichten des S-Node
+(Namen, Titel des Antrags, Betrag). Kann die Seite diesen Satz nicht bauen, weil ein Feld fehlt
+oder `v` nicht lesbar ist, zeigt sie „Die Seite kann nicht lesen, was du unterschreiben würdest.“
+und bietet kein Unterschreiben an. Das ist der Grundsatz von Clear Signing (D490 Befund 2) in
+seiner strengen Form: wer nicht sieht, was er unterschreibt, unterschreibt nicht.
+
+**Beschluss 2 — die Sätze.** Absicht je Art:
+`accept-rules` „Du bestätigst die geltende Satzung des Vereins.“ oder, bei einer anderen Fassung,
+„Du bestätigst eine frühere Fassung der Satzung.“;
+`propose` „Du beantragst: <Titel>.“;
+`vote` „Du stimmst Ja zu <Name>s Antrag „<Titel>“.“ und ebenso mit Nein;
+`ratify` „Du stellst fest: Der Antrag „<Titel>“ ist angenommen.“;
+`vouch` „Du bürgst für <Name> mit <n> Punkten bis <Datum>.“;
+`obligation` „Du verpflichtest dich, <Betrag> an <Name> zu zahlen.“;
+`receipt` „Du bestätigst, dass <Name> <Betrag> bezahlt hat.“
+Folge aus `effect` (D490 Beschluss 2), mit „Danach:“ vorn: bei `vote` „<yes> von <needed>
+nötigen Ja-Stimmen“ und „Es fehlt noch eine.“ oder „Es fehlen noch <k>.“, bei `passes` „Der
+Antrag ist dann angenommen; jemand muss den Beschluss noch feststellen.“, bei `counts` falsch
+einer der Sätze „Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme
+zählt dann nicht mehr.“ oder „Deine Stimme zählt nicht: Du stehst nicht auf der
+Mitgliederliste.“; bei `propose` „Angenommen ist der Antrag mit <needed> von <n>
+Ja-Stimmen.“; bei `ratify` „Es gilt Epoche <epoch>. Alle müssen die neue Satzung bestätigen.“;
+bei `accept-rules` „Du bist Mitglied.“, „Du hast die Satzung bestätigt, stehst aber nicht auf
+der Mitgliederliste.“ oder „Deine Mitgliedschaft ändert sich nicht.“; bei `vouch` „Du hast
+<used> von <D> Punkten vergeben.“, über `D` dazu „Dann zählt keine deiner Bürgschaften
+mehr.“; bei `obligation` „Der Beitrag ist offen, bis <Name> quittiert.“; bei `receipt` „Der
+Beitrag ist bezahlt.“ Fehlt `effect`, entfällt die Zeile. Unter der Folge steht, dass sie eine
+Vorhersage ist, sobald andere gleichzeitig handeln können.
+
+**Beschluss 3 — der Titel eines Antrags** folgt aus `changes`: ein hinzugekommener Teilnehmer
+„<Name> aufnehmen“, ein entfernter „<Name> ausschließen“, ein Feld ohne alten Wert „<Feld>
+festlegen“, mit altem Wert „<Feld> ändern“, mehreres „Satzung ändern“. Der neue Wortlaut eines
+Textfelds steht als Zitat darunter.
+
+**Beschluss 4 — das Ende nach einer Gabelung.** `GET /tips/<I>` gibt die Spitzen der Kette von
+`I`. `POST /sim/intent` nimmt ein `h_prev` an, wenn es eine dieser Spitzen ist; sonst
+`NOT_A_TIP`. An eine Spitze anzuschließen setzt die Kette fort und kann keine neue Gabelung
+erzeugen; nur ein Anschluss an einen Claim, der schon einen Nachfolger hat, gabelt. Das ändert
+D476 Beschluss 4 für diesen Fall. Trifft eine simulierte Person auf die Abweisung wegen mehrerer
+Spitzen, fragt die Regie, an welches Ende angeschlossen wird, und zeigt jedes mit Art, Zeit und
+Wert.
+
+**Beschluss 5 — die Seite.** Rechts die Regie: die eigene Identität und jede simulierte Person
+als Knopf, „Aktualisieren“, der Selbsttest. Links oben „Du bist <Name>“ mit dem Zustand der
+Mitgliedschaft, die Meldung, dann die Frage oder „Jetzt zu tun“, dann eine Widerspruchskarte je
+Gabelung wie im Klickmodell, dann „Im Verein gerade“ in Sätzen. Darunter eingeklappt Anträge,
+Vertrauen, Beiträge, Kasse und Mitglieder; Anträge sind aufgeklappt, solange einer offen ist. Hat
+die Frage eine Warnung, ist „Nicht unterschreiben“ der hervorgehobene Knopf. Nach einer Handlung
+sagt die Meldung in einem Satz, was eingetragen ist. Kennungen stehen nur hinter „Einzelheiten“.
+
+**Geändert.** `07-decisions.md`.

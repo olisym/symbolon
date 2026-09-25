@@ -1,6 +1,80 @@
 /* Stil der Seite nach dem Klickmodell (D492 Beschluss 5, D490 Befund 3); keine externe Datei,
    kein Rahmenwerk, Systemschriften wegen default-src 'self' (D481 Beschluss 5). */
 
+/* Jede Farbe ist eine Variable, benannt nach ihrer Rolle; hell sind es die Werte von vorher.
+   color-scheme lässt Felder und Knöpfe ohne Klasse der Einstellung folgen (D511 Beschluss 1). */
+:root {
+  color-scheme: light dark;
+  --grund-hinten: #ece9e1;
+  --grund-seite: #f7f5f0;
+  --grund-karte: #ffffff;
+  --grund-knopf: #ffffff;
+  --grund-zitat: #f3f1ea;
+  --grund-haupt: #1f5fa8;
+  --grund-warnung: #fdf1e3;
+  --grund-erfolg: #e6f0e8;
+  --grund-regie: #2b2e33;
+  --grund-regie-knopf: #e8e6e1;
+  --text: #1f2328;
+  --text-leise: #4a4e55;
+  --text-marke: #5b5f66;
+  --text-folge: #33373d;
+  --text-haupt: #ffffff;
+  --text-warnung: #7a3a05;
+  --text-widerspruch: #3d1f04;
+  --text-erfolg: #1f4d2c;
+  --text-regie: #e8e6e1;
+  --text-regie-leise: #a9adb3;
+  --text-regie-knopf: #1f2328;
+  --akzent: #1f5fa8;
+  --haken: #8fb89a;
+  --linie: #d6d1c4;
+  --linie-fein: #e4e0d6;
+  --rand-karte: #cfd8e6;
+  --rand-frage: #1f2328;
+  --rand-warnung: #e0a867;
+  --rand-erfolg: #8fb89a;
+  --rand-regie: #6b7078;
+}
+
+/* Dunkel nach der Einstellung des Systems, ohne Schalter: die Seite dunkel, Karten eine Stufe
+   heller, die Regie dunkler als die Seite; Blau, Orange und Grün heller (D511 Beschluss 2,
+   D506 Beschluss 3). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grund-hinten: #17191c;
+    --grund-seite: #1d2024;
+    --grund-karte: #282b31;
+    --grund-knopf: #282b31;
+    --grund-zitat: #33373e;
+    --grund-haupt: #8ab8ef;
+    --grund-warnung: #3a2a18;
+    --grund-erfolg: #1d3324;
+    --grund-regie: #111316;
+    --grund-regie-knopf: #d6d4cf;
+    --text: #e6e4df;
+    --text-leise: #aab0b8;
+    --text-marke: #a0a6ae;
+    --text-folge: #d0d3d8;
+    --text-haupt: #0f1a2a;
+    --text-warnung: #f5c28a;
+    --text-widerspruch: #f7dcc0;
+    --text-erfolg: #a8dcb5;
+    --text-regie: #e0ded9;
+    --text-regie-leise: #9ea3aa;
+    --text-regie-knopf: #15171a;
+    --akzent: #8ab8ef;
+    --haken: #9fd0ab;
+    --linie: #3d4148;
+    --linie-fein: #34373d;
+    --rand-karte: #3b4556;
+    --rand-frage: #c9ccd1;
+    --rand-warnung: #a8743a;
+    --rand-erfolg: #5f8f6c;
+    --rand-regie: #50555d;
+  }
+}
+
 /* hidden gilt, gleich welche Klasse ein Element trägt (D494 Beschluss 4). */
 [hidden] {
   display: none !important;
@@ -11,8 +85,8 @@ body {
   font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
   font-size: 1.05rem;
   line-height: 1.5;
-  color: #1f2328;
-  background: #ece9e1;
+  color: var(--text);
+  background: var(--grund-hinten);
 }
 
 #seite {
@@ -27,7 +101,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  background: #f7f5f0;
+  background: var(--grund-seite);
 }
 
 .regie {
@@ -36,16 +110,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: #2b2e33;
-  color: #e8e6e1;
+  background: var(--grund-regie);
+  color: var(--text-regie);
 }
 
 .regie .marke {
-  color: #a9adb3;
+  color: var(--text-regie-leise);
 }
 
 .regie a {
-  color: #e8e6e1;
+  color: var(--text-regie);
 }
 
 .geschichte ol {
@@ -65,20 +139,20 @@ body {
 }
 
 .geschichte li.getan {
-  color: #a9adb3;
+  color: var(--text-regie-leise);
 }
 
 .geschichte .haken {
-  color: #8fb89a;
+  color: var(--haken);
   font-weight: 700;
 }
 
 .geschichte button.weiter {
   grid-column: 2;
   font-weight: 700;
-  color: #1f2328;
-  background: #e8e6e1;
-  border-color: #e8e6e1;
+  color: var(--text-regie-knopf);
+  background: var(--grund-regie-knopf);
+  border-color: var(--grund-regie-knopf);
 }
 
 .personen {
@@ -90,19 +164,19 @@ body {
 button.person {
   width: 100%;
   text-align: left;
-  color: #e8e6e1;
-  background: transparent;
-  border: 1px solid #6b7078;
+  color: var(--text-regie);
+  background: var(--grund-regie);
+  border: 1px solid var(--rand-regie);
 }
 
 button.person[aria-pressed="true"] {
-  color: #1f2328;
-  background: #e8e6e1;
-  border-color: #e8e6e1;
+  color: var(--text-regie-knopf);
+  background: var(--grund-regie-knopf);
+  border-color: var(--grund-regie-knopf);
 }
 
 .kopf {
-  border-bottom: 1px solid #d6d1c4;
+  border-bottom: 1px solid var(--linie);
   padding-bottom: 0.75rem;
 }
 
@@ -118,7 +192,7 @@ p {
 }
 
 .leise {
-  color: #4a4e55;
+  color: var(--text-leise);
 }
 
 .marke {
@@ -126,7 +200,7 @@ p {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #5b5f66;
+  color: var(--text-marke);
 }
 
 .satz {
@@ -137,8 +211,8 @@ p {
 }
 
 .karte {
-  background: #ffffff;
-  border: 1px solid #cfd8e6;
+  background: var(--grund-karte);
+  border: 1px solid var(--rand-karte);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -147,45 +221,45 @@ p {
 }
 
 .jetzt .marke {
-  color: #1f5fa8;
+  color: var(--akzent);
 }
 
 .aufgabe + .aufgabe {
-  border-top: 1px solid #e4e0d6;
+  border-top: 1px solid var(--linie-fein);
   padding-top: 0.75rem;
 }
 
 .frage {
-  border: 2px solid #1f2328;
+  border: 2px solid var(--rand-frage);
   max-width: 48rem;
 }
 
 .folge {
-  color: #33373d;
+  color: var(--text-folge);
 }
 
 .warnung {
-  background: #fdf1e3;
-  border: 1px solid #e0a867;
+  background: var(--grund-warnung);
+  border: 1px solid var(--rand-warnung);
   border-radius: 10px;
   padding: 0.9rem 1rem;
   font-weight: 700;
-  color: #7a3a05;
+  color: var(--text-warnung);
 }
 
 .meldung {
-  background: #fdf1e3;
-  border: 1px solid #e0a867;
+  background: var(--grund-warnung);
+  border: 1px solid var(--rand-warnung);
   border-radius: 10px;
   padding: 0.9rem 1.1rem;
   font-weight: 700;
-  color: #7a3a05;
+  color: var(--text-warnung);
 }
 
 .meldung.erfolg {
-  background: #e6f0e8;
-  border-color: #8fb89a;
-  color: #1f4d2c;
+  background: var(--grund-erfolg);
+  border-color: var(--rand-erfolg);
+  color: var(--text-erfolg);
 }
 
 #meldung:empty {
@@ -193,13 +267,13 @@ p {
 }
 
 .widerspruch {
-  background: #fdf1e3;
-  border-color: #e0a867;
-  color: #3d1f04;
+  background: var(--grund-warnung);
+  border-color: var(--rand-warnung);
+  color: var(--text-widerspruch);
 }
 
 .widerspruch .marke {
-  color: #7a3a05;
+  color: var(--text-warnung);
 }
 
 .paar {
@@ -209,8 +283,8 @@ p {
 }
 
 .ende {
-  background: #ffffff;
-  border: 1px solid #e4e0d6;
+  background: var(--grund-karte);
+  border: 1px solid var(--linie-fein);
   border-radius: 10px;
   padding: 1rem;
 }
@@ -223,7 +297,7 @@ p {
 blockquote {
   margin: 0;
   padding: 0.8rem 1rem;
-  background: #f3f1ea;
+  background: var(--grund-zitat);
   border-radius: 8px;
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 1.2rem;
@@ -255,15 +329,15 @@ button {
 
 button.haupt {
   font-weight: 700;
-  color: #ffffff;
-  background: #1f5fa8;
-  border: 1px solid #1f5fa8;
+  color: var(--text-haupt);
+  background: var(--grund-haupt);
+  border: 1px solid var(--grund-haupt);
 }
 
 button.neben {
-  color: #1f5fa8;
-  background: #ffffff;
-  border: 1px solid #1f5fa8;
+  color: var(--akzent);
+  background: var(--grund-knopf);
+  border: 1px solid var(--akzent);
 }
 
 button:disabled, select:disabled, input:disabled {
@@ -283,21 +357,21 @@ select, input {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  border-bottom: 1px solid #d6d1c4;
+  border-bottom: 1px solid var(--linie);
   padding-bottom: 0.6rem;
 }
 
 button.tab {
-  color: #1f5fa8;
-  background: #ffffff;
-  border: 1px solid #d6d1c4;
+  color: var(--akzent);
+  background: var(--grund-knopf);
+  border: 1px solid var(--linie);
 }
 
 button.tab[aria-selected="true"] {
   font-weight: 700;
-  color: #ffffff;
-  background: #1f5fa8;
-  border-color: #1f5fa8;
+  color: var(--text-haupt);
+  background: var(--grund-haupt);
+  border-color: var(--grund-haupt);
 }
 
 /* Ein Abschnitt steht in seinem Tab offen (D506 Beschluss 2). */
@@ -315,14 +389,14 @@ button.tab[aria-selected="true"] {
 
 details.einzelheiten > summary {
   cursor: pointer;
-  color: #4a4e55;
+  color: var(--text-leise);
   text-decoration: underline;
 }
 
 details.einzelheiten p {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 0.8rem;
-  color: #4a4e55;
+  color: var(--text-leise);
   word-break: break-all;
 }
 
@@ -331,7 +405,7 @@ table {
 }
 
 th, td {
-  border: 1px solid #d6d1c4;
+  border: 1px solid var(--linie);
   padding: 0.2rem 0.6rem;
   text-align: left;
 }

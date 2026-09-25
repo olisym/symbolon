@@ -21556,3 +21556,38 @@ Zählungen. Er meint den Abschnitt `vereinGerade`, den es weiter gibt; er bleibt
 nach D506 Beschluss 3 folgen als eigene Aufträge; D507 Befund 2 und D502 Befund bleiben offen.
 
 **Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.
+
+### D509 — Das Kapitel „Der Beitrag“; danach verschwindet die Geschichte; Auftrag `p17-geschichte`
+
+**Gelesen.** `geschichte` in `anzeige.js` und `geschichteBereich` und `regieBereich` in `app.js`
+auf `92547bb`. Die Geschichte hat acht Schritte; der erste offene trägt „Weiter als <Name>“. Sind
+alle getan, steht die Liste weiter da, ganz abgehakt; das ist Olis Befund aus D505. `zeichnenInhalt`
+holt die Obligationen schon (`GET /obligations`, je Zeile `debtor`, `creditor`, `state`). Die KASSE
+sieht „Quittieren …“ in „Jetzt zu tun“. Der Selbsttest prüft jeden Schritt einmal offen und einmal
+getan, über eine Schleife aus einem leeren und einem vollen Zustand.
+
+**Beschluss 1 — zwei Schritte nach `szenario-verein §6`**, nach BRUNOs Widerspruch:
+
+- „Du sagst der KASSE deinen Beitrag zu“, als du; getan, sobald eine Obligation mit dir als
+  Schuldner und der KASSE als Gläubiger besteht, gleich mit welchem Betrag.
+- „Die KASSE quittiert“, als KASSE; getan, sobald eine solche Obligation im Stand `SETTLED` steht.
+
+Die KASSE ist, wie die übrigen Personen der Geschichte, die Identität mit dem Namen „KASSE“.
+
+**Beschluss 2 — die Geschichte verschwindet, wenn sie durch ist.** Sind alle Schritte getan,
+zeigt die Regie die Geschichte nicht mehr; die Personen rücken unter den einleitenden Satz. Oli:
+„wenn die Geschichte durch ist, dann kann der Text weg“. Ein Schlusssatz entfällt damit.
+
+Verworfen:
+
+- **Die abgehakte Liste stehen lassen**, eingeklappt. Sie sagt nach dem Ende nichts mehr, was man
+  zum Bedienen braucht.
+- **Den Betrag von 24 € verlangen**, den die Satzung trägt. Die Satzung sagt der Seite nicht, in
+  welcher Einheit „24“ gemeint ist; die Geschichte führt, sie prüft nicht nach.
+
+**Beschluss 3 — die Fälle.** Die Schleife des Selbsttests prüft die zwei neuen Schritte mit, wenn
+der volle Zustand eine quittierte Obligation an die KASSE trägt. Dazu: nach einer Zusage im Stand
+`OPEN` ist der Beitrag getan, die Quittung nicht, und „Weiter“ zeigt auf die KASSE; eine
+Obligation an CHRIS macht den ersten neuen Schritt nicht getan.
+
+**Geändert.** `07-decisions.md`.

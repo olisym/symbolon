@@ -21172,3 +21172,40 @@ nächsten Schritt; `sitzungsstart-00cj.md` geht nach `archiv/` (D314).
 
 **Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`,
 `sitzungsstart-00ck.md`, `archiv/sitzungsstart-00cj.md`.
+
+### D498 — Die Dauer einer Bürgschaft wird aufgerundet; Auftrag `p13-tage`
+
+**Anlass.** Die Rückfrage aus D497: eingegeben 365 Tage, angezeigt „für 364 Tage“.
+
+**Befund 1 — gemessen.** `tageAusKern` auf `737f571`, im Node aufgerufen mit `t` = 1003 und
+`t_exp` = 1000 + 365 · 86400 = 31537000, liefert 364. Das Formular rechnet `t_exp` aus `/now` beim
+Zeichnen, `t` des Kerns liegt einige Sekunden später; das Abrunden nimmt dafür einen ganzen Tag.
+
+**Befund 2 — die Rundung war ungeprüft.** Der Selbsttest mit 126 Fällen prüft `absichtSatz` mit
+fertigen Tageszahlen, aber keinen Fall von `tageAusKern`. D496 Beschluss 2 wurde gebaut und
+abgenommen, ohne dass ein Test die Rundung sah; gefunden hat sie Olis Durchlauf.
+
+**Beschluss 1 — aufgerundet.** `d` ist die kleinste ganze Zahl, die nicht kleiner ist als
+(`t_exp` minus `t`) / 86400. Das ersetzt „ganzzahlig abgerundet“ in D496 Beschluss 2; alles
+andere dort gilt weiter, auch „für 1 Tag“ in der Einzahl. Weil eine Bürgschaft (`nuc/vouch/1`)
+kein `core/*` ist, gilt für jede gültige nach `01 §6` Punkt 7 `t < t_exp`, und `d` ist
+mindestens 1.
+
+Verworfen:
+
+- **Kaufmännisch runden.** Es heilt den Versatz von Sekunden ebenso, nennt aber eine Bürgschaft
+  über einen Tag und eine Sekunde „für 1 Tag“ und eine über sechs Stunden „für 0 Tage“. Wer
+  unterschreibt, soll die Bindung nicht kürzer lesen, als sie ist.
+- **Abrunden mit Toleranz** von einigen Sekunden oder Minuten. Die Grenze wäre eine Zahl ohne
+  Grund in der Spec; sie verschiebt das Problem nur an einen anderen Versatz.
+- **`t_exp` aus dem `t` des Kerns bilden** statt aus `/now` beim Zeichnen. Das beseitigt den
+  Versatz an der Quelle, ändert aber die Absicht (`POST /intent`), und die Seite zeigt auch
+  Bürgschaften anderer Werkzeuge mit beliebiger Dauer. Eine Rundungsregel braucht sie ohnehin.
+
+**Beschluss 2 — Auftrag `p13-tage`.** `tageAusKern` in `anzeige.js` rundet nach Beschluss 1, der
+Kommentar dort zitiert D498. Der Selbsttest bekommt Fälle an den Grenzen, abgeleitet aus
+Beschluss 1: genau 365 Tage ergibt 365, 365 Tage weniger drei Sekunden ergibt 365, eine Sekunde
+ergibt 1, ein Tag und eine Sekunde ergibt 2; einer davon mit `BigInt`, wie `app.js` den Kern
+übergibt. Der zweite Fall sieht das Abrunden, der vierte das kaufmännische Runden.
+
+**Geändert.** `07-decisions.md`.

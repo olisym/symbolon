@@ -20522,3 +20522,32 @@ gibt die Sperre frei. Das Anlegen gibt unter der Sperre einen vorhandenen Schlü
 statt einen neuen zu erzeugen. Ein leerer Name wird abgewiesen, bevor ein Schlüssel entsteht.
 
 **Geändert.** `07-decisions.md`.
+
+### D483 — Abnahme `p5-geraet`
+
+**Geprüft.** Nachtrag `f091738` auf `p5-geraet` gegen `6c6fd9d`, der ganze Diff aus dem Spiegel:
+`geraet.js`, `app.js`, `selbsttest.js`. In Node 22 bestehen 41 von 41 Fällen, 22 Vektoren und 19
+Fälle zu den Sätzen aus D482 Beschluss 4. Zwei Proben selbst gebaut, anders als die des Berichts:
+ein `klaeren`, das bei fehlender Spitze den Vorschlag übernimmt, lässt genau den Fall zur
+fehlenden Spitze rot werden; ein `verbuchen`, das bei abweichender oder fehlender Antwort nichts
+ändert, genau die zwei Fälle dazu. Der Schutz beim Anlegen, einen vorhandenen Schlüssel
+zurückzugeben, liegt unter IndexedDB und ist im Selbsttest nicht sichtbar, wie D482 Beschluss 4
+es in Kauf nimmt; er ist im Diff gelesen. Die Tests auf dem Stand des Merges sind grün.
+
+**Die drei Meldungen des Berichts werden getragen.** Die Zeile „Scope“ steht nur, wenn der Kern
+`N` trägt (`01 §2.3`). Ein Name aus Leerzeichen gilt als leer. Das Ergebnis `abweichung` entfällt,
+weil D482 Beschluss 2 es zum Schwebenden macht.
+
+**Die zwei Rückfragen.** *Eine andere Version erscheint wörtlich.* `vouch@2` ist ein anderes
+Prädikat (`01 §2.2`); das Gerät kennt seine Bedeutung nicht und darf sie nicht mit dem Wort für
+`vouch@1` benennen. *Nach „Abbrechen“ bleiben Felder und Knöpfe stehen.* Ein Druck auf den
+stehenden Knopf erfüllt ein schon erfülltes Versprechen und tut nichts. Das Aufräumen gehört zu
+`p6-oberflaeche`, die die Seite ohnehin neu baut.
+
+**Beschluss 1 — gemergt.** Phase 3 hat ein Gerät. Was nur der Browser zeigen kann, prüft Oli nach
+dem Merge in Chrome und Brave: der Selbsttest mit „41 von 41 bestanden“, das Anlegen eines
+Schlüssels, eine unterschriebene Annahme der Satzung mit „Eingetragen“, und ein zweiter Tab, der
+beim Unterschreiben wartet, bis der erste abgebrochen hat. Das Ergebnis steht im nächsten Eintrag.
+
+**Geändert.** `symbolon/node/static/`, `symbolon/node/api.py`, `tools/geraet_vektoren.py`,
+`tools/check_tree.py`, `tests/node/` (über den Merge); `07-decisions.md`.

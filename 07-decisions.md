@@ -20844,3 +20844,58 @@ simulierte Person, als Demonstration des Wegs zurück, kommt mit einem Szenario,
 
 **Geändert.** `tools/verein_gabel.py`, `tests/node/test_gabel.py` (über den Merge);
 `07-decisions.md`.
+
+### D490 — Die Seite nach einem Klickmodell; die Folge steht vor der Unterschrift
+
+**Anlass.** Olis Durchlauf nach D489. Die Gabelung fand nicht statt: in seinem Bestand standen zwei
+Anträge auf `PENDING`, das Skript brach mit dem Satz aus D488 Beschluss 2 ab, und die Meldung ging
+im Terminal unter. Wichtiger ist sein Befund zur Seite: er konnte ihr nicht entnehmen, was eine
+Handlung bewirkt, welche gerade sinnvoll ist und was er unterschreibt; Kennungen stehen, wo Worte
+stehen müssten.
+
+**Befund 1 — die Seite war von den Daten her gebaut.** D486 und D487 legten Abschnitte je Antwort
+des S-Node fest. Das ergab eine Anzeige für jemanden, der das Protokoll kennt. Die Tests prüften,
+dass jede Zahl stimmt; keiner prüfte, ob ein Mensch nach dem Klick sagen kann, was er getan hat.
+
+**Befund 2 — das Problem ist außerhalb von MaR bearbeitet und hat einen Namen.** In Ethereum heißt
+es blind signing. Die Ethereum Foundation hat im Mai 2026 mit Herstellern von Wallets Clear Signing
+eingeführt, mit ERC-7730 als Format: zu jeder Funktion ein Satz der Absicht, den das Wallet zeigen
+soll, und die Felder in lesbarer Form, unter dem Grundsatz „What You See Is What You Sign“. Die
+Quellen sagen selbst, dass lesbar nicht geprüft heißt: die Beschreibung beweist nicht, dass sie
+stimmt. Für MaR gilt dasselbe im Browser (D479 Befund 2); die Worte kommen deshalb aus dem
+dekodierten Kern und aus Sichten des S-Node, nicht aus einer freien Beschreibung. MetaMask zeigt
+vor dem Absenden eine Vorhersage der Folgen und nennt sie Vorhersage. Beides übernimmt MaR: ein
+Satz der Absicht, eine Zeile der Folge.
+
+**Befund 3 — das Klickmodell trägt.** Ein Modell mit erfundenen Daten in sechs Momenten (Anna will
+bürgen und ihr Budget ist voll, Chris sieht Annas Antrag, stimmt Ja, sieht den neuen Stand, Anna
+sieht Brunos Widerspruch) hat Oli ohne Einwand verstanden. Es liegt als Design-Artefakt
+„Verein – Klickmodell“ vor.
+
+**Beschluss 1 — Maßstab einer Oberfläche.** Eine Oberfläche wird an dem Satz gemessen, den ein
+Mensch nach dem Klick sagen kann, nicht an den Feldern, die sie zeigt. Eine Abnahme der Seite
+prüft deshalb gegen das Klickmodell und gegen Olis Durchlauf, nicht nur gegen Tests.
+
+**Beschluss 2 — die Folge einer Absicht rechnet der S-Node.** `POST /intent` und
+`POST /sim/intent` geben neben `warnings` ein `effect` zurück, eine Vorhersage aus dem Bestand
+ohne die neue Unterschrift. Für `vote` die Ja und Nein danach, `needed`, `n` und ob der Antrag
+danach angenommen wäre; eine zweite Stimme desselben Autors nimmt dabei seine zählende Stimme
+heraus und zählt selbst nicht (`04 §3.1`), eine Stimme von jemandem, der nicht auf der Liste
+steht, zählt nicht. Für `propose` die nötigen Ja und `n`. Für `ratify` die Epoche danach. Für
+`accept-rules` der Zustand der Mitgliedschaft danach. Für `vouch` das vergebene Budget danach und
+`D`. Für `obligation` und `receipt` der Zustand der Tilgung danach. Angenommen wird nach `reached`,
+keine zweite Formel. Die Vorhersage kann durch gleichzeitige Handlungen anderer falsch werden; die
+Seite nennt sie so.
+
+**Beschluss 3 — die Seite nach dem Modell.** Sie zeigt eine Person: „Du bist …“, darunter, was
+jetzt zu tun ist, dann in Sätzen, was im Verein gerade gilt. Anträge haben einen Titel aus ihren
+Änderungen, etwa „Oli aufnehmen“ oder „beitrag festlegen“, und zeigen den neuen Text im Wortlaut.
+Die Frage vor dem Unterschreiben hat einen Satz der Absicht aus dem dekodierten Kern, eine Zeile
+der Folge aus `effect`, die Warnungen, und die Kennungen nur hinter „Einzelheiten“. Die übrigen
+Abschnitte stehen darunter und sind eingeklappt. Die Regie ist ein Streifen am Rand. Dazu die
+offenen Punkte aus D489 Beschluss 3.
+
+**Beschluss 4 — zwei Aufträge.** `p9-vorschau`: Beschluss 2, ohne Browser. `p10-seite`:
+Beschluss 3, gegen das Klickmodell.
+
+**Geändert.** `07-decisions.md`.

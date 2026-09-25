@@ -21591,3 +21591,20 @@ der volle Zustand eine quittierte Obligation an die KASSE trägt. Dazu: nach ein
 Obligation an CHRIS macht den ersten neuen Schritt nicht getan.
 
 **Geändert.** `07-decisions.md`.
+
+### D510 — Abnahme `p17-geschichte`; die Geschichte ist durch und verschwindet
+
+**Geprüft.** Commit `3b922c7` auf `p17-geschichte`, Basis `7246293`, der Diff von `anzeige.js` und
+`app.js` ganz aus dem Spiegel. Im Node 154 von 154. Die zwei Schritte folgen D509 Beschluss 1
+Wort für Wort; Zusage und Quittung lesen dieselbe Auswahl der Obligationen von dir an die KASSE.
+`regieBereich` zeigt die Geschichte nur, solange ein Schritt offen ist. Der zweite leere Zustand
+in `feinschliffFaelle`, den der Auftrag nicht nannte, bekam `obligationen: []`, statt in
+`geschichte` einen Ersatzwert zu bauen; angenommen.
+
+**Olis Durchlauf.** In seinem Bestand hatte er der KASSE schon zugesagt und die KASSE hatte
+quittiert. Nach dem Neuladen ist die Geschichte weg, die Personen stehen unter dem einleitenden
+Satz. Die Schritte des Kapitels einzeln hat er nicht gesehen; das prüft der Selbsttest.
+
+**Beschluss 1 — gemergt.** Als Nächstes die Seite in Hell und Dunkel (D506 Beschluss 3).
+
+**Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.

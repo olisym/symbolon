@@ -21415,3 +21415,28 @@ je Auftrag frisch gestartet, wie es für den Container schon galt.
 die Rücknahmeprobe mit `padStart` macht ihn rot.
 
 **Geändert.** `07-decisions.md`.
+
+### D505 — Abnahme `p15-euro`; Olis Durchlauf: die Beträge tragen, die Seite ist zu lang
+
+**Geprüft.** Commits `640b28c` und `589efbb` auf `p15-euro`, Basis `fd46101`, beide Diffs ganz
+aus dem Spiegel. 1131 Tests grün, im Node 141 von 141. Die Rücknahmeprobe des Nachtrags mit
+`padStart` nachgefahren: rot nur „24.5“ mit 2405. Das Werkzeug hat die Dateien diesmal ausdrücklich
+neu gelesen (D504 Befund 2).
+
+**Olis Durchlauf.** An die KASSE mit 19,99, 24,5 und 12,345 im Feld „Euro“: die ersten beiden
+führen zur Frage mit 19,99 € und 24,50 €, der dritte zum Satz aus D503 Beschluss 2. Damit ist auch
+geklärt, dass sein Browser das Komma im Feld vom Typ `number` als Punkt liefert (Meldung 1 des
+Berichts).
+
+**Befund 1 — die Seite ist zu lang.** Oli scrollt viel hoch und runter und schlägt Tabs vor. Die
+Seite stellt alle Abschnitte untereinander, von der Frage bis zu den Mitgliedern.
+
+**Befund 2 — die Geschichte in der Regie stimmt nicht mehr**, nach Olis Wort. Was genau nicht
+stimmt, ist noch zu klären.
+
+**Beschluss 1 — gemergt.**
+
+**Beschluss 2 — Befund 1 und 2 zuerst mit Oli.** Beide sind Befunde an der Seite im Sinn von D490;
+entschieden wird nach einem Modell, das Oli sieht, nicht aus dem Code heraus.
+
+**Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.

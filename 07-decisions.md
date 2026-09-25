@@ -20607,3 +20607,25 @@ der Regie. `p8-gabelung`: das Skript für Brunos Gabelung. Das ersetzt `p6-oberf
 D479 Beschluss 8.
 
 **Geändert.** `07-decisions.md`.
+
+### D485 — Abnahme `p6-lesen`
+
+**Geprüft.** Commit `1e49ebb` auf `p6-lesen`, Basis `e7d02c5`, der ganze Diff aus dem Spiegel:
+`symbolon/node/view.py`, `symbolon/node/api.py`, `tests/node/test_lesen.py`. Die Tests auf dem
+Stand des Merges sind grün. Zwei Proben selbst gebaut, anders als die des Berichts, beide rot an
+der Sache: liest `VOTE` die abgegebene Stimme aus `yes` und `no` der Auszählung statt aus dem
+Bestand, bekommt Bruno nach seiner Doppelstimme wieder `VOTE`, und `test_doppelstimme` wird rot;
+gibt `CONFIRM_RULES` jedem Teilnehmer die Aufgabe, gleich ob `MEMBER`, bekommt Dora sie im
+Grundbestand, und `test_grundbestand` wird rot. Fremder Inhalt bricht die neuen Pfade nicht:
+beide lesen `participants` nur, wo die Sicht einen Teil `verein` trägt, und den gibt es nur bei
+wohlgeformter Liste (D475).
+
+**Die drei Meldungen des Berichts werden getragen.** Fehlt die vorgeschlagene Verfassung im
+Bestand, sind die Unterschiede leer; der Zustand des Antrags nennt den Grund. Reicht kein `y` bis
+`n`, ist `needed` `null`: bei `num = den` kann `reached` mit seinem strengen Vergleich nie wahr
+werden, und `needed` gibt es dann nicht. Die Tests stehen in einer eigenen Datei.
+
+**Beschluss 1 — gemergt.** Als Nächstes `p7-bildschirme` (D484 Beschluss 4).
+
+**Geändert.** `symbolon/node/view.py`, `symbolon/node/api.py`, `tests/node/test_lesen.py` (über
+den Merge); `07-decisions.md`.

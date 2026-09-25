@@ -1,31 +1,231 @@
-/* Stil der Seite (D486 Beschluss 2, keine externe Datei, kein Rahmenwerk). */
+/* Stil der Seite nach dem Klickmodell (D492 Beschluss 5, D490 Befund 3); keine externe Datei,
+   kein Rahmenwerk, Systemschriften wegen default-src 'self' (D481 Beschluss 5). */
 
 body {
-  font-family: system-ui, sans-serif;
-  max-width: 48rem;
-  margin: 1rem auto;
-  padding: 0 1rem;
-  color: #1a1a1a;
+  margin: 0;
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #1f2328;
+  background: #ece9e1;
 }
 
-h1, h2 {
-  margin-top: 1.5rem;
+#seite {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  min-height: 100vh;
 }
 
-section {
-  border-top: 1px solid #ccc;
-  padding-top: 0.5rem;
-  margin-top: 1rem;
+.links {
+  box-sizing: border-box;
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #f7f5f0;
+}
+
+.regie {
+  box-sizing: border-box;
+  padding: 2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #2b2e33;
+  color: #e8e6e1;
+}
+
+.regie .marke {
+  color: #a9adb3;
+}
+
+.regie a {
+  color: #e8e6e1;
+}
+
+.personen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+button.person {
+  width: 100%;
+  text-align: left;
+  color: #e8e6e1;
+  background: transparent;
+  border: 1px solid #6b7078;
+}
+
+button.person[aria-pressed="true"] {
+  color: #1f2328;
+  background: #e8e6e1;
+  border-color: #e8e6e1;
+}
+
+.kopf {
+  border-bottom: 1px solid #d6d1c4;
+  padding-bottom: 0.75rem;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
 p {
   margin: 0.3rem 0;
 }
 
+.leise {
+  color: #4a4e55;
+}
+
+.marke {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b5f66;
+}
+
+.satz {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.karte {
+  background: #ffffff;
+  border: 1px solid #cfd8e6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jetzt .marke {
+  color: #1f5fa8;
+}
+
+.aufgabe + .aufgabe {
+  border-top: 1px solid #e4e0d6;
+  padding-top: 0.75rem;
+}
+
+.frage {
+  border: 2px solid #1f2328;
+  max-width: 48rem;
+}
+
+.folge {
+  color: #33373d;
+}
+
+.warnung {
+  background: #fdf1e3;
+  border: 1px solid #e0a867;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  font-weight: 700;
+  color: #7a3a05;
+}
+
+.meldung {
+  background: #fdf1e3;
+  border: 1px solid #e0a867;
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  font-weight: 700;
+  color: #7a3a05;
+}
+
+.meldung.erfolg {
+  background: #e6f0e8;
+  border-color: #8fb89a;
+  color: #1f4d2c;
+}
+
+#meldung:empty {
+  display: none;
+}
+
+.widerspruch {
+  background: #fdf1e3;
+  border-color: #e0a867;
+  color: #3d1f04;
+}
+
+.widerspruch .marke {
+  color: #7a3a05;
+}
+
+.paar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.9rem;
+}
+
+.ende {
+  background: #ffffff;
+  border: 1px solid #e4e0d6;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.wert {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+blockquote {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  background: #f3f1ea;
+  border-radius: 8px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.2rem;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.3rem;
+}
+
+.gerade ul {
+  line-height: 1.7;
+}
+
+.knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
 button {
-  margin: 0.15rem 0.3rem 0.15rem 0;
-  padding: 0.25rem 0.6rem;
+  min-height: 2.75rem;
+  padding: 0 1.2rem;
+  font: inherit;
+  border-radius: 8px;
   cursor: pointer;
+}
+
+button.haupt {
+  font-weight: 700;
+  color: #ffffff;
+  background: #1f5fa8;
+  border: 1px solid #1f5fa8;
+}
+
+button.neben {
+  color: #1f5fa8;
+  background: #ffffff;
+  border: 1px solid #1f5fa8;
 }
 
 button:disabled, select:disabled, input:disabled {
@@ -34,61 +234,61 @@ button:disabled, select:disabled, input:disabled {
 }
 
 select, input {
-  margin: 0.15rem 0.3rem 0.15rem 0;
-  padding: 0.2rem;
+  min-height: 2.5rem;
+  padding: 0 0.4rem;
+  font: inherit;
+}
+
+details.abschnitt {
+  border-top: 1px solid #d6d1c4;
+  padding-top: 0.5rem;
+}
+
+details.abschnitt > summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.15rem;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+}
+
+details.abschnitt[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+details.einzelheiten > summary {
+  cursor: pointer;
+  color: #4a4e55;
+  text-decoration: underline;
+}
+
+details.einzelheiten p {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  color: #4a4e55;
+  word-break: break-all;
 }
 
 table {
   border-collapse: collapse;
-  margin: 0.5rem 0;
 }
 
 th, td {
-  border: 1px solid #ccc;
-  padding: 0.2rem 0.5rem;
+  border: 1px solid #d6d1c4;
+  padding: 0.2rem 0.6rem;
   text-align: left;
 }
 
-ul {
-  padding-left: 1.2rem;
-}
-
-#dialog {
-  border: 2px solid #333;
-  padding: 0.75rem;
-}
-
-#dialog[hidden] {
-  display: none;
-}
-
-#meldung {
-  font-weight: bold;
-}
-
-#meldung:empty {
-  display: none;
-}
-
-/* Frage und Aufgaben nebeneinander ab einer Breite, in der beides lesbar bleibt, sonst
-   untereinander (D487 Beschluss 1). */
-.ansteht-spalten {
-  display: block;
-}
-
-.ansteht-spalten > * {
-  margin-top: 1rem;
-}
-
-@media (min-width: 40rem) {
-  .ansteht-spalten {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    align-items: start;
+/* Auf schmalem Bildschirm steht die Regie unter der Seite. */
+@media (max-width: 50rem) {
+  #seite {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .ansteht-spalten > * {
-    margin-top: 0;
+  .links {
+    padding: 1.25rem 1rem;
   }
 }

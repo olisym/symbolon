@@ -495,6 +495,20 @@ def _intent_body(
     return fields, warnings, effect
 
 
+def _sim_tip(store: SqliteStore, body: Mapping[str, Any]) -> Mapping[str, Any]:
+    """h_prev einer simulierten Person nur, wenn es eine Spitze ist (D492 Beschluss 4, 01 §4).
+
+    An eine Spitze anzuschließen setzt die Kette fort; ein anderer Vorgänger könnte gabeln.
+    """
+    if "h_prev" not in body:
+        return body
+    previous = _hex(body["h_prev"], 32)
+    author = _hex(_require(body, "I"), 32)
+    if previous not in {claim_id(tip) for tip in _tips(store, author)}:
+        raise _Named("NOT_A_TIP")
+    return body
+
+
 class _Forked(Exception):
     """Mehr als eine Spitze (D476 Beschluss 3)."""
 
@@ -605,6 +619,10 @@ def _handler(
                 identity = _hex(path[len("/tasks/") :], 32)
                 self._send(200, [_task_json(t) for t in tasks_view(store, identity, clock())])
                 return
+            if not post and path.startswith("/tips/"):
+                identity = _hex(path[len("/tips/") :], 32)
+                self._send(200, sorted(claim_id(tip) for tip in _tips(store, identity)))
+                return
             if not post and path == "/now":
                 self._send(200, clock())
                 return
@@ -681,11 +699,7 @@ def _handler(
                 if seed is None:
                     raise _Missing()
                 if path == "/sim/intent":
-                    fields, warnings, effect = _intent_body(
-                        store,
-                        {key: value for key, value in body.items() if key != "h_prev"},
-                        clock(),
-                    )
+                    fields, warnings, effect = _intent_body(store, _sim_tip(store, body), clock())
                     prepared = _prepare(store, fields, clock)
                     sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
                     cid = _submit(store, core_bytes(prepared), sigma)

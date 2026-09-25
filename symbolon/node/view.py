@@ -207,13 +207,17 @@ class ProposalChanges:
 
 @dataclass(frozen=True, slots=True)
 class ProposalView:
-    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt (D482 Befund 2, D484 Beschluss 2)."""
+    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt
+
+    (D482 Befund 2, D484 Beschluss 2, D487 Beschluss 3).
+    """
 
     proposal: bytes
     proposers: tuple[bytes, ...]
     state: TallyState
     yes: tuple[bytes, ...]
     no: tuple[bytes, ...]
+    ambiguous: tuple[bytes, ...]
     n: int | None
     needed: int | None
     changes: ProposalChanges
@@ -280,7 +284,7 @@ def _changes(current: dict, target: dict | None) -> ProposalChanges:
 
 
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
-    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2)."""
+    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3)."""
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
     view = scope_view(store, scope, now)
@@ -298,6 +302,16 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
             continue
         yes_authors = tuple(sorted({store.get(cid).I for cid in tally.yes}))
         no_authors = tuple(sorted({store.get(cid).I for cid in tally.no}))
+        ambiguous_authors = tuple(
+            sorted(
+                {
+                    store.get(finding.subject).I
+                    for finding in tally.findings
+                    if finding.kind is GovernanceFinding.AMBIGUOUS_VOTE
+                    and store.get(finding.subject) is not None
+                }
+            )
+        )
         proposal_obj = proposals.get(digest)
         target = constitutions.get(proposal_obj.constitution_hash) if proposal_obj else None
         result.append(
@@ -307,6 +321,7 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 state=tally.state,
                 yes=yes_authors,
                 no=no_authors,
+                ambiguous=ambiguous_authors,
                 n=tally.n,
                 needed=_needed(tally.threshold, tally.n),
                 changes=_changes(current, target),

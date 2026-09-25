@@ -1,5 +1,6 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
-// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, 01 §4).
+// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
+// 01 §4).
 
 import {
   artInWorten,
@@ -12,7 +13,17 @@ import {
   signCore,
   verbuchen,
 } from "./geraet.js";
-import { betrag, kassenZeilen, standZeile, warnungInWorten } from "./anzeige.js";
+import {
+  abweisungInWorten,
+  aenderungen,
+  betrag,
+  hinweisSatzungGeaendert,
+  kassenZeilen,
+  mitgliedschaftInWorten,
+  standZeile,
+  warnungInWorten,
+  wertInWorten,
+} from "./anzeige.js";
 
 function bytesFromHex(text) {
   const out = new Uint8Array(text.length / 2);
@@ -253,6 +264,74 @@ function anzeigeFaelle() {
     "warnungInWorten: ein unbekannter Name wörtlich",
     warnungInWorten("UNBEKANNT") === "UNBEKANNT",
     warnungInWorten("UNBEKANNT"),
+  );
+
+  pruefe(
+    "mitgliedschaftInWorten: GRANT_ONLY (D487 Beschluss 2)",
+    mitgliedschaftInWorten("GRANT_ONLY") ===
+      "steht auf der Liste, hat die geltende Satzung noch nicht bestätigt",
+    mitgliedschaftInWorten("GRANT_ONLY"),
+  );
+  pruefe(
+    "mitgliedschaftInWorten: APPLICANT (D487 Beschluss 2)",
+    mitgliedschaftInWorten("APPLICANT") === "hat bestätigt, steht nicht auf der Liste",
+    mitgliedschaftInWorten("APPLICANT"),
+  );
+  pruefe(
+    "abweisungInWorten: ALREADY_PARTICIPANT (D487 Beschluss 2)",
+    abweisungInWorten("ALREADY_PARTICIPANT") === "Diese Person steht schon auf der Mitgliederliste.",
+    abweisungInWorten("ALREADY_PARTICIPANT"),
+  );
+  pruefe(
+    "abweisungInWorten: NOT_PARTICIPANT (D487 Beschluss 2)",
+    abweisungInWorten("NOT_PARTICIPANT") === "Diese Person steht nicht auf der Mitgliederliste.",
+    abweisungInWorten("NOT_PARTICIPANT"),
+  );
+  pruefe(
+    "hinweisSatzungGeaendert: mindestens ein GRANT_ONLY (D487 Beschluss 2, szenario-verein §4)",
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "GRANT_ONLY" }],
+    ]) !== null,
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "GRANT_ONLY" }],
+    ]),
+  );
+  pruefe(
+    "hinweisSatzungGeaendert: kein GRANT_ONLY, kein Hinweis",
+    hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]) === null,
+    hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]),
+  );
+
+  pruefe(
+    "wertInWorten: Wahl 1 einer Stimme als Ja (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/vote@1", { "0": 1 }) === "Ja",
+    wertInWorten("nuc:aabb/vote@1", { "0": 1 }),
+  );
+  pruefe(
+    "wertInWorten: Wahl 0 einer Stimme als Nein (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/vote@1", { "0": 0 }) === "Nein",
+    wertInWorten("nuc:aabb/vote@1", { "0": 0 }),
+  );
+  pruefe(
+    "wertInWorten: jeder andere Wert als JSON (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/ratify@1", { "0": ["x"] }) === '{"0":["x"]}',
+    wertInWorten("nuc:aabb/ratify@1", { "0": ["x"] }),
+  );
+
+  pruefe(
+    "aenderungen: ein Wert, der kein Text ist, als JSON (D487 Beschluss 4)",
+    JSON.stringify(
+      aenderungen(
+        { added: [], removed: [], fields: [{ field: "thresholds", old: null, new: { ordinary: [1, 2] } }] },
+        new Map(),
+      ),
+    ) === JSON.stringify(['thresholds: – → {"ordinary":[1,2]}']),
+    aenderungen(
+      { added: [], removed: [], fields: [{ field: "thresholds", old: null, new: { ordinary: [1, 2] } }] },
+      new Map(),
+    ),
   );
 
   return results;

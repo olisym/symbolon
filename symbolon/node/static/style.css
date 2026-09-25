@@ -28,6 +28,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled, select:disabled, input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 select, input {
   margin: 0.15rem 0.3rem 0.15rem 0;
   padding: 0.2rem;
@@ -51,7 +56,6 @@ ul {
 #dialog {
   border: 2px solid #333;
   padding: 0.75rem;
-  margin-top: 1rem;
 }
 
 #dialog[hidden] {
@@ -60,4 +64,31 @@ ul {
 
 #meldung {
   font-weight: bold;
+}
+
+#meldung:empty {
+  display: none;
+}
+
+/* Frage und Aufgaben nebeneinander ab einer Breite, in der beides lesbar bleibt, sonst
+   untereinander (D487 Beschluss 1). */
+.ansteht-spalten {
+  display: block;
+}
+
+.ansteht-spalten > * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .ansteht-spalten {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .ansteht-spalten > * {
+    margin-top: 0;
+  }
 }

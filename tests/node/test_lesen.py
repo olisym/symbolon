@@ -1,6 +1,6 @@
 """Aufgaben, Anträge und Lesepfade für die Bildschirme.
 
-D484 Beschluss 1 und 2, D482 Befund 2, D486 Beschluss 1.
+D484 Beschluss 1 und 2, D482 Befund 2, D486 Beschluss 1, D487 Beschluss 3.
 """
 
 from __future__ import annotations
@@ -426,5 +426,36 @@ def test_claims(tmp_path) -> None:
 
         status, _body = _call(server, "GET", f"/claims/{'11' * 32}")
         assert status == 404
+    finally:
+        _stop(server)
+
+
+def test_ambiguous(tmp_path) -> None:
+    """Bruno stimmt Nein und dann Ja: ambiguous, nicht yes oder no; Anna bleibt draußen
+
+    (D487 Beschluss 3, szenario-verein §5.1).
+    """
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path)
+    try:
+        _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"set": {"field": "beitrag", "text": BEITRAG}},
+        )
+        _intent(server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="no")
+        _intent(server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes")
+        _intent(server, world.anna.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes")
+
+        antrag = _get(server, f"/proposals/{world.ex.N_gov.hex()}")[0]
+        assert antrag["ambiguous"] == [world.bruno.pub.hex()]
+        assert world.bruno.pub.hex() not in antrag["yes"]
+        assert world.bruno.pub.hex() not in antrag["no"]
+        assert world.anna.pub.hex() not in antrag["ambiguous"]
+        assert antrag["yes"] == [world.anna.pub.hex()]
     finally:
         _stop(server)

@@ -15,12 +15,14 @@ import {
   auszaehlungInWorten,
   abweisungInWorten,
   betrag,
+  hinweisSatzungGeaendert,
   kassenZeilen,
   mitgliedschaftInWorten,
   nameVon,
   standZeile,
   tilgungInWorten,
   warnungInWorten,
+  wertInWorten,
 } from "./anzeige.js";
 
 const MONATE = [
@@ -137,6 +139,26 @@ function meldung(text) {
   letzteMeldung = text;
 }
 
+// Jeder Knopf, jede Auswahl und jedes Feld der Seite außer denen der offenen Frage
+// (D487 Beschluss 1).
+function interaktiveElemente() {
+  const seite = document.querySelector("#seite");
+  const dialog = document.querySelector("#dialog");
+  return [...seite.querySelectorAll("button, select, input")].filter(
+    (element) => !dialog || !dialog.contains(element),
+  );
+}
+
+// Eine Frage zur Zeit: solange sie offen ist, ist jeder andere Knopf gesperrt
+// (D487 Befund 1, Beschluss 1).
+function sperren() {
+  for (const element of interaktiveElemente()) element.disabled = true;
+}
+
+function entsperren() {
+  for (const element of interaktiveElemente()) element.disabled = false;
+}
+
 // Kern und Warnungen anzeigen, Unterschreiben oder Abbrechen (D486 Beschluss 2 und 3,
 // D471 Beschluss 2).
 async function vorschau(kern, warnungen, autorPub) {
@@ -169,6 +191,7 @@ async function vorschau(kern, warnungen, autorPub) {
 // simulierten (D486 Beschluss 3, D479 Beschluss 2).
 function handelnFabrik(record) {
   return async function handeln(art, felder) {
+    sperren();
     try {
       if (handelnAls === "geraet") {
         const ergebnis = await ablauf(crypto.subtle, {
@@ -212,6 +235,8 @@ function handelnFabrik(record) {
       }
     } catch (error) {
       meldung(error.antwort ? abweisungInWorten(error.name) : "keine Antwort");
+    } finally {
+      entsperren();
     }
     await zeichnen();
   };
@@ -269,13 +294,21 @@ function anlegenFormular() {
   return abschnitt;
 }
 
-function aufgabenAbschnitt(tasks, handeln) {
+// „Verein“, „Vereinsleben“ oder der gekürzte Scope (D487 Beschluss 4).
+function scopeName(scope, gov, res) {
+  if (scope === gov) return "Verein";
+  if (scope === res) return "Vereinsleben";
+  return kurz(scope);
+}
+
+function aufgabenAbschnitt(tasks, gov, res, handeln) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Aufgaben"));
+  abschnitt.append(zeile("Was du jetzt tun kannst."));
   if (tasks.length === 0) abschnitt.append(zeile("Keine Aufgaben."));
   for (const aufgabe of tasks) {
     const zeileEl = document.createElement("p");
-    zeileEl.append(document.createTextNode(`${kurz(aufgabe.scope)}: `));
+    zeileEl.append(document.createTextNode(`${scopeName(aufgabe.scope, gov, res)}: `));
     if (aufgabe.art === "CONFIRM_RULES") {
       zeileEl.append(
         document.createTextNode("Die Satzung hat sich geändert. "),
@@ -310,11 +343,19 @@ function aufgabenAbschnitt(tasks, handeln) {
 function vereinAbschnitt(view, namen) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Verein"));
+  abschnitt.append(
+    zeile(
+      "Wer auf der Mitgliederliste steht und wer die geltende Satzung bestätigt hat. " +
+        "Abstimmen darf jeder auf der Liste; gebunden ist nur, wer bestätigt hat.",
+    ),
+  );
   if (view === null) {
     abschnitt.append(zeile("Kein Verein."));
     return abschnitt;
   }
   abschnitt.append(zeile(`Epoche ${view.state.epoch.index}`));
+  const hinweis = hinweisSatzungGeaendert(view.verein.membership);
+  if (hinweis) abschnitt.append(zeile(hinweis));
   const liste = document.createElement("ul");
   for (const [subject, ergebnis] of view.verein.membership) {
     const item = document.createElement("li");
@@ -382,6 +423,12 @@ function neuerAntragFormular(gov, view, namenListe, namen, handeln) {
 function antraegeAbschnitt(antraege, gov, view, namenListe, namen, handeln) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Anträge"));
+  abschnitt.append(
+    zeile(
+      "Eine Änderung der Satzung gilt, wenn genug Ja-Stimmen da sind und jemand den " +
+        "Beschluss feststellt. Eine Stimme lässt sich nicht zurücknehmen.",
+    ),
+  );
   if (gov === null) {
     abschnitt.append(zeile("Kein Verein."));
     return abschnitt;
@@ -396,6 +443,15 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, handeln) {
     );
     karte.append(zeile(auszaehlungInWorten(antrag.state)));
     karte.append(zeile(standZeile(antrag)));
+    karte.append(zeile(`Ja: ${antrag.yes.map((p) => nameVon(namen, p)).join(", ") || "–"}`));
+    karte.append(zeile(`Nein: ${antrag.no.map((p) => nameVon(namen, p)).join(", ") || "–"}`));
+    for (const person of antrag.ambiguous) {
+      karte.append(
+        zeile(
+          `${nameVon(namen, person)} hat zweimal abgestimmt. Eine zweite Stimme macht beide ungültig.`,
+        ),
+      );
+    }
     for (const text of aenderungen(antrag.changes, namen)) karte.append(zeile(text));
     if (antrag.state === "PENDING") {
       karte.append(
@@ -417,6 +473,12 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, handeln) {
 function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Vertrauen"));
+  abschnitt.append(
+    zeile(
+      "Wer für wen bürgt. Jeder Bürge hat ein festes Budget; wer es überzieht, dessen " +
+        "Bürgschaften fallen alle aus.",
+    ),
+  );
   if (res === null || !view.vereinsleben) {
     abschnitt.append(zeile("Kein Vereinsleben."));
     return abschnitt;
@@ -480,6 +542,12 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
 function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Beiträge"));
+  abschnitt.append(
+    zeile(
+      "Wer wem was schuldet. Die Schuld unterschreibt der Schuldner selbst, die Quittung " +
+        "der Empfänger.",
+    ),
+  );
   if (res === null) {
     abschnitt.append(zeile("Kein Vereinsleben."));
     return abschnitt;
@@ -520,9 +588,10 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
   return abschnitt;
 }
 
-function kasseAbschnitt(view, obligationen, namenListe, namen, handeln) {
+function kasseAbschnitt(view, obligationen, namenListe, namen, handelndeIdentitaet, handeln) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Kasse"));
+  abschnitt.append(zeile("Für einen Empfänger: wer unterschrieben hat, wer quittiert ist, wer fehlt."));
   const auswahl = document.createElement("select");
   for (const eintrag of namenListe) {
     const option = document.createElement("option");
@@ -542,7 +611,7 @@ function kasseAbschnitt(view, obligationen, namenListe, namen, handeln) {
         document.createTextNode(`${nameVon(namen, eintrag.teilnehmer)}: ${eintrag.zustand}`),
       );
       const offene = eintrag.obligationen.find((o) => o.state === "OPEN");
-      if (offene && handelnAls === auswahl.value) {
+      if (offene && handelndeIdentitaet === auswahl.value) {
         item.append(
           document.createTextNode(" "),
           knopf("Quittieren", () => handeln("receipt", { obligation: offene.claim_id })),
@@ -560,6 +629,12 @@ function kasseAbschnitt(view, obligationen, namenListe, namen, handeln) {
 async function widersprueAbschnitt(forks, namen) {
   const abschnitt = document.createElement("section");
   abschnitt.append(ueberschrift("Widersprüche"));
+  abschnitt.append(
+    zeile(
+      "Zwei Unterschriften derselben Person auf dieselbe Stelle ihrer Kette. Das ist ein " +
+        "Beweis, den jeder prüfen kann.",
+    ),
+  );
   if (forks.length === 0) abschnitt.append(zeile("Keine Widersprüche."));
   for (const gruppe of forks) {
     const name = nameVon(namen, gruppe.I);
@@ -571,7 +646,7 @@ async function widersprueAbschnitt(forks, namen) {
       karte.append(
         zeile(`Art: ${artInWorten(claim.p)}`),
         zeile(`Zeit: ${zeitInWorten(claim.t)}`),
-        zeile(`Wert: ${claim.value === null ? "–" : JSON.stringify(claim.value)}`),
+        zeile(`Wert: ${wertInWorten(claim.p, claim.value)}`),
       );
       reihe.append(karte);
     }
@@ -587,15 +662,33 @@ function findeScope(sichten, teil) {
   return null;
 }
 
-async function zeichnen() {
-  const seite = document.querySelector("#seite");
-  seite.replaceChildren();
-  document.querySelector("#dialog").hidden = true;
-  meldungKnoten().replaceChildren();
+// Oben, unter dem Kopf: Meldung, Frage und Aufgaben nebeneinander, sonst untereinander
+// (D487 Beschluss 1).
+async function anstehtBereich(seite, record, handelndeIdentitaet, gov, res) {
+  const meldungNode = document.createElement("div");
+  meldungNode.id = "meldung";
   if (letzteMeldung) {
-    meldungKnoten().append(zeile(letzteMeldung));
+    meldungNode.append(zeile(letzteMeldung));
     letzteMeldung = null;
   }
+  seite.append(meldungNode);
+
+  const dialog = document.createElement("div");
+  dialog.id = "dialog";
+  dialog.hidden = true;
+
+  const tasks = await holen(`/tasks/${handelndeIdentitaet}`);
+  const handeln = handelnFabrik(record);
+  const spalten = document.createElement("div");
+  spalten.className = "ansteht-spalten";
+  spalten.append(dialog, aufgabenAbschnitt(tasks, gov, res, handeln));
+  seite.append(spalten);
+  return handeln;
+}
+
+async function zeichnenInhalt() {
+  const seite = document.querySelector("#seite");
+  seite.replaceChildren();
 
   const namenListe = await holen("/names");
   const namen = new Map(namenListe.map((eintrag) => [eintrag.I, eintrag.name]));
@@ -605,7 +698,13 @@ async function zeichnen() {
 
   const record = await lesen();
   if (handelnAls === "geraet" && !record) {
-    seite.append(anlegenFormular());
+    const meldungNode = document.createElement("div");
+    meldungNode.id = "meldung";
+    if (letzteMeldung) {
+      meldungNode.append(zeile(letzteMeldung));
+      letzteMeldung = null;
+    }
+    seite.append(meldungNode, anlegenFormular());
     return;
   }
 
@@ -617,14 +716,13 @@ async function zeichnen() {
 
   const jetzt = await holen("/now");
   const handelndeIdentitaet = handelnAls === "geraet" ? hex(record.pub) : handelnAls;
-  const tasks = await holen(`/tasks/${handelndeIdentitaet}`);
+
+  const handeln = await anstehtBereich(seite, record, handelndeIdentitaet, gov, res);
+
   const antraege = gov === null ? [] : await holen(`/proposals/${gov}`);
   const obligationen = res === null ? [] : await holen(`/obligations/${res}`);
   const forks = await holen("/forks");
 
-  const handeln = handelnFabrik(record);
-
-  seite.append(aufgabenAbschnitt(tasks, handeln));
   seite.append(vereinAbschnitt(gov === null ? null : sichten.get(gov), namen));
   seite.append(
     antraegeAbschnitt(antraege, gov, gov === null ? null : sichten.get(gov), namenListe, namen, handeln),
@@ -634,9 +732,30 @@ async function zeichnen() {
   );
   seite.append(beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln));
   seite.append(
-    kasseAbschnitt(gov === null ? null : sichten.get(gov), obligationen, namenListe, namen, handeln),
+    kasseAbschnitt(
+      gov === null ? null : sichten.get(gov),
+      obligationen,
+      namenListe,
+      namen,
+      handelndeIdentitaet,
+      handeln,
+    ),
   );
   seite.append(await widersprueAbschnitt(forks, namen));
+}
+
+// Scheitert das Laden, erscheint statt einer leeren Seite ein Satz mit einem Knopf, der es
+// erneut versucht (D487 Beschluss 4).
+async function zeichnen() {
+  const seite = document.querySelector("#seite");
+  try {
+    await zeichnenInhalt();
+  } catch (error) {
+    seite.replaceChildren(
+      zeile("Der S-Node antwortet nicht."),
+      knopf("Aktualisieren", () => void zeichnen()),
+    );
+  }
 }
 
 void zeichnen();

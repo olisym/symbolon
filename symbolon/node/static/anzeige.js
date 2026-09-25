@@ -22,8 +22,15 @@ export function nameVon(namen, schluessel) {
   return `${schluessel.slice(0, 6)}…${schluessel.slice(-6)}`;
 }
 
+// Ein Feldwert in Worten: Text wörtlich, sonst als JSON (D487 Beschluss 4).
+function feldWert(wert) {
+  if (wert === null || wert === undefined) return "–";
+  if (typeof wert === "string") return wert;
+  return JSON.stringify(wert);
+}
+
 // Änderungen zwischen geltender und vorgeschlagener Satzung in Worten (D486 Beschluss 2,
-// aus GET /proposals: changes.added, changes.removed, changes.fields).
+// D487 Beschluss 4, aus GET /proposals: changes.added, changes.removed, changes.fields).
 export function aenderungen(changes, namen) {
   const zeilen = [];
   for (const schluessel of changes.added) {
@@ -33,9 +40,7 @@ export function aenderungen(changes, namen) {
     zeilen.push(`${nameVon(namen, schluessel)} ausgeschlossen`);
   }
   for (const feld of changes.fields) {
-    const alt = feld.old === null ? "–" : feld.old;
-    const neu = feld.new === null ? "–" : feld.new;
-    zeilen.push(`${feld.field}: ${alt} → ${neu}`);
+    zeilen.push(`${feld.field}: ${feldWert(feld.old)} → ${feldWert(feld.new)}`);
   }
   return zeilen;
 }
@@ -73,14 +78,25 @@ function wortAus(worte, wert) {
 
 const MITGLIEDSCHAFT = new Map([
   ["MEMBER", "Mitglied"],
-  ["APPLICANT", "Satzung angenommen, noch nicht aufgenommen"],
-  ["GRANT_ONLY", "Aufgenommen, Satzung noch nicht bestätigt"],
+  ["APPLICANT", "hat bestätigt, steht nicht auf der Liste"],
+  ["GRANT_ONLY", "steht auf der Liste, hat die geltende Satzung noch nicht bestätigt"],
   ["NONE", "Kein Mitglied"],
 ]);
 
-// Zustand der Mitgliedschaft in Worten (D486 Beschluss 2, 04 §6.1, 04 §6.3).
+// Zustand der Mitgliedschaft in Worten (D487 Beschluss 2, 04 §6.1, 04 §6.3).
 export function mitgliedschaftInWorten(zustand) {
   return wortAus(MITGLIEDSCHAFT, zustand);
+}
+
+// Ist mindestens ein Teilnehmer GRANT_ONLY, sagt der Verein, dass sich die Satzung
+// geändert hat (D487 Beschluss 2, szenario-verein §4, 04 §6.3).
+export function hinweisSatzungGeaendert(mitgliedschaften) {
+  const geaendert = mitgliedschaften.some(([, ergebnis]) => ergebnis.state === "GRANT_ONLY");
+  if (!geaendert) return null;
+  return (
+    "Die Satzung hat sich geändert. Wer sie nicht neu bestätigt, bleibt " +
+    "stimmberechtigt, ist aber an die neue Fassung nicht gebunden."
+  );
 }
 
 const AUSZAEHLUNG = new Map([
@@ -121,8 +137,8 @@ export function warnungInWorten(name) {
 const ABWEISUNGEN = new Map([
   ["NOT_CURRENT", "Der Antrag gilt nicht mehr für die aktuelle Epoche."],
   ["NOT_PASSED", "Der Antrag ist noch nicht angenommen."],
-  ["ALREADY_PARTICIPANT", "Diese Person ist schon Mitglied."],
-  ["NOT_PARTICIPANT", "Diese Person ist kein Mitglied."],
+  ["ALREADY_PARTICIPANT", "Diese Person steht schon auf der Mitgliederliste."],
+  ["NOT_PARTICIPANT", "Diese Person steht nicht auf der Mitgliederliste."],
   ["INVALID_WEIGHT", "Das Gewicht liegt außerhalb der erlaubten Spanne."],
   ["NOT_CREDITOR", "Nur der Gläubiger kann quittieren."],
 ]);
@@ -131,4 +147,14 @@ const ABWEISUNGEN = new Map([
 // (D486 Beschluss 3).
 export function abweisungInWorten(name) {
   return wortAus(ABWEISUNGEN, name);
+}
+
+// Der Wert eines Claims in Worten: eine Wahl aus vote@1 als „Ja“ oder „Nein“, sonst wie
+// bisher als JSON (D487 Beschluss 4, aus GET /claims: p und value).
+export function wertInWorten(p, value) {
+  if (p.endsWith("/vote@1") && value && typeof value === "object" && !Array.isArray(value)) {
+    if (value["0"] === 1) return "Ja";
+    if (value["0"] === 0) return "Nein";
+  }
+  return value === null || value === undefined ? "–" : JSON.stringify(value);
 }

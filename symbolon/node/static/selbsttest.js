@@ -2,7 +2,7 @@
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
-// D503 Beschluss 1 und 3, 01 §4).
+// D503 Beschluss 1 und 3, D504 Beschluss 1, 01 §4).
 
 import {
   artInWorten,
@@ -726,6 +726,7 @@ function feinschliffFaelle() {
   gleich("centAus: 12.345", centAus("12.345"), null);
   gleich("centAus: leer", centAus(""), null);
   gleich("centAus: -5", centAus("-5"), null);
+  gleich("centAus: 24.5", centAus("24.5"), 2450);
 
   return results;
 }

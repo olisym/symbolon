@@ -21,6 +21,7 @@ import {
   antragZitate,
   auszaehlungInWorten,
   betrag,
+  centAus,
   erfolgSatz,
   fassungSatz,
   frageInhalt,
@@ -1060,14 +1061,21 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
     knopfReihe(
       glaeubiger,
       label,
-      knopfMitAuswahl("Beitrag zusagen …", [glaeubiger], () =>
-        handeln("obligation", {
+      // Cent aus dem Text, nicht aus einer Gleitkommazahl (D503 Beschluss 1 und 2).
+      knopfMitAuswahl("Beitrag zusagen …", [glaeubiger], async () => {
+        const cent = centAus(euro.value);
+        if (cent === null) {
+          meldung("Der Betrag geht nur in Euro mit höchstens zwei Stellen nach dem Komma.");
+          await zeichnen();
+          return;
+        }
+        await handeln("obligation", {
           scope: res,
           creditor: glaeubiger.value,
-          amount: Math.round(Number(euro.value) * 100),
+          amount: cent,
           unit: "EUR-Cent",
-        }),
-      ),
+        });
+      }),
     ),
   );
   return abschnitt;

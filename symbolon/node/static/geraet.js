@@ -1,5 +1,6 @@
 // Gerät: Dekodieren, Prüfen, Schlüssel, die Entscheidungen des Ablaufs
-// (D481 Beschluss 2 bis 4, D482 Beschluss 1 bis 5, D479 Beschluss 6, 01 §2, 01 §3, 01 §4).
+// (D481 Beschluss 2 bis 4, D482 Beschluss 1 bis 5, D486 Beschluss 3, D479 Beschluss 6,
+// 01 §2, 01 §3, 01 §4).
 
 const DOM_SIG = new TextEncoder().encode("claim-atom/v1/sig");
 const DOM_CID = new TextEncoder().encode("claim-atom/v1/cid");
@@ -358,7 +359,7 @@ export function ablauf(subtle, { absicht, zeigen, einliefern }) {
     const core = hexToBytes(prepared.core);
     const { name, kern } = pruefen(core, zustand.pub, zustand.tip);
     if (name !== "ACCEPT") return { name };
-    if (!(await zeigen(kern))) return { abbruch: true };
+    if (!(await zeigen(kern, prepared.warnings ?? []))) return { abbruch: true };
     const signature = await signCore(core, record.privateKey, subtle);
     const id = await claimId(core, subtle);
     let antwort = null;

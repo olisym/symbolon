@@ -1,5 +1,5 @@
-// Selbsttest: die Vektoren und die Entscheidungen des Ablaufs
-// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, 01 §4).
+// Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
+// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, 01 §4).
 
 import {
   artInWorten,
@@ -12,6 +12,7 @@ import {
   signCore,
   verbuchen,
 } from "./geraet.js";
+import { betrag, kassenZeilen, standZeile, warnungInWorten } from "./anzeige.js";
 
 function bytesFromHex(text) {
   const out = new Uint8Array(text.length / 2);
@@ -198,9 +199,69 @@ async function funktionsFaelle(vectors, subtle) {
   return results;
 }
 
+// Die Sätze aus szenario-verein.md für die Anzeige, mindestens einer je genanntem Satz
+// (D486 Beschluss 5).
+function anzeigeFaelle() {
+  const results = [];
+  const pruefe = (satz, ok, detail) => results.push({ ok, expect: satz, detail });
+
+  pruefe(
+    "standZeile: 1 Ja, 1 Nein, 2 von 3 nötig (szenario-verein §3)",
+    standZeile({ yes: ["a"], no: ["b"], needed: 2, n: 3 }) === "1 Ja, 1 Nein, 2 von 3 nötig",
+    standZeile({ yes: ["a"], no: ["b"], needed: 2, n: 3 }),
+  );
+  pruefe(
+    "standZeile: 2 Ja, 0 Nein, 3 von 4 nötig (szenario-verein §4)",
+    standZeile({ yes: ["a", "b"], no: [], needed: 3, n: 4 }) === "2 Ja, 0 Nein, 3 von 4 nötig",
+    standZeile({ yes: ["a", "b"], no: [], needed: 3, n: 4 }),
+  );
+  pruefe(
+    "betrag: 2400 EUR-Cent als 24,00 € (szenario-verein §6)",
+    betrag(2400, "EUR-Cent") === "24,00 €",
+    betrag(2400, "EUR-Cent"),
+  );
+
+  const kasse = "kk";
+  const fremd = "xx";
+  const zeilen = kassenZeilen(
+    ["unterschrieben", "quittiert", "fehlt"],
+    [
+      { debtor: "unterschrieben", creditor: kasse, state: "OPEN" },
+      { debtor: "quittiert", creditor: kasse, state: "SETTLED" },
+      { debtor: "fehlt", creditor: fremd, state: "OPEN" },
+    ],
+    kasse,
+  );
+  const zustand = new Map(zeilen.map((zeile) => [zeile.teilnehmer, zeile.zustand]));
+  pruefe(
+    "kassenZeilen: unterschrieben (szenario-verein §6)",
+    zustand.get("unterschrieben") === "unterschrieben",
+    zustand.get("unterschrieben"),
+  );
+  pruefe(
+    "kassenZeilen: quittiert (szenario-verein §6)",
+    zustand.get("quittiert") === "quittiert",
+    zustand.get("quittiert"),
+  );
+  pruefe(
+    "kassenZeilen: eine Obligation an einen anderen Gläubiger zählt nicht, fehlt (szenario-verein §6)",
+    zustand.get("fehlt") === "fehlt",
+    zustand.get("fehlt"),
+  );
+
+  pruefe(
+    "warnungInWorten: ein unbekannter Name wörtlich",
+    warnungInWorten("UNBEKANNT") === "UNBEKANNT",
+    warnungInWorten("UNBEKANNT"),
+  );
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
+  results.push(...anzeigeFaelle());
   return results;
 }
 

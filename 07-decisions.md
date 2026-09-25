@@ -21011,3 +21011,64 @@ einen Auftrag.
 
 **Geändert.** `symbolon/node/api.py`, `symbolon/node/static/`, `tests/node/test_spitzen.py`
 (über den Merge); `07-decisions.md`.
+
+### D494 — Olis Durchlauf nach P10: kein Name, keine Führung, ein Rahmen, der nicht verschwindet
+
+**Anlass.** Olis Durchlauf auf `27ed562` mit frischem Bestand, mit Bildschirmfoto. Die Seite ist
+lesbarer; Oli wusste trotzdem nicht, was er tun soll.
+
+**Befund 1 — der eigene Name lässt sich nicht eintragen.** Der Schlüssel liegt im Browser, der
+neue Bestand kennt ihn nicht. Die Seite bietet das Anlegen nur ohne Schlüssel an; mit Schlüssel
+und ohne Eintrag im Adressbuch steht „Du bist 93fdd4…315267“, und nirgends ein Feld für den Namen.
+
+**Befund 2 — „Aufnehmen“ schlägt KASSE vor.** Die Auswahl beginnt mit dem ersten Eintrag des
+Adressbuchs, der nicht auf der Liste steht; Oli selbst fehlt dort, weil er keinen Namen hat. Dazu
+zeigt die Seite die Formulare für Anträge auch jemandem, der nicht auf der Liste steht und nach
+`04 §2.1` keinen Antrag einbringen kann.
+
+**Befund 3 — die Seite führt nicht.** Das Klickmodell hatte rechts die Geschichte mit ihren
+Momenten; die Seite hat dort nur Personen. Wer die Geschichte nicht kennt, sieht „Jetzt zu tun:
+Nichts“ und weiß nicht, wer als Nächstes handeln muss.
+
+**Befund 4 — ein leerer Rahmen, gelesen im Code.** Die Frage ist ein Element mit der Klasse
+`karte`, und `.karte` setzt `display: flex`. Das überstimmt das Attribut `hidden`: der Rahmen der
+Frage steht leer auf der Seite, und „Jetzt zu tun“ verschwindet während einer Frage nicht. Die
+Abnahme in D493 hat das nicht gesehen, weil sie `style.css` und den Aufbau nicht gelesen hat.
+
+**Befund 5 — Wörter.** „Es gilt Epoche 2“ ist ein Fachwort. Die Regie ordnet die Personen nach
+Schlüssel. Die Tabelle im Vertrauen nennt „Abstand“ und „Gewicht“ ohne Erklärung.
+
+**Beschluss 1 — der Name zuerst.** Fehlt der eigenen Identität ein Name im Adressbuch, ist die
+erste Aufgabe unter „Jetzt zu tun“: „Trag deinen Namen ein.“ mit einem Feld. Die Seite nennt
+sich erst danach „Du bist <Name>“.
+
+**Beschluss 2 — keine Vorauswahl, keine fremden Formulare.** Jede Auswahl einer Person beginnt
+leer mit „Person wählen …“; „Aufnehmen“ bietet nur Personen an, die nicht auf der Liste stehen.
+Wer nicht auf der Liste steht, sieht statt der Formulare für Anträge den Satz „Anträge stellen
+kann nur, wer auf der Mitgliederliste steht.“
+
+**Beschluss 3 — die Geschichte in der Regie.** Über den Personen steht „Die Geschichte“: die
+Schritte der Demonstration, je mit der handelnden Person, einem Haken, wenn der Schritt getan ist,
+und beim ersten offenen Schritt ein Knopf „Weiter als <Name>“, der zu dieser Person wechselt. Die
+Schritte: Du trägst deinen Namen ein; CHRIS bürgt für dich; ANNA beantragt deine Aufnahme; ANNA,
+CHRIS und DORA stimmen Ja; ANNA stellt den Beschluss fest; du bestätigst die Satzung; ANNA
+beantragt, das Feld `beitrag` festzulegen; BRUNO widerspricht sich, im Terminal mit
+`python -m tools.verein_gabel`. Ob ein Schritt getan ist, folgt aus den Sichten: aus dem
+Adressbuch, den Bürgschaften, den Anträgen, der Liste der geltenden Epoche, der Mitgliedschaft und
+`GET /forks`. Die Geschichte kennt die Personen des Szenarios bei ihren Namen und das Feld
+`beitrag`; sie ist Werkzeug der Demonstration wie die Regie (D484 Beschluss 3), keine Rechnung des
+Vereins, und nichts außer ihr liest diese Namen.
+
+**Beschluss 4 — `hidden` gilt.** `style.css` bekommt eine Regel, nach der `[hidden]` nie
+angezeigt wird, gleich welche Klasse ein Element trägt.
+
+**Beschluss 5 — Wörter.** „Es gilt die <k>. Fassung der Satzung.“ statt der Epoche. Die Regie
+zeigt zuerst die eigene Identität, dann die übrigen nach Namen. Das Vertrauen nennt je Person einen
+Satz statt der Tabelle: „<Name> ist Anker des Vereins.“ bei Abstand 0, „<Name> ist verbürgt,
+einen Schritt vom Anker entfernt.“ bei Abstand 1, sonst „<Name> ist verbürgt, <d> Schritte vom
+Anker entfernt.“, und für Personen ohne Abstand „<Name> ist nicht verbürgt.“
+
+**Beschluss 6 — dazu D493.** „mit 1 Punkt“, der feste Fall für `frageInhalt`, der Fall einer
+Stimme ohne lesbare Wahl, und „eine Person ohne Namen“ mit gekürztem Schlüssel.
+
+**Geändert.** `07-decisions.md`.

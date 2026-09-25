@@ -21150,3 +21150,25 @@ nennt die Seite nicht mehr.
 den offenen Fall „Du bestätigst die Satzung“ bei `GRANT_ONLY`.
 
 **Geändert.** `07-decisions.md`.
+
+### D497 — Abnahme `p12-feinschliff`; Schluss der Sitzung 00ck
+
+**Geprüft.** Commit `90e2052` auf `p12-feinschliff`, Basis `6c17b3f`, der Diff von `anzeige.js`
+und `app.js` ganz aus dem Spiegel. 1130 Tests grün, in Node 126 von 126 Fällen. Kein
+Kalenderdatum mehr in der Seite; die Dauer einer Bürgschaft kommt aus `t` und `t_exp` des
+dekodierten Kerns, Zeitpunkte als Abstand zu `GET /now`. Der Schritt zum Satzungstext hängt an
+keinem Feldnamen mehr.
+
+**Die Rückfrage.** Eingegeben sind 365 Tage, angezeigt „für 364 Tage“: das Formular rechnet
+`t_exp` aus `/now` beim Zeichnen, der Kern trägt ein etwas späteres `t`, und D496 Beschluss 2
+rundet ab. Die Anzeige rundet künftig auf den nächsten ganzen Tag; ein Unterschied von Sekunden
+soll keinen Tag kosten. Das ändert „ganzzahlig abgerundet“ in D496 Beschluss 2 und kommt als
+erster kleiner Auftrag der nächsten Sitzung.
+
+**Beschluss 1 — gemergt.** Phase 3 ist im Kern erreicht (D496).
+
+**Beschluss 2 — Sitzungsschluss.** `sitzungsstart-00ck.md` trägt Stand, neue Arbeitsweise und
+nächsten Schritt; `sitzungsstart-00cj.md` geht nach `archiv/` (D314).
+
+**Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`,
+`sitzungsstart-00ck.md`, `archiv/sitzungsstart-00cj.md`.

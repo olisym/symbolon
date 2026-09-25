@@ -21354,3 +21354,41 @@ geschickt, sondern mit einem Satz beantwortet. Die Einzelheiten stehen im Auftra
 nach Lesen des Formulars.
 
 **Geändert.** `symbolon/node/`, `tests/node/test_api.py` (über den Merge); `07-decisions.md`.
+
+### D503 — Das Feld „Euro“: Cent aus dem Text, nicht aus einer Gleitkommazahl; Auftrag `p15-euro`
+
+**Gelesen.** Das Formular „Beitrag zusagen“ in `app.js` auf `11bde8a`: ein Feld vom Typ
+`number` mit `step` 0.01, geschickt als `amount` = `Math.round(Number(euro.value) * 100)` mit
+`unit` „EUR-Cent“. `_intent_body` verlangt für `amount` eine ganze Zahl über `_whole`, mehr
+nicht. `betrag` in `anzeige.js` zeigt Cent als „<Euro>,<Cent> €“.
+
+**Befund — das Muster aus D501 lässt sich nicht übertragen.** Gemessen im Node: `Number("19.99")`
+mal 100 ist 1998.9999999999998, bei „0.29“ 28.999999999999996, bei „4.35“ 434.99999999999994.
+Eine Prüfung mit `Number.isInteger` auf dem Produkt wiese also gewöhnliche Beträge ab; das heutige
+`Math.round` verdeckt denselben Fehler und rundet dazu „12.345“ still auf 1235 Cent. Ein leeres
+Feld wird heute 0 Cent.
+
+**Beschluss 1 — Cent aus dem Text.** Eine reine Funktion `centAus` in `anzeige.js` nimmt den Text
+des Felds. Besteht er aus Ziffern, wahlweise gefolgt von einem Punkt und ein oder zwei Ziffern,
+gibt sie die Cent als ganze Zahl, aus den Ziffern gerechnet und nicht über eine Gleitkommazahl;
+sonst `null`. Leer, negativ, mit drei Stellen nach dem Punkt oder mit Exponent ist `null`.
+
+**Beschluss 2 — das Formular.** Ist `centAus` `null`, erscheint „Der Betrag geht nur in Euro mit
+höchstens zwei Stellen nach dem Komma.“, und es geht keine Anfrage hinaus, wie in D501
+Beschluss 2. Sonst geht `amount` aus `centAus`.
+
+Verworfen:
+
+- **`Math.round` behalten** und nur leere Felder abweisen. Wer 12,345 € eintippt, unterschreibt
+  still 12,35 €; D501 hat das für Tage verworfen.
+- **Mit Toleranz prüfen**, etwa ob das Produkt nahe an einer ganzen Zahl liegt. Das ist eine Zahl
+  ohne Grund, und der Text trägt die Antwort schon genau.
+
+Nicht entschieden: ob ein Beitrag von 0 Cent sinnvoll ist. „0“ geht weiter an den S-Node, der ihn
+heute annimmt; das ist eine Frage an `03 §3.3`, nicht an das Formular.
+
+**Beschluss 3 — die Fälle.** „24“ ergibt 2400, „19.99“ 1999, „0.29“ 29; „12.345“, „“ und „-5“
+ergeben `null`. Die Fälle „19.99“ und „0.29“ sehen eine Rechnung über die Gleitkommazahl, „12.345“,
+„“ und „-5“ das heutige Runden.
+
+**Geändert.** `07-decisions.md`.

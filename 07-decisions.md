@@ -20466,3 +20466,59 @@ Leeren des Zwischenspeichers ankommt. `tools/check_tree.py` zählt `.js`, `.html
 Python-Datei.
 
 **Geändert.** `07-decisions.md`.
+
+### D482 — Prüfung `p5-geraet`: vier Mängel im Ablauf des Geräts
+
+**Geprüft.** Commit `6c6fd9d` auf `p5-geraet`, Basis `ebc8f4a`, der ganze Diff aus dem Spiegel.
+1101 Tests grün. In Node 22 bestehen alle 22 Fälle. Selbst nachgefahren, jede Probe an der Sache:
+ohne den Vergleich der Neukodierung scheitern genau die zwei `NOT_CANONICAL`-Fälle mit `ACCEPT`;
+ohne die Erkennung doppelter Schlüssel scheitert der Fall mit dem doppelten Schlüssel, weil er
+nun als `NOT_CANONICAL` statt `MALFORMED` gilt; ohne die Prüfung von `h_prev` scheitert
+`WRONG_PREDECESSOR` mit `ACCEPT`. Die reinen Funktionen und die Auslieferung stehen. Der Ablauf um
+sie herum hat Mängel, die die Vektoren nicht sehen, weil sie ihn nicht berühren.
+
+**Befund 1 — eine fehlende Spitze wird mit dem Genesis-Anker gefüllt.** Ein neuer Schlüssel wird mit
+Spitze `null` abgelegt. Beim ersten Unterschreiben bietet die Seite den Genesis-Anker zum
+Bestätigen an, unabhängig davon, was der S-Node über diese Identität weiß. Hätte die Identität
+schon Claims, gabelte die Bestätigung. Dass es heute nur bei frischen Schlüsseln vorkommt, macht
+den Weg nicht sicher, und beim frischen Schlüssel ist die Frage leer: sein Anfang folgt aus dem
+Schlüssel (`01 §4`).
+
+**Befund 2 — eine abweichende `claim_id` lässt den Claim unverbucht.** Gibt der S-Node nach dem
+Einliefern eine andere `claim_id` zurück, rückt das Gerät nicht vor und merkt sich nichts. Ist der
+Claim trotzdem im Bestand, unterschreibt das Gerät beim nächsten Mal wieder auf die alte Spitze.
+
+**Befund 3 — die Seite zeigt die Felder aus der JSON-Antwort, nicht aus dem geprüften Kern.** Zeit
+und Vorgänger kommen aus der Antwort des S-Node, die Art steht fest im Code. Geprüft und
+unterschrieben wird der Kern. D471 Beschluss 1 verlangt, dass das Gerät zeigt, was es
+unterschreibt.
+
+**Befund 4 — ohne Abbrechen hält die Seite die Sperre.** Die Frage vor dem Unterschreiben kennt nur
+„Unterschreiben“. Wer sie stehen lässt, hält die Sperre aus D481 Beschluss 3, bis die Seite
+geschlossen wird; jeder andere Tab wartet so lange. Dazu zwei kleinere Mängel: das Anlegen prüft
+unter der Sperre nicht, ob schon ein Schlüssel liegt, und überschreibt ihn aus einem zweiten Tab;
+ein leerer Name wird erst abgewiesen, nachdem der Schlüssel erzeugt ist.
+
+**Beschluss 1 — der Anfang kommt aus dem Schlüssel, eine Lücke aus dem S-Node.** Das Anlegen legt
+den Genesis-Anker als Spitze ab. Fehlt die Spitze später doch, fragt das Gerät den S-Node ohne
+`h_prev` und zeigt dessen Vorschlag zum Bestätigen, wie beim Anhalten aus D481 Beschluss 4. Der
+Genesis-Anker wird nie ohne diesen Vorschlag angeboten.
+
+**Beschluss 2 — eine abweichende `claim_id` gilt als schwebend.** Das Gerät merkt sich die eigene
+`claim_id` als schwebend und klärt sie vor dem nächsten Unterschreiben nach D481 Beschluss 4.
+
+**Beschluss 3 — das Gerät zeigt, was es dekodiert hat.** Die Prüfung gibt neben dem Namen den
+dekodierten Kern zurück; die Anzeige liest Art, Scope, Vorgänger und Zeit daraus. Die Art folgt
+aus `p`, eine unbekannte Art erscheint wörtlich.
+
+**Beschluss 4 — die Entscheidungen des Ablaufs sind reine Funktionen und stehen im Selbsttest.**
+Anlegen des Zustands, Klären einer schwebenden oder fehlenden Spitze und Verbuchen einer Antwort
+werden Funktionen ohne IndexedDB und ohne Sperre. Der Selbsttest prüft sie an Fällen, die aus
+D481 Beschluss 4 und diesem Eintrag folgen, im Browser und in Node. *Verworfen:* IndexedDB und die
+Sperre in Node nachzubilden. Das prüfte die Nachbildung, nicht den Browser.
+
+**Beschluss 5 — Abbrechen, Anlegen, Name.** Die Frage vor dem Unterschreiben hat „Abbrechen“ und
+gibt die Sperre frei. Das Anlegen gibt unter der Sperre einen vorhandenen Schlüssel zurück,
+statt einen neuen zu erzeugen. Ein leerer Name wird abgewiesen, bevor ein Schlüssel entsteht.
+
+**Geändert.** `07-decisions.md`.

@@ -21485,3 +21485,55 @@ Verworfen:
 2 offen“. Der Rest ist Aufbau der Seite und wird mit einem Durchlauf Olis abgenommen (D490).
 
 **Geändert.** `07-decisions.md`.
+
+### D507 — Olis Durchlauf nach `p16-tabs`: die Tabs tragen, der Widerspruch bleibt zu lange oben
+
+**Geprüft.** Commit `62ddcae` auf `p16-tabs`, Basis `895f55d`, der Diff von `anzeige.js`, `app.js`
+und `style.css` ganz aus dem Spiegel. Im Node 144 von 144; die Rücknahmeprobe an `tabTitel`
+nachgefahren, rot die Fälle mit 1 und 2. Die Zählungen sind dieselben Filter wie in
+`vereinGerade`, gebaut wird nur der gewählte Tab.
+
+**Olis Durchlauf.** Die Tabs passen, „erstmal so“. Auf seinem Bild steht über den Tabs die Karte
+des Widerspruchs, nach der vierten Fassung der Satzung mit der Überschrift „BRUNO hat zu einem
+Antrag Ja und Nein zugleich unterschrieben.“, und Oli bekommt sie nicht weg.
+
+**Befund 1 — der Widerspruch steht für immer oben.** D506 Beschluss 1 hat die Widersprüche in den
+festen Kopf gelegt. Eine Gabelung bleibt im Protokoll für immer (D489); die Karte also auch. Oben
+soll aber nur stehen, was eine Person gerade betrifft. Ist der Antrag entschieden, betrifft die
+Doppelstimme keine offene Entscheidung mehr; was bleibt, ist, dass BRUNOs Bürgschaften nicht
+zählen, und das ist Nachschlagen.
+
+**Befund 2 — der Titel geht verloren.** `widerspruchKarten` sucht den Antrag in den Anträgen der
+Seite; nach dem Beschluss findet es ihn nicht mehr und schreibt „zu einem Antrag“. Offen, ohne
+Auftrag.
+
+**Beschluss 1 — wann ein Widerspruch oben steht.** Oben steht er nur, solange beide Claims
+Stimmen sind, die eine Ja und die andere Nein, und der Antrag, zu dem sie gehören, unter den
+Anträgen der Seite im Stand `PENDING` steht. Sonst steht die Karte im Tab „Im Verein“, unter den
+Sätzen. Die Entscheidung trifft eine reine Funktion `widerspruchOben(claims, antraege)` in
+`anzeige.js`; `claims` sind die Claims der Gabelung, wie `widerspruchKarten` sie holt. Das ändert
+D506 Beschluss 1 für die Widersprüche.
+
+Verworfen:
+
+- **Ein Knopf „Gesehen“**, der die Karte für dieses Gerät ausblendet. Die Seite müsste sich das
+  merken, und was jemand weggeklickt hat, ist nicht weg: die Folge für die Bürgschaften bleibt.
+- **Die Karte immer im Tab.** Solange über den Antrag abgestimmt wird, ist die Doppelstimme genau
+  das, was eine Person vor ihrer eigenen Stimme wissen muss.
+
+**Beschluss 2 — die Rückfragen aus dem Bericht.** Die Marke „Im Verein gerade“ fällt weg; der Tab
+nennt den Bereich. Der Inhalt eines Tabs steht in einem Element mit `role="tabpanel"`, der Tab
+verweist mit `aria-controls` darauf und das Element mit `aria-labelledby` auf den Tab. Keine
+Bedienung mit den Pfeiltasten: die Demo wird mit Maus oder Finger bedient.
+
+**Beschluss 3 — Nachtrag auf `p16-tabs`.** Beschluss 1 und 2. Die Fälle für `widerspruchOben`:
+Ja und Nein zu einem Antrag im Stand `PENDING` ergibt wahr; dieselben Stimmen zu einem Antrag im
+Stand `PASSED` ergibt falsch, ebenso zu einem Antrag, der nicht unter den Anträgen steht; zwei
+Claims, die keine Stimmen sind, ergeben falsch.
+
+**Beschluss 4 — die Geschichte, mit Oli.** Ein zweites Kapitel nach `szenario-verein §6`: du sagst
+der KASSE deinen Beitrag zu, die KASSE quittiert. Sind alle Schritte getan, verschwindet die
+Geschichte, und die Auswahl der Personen rückt nach oben. Auftrag nach dem Merge, nach Lesen der
+Regie.
+
+**Geändert.** `07-decisions.md`.

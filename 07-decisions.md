@@ -20786,3 +20786,61 @@ im S-Node, der gabelt. Die Schnittstelle soll das nicht können (D484 Beschluss 
 
 **Geändert.** `symbolon/node/static/`, `symbolon/node/view.py`, `tests/node/test_lesen.py`,
 `tools/check_tree.py` (über den Merge); `07-decisions.md`.
+
+### D489 — Abnahme `p8-gabelung`; was nach einer Gabelung bleibt, und was andere tun
+
+**Geprüft.** Commit `c80e584` auf `p8-gabelung`, Basis `ac8a8d4`, der ganze Diff aus dem Spiegel:
+`tools/verein_gabel.py`, `tests/node/test_gabel.py`. 1119 Tests grün. Eine eigene Probe, anders als
+die des Berichts, rot an der Sache: liefert das Skript Brunos Ja ein, bevor es das Nein vorbereitet,
+schlägt der S-Node für das Nein das Ja als Vorgänger vor, es entsteht keine Gabelung, und
+`test_gabelung` und `test_zwei_antraege` werden rot an `GET /forks`. Die Prüfung auf gleiches
+`h_prev` war dafür herausgenommen (D478).
+
+**Die zwei Rückfragen.** `_seed` bleibt, wo es ist: es ist eine Hilfe der Werkzeuge für die Welt
+des Szenarios, kein Teil der Schnittstelle, und das Skript nutzt es aus demselben Grund wie der
+Lader. Einen eigenen Satz für die Abweisung nach einer Gabelung braucht vor allem die Seite, nicht
+das Skript; siehe Beschluss 3.
+
+**Beschluss 1 — gemergt.** Phase 3 ist gebaut. Oli spielt die Geschichte mit der Gabelung durch.
+
+**Befund 1 — eine Aussage in D488 war zu weit.** Dort steht, nach der Gabelung ende jede weitere
+Absicht für Bruno mit 409, und das sei die Regel. Die Regel des Protokolls ist enger. Die beiden
+Claims mit demselben `(I, h_prev)` tragen `equivocation-flagged`, ihre Stimmen zählen nicht
+(D469), und keine Kante eines geflaggten Autors trägt, in keinem Scope (D43). Ein weiterer Claim
+Brunos, der an eines der beiden Enden anschließt, ist aber gültig und teilt sein `h_prev` mit
+keinem anderen; eine spätere Stimme zu einem anderen Antrag zählte. Die 409 kommt vom S-Node: bei
+zwei Spitzen wählt er keine (D476 Beschluss 3). Ein Gerät, das seine Spitze kennt, nennt sie als
+`h_prev` und kommt durch; die Regie der simulierten Personen nennt keine und kommt nicht durch.
+
+**Befund 2 — Oli fragt, ob das nicht besser ginge, und ob andere es besser lösen.** Die Frage, wie
+eine Identität eine Gabelung überlebt, ist in D124 für die Schlüsselrotation beantwortet worden,
+mit did:plc, Keybase, CONIKS, Nostr und Secure Scuttlebutt: wer die Identität über einen Streit
+um ihre Geschichte rettet, bezahlt mit globaler Ordnung. Die engere Frage, was nach einer Gabelung
+mit dem Autor geschieht, war nicht eigens nachgeschlagen. Zwei Quellen dazu, knapp geprüft. Das
+Papier zu Secure Scuttlebutt auf der ICN 2019 nennt die Reaktion auf eine gegabelte Kette ein
+offenes Problem und lässt sie für spätere Arbeit liegen. Das Cosmos SDK bestraft eine doppelte
+Signatur eines Validators einmal und setzt ihn dauerhaft ab; er kann dem Validator-Set nicht
+wieder beitreten. Dieselbe Quelle sagt, warum die Strafe gedeckelt ist: eine falsch eingerichtete
+Hardware kann ohne Absicht doppelt signieren, und so wird nur die erste bestraft. Die Absetzung
+bleibt trotzdem. Beide stützen MaRs Form: der Beweis ist dauerhaft, der Schlüssel verliert sein
+Gewicht, der Weg zurück ist ein neuer Schlüssel, für den andere neu bürgen (D124) und den die
+Mitglieder per Satzungsänderung auf die Liste setzen. Gegen das Versehen schützt, wie bei Cosmos
+eine Signierhilfe mit Doppelsignaturschutz, das Gerät mit seiner Spitze und seiner Sperre
+(D471 Beschluss 2, D481 Beschluss 3). Nicht geprüft: Hypercore, das dem Schreiber eine Kürzung
+seines Logs erlaubt; wird die Frage wieder aufgenommen, gehört es dazu, weil es den Weg nimmt, den
+MaR ausschließt.
+
+**Beschluss 2 — keine Vergebung im Protokoll.** Ein Akt, der einem geflaggten Schlüssel sein
+Gewicht zurückgibt, bleibt verworfen. Er machte die Wirkung eines Beweises widerrufbar und damit
+die Ableitung nicht-monoton (D97, D117), und ein Schlüssel, der einmal gegabelt hat, kann gestohlen
+sein; die Mitglieder wissen das nicht, der Dieb schon. Der Weg zurück führt über einen neuen
+Schlüssel.
+
+**Beschluss 3 — für die nächste Arbeit an der Seite.** Die Regie bietet nach einer Gabelung an, an
+welches Ende angeschlossen wird, statt die 409 zu zeigen; die Abweisung „more than one tip“ hat
+Worte. Dazu die offenen Punkte aus D488: `anlegenFormular` zeichnet nach einer Meldung nicht neu,
+und der Selbsttest führt keinen `APPLICANT` ohne `GRANT_ONLY`. Ein neuer Schlüssel für eine
+simulierte Person, als Demonstration des Wegs zurück, kommt mit einem Szenario, das ihn braucht.
+
+**Geändert.** `tools/verein_gabel.py`, `tests/node/test_gabel.py` (über den Merge);
+`07-decisions.md`.

@@ -20,7 +20,7 @@ from symbolon.governance.objects import Proposal
 from symbolon.governance.tally import TallyState
 from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
-from symbolon.node.view import fork_evidence, scope_view
+from symbolon.node.view import TaskView, fork_evidence, proposals_view, scope_view, tasks_view
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_nuc_name
 from symbolon.trust.groups import build_groups
@@ -494,6 +494,16 @@ def _handler(
             if not post and path == "/forks":
                 self._send(200, fork_evidence(store, clock()))
                 return
+            if not post and path.startswith("/proposals/"):
+                scope = _hex(path[len("/proposals/") :], 32)
+                if scope not in store.all_genesis():
+                    raise _Missing()
+                self._send(200, proposals_view(store, scope, clock()))
+                return
+            if not post and path.startswith("/tasks/"):
+                identity = _hex(path[len("/tasks/") :], 32)
+                self._send(200, [_task_json(t) for t in tasks_view(store, identity, clock())])
+                return
             if not post and path == "/names":
                 self._send(200, _names(store))
                 return
@@ -622,6 +632,22 @@ def _names(store: SqliteStore) -> list[dict[str, object]]:
     for pub in sorted(set(named) | simulated):
         rows.append({"I": pub, "name": named.get(pub), "simulated": pub in simulated})
     return rows
+
+
+# Feldname, unter dem TaskView.detail je Art erscheint (D484 Beschluss 1).
+_TASK_DETAIL_FIELD = {
+    "CONFIRM_RULES": "constitution",
+    "VOTE": "proposal",
+    "RATIFY": "proposal",
+    "CONTRIBUTION_OPEN": "obligation",
+    "RECEIPT": "obligation",
+}
+
+
+def _task_json(task: TaskView) -> dict[str, object]:
+    body: dict[str, object] = {"scope": task.scope, "art": task.art}
+    body[_TASK_DETAIL_FIELD[task.art]] = task.detail
+    return body
 
 
 def _prepared_body(claim: Claim) -> dict[str, object]:

@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 
 from symbolon.atom import Claim, claim_id
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
 from symbolon.governance.objects import Proposal
-from symbolon.governance.tally import TallyResult, decide
+from symbolon.governance.tally import TallyResult, TallyState, decide, reached
 from symbolon.index import classify_all
 from symbolon.policy import constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
-from symbolon.profiles.credit import SettlementResult, settlement
-from symbolon.profiles.membership import MembershipResult, membership
+from symbolon.profiles.credit import SettlementResult, SettlementState, settlement
+from symbolon.profiles.membership import MembershipResult, MembershipState, membership
 from symbolon.resolve import NucleusState, resolve_state
 from symbolon.trust.derive import Derivation, derive
 from symbolon.trust.params import resolve_trust_params
@@ -183,6 +184,184 @@ def _decide_proposal(
         now=now,
         policy=state.policy,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class FieldChange:
+    """Unterschied eines Verfassungsfelds außer ``participants`` (D484 Beschluss 2)."""
+
+    field: str
+    old: object
+    new: object
+
+
+@dataclass(frozen=True, slots=True)
+class ProposalChanges:
+    """Unterschiede zwischen geltender und vorgeschlagener Verfassung (D484 Beschluss 2)."""
+
+    added: tuple[bytes, ...]
+    removed: tuple[bytes, ...]
+    fields: tuple[FieldChange, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ProposalView:
+    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt (D482 Befund 2, D484 Beschluss 2)."""
+
+    proposal: bytes
+    proposers: tuple[bytes, ...]
+    state: TallyState
+    yes: tuple[bytes, ...]
+    no: tuple[bytes, ...]
+    n: int | None
+    needed: int | None
+    changes: ProposalChanges
+
+
+@dataclass(frozen=True, slots=True)
+class TaskView:
+    """Eine Aufgabe einer Identität in einem Scope (D484 Beschluss 1). ``detail`` ist,
+
+    je nach ``art``, ein Verfassungs-, Vorschlags- oder Obligationshash.
+    """
+
+    scope: bytes
+    art: str
+    detail: bytes
+
+
+def _antraege(
+    store: SqliteStore, scope: bytes, participants: frozenset[bytes]
+) -> dict[bytes, tuple[bytes, ...]]:
+    """propose@1 eines Teilnehmers der geltenden Epoche, nach Ziel-Hash (D482 Befund 2, 04 §2.1).
+
+    Ein Vorschlagsobjekt gilt der Oberfläche nur als Antrag, wenn ein solcher Claim im
+    Bestand liegt; die Auszählung selbst bleibt unberührt (D484 Befund 2).
+    """
+    grouped: dict[bytes, set[bytes]] = defaultdict(set)
+    for claim in store.all_claims():
+        if not is_nuc_name(claim, "propose") or claim.N != scope:
+            continue
+        if claim.I not in participants:
+            continue
+        if claim.J[0] != 3:
+            continue
+        grouped[claim.J[1]].add(claim.I)
+    return {digest: tuple(sorted(authors)) for digest, authors in grouped.items()}
+
+
+def _needed(threshold: tuple[int, int] | None, n: int | None) -> int | None:
+    """Kleinstes ``y`` mit ``reached(y, n, num, den)``, keine zweite Formel (D484 Beschluss 2, 04 §3.2)."""
+    if threshold is None or n is None:
+        return None
+    num, den = threshold
+    for y in range(n + 1):
+        if reached(y, n, num, den):
+            return y
+    return None
+
+
+def _changes(current: dict, target: dict | None) -> ProposalChanges:
+    """``participants`` getrennt, jedes andere Feld mit altem und neuem Wert (D484 Beschluss 2)."""
+    if target is None:
+        return ProposalChanges(added=(), removed=(), fields=())
+    old_participants = set(current.get("participants", ()))
+    new_participants = set(target.get("participants", ()))
+    added = tuple(sorted(new_participants - old_participants))
+    removed = tuple(sorted(old_participants - new_participants))
+    keys = sorted((set(current) | set(target)) - {"participants"})
+    fields = tuple(
+        FieldChange(field=key, old=current.get(key), new=target.get(key))
+        for key in keys
+        if current.get(key) != target.get(key)
+    )
+    return ProposalChanges(added=added, removed=removed, fields=fields)
+
+
+def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
+    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2)."""
+    if scope not in store.all_genesis():
+        raise ValueError("genesis of scope is not in the store")
+    view = scope_view(store, scope, now)
+    if view.verein is None:
+        return ()
+    participants = frozenset(view.state.constitution_obj["participants"])
+    grouped = _antraege(store, scope, participants)
+    proposals = store.all_proposals()
+    constitutions = store.all_constitutions()
+    current = view.state.constitution_obj
+    result: list[ProposalView] = []
+    for digest, tally in view.verein.decisions:
+        proposers = grouped.get(digest)
+        if not proposers:
+            continue
+        yes_authors = tuple(sorted({store.get(cid).I for cid in tally.yes}))
+        no_authors = tuple(sorted({store.get(cid).I for cid in tally.no}))
+        proposal_obj = proposals.get(digest)
+        target = constitutions.get(proposal_obj.constitution_hash) if proposal_obj else None
+        result.append(
+            ProposalView(
+                proposal=digest,
+                proposers=proposers,
+                state=tally.state,
+                yes=yes_authors,
+                no=no_authors,
+                n=tally.n,
+                needed=_needed(tally.threshold, tally.n),
+                changes=_changes(current, target),
+            )
+        )
+    return tuple(sorted(result, key=lambda item: item.proposal))
+
+
+def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
+    """Aufgaben einer Identität über alle Scopes, sortiert (D484 Beschluss 1)."""
+    tasks: list[TaskView] = []
+    for scope in store.all_genesis():
+        view = scope_view(store, scope, now)
+        if view.verein is not None:
+            participants = frozenset(view.state.constitution_obj["participants"])
+            if I in participants:
+                member = next(
+                    (result for subject, result in view.verein.membership if subject == I),
+                    None,
+                )
+                if member is not None and member.state is not MembershipState.MEMBER:
+                    tasks.append(
+                        TaskView(
+                            scope=scope,
+                            art="CONFIRM_RULES",
+                            detail=view.state.epoch.constitution_hash,
+                        )
+                    )
+                grouped = _antraege(store, scope, participants)
+                for digest, tally in view.verein.decisions:
+                    if not grouped.get(digest):
+                        continue
+                    if tally.state is TallyState.PENDING:
+                        voted = any(
+                            is_nuc_name(claim, "vote")
+                            and claim.N == scope
+                            and claim.J == (3, digest)
+                            and claim.I == I
+                            for claim in store.all_claims()
+                        )
+                        if not voted:
+                            tasks.append(TaskView(scope=scope, art="VOTE", detail=digest))
+                    elif tally.state is TallyState.PASSED:
+                        tasks.append(TaskView(scope=scope, art="RATIFY", detail=digest))
+        if view.vereinsleben is not None:
+            for cid, result in view.vereinsleben.settlements:
+                if result.state is not SettlementState.OPEN:
+                    continue
+                claim = store.get(cid)
+                if claim is None:
+                    continue
+                if claim.I == I:
+                    tasks.append(TaskView(scope=scope, art="CONTRIBUTION_OPEN", detail=cid))
+                if claim.J[0] == 1 and claim.J[1] == I:
+                    tasks.append(TaskView(scope=scope, art="RECEIPT", detail=cid))
+    return tuple(sorted(tasks, key=lambda item: (item.scope, item.art, item.detail)))
 
 
 def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:

@@ -21537,3 +21537,22 @@ Geschichte, und die Auswahl der Personen rückt nach oben. Auftrag nach dem Merg
 Regie.
 
 **Geändert.** `07-decisions.md`.
+
+### D508 — Abnahme `p16-tabs`; der Widerspruch steht nach dem Beschluss im Tab
+
+**Geprüft.** Commits `62ddcae` und `fc97724` auf `p16-tabs`, Basis `895f55d`, der Diff des
+Nachtrags ganz aus dem Spiegel. Im Node 148 von 148. `widerspruchOben` folgt D507 Beschluss 1
+Wort für Wort; `widerspruchKarten` gibt je Gabelung Karte und Lage zurück, die Karte selbst ist
+unverändert. Der Inhalt des Tabs steht in einem Element mit `role="tabpanel"`, auf das alle Tabs
+zeigen, weil nur der gewählte gebaut wird; das genügt dem Zweck aus D507 Beschluss 2.
+
+**Olis Durchlauf.** BRUNOs Doppelstimme steht nach dem Beschluss im Tab „Im Verein“, nicht mehr
+oben. „Sieht gut aus.“
+
+**Rückfrage des Berichts.** Der Kommentar über den Tabs nennt „Im Verein gerade“ als Quelle der
+Zählungen. Er meint den Abschnitt `vereinGerade`, den es weiter gibt; er bleibt.
+
+**Beschluss 1 — gemergt.** Die Geschichte nach D507 Beschluss 4 und die Seite in Hell und Dunkel
+nach D506 Beschluss 3 folgen als eigene Aufträge; D507 Befund 2 und D502 Befund bleiben offen.
+
+**Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.

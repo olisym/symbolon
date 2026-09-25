@@ -254,10 +254,10 @@ function tageInWorten(tage) {
   return tage === 1 ? "1 Tag" : `${tage} Tage`;
 }
 
-// Die Dauer einer Bürgschaft in ganzen Tagen, abgerundet: t_exp minus t des dekodierten Kerns
-// (D496 Beschluss 2).
+// Die Dauer einer Bürgschaft in ganzen Tagen, aufgerundet: t_exp minus t des dekodierten Kerns
+// (D498 Beschluss 1, D496 Beschluss 2).
 export function tageAusKern(t, tExp) {
-  return Math.floor((Number(tExp) - Number(t)) / 86400);
+  return Math.ceil((Number(tExp) - Number(t)) / 86400);
 }
 
 // Ein Zeitpunkt als Abstand zur Uhr des S-Node aus GET /now, nie als Kalenderdatum

@@ -2,7 +2,8 @@
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
-// D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, 01 §4).
+// D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, D509 Beschluss 3,
+// 01 §4).
 
 import {
   artInWorten,
@@ -509,14 +510,15 @@ function saetzeFaelle() {
   return results;
 }
 
-// Die Geschichte, die Wörter aus D494 Beschluss 5 und die Punkte aus D494 Beschluss 6.
+// Die Geschichte, die Wörter aus D494 Beschluss 5 und die Punkte aus D494 Beschluss 6; das
+// Kapitel „Der Beitrag“ nach D509 Beschluss 3.
 function fuehrungFaelle() {
   const results = [];
   const gleich = (satz, got, want) =>
     results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
 
   const ich = "01";
-  const [anna, bruno, chris, dora] = ["aa", "bb", "cc", "dd"];
+  const [anna, bruno, chris, dora, kasse] = ["aa", "bb", "cc", "dd", "ee"];
   const szenario = [
     [anna, "ANNA"],
     [bruno, "BRUNO"],
@@ -532,10 +534,11 @@ function fuehrungFaelle() {
     satzung: {},
     mitgliedschaft: null,
     gabelungen: [],
+    obligationen: [],
   };
   const voll = {
     ...leer,
-    namen: new Map([[ich, "OLI"], ...szenario]),
+    namen: new Map([[ich, "OLI"], ...szenario, [kasse, "KASSE"]]),
     kanten: [{ author: chris, subject: ich }],
     antraege: [
       {
@@ -547,6 +550,7 @@ function fuehrungFaelle() {
     liste: [anna, bruno, chris, dora, ich],
     mitgliedschaft: "MEMBER",
     gabelungen: [bruno],
+    obligationen: [{ debtor: ich, creditor: kasse, state: "SETTLED" }],
   };
   const offen = geschichte(leer);
   const getan = geschichte(voll);
@@ -577,6 +581,24 @@ function fuehrungFaelle() {
     "geschichte: nach ANNAs Ja stimmt CHRIS",
     [abgestimmt[2].getan, abgestimmt[3].getan, abgestimmt[3].name],
     [true, false, "CHRIS"],
+  );
+  const zugesagt = geschichte({ ...voll, obligationen: [{ debtor: ich, creditor: kasse, state: "OPEN" }] });
+  const zusage = zugesagt.find((schritt) => schritt.text === "Du sagst der KASSE deinen Beitrag zu");
+  const quittung = zugesagt.find((schritt) => schritt.text === "Die KASSE quittiert");
+  gleich(
+    "geschichte: nach einer Zusage OPEN ist die Zusage getan, die Quittung nicht, weiter als KASSE",
+    [
+      zusage.getan,
+      quittung.getan,
+      zugesagt.filter((schritt) => schritt.weiter).map((schritt) => [schritt.text, schritt.name]),
+    ],
+    [true, false, [["Die KASSE quittiert", "KASSE"]]],
+  );
+  const anChris = geschichte({ ...voll, obligationen: [{ debtor: ich, creditor: chris, state: "SETTLED" }] });
+  gleich(
+    "geschichte: eine Obligation an CHRIS ist keine Zusage an die KASSE",
+    anChris.find((schritt) => schritt.text === "Du sagst der KASSE deinen Beitrag zu").getan,
+    false,
   );
 
   gleich("vertrauenSatz: Abstand 0", vertrauenSatz("ANNA", 0), "ANNA ist Anker des Vereins.");
@@ -658,6 +680,7 @@ function feinschliffFaelle() {
     satzung: {},
     mitgliedschaft: null,
     gabelungen: [],
+    obligationen: [],
   };
   const text = "ANNA beantragt einen Satzungstext, etwa den Beitrag";
   const schritt = (zustand, name) => geschichte(zustand).find((eintrag) => eintrag.text === name);

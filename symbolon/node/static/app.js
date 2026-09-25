@@ -548,15 +548,16 @@ function geschichteBereich(schritte) {
 
 // Rechts die Regie: die Geschichte, dann die eigene Identität und die übrigen nach Namen,
 // Aktualisieren, der Selbsttest (D494 Beschluss 3 und 5, D492 Beschluss 5, D484 Beschluss 3).
+// Ist jeder Schritt getan, steht die Geschichte nicht mehr da (D509 Beschluss 2).
 function regieBereich(namen, simuliert, record, schritte) {
   const regie = element("aside", "regie");
   const ich = record ? hex(record.pub) : null;
   regie.append(
     element("div", "marke", "Regie"),
     zeile("Die Seite links zeigt, was die gewählte Person sieht, und handelt als sie."),
-    geschichteBereich(schritte),
-    element("div", "marke", "Personen"),
   );
+  if (!schritte.every((schritt) => schritt.getan)) regie.append(geschichteBereich(schritte));
+  regie.append(element("div", "marke", "Personen"));
   const geordnet = regieReihenfolge(
     [
       ...(ich ? [{ I: ich, name: namen.get(ich) ?? null }] : []),
@@ -1171,6 +1172,7 @@ async function zeichnenInhalt() {
     satzung: govView?.state?.constitution_obj ?? null,
     mitgliedschaft: eigeneMitgliedschaft ? eigeneMitgliedschaft[1].state : null,
     gabelungen: forks.map((gruppe) => gruppe.I),
+    obligationen,
   });
 
   const links = element("div", "links");

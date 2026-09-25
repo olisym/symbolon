@@ -4,8 +4,8 @@
 // Abweisungen. Ein unbekannter Warnungs- oder Abweisungsname erscheint wörtlich (D486 Beschluss 3).
 // Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
 // (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5, die Geschichte der
-// Demonstration (D494 Beschluss 3, D496 Beschluss 1), Zeit relativ zur Uhr des S-Node
-// (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4) und ob ein
+// Demonstration (D494 Beschluss 3, D496 Beschluss 1, D509 Beschluss 1), Zeit relativ zur Uhr
+// des S-Node (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4) und ob ein
 // Widerspruch oben steht (D507 Beschluss 1).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
@@ -489,15 +489,15 @@ export function regieReihenfolge(personen, ich) {
 // Die Geschichte der Demonstration: jeder Schritt mit der handelnden Person und ob er getan ist,
 // aus den Sichten. Sie kennt die Personen des Szenarios bei ihren Namen; sie ist Werkzeug der
 // Demonstration wie die Regie, keine Rechnung des Vereins (D494 Beschluss 3, D496 Beschluss 1,
-// D484 Beschluss 3).
+// D509 Beschluss 1, D484 Beschluss 3).
 //
 // zustand: ich (eigener Schlüssel oder null), namen (Map Schlüssel → Name, aus /names),
 // kanten (Kanten der Ableitung im Vereinsleben, je { author, subject }), antraege (aus
 // /proposals), liste (participants der geltenden Epoche), satzung (constitution_obj der
 // geltenden Epoche), mitgliedschaft (Zustand der eigenen Identität oder null), gabelungen
-// (Autoren aus /forks).
+// (Autoren aus /forks), obligationen (aus /obligations, je { debtor, creditor, state }).
 export function geschichte(zustand) {
-  const { ich, namen, kanten, antraege, liste, satzung, mitgliedschaft, gabelungen } = zustand;
+  const { ich, namen, kanten, antraege, liste, satzung, mitgliedschaft, gabelungen, obligationen } = zustand;
   const schluesselVon = (name) => {
     for (const [schluessel, eintrag] of namen) if (eintrag === name) return schluessel;
     return null;
@@ -506,6 +506,7 @@ export function geschichte(zustand) {
   const bruno = schluesselVon("BRUNO");
   const chris = schluesselVon("CHRIS");
   const dora = schluesselVon("DORA");
+  const kasse = schluesselVon("KASSE");
   const aufgenommen = ich !== null && liste.includes(ich);
   const aufnahme = antraege.find(
     (antrag) => ich !== null && antrag.proposers.includes(anna) && antrag.changes.added.includes(ich),
@@ -519,6 +520,12 @@ export function geschichte(zustand) {
       antrag.proposers.includes(anna) && antrag.changes.fields.some((feld) => typeof feld.new === "string"),
   );
   const textInSatzung = Object.values(satzung ?? {}).some((wert) => typeof wert === "string");
+  // „Du sagst der KASSE deinen Beitrag zu“, getan, „sobald eine Obligation mit dir als Schuldner
+  // und der KASSE als Gläubiger besteht, gleich mit welchem Betrag“; „Die KASSE quittiert“,
+  // getan, „sobald eine solche Obligation im Stand SETTLED steht“ (D509 Beschluss 1).
+  const beitraege = obligationen.filter(
+    (schuld) => ich !== null && kasse !== null && schuld.debtor === ich && schuld.creditor === kasse,
+  );
 
   const schritte = [
     {
@@ -549,6 +556,17 @@ export function geschichte(zustand) {
       text: "BRUNO widerspricht sich, im Terminal mit python -m tools.verein_gabel",
       person: bruno,
       getan: bruno !== null && gabelungen.includes(bruno),
+    },
+    {
+      text: "Du sagst der KASSE deinen Beitrag zu",
+      person: ich,
+      eigene: true,
+      getan: beitraege.length > 0,
+    },
+    {
+      text: "Die KASSE quittiert",
+      person: kasse,
+      getan: beitraege.some((schuld) => schuld.state === "SETTLED"),
     },
   ];
   const erster = schritte.findIndex((schritt) => !schritt.getan);

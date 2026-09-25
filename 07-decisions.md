@@ -21641,3 +21641,35 @@ Verworfen:
   erst, wer die Seite nicht lesen kann.
 
 **Geändert.** `07-decisions.md`.
+
+### D512 — Abnahme `p18-dunkel`; hell unverändert, dunkel lesbar, der Test sieht nicht alles
+
+**Geprüft.** Commit `a04eb41` auf `p18-dunkel`, Basis `caf2d89`, der Diff von `style.css` und
+`tests/node/test_stil.py` ganz aus dem Spiegel. `make check` nach dem Bericht mit 1134 Tests grün,
+im Node 154 von 154; `test_stil.py` im Klon mit drei Tests grün. 30 Variablen, jede in beiden
+Blöcken.
+
+**Hell unverändert, nachgerechnet.** Die neue Datei mit den hellen Werten aufgelöst und Regel für
+Regel gegen die alte verglichen: gleich bis auf eine Zeile. `button.person` hatte
+`background: transparent` und hat jetzt die Farbe der Regie. Das war die Rückfrage des Berichts;
+die Knöpfe stehen nur in der Regie, man sieht also dasselbe, und das Paar wird prüfbar.
+Angenommen.
+
+**Kontrast, nachgerechnet**, auch für Paare, die der Test nicht prüft, weil der Text seinen
+Hintergrund erbt. Kleinster Wert hell 5,89 (`--text-marke` auf `--grund-seite`), dunkel 5,78
+(`--text-marke` auf `--grund-karte`). Jedes Paar liegt in beiden Modi über 4,5 zu 1.
+
+**Befund — der Test sieht geerbte Farben nicht.** Nach D511 Beschluss 3 prüft er Regeln, die
+Textfarbe und Hintergrund zugleich setzen, und den Text von `body` auf `.links`. Eigene Probe:
+`--text-leise` dunkel auf `#33373d`, fast die Farbe der Seite; der Test bleibt grün. Leiser Text,
+Marken und Akzent stehen auf Seite oder Karte, ohne dass eine Regel beides nennt. Die Lücke liegt
+im Beschluss, nicht im Lauf. Eine Prüfung, die das Erben abbildet, bräuchte ein Modell der Seite;
+eine Liste von Paaren im Test hat D511 verworfen. Offen, ohne Auftrag; wer die dunklen Werte
+ändert, misst die geerbten Paare nach, wie hier.
+
+**Olis Durchlauf.** „Gefällt mir sehr gut.“
+
+**Beschluss 1 — gemergt.**
+
+**Geändert.** `symbolon/node/static/style.css`, `tests/node/test_stil.py` (über den Merge);
+`07-decisions.md`.

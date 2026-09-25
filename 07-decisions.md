@@ -21392,3 +21392,26 @@ ergeben `null`. Die Fälle „19.99“ und „0.29“ sehen eine Rechnung über 
 „“ und „-5“ das heutige Runden.
 
 **Geändert.** `07-decisions.md`.
+
+### D504 — Prüfung `p15-euro`: eine Nachkommastelle ungeprüft; Werkzeug liest aus dem Gedächtnis
+
+**Geprüft.** Commit `640b28c` auf `p15-euro`, Basis `fd46101`, der Diff von `anzeige.js`,
+`app.js` und `selbsttest.js` ganz aus dem Spiegel. 1131 Tests grün, im Node 140 von 140. `centAus`
+prüft den Text mit einem regulären Ausdruck und rechnet die Cent aus den Ziffern; das Formular
+folgt dem Muster von „Bürgen“. Beide Rücknahmeproben stimmen mit dem Diff überein.
+
+**Befund 1 — eigene Probe.** Füllt `centAus` die Nachkommaziffern mit `padStart` statt `padEnd`
+auf, wird aus „24.5“ 2405 statt 2450 Cent, also 24,05 € statt 24,50 €. Der Selbsttest bleibt bei
+140 von 140: D503 Beschluss 3 nennt keinen Betrag mit genau einer Stelle nach dem Punkt. Die Lücke
+liegt im Beschluss, nicht im Lauf.
+
+**Befund 2 — gelesen aus dem Gedächtnis.** Der Bericht sagt, die drei Dateien seien seit
+`dc6093f` unverändert und ihr Inhalt dem Werkzeug aus den vorigen Läufen bekannt. `AGENTS.md §2`
+verlangt, jede genannte Datei ganz zu lesen, bevor eine geändert wird. Die Aussage stimmt hier;
+eine Sitzung, die über mehrere Aufträge läuft, prüft aber nicht, ob sie stimmt. Claude Code wird
+je Auftrag frisch gestartet, wie es für den Container schon galt.
+
+**Beschluss 1 — der fehlende Fall.** „24.5“ ergibt 2450. Er kommt als Nachtrag auf `p15-euro`;
+die Rücknahmeprobe mit `padStart` macht ihn rot.
+
+**Geändert.** `07-decisions.md`.

@@ -1,6 +1,7 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
-// D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, 01 §4).
+// D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
+// 01 §4).
 
 import {
   artInWorten,
@@ -34,6 +35,7 @@ import {
   vertrauenSatz,
   warnungInWorten,
   wertInWorten,
+  zeitpunktInWorten,
 } from "./anzeige.js";
 
 function bytesFromHex(text) {
@@ -416,8 +418,8 @@ function saetzeFaelle() {
   );
   gleich(
     "absichtSatz: vouch",
-    absichtSatz("vouch", { name: "OLI", punkte: 50, datum: "1. Januar 1971" }),
-    "Du bürgst für OLI mit 50 Punkten bis 1. Januar 1971.",
+    absichtSatz("vouch", { name: "OLI", punkte: 50, tage: 365 }),
+    "Du bürgst für OLI mit 50 Punkten für 365 Tage.",
   );
   gleich(
     "absichtSatz: obligation",
@@ -606,8 +608,8 @@ function fuehrungFaelle() {
   );
   gleich(
     "absichtSatz: 1 Punkt in der Einzahl",
-    absichtSatz("vouch", { name: "OLI", punkte: 1, datum: "1. Januar 1971" }),
-    "Du bürgst für OLI mit 1 Punkt bis 1. Januar 1971.",
+    absichtSatz("vouch", { name: "OLI", punkte: 1, tage: 365 }),
+    "Du bürgst für OLI mit 1 Punkt für 365 Tage.",
   );
   const unbenannt = personImSatz(new Map(), "93fdd4aaaaaaaaaaaaaaaa315267");
   gleich(
@@ -619,12 +621,91 @@ function fuehrungFaelle() {
   return results;
 }
 
+// Der Schritt zum Satzungstext, die Satzung bei GRANT_ONLY, die Tage der Bürgschaft und die
+// Abstände zur Uhr des S-Node an ihren Grenzen (D496 Beschluss 1 bis 3, D495).
+function feinschliffFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+
+  const ich = "01";
+  const anna = "aa";
+  const namen = new Map([
+    [ich, "OLI"],
+    [anna, "ANNA"],
+    ["bb", "BRUNO"],
+    ["cc", "CHRIS"],
+    ["dd", "DORA"],
+  ]);
+  const leer = {
+    ich,
+    namen,
+    kanten: [],
+    antraege: [],
+    liste: [anna, "bb", "cc", "dd"],
+    satzung: {},
+    mitgliedschaft: null,
+    gabelungen: [],
+  };
+  const text = "ANNA beantragt einen Satzungstext, etwa den Beitrag";
+  const schritt = (zustand, name) => geschichte(zustand).find((eintrag) => eintrag.text === name);
+  gleich("geschichte: Satzungstext offen", schritt(leer, text).getan, false);
+  gleich(
+    "geschichte: Satzungstext getan über einen Antrag mit anders benanntem Feld",
+    schritt(
+      {
+        ...leer,
+        antraege: [
+          {
+            proposers: [anna],
+            yes: [],
+            changes: { added: [], removed: [], fields: [{ field: "Beitrag", old: null, new: "24" }] },
+          },
+        ],
+      },
+      text,
+    ).getan,
+    true,
+  );
+  gleich(
+    "geschichte: Satzungstext getan über ein Textfeld der Satzung",
+    schritt({ ...leer, satzung: { zweck: "Laufen am Sonntag" } }, text).getan,
+    true,
+  );
+  gleich(
+    "geschichte: Du bestätigst die Satzung offen bei GRANT_ONLY",
+    schritt({ ...leer, mitgliedschaft: "GRANT_ONLY" }, "Du bestätigst die Satzung").getan,
+    false,
+  );
+
+  gleich(
+    "absichtSatz: Bürgschaft für 1 Tag",
+    absichtSatz("vouch", { name: "OLI", punkte: 50, tage: 1 }),
+    "Du bürgst für OLI mit 50 Punkten für 1 Tag.",
+  );
+  gleich(
+    "absichtSatz: Bürgschaft für 365 Tage",
+    absichtSatz("vouch", { name: "OLI", punkte: 50, tage: 365 }),
+    "Du bürgst für OLI mit 50 Punkten für 365 Tage.",
+  );
+
+  const jetzt = 1000000;
+  gleich("zeitpunktInWorten: 59 Sekunden", zeitpunktInWorten(jetzt - 59, jetzt), "gerade eben");
+  gleich("zeitpunktInWorten: 60 Sekunden", zeitpunktInWorten(jetzt - 60, jetzt), "vor 1 Minute");
+  gleich("zeitpunktInWorten: eine Stunde", zeitpunktInWorten(jetzt - 3600, jetzt), "vor 1 Stunde");
+  gleich("zeitpunktInWorten: ein Tag", zeitpunktInWorten(jetzt - 86400, jetzt), "vor 1 Tag");
+  gleich("zeitpunktInWorten: zwei Tage", zeitpunktInWorten(jetzt - 172800, jetzt), "vor 2 Tagen");
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
   results.push(...anzeigeFaelle());
   results.push(...saetzeFaelle());
   results.push(...fuehrungFaelle());
+  results.push(...feinschliffFaelle());
   return results;
 }
 

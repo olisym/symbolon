@@ -1,6 +1,6 @@
 // Seite nach dem Klickmodell: links die Person, was ansteht, Widersprüche und der Verein in
 // Sätzen, darunter eingeklappt die Abschnitte; rechts die Regie mit der Geschichte
-// (D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// (D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -32,26 +32,14 @@ import {
   personImSatz,
   regieReihenfolge,
   standZeile,
+  tageAusKern,
   tilgungInWorten,
   verfassungsAenderungen,
   vertrauenSatz,
   wertInWorten,
+  zeitpunktInWorten,
 } from "./anzeige.js";
 
-const MONATE = [
-  "Januar",
-  "Februar",
-  "März",
-  "April",
-  "Mai",
-  "Juni",
-  "Juli",
-  "August",
-  "September",
-  "Oktober",
-  "November",
-  "Dezember",
-];
 
 let handelnAls = "geraet";
 
@@ -70,18 +58,6 @@ function bytesFromHex(text) {
 function kurz(text) {
   if (text.length <= 12) return text;
   return `${text.slice(0, 6)}…${text.slice(-6)}`;
-}
-
-function datumInWorten(seconds) {
-  const moment = new Date(Number(seconds) * 1000);
-  return `${moment.getDate()}. ${MONATE[moment.getMonth()]} ${moment.getFullYear()}`;
-}
-
-function zeitInWorten(seconds) {
-  const moment = new Date(Number(seconds) * 1000);
-  const stunde = String(moment.getHours()).padStart(2, "0");
-  const minute = String(moment.getMinutes()).padStart(2, "0");
-  return `${datumInWorten(seconds)}, ${stunde}:${minute} Uhr`;
 }
 
 function element(tag, klasse, text) {
@@ -310,7 +286,7 @@ async function felderAus(art, kern, kontext) {
     return {
       name: name(ziel),
       punkte,
-      datum: typeof ende === "bigint" ? datumInWorten(ende) : null,
+      tage: typeof ende === "bigint" ? tageAusKern(kern.get(6n), ende) : null,
     };
   }
   if (art === "obligation") {
@@ -356,7 +332,7 @@ async function fragen(kern, prepared, kontext, autorPub) {
     `Art: ${artInWorten(kern.get(3n))} (${kern.get(3n)})`,
     `Subjekt: ${hex(kern.get(2n)[1])}`,
     `Vorgänger in der Kette: ${vorher === anker ? "der Anfang" : vorher}`,
-    `Zeit: ${zeitInWorten(kern.get(6n))}`,
+    `Zeit: ${zeitpunktInWorten(kern.get(6n), kontext.jetzt)}`,
     `Kennung: ${prepared.claim_id}`,
   ];
   if (kern.has(5n)) details.splice(1, 0, `Scope: ${hex(kern.get(5n))}`);
@@ -410,7 +386,7 @@ async function endeWaehlen(pub, kontext) {
       karte.append(
         element("div", "wert", wertInWorten(claim.p, claim.value)),
         zeile(artInWorten(claim.p)),
-        zeile(`unterschrieben am ${zeitInWorten(claim.t)}`, "leise"),
+        zeile(`unterschrieben ${zeitpunktInWorten(claim.t, kontext.jetzt)}`, "leise"),
         einzelheiten([`Kennung: ${id}`]),
         knopf("An dieses Ende anschließen", () => {
           frageSchliessen();
@@ -799,7 +775,7 @@ async function widerspruchKarten(forks, kontext) {
       const seite = element("div", "ende");
       seite.append(
         element("div", "wert", stimmen ? werte[index] : artInWorten(claim.p)),
-        zeile(`unterschrieben am ${zeitInWorten(claim.t)}`, "leise"),
+        zeile(`unterschrieben ${zeitpunktInWorten(claim.t, kontext.jetzt)}`, "leise"),
       );
       paar.append(seite);
     });
@@ -914,7 +890,7 @@ function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) 
     ausschliessen.append(option);
   }
   const feldName = element("input");
-  feldName.placeholder = "Feld";
+  feldName.placeholder = "Feld, z. B. beitrag";
   const feldText = element("input");
   feldText.placeholder = "Text";
   form.append(
@@ -1018,7 +994,7 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
   const gewicht = element("input");
   gewicht.type = "number";
   gewicht.min = "1";
-  gewicht.value = "1";
+  gewicht.value = "50";
   const tage = element("input");
   tage.type = "number";
   tage.min = "1";
@@ -1191,7 +1167,7 @@ async function zeichnenInhalt() {
   const identitaet = handelnAls === "geraet" ? ich : handelnAls;
   const tasks = await holen(`/tasks/${identitaet}`);
 
-  const kontext = { namen, sichten, antraege, obligationen, identitaet, felder: null };
+  const kontext = { namen, sichten, antraege, obligationen, identitaet, jetzt, felder: null };
   const handeln = handelnFabrik(record, kontext);
 
   const frage = element("section", "karte frage");

@@ -3,8 +3,9 @@
 // Satzung, ein Betrag, die Zeilen der Kasse und die Wörter für Zustände, Warnungen und
 // Abweisungen. Ein unbekannter Warnungs- oder Abweisungsname erscheint wörtlich (D486 Beschluss 3).
 // Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
-// (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5 und die Geschichte der
-// Demonstration (D494 Beschluss 3).
+// (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5, die Geschichte der
+// Demonstration (D494 Beschluss 3, D496 Beschluss 1) und Zeit relativ zur Uhr des S-Node
+// (D496 Beschluss 2).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -248,6 +249,34 @@ function punkteInWorten(punkte) {
   return punkte === 1 ? "1 Punkt" : `${punkte} Punkten`;
 }
 
+// „1 Tag“, sonst „<d> Tage“ (D496 Beschluss 2).
+function tageInWorten(tage) {
+  return tage === 1 ? "1 Tag" : `${tage} Tage`;
+}
+
+// Die Dauer einer Bürgschaft in ganzen Tagen, abgerundet: t_exp minus t des dekodierten Kerns
+// (D496 Beschluss 2).
+export function tageAusKern(t, tExp) {
+  return Math.floor((Number(tExp) - Number(t)) / 86400);
+}
+
+// Ein Zeitpunkt als Abstand zur Uhr des S-Node aus GET /now, nie als Kalenderdatum
+// (D496 Beschluss 2, D495 Befund 1).
+export function zeitpunktInWorten(t, jetzt) {
+  const sekunden = Number(jetzt) - Number(t);
+  if (sekunden < 60) return "gerade eben";
+  if (sekunden < 3600) {
+    const minuten = Math.floor(sekunden / 60);
+    return minuten === 1 ? "vor 1 Minute" : `vor ${minuten} Minuten`;
+  }
+  if (sekunden < 86400) {
+    const stunden = Math.floor(sekunden / 3600);
+    return stunden === 1 ? "vor 1 Stunde" : `vor ${stunden} Stunden`;
+  }
+  const tage = Math.floor(sekunden / 86400);
+  return tage === 1 ? "vor 1 Tag" : `vor ${tage} Tagen`;
+}
+
 // Der Name einer Person im Satz der Absicht; fehlt er im Adressbuch, „eine Person ohne Namen“
 // mit dem gekürzten Schlüssel, und die Unterschrift bleibt möglich (D494 Beschluss 6, D493).
 export function personImSatz(namen, schluessel) {
@@ -284,8 +313,8 @@ export function absichtSatz(art, felder) {
       if (!vorhanden(felder, "titel")) return null;
       return `Du stellst fest: Der Antrag „${felder.titel}“ ist angenommen.`;
     case "vouch":
-      if (!vorhanden(felder, "name", "punkte", "datum")) return null;
-      return `Du bürgst für ${felder.name} mit ${punkteInWorten(felder.punkte)} bis ${felder.datum}.`;
+      if (!vorhanden(felder, "name", "punkte", "tage")) return null;
+      return `Du bürgst für ${felder.name} mit ${punkteInWorten(felder.punkte)} für ${tageInWorten(felder.tage)}.`;
     case "obligation":
       if (!vorhanden(felder, "betrag", "name")) return null;
       return `Du verpflichtest dich, ${felder.betrag} an ${felder.name} zu zahlen.`;
@@ -421,9 +450,9 @@ export function regieReihenfolge(personen, ich) {
 }
 
 // Die Geschichte der Demonstration: jeder Schritt mit der handelnden Person und ob er getan ist,
-// aus den Sichten. Sie kennt die Personen des Szenarios bei ihren Namen und das Feld beitrag;
-// sie ist Werkzeug der Demonstration wie die Regie, keine Rechnung des Vereins
-// (D494 Beschluss 3, D484 Beschluss 3).
+// aus den Sichten. Sie kennt die Personen des Szenarios bei ihren Namen; sie ist Werkzeug der
+// Demonstration wie die Regie, keine Rechnung des Vereins (D494 Beschluss 3, D496 Beschluss 1,
+// D484 Beschluss 3).
 //
 // zustand: ich (eigener Schlüssel oder null), namen (Map Schlüssel → Name, aus /names),
 // kanten (Kanten der Ableitung im Vereinsleben, je { author, subject }), antraege (aus
@@ -446,10 +475,13 @@ export function geschichte(zustand) {
   );
   const stimmende = [anna, chris, dora];
   const nochNicht = stimmende.filter((person) => !aufnahme || !aufnahme.yes.includes(person));
-  const beitragBeantragt = antraege.some(
+  // Ein Antrag ANNAs, der ein Textfeld setzt, oder ein Textfeld der geltenden Satzung, gleich
+  // welches (D496 Beschluss 1).
+  const textBeantragt = antraege.some(
     (antrag) =>
-      antrag.proposers.includes(anna) && antrag.changes.fields.some((feld) => feld.field === "beitrag"),
+      antrag.proposers.includes(anna) && antrag.changes.fields.some((feld) => typeof feld.new === "string"),
   );
+  const textInSatzung = Object.values(satzung ?? {}).some((wert) => typeof wert === "string");
 
   const schritte = [
     {
@@ -472,9 +504,9 @@ export function geschichte(zustand) {
     { text: "ANNA stellt den Beschluss fest", person: anna, getan: aufgenommen },
     { text: "Du bestätigst die Satzung", person: ich, eigene: true, getan: mitgliedschaft === "MEMBER" },
     {
-      text: "ANNA beantragt, das Feld beitrag festzulegen",
+      text: "ANNA beantragt einen Satzungstext, etwa den Beitrag",
       person: anna,
-      getan: beitragBeantragt || typeof satzung?.beitrag === "string",
+      getan: textBeantragt || textInSatzung,
     },
     {
       text: "BRUNO widerspricht sich, im Terminal mit python -m tools.verein_gabel",

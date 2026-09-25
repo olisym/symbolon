@@ -21282,3 +21282,47 @@ Vorgängers. Angenommen: dieselbe Bürgschaft mit `t_exp` eine Sekunde nach der 
 sieht eine Prüfung vor dem Heben, die letzte Annahme eine Prüfung ohne die Ausnahme für `core/*`.
 
 **Geändert.** `07-decisions.md`.
+
+### D501 — Prüfung `p14-ablauf`: eine Lücke im Test; Punkte und Tage nur ganz
+
+**Geprüft.** Commit `299b51f` auf `p14-ablauf`, Basis `9654afc`, der Diff von `api.py`,
+`anzeige.js`, `selbsttest.js` und `test_api.py` ganz aus dem Spiegel. 1131 Tests grün, im Node 131
+von 131. Die Prüfung steht in `_prepare` nach dem Heben von `t`, die Ausnahme für `core/*` über
+`is_core_predicate`, der Satz Wort für Wort nach D500 Beschluss 2. Die vier Rücknahmeproben aus
+dem Bericht stimmen mit dem Diff überein.
+
+**Befund 1 — eigene Proben.** Mit `<` statt `<=` wird der erste Fall rot; das sieht der Test.
+Eine Prüfung nicht in `_prepare`, sondern nur in den Routen `/intent` und `/sim/intent` hinter
+`_prepare`, lässt den Test grün. D500 Beschluss 1 legt die Prüfung in `_prepare`, weil es alle
+Wege bedient; `/prepare` und `/sim/sign` mit einem Prädikat außerhalb von `core/*` hat aber kein
+Fall. Die Lücke liegt im Auftrag, nicht im Lauf: D500 Beschluss 3 nannte den Fall nicht.
+
+**Befund 2 — die Meldung des Werkzeugs, nachgelesen.** Das Formular „Bürgen“ in `app.js` schickt
+`n` und `t_exp` aus `Number` des Eingabefelds. Ein halber Tag geht durch, und die Frage zeigt nach
+D498 „für 1 Tag“ bei zwölf Stunden Bindung. Eine Eingabe, die keine ganze Sekunde ergibt, weist
+`_whole` mit einem englischen Text ab, den die Seite wörtlich zeigt. Dasselbe gilt für Punkte mit
+Nachkommastellen.
+
+**Beschluss 1 — der fehlende Fall.** Der Test aus `p14-ablauf` bekommt einen sechsten Fall:
+`/prepare` mit einer Bürgschaft (`nuc/vouch/1`) und `t_exp` gleich der Uhr, abgewiesen mit
+`INCOHERENT_EXPIRY`. Er macht die Prüfung in den Routen allein rot.
+
+**Beschluss 2 — Punkte und Tage nur ganz, im Formular.** Das Formular „Bürgen“ schickt eine
+Absicht nur, wenn beide Felder eine ganze Zahl enthalten; sonst erscheint „Punkte und Tage gehen
+nur in ganzen Zahlen.“, und es geht keine Anfrage hinaus. Werte kleiner als 1 gehen weiter an den
+S-Node, der sie mit `INVALID_WEIGHT` oder `INCOHERENT_EXPIRY` benennt. Die Prüfung liegt in einer
+reinen Funktion `ganzeZahl` in `anzeige.js`: die Zahl, wenn `Number` des Texts ganz ist, sonst
+`null`.
+
+Verworfen:
+
+- **Ganze Tage im S-Node verlangen**, etwa `t_exp` minus `t` als Vielfaches von 86400. Das
+  Protokoll kennt keine Tage, und `t` setzt erst der S-Node; eine Dauer aus einem anderen Werkzeug
+  wäre dann abgewiesen, obwohl sie nach `01 §6` gültig ist. Tage sind eine Größe des Formulars.
+- **Abrunden der Eingabe im Formular.** Aus 0,5 würde still 0; wer etwas eingibt, soll erfahren,
+  dass es so nicht geht, statt etwas anderes zu unterschreiben.
+
+**Beschluss 3 — Nachtrag auf `p14-ablauf`.** Beschluss 1 und 2 kommen als Nachtrag auf denselben
+Branch; gemergt wird danach.
+
+**Geändert.** `07-decisions.md`.

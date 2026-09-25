@@ -20629,3 +20629,61 @@ werden, und `needed` gibt es dann nicht. Die Tests stehen in einer eigenen Datei
 
 **Geändert.** `symbolon/node/view.py`, `symbolon/node/api.py`, `tests/node/test_lesen.py` (über
 den Merge); `07-decisions.md`.
+
+### D486 — P7: eine Seite, drei Lesepfade; der S-Node bleibt ein Programm
+
+**Anlass.** D484 Beschluss 4. Gelesen: `szenario-verein §3` bis `szenario-verein §7`,
+`symbolon/node/api.py`, `symbolon/node/view.py`, die Form der Antworten von `GET /scopes/<N>`,
+`GET /forks`, `GET /names`, `GET /proposals/<scope>` und `GET /tasks/<I>` am laufenden S-Node.
+
+**Befund 1 — drei Dinge, die die Bildschirme brauchen, liefert der S-Node nicht.** Die Liste der
+Kasse (`szenario-verein §6`) braucht zu jeder Obligation Schuldner, Gläubiger und Betrag; die
+Sicht führt nur `claim_id` und Zustand. Die Widersprüche (`szenario-verein §5.2`) sollen beide
+Claims mit Zeit und Inhalt zeigen; `GET /forks` gibt nur ihre `claim_id`. Eine Bürgschaft braucht
+ein `t_exp`, und die Seite kennt die Weltuhr des S-Node nicht (D479 Beschluss 1).
+
+**Beschluss 1 — drei Lesepfade.** `GET /now` gibt die Uhr des S-Node. `GET /obligations/<scope>`
+gibt je `obligation@1` im Scope `claim_id`, Schuldner, Gläubiger (bei `J`-Tag `1`, sonst `null`),
+Betrag, Einheit als Text und den Zustand aus `settlement`; ist `v` nicht die Form aus `03 §3.1`
+oder die Einheit kein UTF-8, sind Betrag und Einheit `null`, und die Obligation erscheint
+trotzdem. `GET /claims/<claim_id>` gibt die Felder eines Claims und, wo `v` kanonisches CBOR ist,
+seinen dekodierten Wert; sonst `null`. Wert und Betrag sind Anzeige: das Protokoll liest `v` nicht
+(`01 §2`), der Bildschirm liest es für die Menschen.
+
+**Beschluss 2 — eine Seite, untereinander.** Oben die Auswahl „Handeln als“ und „Aktualisieren“,
+darunter in dieser Reihenfolge: Aufgaben, Verein, Anträge, Vertrauen, Beiträge, Kasse,
+Widersprüche. Oli will auf einen Blick sehen, was sich nach einem Klick überall ändert. Nach jeder
+Handlung wird die ganze Seite neu geladen; ein selbsttätiges Nachladen gibt es nicht, weil es eine
+offene Frage vor dem Unterschreiben zerstörte.
+
+**Beschluss 3 — Handeln als.** Zur Wahl stehen die eigene Identität des Geräts und jede simulierte
+Person (D484 Beschluss 3). Die eigene handelt über das Gerät (D479 Beschluss 6). Eine simulierte
+handelt in zwei Schritten: `POST /intent` ohne `h_prev` liefert die Warnungen, ohne dass etwas
+unterschrieben wird; nach der Bestätigung unterschreibt `POST /sim/intent`. So erscheint Annas
+volle Kasse vor der Bürgschaft und nicht danach (`szenario-verein §3`). Warnungen und Abweisungen
+erscheinen in Worten, eine unbekannte mit ihrem Namen.
+
+**Beschluss 4 — was welcher Abschnitt zeigt.** Der Verein zeigt Epoche, Mitglieder mit ihrem
+Zustand in Worten und die Textfelder der geltenden Satzung, also jedes Feld, dessen Wert Text ist;
+ein Feld, das eine Rechnung liest, ist nie Text (D479 Beschluss 3). Die Kasse zeigt für einen
+Gläubiger je Teilnehmer „unterschrieben“, „quittiert“ oder „fehlt“; vorgewählt ist der Eintrag des
+Adressbuchs mit dem Namen `KASSE`, wenn es ihn gibt. Das ist eine Vorauswahl der Anzeige, keine
+Rechnung mit einem Namen (D479 Beschluss 5).
+
+**Beschluss 5 — Anzeige als reine Funktionen.** Was aus den Antworten des S-Node Worte macht, der
+Stand eines Antrags, die Änderungen, ein Betrag, die Zeilen der Kasse, steht in einem eigenen
+Modul ohne DOM und läuft im Selbsttest, wie D482 Beschluss 4 es für den Ablauf des Geräts
+festlegt. Die Fälle folgen aus den Sätzen des Szenarios.
+
+**Beschluss 6 — der S-Node bleibt ein Programm mit vielen Pfaden.** Oli hat gefragt, ob die
+Funktionen einzeln laufen sollten, als Function as a Service. Nein, aus vier Gründen. Jede Sicht
+rechnet über den ganzen Bestand; einzeln betriebene Funktionen teilten ihn trotzdem und lüden ihn
+jedes Mal. Ein S-Node gehört einem Menschen und läuft neben seinem Gerät an `127.0.0.1` in einem
+Faden (D471, D476); da ist nichts zu verteilen. Verteilt wird zwischen den S-Nodes, in Phase 4 als
+viele Kopien desselben Programms und in Phase 5 über Reticulum. Und jede Grenze zwischen Diensten
+ist eine Stelle, an der etwas still ausfallen kann. Die Naht, die zählt, liegt zwischen
+`symbolon/` und `symbolon/node/`: das Protokoll ist eine Bibliothek, der S-Node eine Hülle, und
+eine andere Hülle kann dieselbe Bibliothek nutzen. Neu gestellt wird die Frage, wenn ein S-Node
+viele Menschen zugleich bedienen soll oder eine Rechnung eigene Maschinen braucht.
+
+**Geändert.** `07-decisions.md`.

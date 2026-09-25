@@ -31,7 +31,7 @@ from symbolon.node.view import (
     tasks_view,
 )
 from symbolon.policy import constitution_hash
-from symbolon.predicates import is_nuc_name
+from symbolon.predicates import is_core_predicate, is_nuc_name
 from symbolon.profiles.credit import SettlementState
 from symbolon.profiles.membership import MembershipState, membership
 from symbolon.trust.groups import build_groups
@@ -106,7 +106,11 @@ def _tips(store: SqliteStore, author: bytes) -> list[Claim]:
 
 
 def _prepare(store: SqliteStore, body: Mapping[str, Any], clock: Callable[[], int]) -> Claim:
-    """Vorbereiten (D476 Beschluss 2 und 3, 01 §4, 01 §6)."""
+    """Vorbereiten (D476 Beschluss 2 und 3, D500 Beschluss 1, 01 §4, 01 §6).
+
+    Nach dem Heben von t auf das t des Vorgängers weist ein t_exp, das nicht nach t liegt, mit
+    INCOHERENT_EXPIRY ab, außer auf core/* (01 §6 Punkt 7).
+    """
     author = _hex(_require(body, "I"), 32)
     predicate = _require(body, "p")
     if not isinstance(predicate, str):
@@ -137,7 +141,7 @@ def _prepare(store: SqliteStore, body: Mapping[str, Any], clock: Callable[[], in
     known = store.get(previous)
     if known is not None and moment < known.t:
         moment = known.t
-    return Claim(
+    prepared = Claim(
         version=1,
         I=author,
         J=(subject[0], _hex(subject[1], 32)),
@@ -148,6 +152,9 @@ def _prepare(store: SqliteStore, body: Mapping[str, Any], clock: Callable[[], in
         N=scope,
         t_exp=expiry,
     )
+    if expiry is not None and not is_core_predicate(prepared) and expiry <= moment:
+        raise _Named("INCOHERENT_EXPIRY")
+    return prepared
 
 
 def _submit(store: SqliteStore, core: bytes, sigma: bytes) -> bytes:

@@ -151,11 +151,15 @@ const ABWEISUNGEN = new Map([
     "Die Kette hat zwei Enden, weil zweimal an dieselbe Stelle unterschrieben wurde. " +
       "Gewählt werden muss, an welches Ende angeschlossen wird.",
   ],
+  [
+    "INCOHERENT_EXPIRY",
+    "Die Dauer ist zu kurz: das Ende muss nach der Unterschrift liegen. Gib mindestens 1 Tag ein.",
+  ],
 ]);
 
 // Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
-// mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3); eine unbekannte erscheint mit ihrem
-// Namen (D486 Beschluss 3).
+// mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3) und INCOHERENT_EXPIRY (D500 Beschluss 2);
+// eine unbekannte erscheint mit ihrem Namen (D486 Beschluss 3).
 export function abweisungInWorten(name) {
   return wortAus(ABWEISUNGEN, name);
 }

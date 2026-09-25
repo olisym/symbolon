@@ -782,6 +782,59 @@ def test_budget(tmp_path) -> None:
         _stop(server)
 
 
+def test_ablauf_vor_der_unterschrift(tmp_path) -> None:
+    """t_exp nicht nach t wird vor der Unterschrift abgewiesen (D500 Beschluss 1 und 3, 01 §6)."""
+    world = build()
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    opened = SqliteStore(path)
+    own = [claim for claim in opened.all_claims() if claim.I == world.chris.pub]
+    pointed = {claim.h_prev for claim in own}
+    (tip,) = [claim for claim in own if claim_id(claim) not in pointed]
+    opened.close()
+    vectors = json.loads(
+        (Path(__file__).resolve().parent.parent / "vectors" / "vectors_01.json").read_text()
+    )["vectors"]
+    tv6 = next(item for item in vectors if item["name"] == "TV6")
+    tag, revoked = cbor_canon.decode(bytes.fromhex(tv6["core_bytes"]))[2]
+    uhr = [1000]
+    assert tip.t < uhr[0]
+    server = _start(path, lambda: uhr[0])
+    vouch = {
+        "I": world.chris.pub.hex(),
+        "art": "vouch",
+        "scope": world.ex.N_res.hex(),
+        "subject": world.dora.pub.hex(),
+        "n": 50,
+    }
+    try:
+        status, body = _call(server, "POST", "/intent", {**vouch, "t_exp": uhr[0]})
+        assert (status, json.loads(body)) == (400, "INCOHERENT_EXPIRY")
+        status, body = _call(server, "POST", "/sim/intent", {**vouch, "t_exp": uhr[0]})
+        assert (status, json.loads(body)) == (400, "INCOHERENT_EXPIRY")
+        # Die Uhr zurück vor das t der Spitze: t wird auf dieses t gehoben.
+        uhr[0] = tip.t - 1
+        status, body = _call(server, "POST", "/intent", {**vouch, "t_exp": tip.t})
+        assert (status, json.loads(body)) == (400, "INCOHERENT_EXPIRY")
+        uhr[0] = 1000
+        status, body = _call(server, "POST", "/intent", {**vouch, "t_exp": uhr[0] + 1})
+        assert status == 200, body
+        status, body = _call(
+            server,
+            "POST",
+            "/prepare",
+            {
+                "I": world.chris.pub.hex(),
+                "p": "core/revoke@1",
+                "J": [tag, revoked.hex()],
+                "t_exp": uhr[0] - 1,
+            },
+        )
+        assert status == 200, body
+    finally:
+        _stop(server)
+
+
 def test_zweite_stimme(tmp_path) -> None:
     """Zweite Stimme (D479 Beschluss 4, 04 §3.1)."""
     path = tmp_path / "bestand.sqlite"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import http.client
 import json
+import re
 import socket
 import sqlite3
 import threading
@@ -988,3 +989,34 @@ def test_statische_dateien(tmp_path) -> None:
         assert "content-security-policy" not in headers
     finally:
         _stop(server)
+
+
+def _css_regeln(text: str) -> list[tuple[list[str], dict[str, str]]]:
+    """Regeln einer Stildatei als Selektoren und Deklarationen, ohne Kommentare und @media."""
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    regeln = []
+    for selektoren, rumpf in re.findall(r"([^{}]+)\{([^{}]*)\}", text):
+        deklarationen = {}
+        for teil in rumpf.split(";"):
+            if ":" in teil:
+                name, wert = teil.split(":", 1)
+                deklarationen[name.strip()] = " ".join(wert.split())
+        regeln.append(([s.strip() for s in selektoren.split(",")], deklarationen))
+    return regeln
+
+
+def test_hidden_gilt() -> None:
+    """[hidden] wird nie angezeigt, gleich welche Klasse das Element trägt (D494 Beschluss 4).
+
+    Ein Attributselektor wiegt so viel wie eine Klasse; gegen .karte { display: flex } setzt sich
+    die Regel nur mit !important durch, und keine andere Regel darf display ebenso erzwingen.
+    """
+    regeln = _css_regeln(Path("symbolon/node/static/style.css").read_text(encoding="utf-8"))
+    hidden = [d for selektoren, d in regeln if "[hidden]" in selektoren]
+    assert any(d.get("display") == "none !important" for d in hidden)
+    erzwungen = [
+        selektoren
+        for selektoren, d in regeln
+        if "[hidden]" not in selektoren and d.get("display", "").endswith("!important")
+    ]
+    assert erzwungen == []

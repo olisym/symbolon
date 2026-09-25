@@ -1,6 +1,11 @@
 /* Stil der Seite nach dem Klickmodell (D492 Beschluss 5, D490 Befund 3); keine externe Datei,
    kein Rahmenwerk, Systemschriften wegen default-src 'self' (D481 Beschluss 5). */
 
+/* hidden gilt, gleich welche Klasse ein Element trägt (D494 Beschluss 4). */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -41,6 +46,39 @@ body {
 
 .regie a {
   color: #e8e6e1;
+}
+
+.geschichte ol {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.geschichte li {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr);
+  gap: 0.2rem 0.4rem;
+  line-height: 1.35;
+}
+
+.geschichte li.getan {
+  color: #a9adb3;
+}
+
+.geschichte .haken {
+  color: #8fb89a;
+  font-weight: 700;
+}
+
+.geschichte button.weiter {
+  grid-column: 2;
+  font-weight: 700;
+  color: #1f2328;
+  background: #e8e6e1;
+  border-color: #e8e6e1;
 }
 
 .personen {

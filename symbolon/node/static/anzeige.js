@@ -3,7 +3,8 @@
 // Satzung, ein Betrag, die Zeilen der Kasse und die Wörter für Zustände, Warnungen und
 // Abweisungen. Ein unbekannter Warnungs- oder Abweisungsname erscheint wörtlich (D486 Beschluss 3).
 // Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
-// (D492 Beschluss 1 bis 3 und 5).
+// (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5 und die Geschichte der
+// Demonstration (D494 Beschluss 3).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -242,6 +243,19 @@ export function verfassungsAenderungen(alt, neu) {
   };
 }
 
+// „1 Punkt“, sonst „<n> Punkten“ (D494 Beschluss 6, D493).
+function punkteInWorten(punkte) {
+  return punkte === 1 ? "1 Punkt" : `${punkte} Punkten`;
+}
+
+// Der Name einer Person im Satz der Absicht; fehlt er im Adressbuch, „eine Person ohne Namen“
+// mit dem gekürzten Schlüssel, und die Unterschrift bleibt möglich (D494 Beschluss 6, D493).
+export function personImSatz(namen, schluessel) {
+  const name = namen.get(schluessel);
+  if (name) return { name, ohneName: false };
+  return { name: `eine Person ohne Namen (${nameVon(new Map(), schluessel)})`, ohneName: true };
+}
+
 function vorhanden(felder, ...namen) {
   return namen.every((name) => felder[name] !== null && felder[name] !== undefined && felder[name] !== "");
 }
@@ -261,6 +275,9 @@ export function absichtSatz(art, felder) {
       if (!vorhanden(felder, "name", "titel", "wahl")) return null;
       const wahl = { yes: "Ja", no: "Nein" }[felder.wahl];
       if (!wahl) return null;
+      if (felder.ohneName) {
+        return `Du stimmst ${wahl} zum Antrag „${felder.titel}“ ${felder.name.replace(/^eine /, "einer ")}.`;
+      }
       return `Du stimmst ${wahl} zu ${felder.name}s Antrag „${felder.titel}“.`;
     }
     case "ratify":
@@ -268,7 +285,7 @@ export function absichtSatz(art, felder) {
       return `Du stellst fest: Der Antrag „${felder.titel}“ ist angenommen.`;
     case "vouch":
       if (!vorhanden(felder, "name", "punkte", "datum")) return null;
-      return `Du bürgst für ${felder.name} mit ${felder.punkte} Punkten bis ${felder.datum}.`;
+      return `Du bürgst für ${felder.name} mit ${punkteInWorten(felder.punkte)} bis ${felder.datum}.`;
     case "obligation":
       if (!vorhanden(felder, "betrag", "name")) return null;
       return `Du verpflichtest dich, ${felder.betrag} an ${felder.name} zu zahlen.`;
@@ -307,7 +324,7 @@ export function folgeZeilen(art, effect, felder) {
   } else if (art === "propose") {
     zeilen.push(`Angenommen ist der Antrag mit ${effect.needed} von ${effect.n} Ja-Stimmen.`);
   } else if (art === "ratify") {
-    zeilen.push(`Es gilt Epoche ${effect.epoch}. Alle müssen die neue Satzung bestätigen.`);
+    zeilen.push(`${fassungSatz(effect.epoch)} Alle müssen die neue Satzung bestätigen.`);
   } else if (art === "accept-rules") {
     if (felder.geltend === true && effect.membership === "MEMBER") {
       zeilen.push("Du bist Mitglied.");
@@ -374,4 +391,102 @@ export function erfolgSatz(art, felder) {
     default:
       return "Eingetragen.";
   }
+}
+
+// Die Fassung der Satzung statt der Epoche (D494 Beschluss 5).
+export function fassungSatz(index) {
+  return `Es gilt die ${index}. Fassung der Satzung.`;
+}
+
+// Ein Satz je Person im Vertrauen, aus dem Abstand zum Anker (D494 Beschluss 5, 02 §3).
+export function vertrauenSatz(name, abstand) {
+  if (abstand === null || abstand === undefined) return `${name} ist nicht verbürgt.`;
+  if (abstand === 0) return `${name} ist Anker des Vereins.`;
+  if (abstand === 1) return `${name} ist verbürgt, einen Schritt vom Anker entfernt.`;
+  return `${name} ist verbürgt, ${abstand} Schritte vom Anker entfernt.`;
+}
+
+// Die Regie zeigt zuerst die eigene Identität, dann die übrigen nach Namen; wer keinen Namen
+// hat, steht danach, nach Schlüssel (D494 Beschluss 5).
+export function regieReihenfolge(personen, ich) {
+  const eigene = personen.filter((person) => person.I === ich);
+  const andere = personen.filter((person) => person.I !== ich);
+  andere.sort((links, rechts) => {
+    if (links.name && rechts.name) return links.name.localeCompare(rechts.name, "de");
+    if (links.name) return -1;
+    if (rechts.name) return 1;
+    return links.I < rechts.I ? -1 : 1;
+  });
+  return [...eigene, ...andere];
+}
+
+// Die Geschichte der Demonstration: jeder Schritt mit der handelnden Person und ob er getan ist,
+// aus den Sichten. Sie kennt die Personen des Szenarios bei ihren Namen und das Feld beitrag;
+// sie ist Werkzeug der Demonstration wie die Regie, keine Rechnung des Vereins
+// (D494 Beschluss 3, D484 Beschluss 3).
+//
+// zustand: ich (eigener Schlüssel oder null), namen (Map Schlüssel → Name, aus /names),
+// kanten (Kanten der Ableitung im Vereinsleben, je { author, subject }), antraege (aus
+// /proposals), liste (participants der geltenden Epoche), satzung (constitution_obj der
+// geltenden Epoche), mitgliedschaft (Zustand der eigenen Identität oder null), gabelungen
+// (Autoren aus /forks).
+export function geschichte(zustand) {
+  const { ich, namen, kanten, antraege, liste, satzung, mitgliedschaft, gabelungen } = zustand;
+  const schluesselVon = (name) => {
+    for (const [schluessel, eintrag] of namen) if (eintrag === name) return schluessel;
+    return null;
+  };
+  const anna = schluesselVon("ANNA");
+  const bruno = schluesselVon("BRUNO");
+  const chris = schluesselVon("CHRIS");
+  const dora = schluesselVon("DORA");
+  const aufgenommen = ich !== null && liste.includes(ich);
+  const aufnahme = antraege.find(
+    (antrag) => ich !== null && antrag.proposers.includes(anna) && antrag.changes.added.includes(ich),
+  );
+  const stimmende = [anna, chris, dora];
+  const nochNicht = stimmende.filter((person) => !aufnahme || !aufnahme.yes.includes(person));
+  const beitragBeantragt = antraege.some(
+    (antrag) =>
+      antrag.proposers.includes(anna) && antrag.changes.fields.some((feld) => feld.field === "beitrag"),
+  );
+
+  const schritte = [
+    {
+      text: "Du trägst deinen Namen ein",
+      person: ich,
+      eigene: true,
+      getan: ich !== null && Boolean(namen.get(ich)),
+    },
+    {
+      text: "CHRIS bürgt für dich",
+      person: chris,
+      getan: ich !== null && kanten.some((kante) => kante.author === chris && kante.subject === ich),
+    },
+    { text: "ANNA beantragt deine Aufnahme", person: anna, getan: aufgenommen || Boolean(aufnahme) },
+    {
+      text: "ANNA, CHRIS und DORA stimmen Ja",
+      person: nochNicht[0] ?? anna,
+      getan: aufgenommen || (Boolean(aufnahme) && nochNicht.length === 0),
+    },
+    { text: "ANNA stellt den Beschluss fest", person: anna, getan: aufgenommen },
+    { text: "Du bestätigst die Satzung", person: ich, eigene: true, getan: mitgliedschaft === "MEMBER" },
+    {
+      text: "ANNA beantragt, das Feld beitrag festzulegen",
+      person: anna,
+      getan: beitragBeantragt || typeof satzung?.beitrag === "string",
+    },
+    {
+      text: "BRUNO widerspricht sich, im Terminal mit python -m tools.verein_gabel",
+      person: bruno,
+      getan: bruno !== null && gabelungen.includes(bruno),
+    },
+  ];
+  const erster = schritte.findIndex((schritt) => !schritt.getan);
+  return schritte.map((schritt, index) => ({
+    eigene: false,
+    ...schritt,
+    name: schritt.person === null ? null : namen.get(schritt.person) ?? null,
+    weiter: index === erster,
+  }));
 }

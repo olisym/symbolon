@@ -21116,3 +21116,37 @@ haben.
 
 **Geändert.** `symbolon/node/static/`, `tests/node/test_api.py` (über den Merge);
 `07-decisions.md`.
+
+### D496 — Olis Durchlauf nach P11: die Geschichte trägt; Zeit relativ, ein Schritt zu eng
+
+**Anlass.** Olis Durchlauf auf `7ba0b56` mit frischem Bestand, mit Bildschirmfoto. Er ist der
+Regie von „Du trägst deinen Namen ein“ bis zu Brunos Gabelung gefolgt; das Skript hat die zwei
+`claim_id` ausgegeben, die Seite zeigt den Widerspruch mit „Ja“ und „Nein“ nebeneinander, den
+Antrag mit Titel und Stand und im Verein die dritte Fassung. Oli: alles hat geklappt. Damit ist
+das Ziel von `ROADMAP.md §5` im Kern erreicht: der Verein lässt sich im Browser bedienen und
+sehen.
+
+**Befund 1 — ein Schritt der Geschichte bleibt offen, obwohl er getan ist.** Oli hat das Feld
+`Beitrag` genannt, groß geschrieben, mit dem Text „24“. Die Geschichte sucht nach dem Feld
+`beitrag` und zeigt den Schritt weiter mit „Weiter als ANNA“. Die Bindung an einen Feldnamen ist
+zu eng für einen Menschen, der ihn selbst eintippt.
+
+**Befund 2 — Zeit aus der Weltuhr**, wie in D495 Befund 1 vorhergesagt: „unterschrieben am
+1. Januar 1970, 01:20 Uhr“ in den Widersprüchen.
+
+**Beschluss 1 — der Schritt zum Satzungstext.** Er heißt „ANNA beantragt einen Satzungstext,
+etwa den Beitrag“ und ist getan, sobald ein Antrag ANNAs ein Textfeld setzt oder die geltende
+Satzung ein Textfeld trägt, gleich welches. Das Formular zeigt im Feld für den Namen den Hinweis
+„Feld, z. B. beitrag“.
+
+**Beschluss 2 — Zeit relativ zur Uhr des S-Node.** Die Bürgschaft heißt „Du bürgst für <Name> mit
+<n> Punkten für <d> Tage.“, mit `d` aus `t_exp` minus `t` des dekodierten Kerns, ganzzahlig
+abgerundet, und „für 1 Tag“ in der Einzahl; das ersetzt „bis <Datum>“ in D492 Beschluss 2. Ein
+Zeitpunkt erscheint als Abstand zu `GET /now`: „gerade eben“ unter einer Minute, sonst „vor <k>
+Minuten“, „vor <k> Stunden“ oder „vor <k> Tagen“, jeweils mit Einzahl bei eins. Ein absolutes Datum
+nennt die Seite nicht mehr.
+
+**Beschluss 3 — dazu D495.** Das Formular „Bürgen“ schlägt 50 Punkte vor; der Selbsttest bekommt
+den offenen Fall „Du bestätigst die Satzung“ bei `GRANT_ONLY`.
+
+**Geändert.** `07-decisions.md`.

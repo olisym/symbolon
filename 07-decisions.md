@@ -20983,3 +20983,31 @@ die Frage eine Warnung, ist „Nicht unterschreiben“ der hervorgehobene Knopf.
 sagt die Meldung in einem Satz, was eingetragen ist. Kennungen stehen nur hinter „Einzelheiten“.
 
 **Geändert.** `07-decisions.md`.
+
+### D493 — Abnahme `p10-seite`
+
+**Geprüft.** Commit `94aa219` auf `p10-seite`, Basis `cf47474`, aus dem Spiegel gelesen: der
+Diff von `symbolon/node/api.py`, `geraet.js` und `anzeige.js` ganz, von `app.js` die Wege, auf
+denen unterschrieben wird (`felderAus`, `fragen`, `endeWaehlen`, `handelnFabrik`). 1129 Tests
+grün, in Node 84 von 84 Fällen. Die Felder des Satzes kommen aus dem dekodierten Kern: Wahl,
+Punkte, Datum und Betrag aus `v` und `t_exp` über den strengen Dekoder, das Subjekt aus `J`;
+Namen, Titel und Einbringende aus den Sichten. Ein neuer Antrag bekommt seinen Titel aus den
+Objekten, auf die der Kern zeigt, nicht aus der Antwort. `/sim/intent` nimmt `h_prev` nur als
+Spitze. Eine eigene Probe blieb grün: liefert `absichtSatz` bei fehlender Wahl einer Stimme „Ja“
+statt `null`, bemerkt es der Selbsttest nicht, weil sein Fall mit fehlendem Wert eine andere Art
+trifft. Der Code ist richtig; der Fall fehlt. Der Bericht sagt, das Werkzeug habe das Klickmodell
+aus dem Design-Artefakt gelesen; das lässt sich vom Spiegel aus nicht prüfen, und die Abnahme
+stützt sich nicht darauf.
+
+**Die drei Rückfragen.** *Einzahl:* „mit 1 Punkt“, die Mehrzahl ab 2; die Lücke lag in
+D492 Beschluss 2. *Fester Fall für `frageInhalt`:* ja, dazu der Fall einer Stimme ohne lesbare
+Wahl. *Einbringender ohne Namen:* ein fehlender Eintrag im Adressbuch ist kein fehlender Wert
+des Kerns. Der Satz nennt dann „eine Person ohne Namen“ mit dem gekürzten Schlüssel; die
+Unterschrift bleibt möglich. Verweigert wird sie nur, wenn ein Wert des Kerns oder eines Objekts,
+auf das er zeigt, nicht lesbar ist. Das präzisiert D492 Beschluss 1 für Namen.
+
+**Beschluss 1 — gemergt.** Die drei Punkte gehen mit Olis Befunden aus dem nächsten Durchlauf in
+einen Auftrag.
+
+**Geändert.** `symbolon/node/api.py`, `symbolon/node/static/`, `tests/node/test_spitzen.py`
+(über den Merge); `07-decisions.md`.

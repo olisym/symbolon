@@ -20551,3 +20551,59 @@ beim Unterschreiben wartet, bis der erste abgebrochen hat. Das Ergebnis steht im
 
 **Geändert.** `symbolon/node/static/`, `symbolon/node/api.py`, `tools/geraet_vektoren.py`,
 `tools/check_tree.py`, `tests/node/` (über den Merge); `07-decisions.md`.
+
+### D484 — Browser-Abnahme des Geräts; P6 liest, was die Bildschirme brauchen
+
+**Browser-Abnahme (D483 Beschluss 1).** Oli hat in Brave geprüft, mit eingeschalteten Shields. Der
+Selbsttest zeigt „41 von 41 bestanden“. Ein Schlüssel ist angelegt, die Annahme der Satzung
+eingetragen. Die zweite Annahme nennt als Vorgänger die Kennung der ersten, nicht den Anfang.
+`GET /forks` ist danach leer. Ein zweiter Tab wartet, solange der erste vor dem Unterschreiben
+steht, und fragt erst nach dessen „Abbrechen“. Chrome ist nicht geprüft; es teilt Brave die
+Grundlage und bleibt eine Probe ohne Anlass.
+
+**Befund 1 — die Seite sagt nicht, dass schon angenommen ist.** Oli konnte die Satzung mehrmals
+annehmen. Das ist kein Fehler: jede Annahme ist ein weiterer Claim auf der eigenen Kette, und eine
+zweite auf dieselbe Fassung ändert nichts. Es fehlt die Anzeige, was zu tun bleibt; das sind die
+Aufgaben aus `szenario-verein §7`.
+
+**Befund 2 — ein Vorschlag erscheint in der Auszählung, ohne dass ihn jemand eingebracht hat.**
+`decide` läuft für jedes Vorschlagsobjekt auf der geltenden Epoche, und `propose@1` erzeugt für
+sich keinen Zustand (`04 §2.1`). Der Bestand aus dem Lader trägt die Objekte `proposal_3` und
+`proposal_4` ohne einen `propose@1`; gemessen steht `proposal_3` in `decisions` der Sicht auf
+`N_gov`. Ein Bildschirm, der jeden solchen Vorschlag als Antrag zeigte, zeigte Anträge, die niemand
+gestellt hat. Als Antrag gilt der Oberfläche deshalb ein Vorschlag, zu dem ein `propose@1` eines
+Teilnehmers der geltenden Epoche im Bestand liegt. Das ist Anzeige, keine Rechnung: die Auszählung
+bleibt, wie sie ist.
+
+**Befund 3 — ein fehlender Beitrag ist keine Aufgabe.** `szenario-verein §7` nennt fehlende
+Obligationen unter den Aufgaben. Eine Aufgabe „Beitrag unterschreiben“ müsste aus dem Feld
+`beitrag` der Satzung folgen, und das liest kein Rechner (`szenario-verein §4`). Wer für das Jahr
+unterschrieben hat und wer nicht, zeigt die Liste der Kasse (`szenario-verein §6`).
+
+**Beschluss 1 — `GET /tasks/<I>`.** Die Aufgaben einer Identität über alle Scopes, jede mit Art und
+Scope, sortiert. `CONFIRM_RULES`: `I` steht in `participants` der geltenden Epoche und ist nicht
+`MEMBER` (`04 §6.1`, `04 §6.3`). `VOTE`: ein Antrag nach Befund 2 steht auf `PENDING`, und `I` ist
+Teilnehmer ohne `vote@1` zu ihm. `RATIFY`: ein Antrag steht auf `PASSED`; die Aufgabe hat jeder
+Teilnehmer. `CONTRIBUTION_OPEN`: eine Obligation von `I` steht auf `OPEN`. `RECEIPT`: eine
+Obligation an `I` steht auf `OPEN` (`03 §3.3.2`).
+
+**Beschluss 2 — `GET /proposals/<scope>`.** Die Anträge nach Befund 2 auf der geltenden Epoche,
+jeder mit den Einbringenden, dem Zustand, den Autoren der zählenden Ja und Nein, `n`, der Zahl der
+nötigen Ja und den Unterschieden zwischen geltender und vorgeschlagener Verfassung: hinzugekommene
+und entfernte Teilnehmer und jedes andere Feld mit altem und neuem Wert. Die nötigen Ja sind das
+kleinste `y`, für das `reached` wahr ist, keine zweite Formel. Die Unterschiede rechnet der S-Node,
+damit der Browser keine Verfassung dekodieren muss.
+
+**Beschluss 3 — eine Regie im Browser statt eines Skripts je Handlung.** Die simulierten Personen
+handelt Oli über dieselben Formulare wie seine eigene Identität, mit einer Auswahl unter den
+simulierten und `POST /sim/intent`. Ein Skript bleibt nur für Brunos Gabelung: `/sim/intent`
+kann nicht gabeln, und so soll es sein. Das ändert D479 Beschluss 7 für alle anderen Handlungen.
+*Verworfen:* je Handlung ein Skript. Oli müsste für jeden Schritt der Geschichte ins Terminal.
+
+**Beschluss 4 — drei Aufträge statt eines.** `p6-lesen`: Beschluss 1 und 2, ohne Browser.
+`p7-bildschirme`: die Bildschirme aus `szenario-verein §3` bis `szenario-verein §6` mit Aufgaben,
+Anträgen, Bürgschaften, Beiträgen, der Liste der Kasse, den Widersprüchen aus `GET /forks` und
+der Regie. `p8-gabelung`: das Skript für Brunos Gabelung. Das ersetzt `p6-oberflaeche` aus
+D479 Beschluss 8.
+
+**Geändert.** `07-decisions.md`.

@@ -21440,3 +21440,48 @@ stimmt, ist noch zu klären.
 entschieden wird nach einem Modell, das Oli sieht, nicht aus dem Code heraus.
 
 **Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.
+
+### D506 — Tabs unter einem festen Kopf; die Seite folgt Hell und Dunkel; Auftrag `p16-tabs`
+
+**Anlass.** D505 Befund 1. Ein Modell im Gespräch: oben immer, was die Person betrifft, darunter
+Tabs zum Nachschlagen. Oli: „richtig app mäßig“, gerade auch dunkel.
+
+**Gelesen.** `zeichnenInhalt` in `app.js` auf `1740ccc` baut die Seite bei jedem Zeichnen neu:
+Kopf, Meldung, Frage, „Jetzt zu tun“, Widersprüche, dann „Im Verein gerade“ und fünf Abschnitte,
+die meisten als `details` über `eingeklappt`. Was die Seite sich über ein Zeichnen hinweg merkt,
+steht in Variablen des Moduls, etwa `handelnAls`. `style.css` setzt 52 Farben fest, ohne Variante
+für Dunkel.
+
+**Beschluss 1 — der feste Kopf.** Kopf, Meldung, Frage, „Jetzt zu tun“ und die Widersprüche
+stehen immer oben und nie in einem Tab. Was eine Person tun muss oder unterschreiben soll, darf
+nicht hinter einem Klick liegen.
+
+**Beschluss 2 — fünf Tabs darunter**, in dieser Reihenfolge: „Im Verein“ (bisher „Im Verein
+gerade“), „Anträge“, „Vertrauen“, „Beiträge und Kasse“ (die beiden bisherigen Abschnitte
+zusammen), „Mitglieder“. Ein Tab zeigt seinen Abschnitt offen, mit dem erklärenden Satz, ohne
+Einklappen. „Anträge“ trägt „ · <n> offen“, wenn `n` Anträge im Stand `PENDING` sind, „Beiträge
+und Kasse“ ebenso mit den Beiträgen im Stand `OPEN`; bei null steht nur der Name. Das sind
+dieselben Zählungen wie in „Im Verein gerade“. Beim ersten Laden ist „Im Verein“ gewählt; die
+Wahl überdauert ein Zeichnen, nicht ein Neuladen der Seite.
+
+**Beschluss 3 — Hell und Dunkel nach der Einstellung des Systems.** Die Seite folgt
+`prefers-color-scheme`, ohne eigenen Schalter. Das kommt als eigener Auftrag nach `p16-tabs`,
+weil es jede der 52 Farben berührt und sich gegen die Tabs nicht prüfen lässt.
+
+Verworfen:
+
+- **Eine Sprungleiste** mit Verweisen auf die Abschnitte. Die Seite bleibt eine lange Seite; man
+  scrollt weiter, nur schneller.
+- **Alles eingeklappt**, wie heute schon teilweise. Offene Abschnitte schieben die übrigen nach
+  unten; das ist das Scrollen, über das Oli klagt.
+- **Getrennte Seiten je Bereich.** Der feste Kopf müsste auf jeder Seite neu gebaut werden, und
+  ein Wechsel lüde alles neu.
+- **Die Wahl des Tabs im Browser speichern.** Ein Komfort, den niemand verlangt hat; ein
+  Neuladen beginnt bei „Im Verein“.
+
+**Beschluss 4 — Auftrag `p16-tabs`.** Die Beschriftung eines Tabs kommt aus einer reinen Funktion
+`tabTitel(name, offen)` in `anzeige.js`, mit Fällen im Selbsttest: („Anträge“, 0) ergibt
+„Anträge“, („Anträge“, 1) „Anträge · 1 offen“, („Beiträge und Kasse“, 2) „Beiträge und Kasse ·
+2 offen“. Der Rest ist Aufbau der Seite und wird mit einem Durchlauf Olis abgenommen (D490).
+
+**Geändert.** `07-decisions.md`.

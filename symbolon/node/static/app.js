@@ -1,7 +1,9 @@
-// Seite: Schlüssel anlegen und die Satzung bestätigen (D479 Beschluss 6, D481 Beschluss 3 und 4).
+// Seite: Schlüssel anlegen und die Satzung bestätigen
+// (D479 Beschluss 6, D481 Beschluss 3 und 4, D482 Beschluss 3 und 5).
 
 import {
   ablauf,
+  artInWorten,
   genesisAnchor,
   lesen,
   schluesselAnlegen,
@@ -109,9 +111,14 @@ async function zeichnen() {
     seite.append(
       label,
       knopf("Schlüssel anlegen", async () => {
+        const gewaehlt = field.value.trim();
+        if (!gewaehlt) {
+          seite.append(meldung("Ein Name fehlt"));
+          return;
+        }
         const pub = await schluesselAnlegen(crypto.subtle);
         try {
-          await senden("/names", { I: hex(pub), name: field.value });
+          await senden("/names", { I: hex(pub), name: gewaehlt });
         } catch (error) {
           seite.append(meldung(error.antwort ? error.name : "keine Antwort"));
           return;
@@ -146,15 +153,17 @@ async function satzung(seite, pub) {
         if (tip) payload.h_prev = hex(tip);
         return senden("/intent", payload);
       },
-      zeigen: async (prepared) => {
+      zeigen: async (kern) => {
         const anfang = hex(await genesisAnchor(pub, crypto.subtle));
-        seite.append(zeile("Art: Satzung annehmen"));
-        seite.append(zeile(`Scope: ${kurz(scope)}`));
-        const vorgaenger = prepared.h_prev === anfang ? "der Anfang" : kurz(prepared.h_prev);
-        seite.append(zeile(`Vorgänger: ${vorgaenger}`));
-        seite.append(zeile(`Zeit: ${zeitInWorten(prepared.t)}`));
+        const gezeigt = kern.get(5n);
+        const vorher = hex(kern.get(8n));
+        seite.append(zeile(`Art: ${artInWorten(kern.get(3n))}`));
+        if (gezeigt) seite.append(zeile(`Scope: ${kurz(hex(gezeigt))}`));
+        seite.append(zeile(`Vorgänger: ${vorher === anfang ? "der Anfang" : kurz(vorher)}`));
+        seite.append(zeile(`Zeit: ${zeitInWorten(kern.get(6n))}`));
         return new Promise((resolve) => {
           seite.append(knopf("Unterschreiben", () => resolve(true)));
+          seite.append(knopf("Abbrechen", () => resolve(false)));
         });
       },
       einliefern: (core, signature) => senden("/submit", { core, sigma: hex(signature) }),
@@ -165,25 +174,16 @@ async function satzung(seite, pub) {
   }
   if (!ergebnis) return;
   if (ergebnis.name) seite.append(meldung(ergebnis.name));
-  if (ergebnis.anfang) {
-    seite.append(zeile(`Anfang: ${kurz(hex(ergebnis.anfang))}`));
-    seite.append(
-      knopf("Anfang bestätigen", async () => {
-        await spitzeBestaetigen(ergebnis.anfang);
-        await satzung(seite, pub);
-      }),
-    );
-  }
   if (ergebnis.halt) {
     seite.append(zeile(`Spitze: ${kurz(hex(ergebnis.halt))}`));
     seite.append(
       knopf("Diese Spitze bestätigen", async () => {
         await spitzeBestaetigen(ergebnis.halt);
+        await zeichnen();
       }),
     );
   }
   if (ergebnis.schwebend) seite.append(zeile("Wartet auf Antwort"));
-  if (ergebnis.abweichung) seite.append(zeile("Die Kennung weicht ab"));
   if (ergebnis.ok) seite.append(zeile("Eingetragen"));
 }
 

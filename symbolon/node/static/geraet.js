@@ -1,4 +1,5 @@
-// Gerät: Dekodieren, Prüfen, Schlüssel (D481 Beschluss 2 bis 4, D479 Beschluss 6, 01 §2, 01 §3, 01 §4).
+// Gerät: Dekodieren, Prüfen, Schlüssel, die Entscheidungen des Ablaufs
+// (D481 Beschluss 2 bis 4, D482 Beschluss 1 bis 5, D479 Beschluss 6, 01 §2, 01 §3, 01 §4).
 
 const DOM_SIG = new TextEncoder().encode("claim-atom/v1/sig");
 const DOM_CID = new TextEncoder().encode("claim-atom/v1/cid");
@@ -187,22 +188,49 @@ function schema(value) {
   return null;
 }
 
-export function checkCore(core, author, tip) {
+function abgewiesen(name) {
+  return { name, kern: null };
+}
+
+// Prüfung mit dem dekodierten Kern, damit das Gerät zeigt, was es unterschreibt
+// (D482 Beschluss 3, D481 Beschluss 2, 01 §2, 01 §3).
+export function pruefen(core, I, tip) {
   let value;
   try {
     const [decoded, end] = decodeItem(core, 0);
-    if (end !== core.length) return "MALFORMED";
+    if (end !== core.length) return abgewiesen("MALFORMED");
     value = decoded;
   } catch (error) {
-    if (error && error.malformed) return "MALFORMED";
+    if (error && error.malformed) return abgewiesen("MALFORMED");
     throw error;
   }
-  if (!same(encode(value), core)) return "NOT_CANONICAL";
-  if (schema(value)) return "SCHEMA";
-  if (value.get(0n) !== 1n) return "WRONG_VERSION";
-  if (!same(value.get(1n), author)) return "WRONG_AUTHOR";
-  if (!same(value.get(8n), tip)) return "WRONG_PREDECESSOR";
-  return "ACCEPT";
+  if (!same(encode(value), core)) return abgewiesen("NOT_CANONICAL");
+  if (schema(value)) return abgewiesen("SCHEMA");
+  if (value.get(0n) !== 1n) return abgewiesen("WRONG_VERSION");
+  if (!same(value.get(1n), I)) return abgewiesen("WRONG_AUTHOR");
+  if (!same(value.get(8n), tip)) return abgewiesen("WRONG_PREDECESSOR");
+  return { name: "ACCEPT", kern: value };
+}
+
+export function checkCore(core, author, tip) {
+  return pruefen(core, author, tip).name;
+}
+
+const ARTEN = new Map([
+  ["accept-rules", "Satzung annehmen"],
+  ["propose", "Antrag stellen"],
+  ["vote", "Abstimmen"],
+  ["ratify", "Beschluss feststellen"],
+  ["vouch", "Bürgen"],
+  ["obligation", "Schuld eintragen"],
+  ["receipt", "Zahlung quittieren"],
+]);
+
+// Die Art folgt aus p, eine unbekannte Art erscheint wörtlich (D482 Beschluss 3, 01 §2.2).
+export function artInWorten(p) {
+  let name = p.slice(p.lastIndexOf("/") + 1);
+  if (name.endsWith("@1")) name = name.slice(0, -2);
+  return ARTEN.get(name) ?? p;
 }
 
 async function digest(subtle, domain, payload) {
@@ -222,6 +250,31 @@ export function signCore(core, key, subtle) {
   return subtle.sign({ name: "Ed25519" }, key, concat([DOM_SIG, core])).then(
     (signature) => new Uint8Array(signature),
   );
+}
+
+// Ein frischer Schlüssel beginnt an seinem Anker (D482 Beschluss 1 und 5, 01 §4).
+export function neuerZustand(pub, anker) {
+  return { pub, tip: anker, pending: null };
+}
+
+// Eine schwebende oder fehlende Spitze am Vorschlag des S-Node klären
+// (D481 Beschluss 4, D482 Beschluss 1, D471 Beschluss 2).
+export function klaeren(zustand, vorschlag) {
+  const { tip, pending } = zustand;
+  if (pending && same(pending, vorschlag)) {
+    return { zustand: { ...zustand, tip: pending, pending: null }, halt: null };
+  }
+  if (pending && tip && same(tip, vorschlag)) {
+    return { zustand: { ...zustand, pending: null }, halt: null };
+  }
+  if (pending || !tip) return { zustand, halt: vorschlag };
+  return { zustand, halt: null };
+}
+
+// Die Antwort auf das Einliefern verbuchen (D482 Beschluss 2, D481 Beschluss 4).
+export function verbuchen(zustand, id, antwortId) {
+  if (antwortId && same(id, antwortId)) return { ...zustand, tip: id, pending: null };
+  return { ...zustand, pending: id };
 }
 
 function memory() {
@@ -258,14 +311,15 @@ function schreiben(record) {
 
 export function schluesselAnlegen(subtle) {
   return navigator.locks.request(LOCK, async () => {
+    const vorhanden = await lesen();
+    if (vorhanden) return vorhanden.pub;
     const pair = await subtle.generateKey({ name: "Ed25519" }, false, ["sign"]);
     const pub = new Uint8Array(await subtle.exportKey("raw", pair.publicKey));
+    const anker = await genesisAnchor(pub, subtle);
     await schreiben({
+      ...neuerZustand(pub, anker),
       privateKey: pair.privateKey,
       publicKey: pair.publicKey,
-      pub,
-      tip: null,
-      pending: null,
     });
     return pub;
   });
@@ -292,41 +346,29 @@ export function ablauf(subtle, { absicht, zeigen, einliefern }) {
   return navigator.locks.request(LOCK, async () => {
     const record = await lesen();
     if (!record) return { fehlt: true };
-    if (record.pending) {
-      const prepared = await absicht(null);
-      const proposed = hexToBytes(prepared.h_prev);
-      if (same(proposed, record.pending)) {
-        record.tip = record.pending;
-        record.pending = null;
-        await schreiben(record);
-      } else if (record.tip && same(proposed, record.tip)) {
-        record.pending = null;
-        await schreiben(record);
-      } else {
-        return { halt: proposed };
-      }
+    let zustand = { pub: record.pub, tip: record.tip, pending: record.pending };
+    if (zustand.pending || !zustand.tip) {
+      const vorschlag = hexToBytes((await absicht(null)).h_prev);
+      const geklaert = klaeren(zustand, vorschlag);
+      if (geklaert.halt) return { halt: geklaert.halt };
+      zustand = geklaert.zustand;
+      await schreiben({ ...record, ...zustand });
     }
-    if (!record.tip) return { anfang: await genesisAnchor(record.pub, subtle) };
-    const prepared = await absicht(record.tip);
+    const prepared = await absicht(zustand.tip);
     const core = hexToBytes(prepared.core);
-    const name = checkCore(core, record.pub, record.tip);
+    const { name, kern } = pruefen(core, zustand.pub, zustand.tip);
     if (name !== "ACCEPT") return { name };
-    if (!(await zeigen(prepared))) return { abbruch: true };
+    if (!(await zeigen(kern))) return { abbruch: true };
     const signature = await signCore(core, record.privateKey, subtle);
     const id = await claimId(core, subtle);
-    let answered;
+    let antwort = null;
     try {
-      answered = await einliefern(prepared.core, signature);
+      antwort = await einliefern(prepared.core, signature);
     } catch (error) {
       if (error && error.antwort) return { name: error.name };
-      record.pending = id;
-      await schreiben(record);
-      return { schwebend: true };
     }
-    if (!same(hexToBytes(answered.claim_id), id)) return { abweichung: true };
-    record.tip = id;
-    record.pending = null;
-    await schreiben(record);
-    return { ok: true };
+    zustand = verbuchen(zustand, id, antwort ? hexToBytes(antwort.claim_id) : null);
+    await schreiben({ ...record, ...zustand });
+    return zustand.pending ? { schwebend: true } : { ok: true };
   });
 }

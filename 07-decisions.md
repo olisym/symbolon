@@ -21254,3 +21254,31 @@ Verworfen:
 Abweisungen und ihrer Tests; er kommt als nächster kleiner Auftrag.
 
 **Geändert.** `symbolon/node/static/` (über den Merge); `07-decisions.md`.
+
+### D500 — `INCOHERENT_EXPIRY` in `_prepare`: Satz und Fälle; Auftrag `p14-ablauf`
+
+**Gelesen.** `_prepare`, `_intent_body`, `_dispatch` und `_route` in `symbolon/node/api.py` auf
+`4e797f8`, dazu `ABWEISUNGEN` in `anzeige.js` und `test_budget` in `tests/node/test_api.py`.
+`_prepare` bedient `POST /prepare`, `POST /intent`, `POST /sim/intent` und `POST /sim/sign`. Es
+setzt `t` auf die Uhr des S-Node und hebt es auf das `t` des Vorgängers, wenn die Uhr dahinter
+liegt. `_Named` wird zu Status 400 mit dem Namen; die Seite zeigt jede Abweisung von
+`/intent` über `abweisungInWorten`, eine unbekannte mit ihrem Namen. Den Namen
+`INCOHERENT_EXPIRY` trägt schon der Vektor NV11 in `tests/vectors/vectors_01.json`; TV6 zeigt
+`core/revoke@1` mit `t_exp` vor `t`, angenommen.
+
+**Beschluss 1 — die Prüfung.** In `_prepare`, nachdem `t` endgültig steht, also nach dem Heben auf
+das `t` des Vorgängers: trägt der Kern `t_exp`, ist sein Prädikat kein `core/*` und ist `t_exp`
+nicht größer als `t`, wird mit `INCOHERENT_EXPIRY` abgewiesen. Das ist `01 §6` Punkt 7, vor der
+Unterschrift statt beim Einliefern.
+
+**Beschluss 2 — der Satz.** „Die Dauer ist zu kurz: das Ende muss nach der Unterschrift liegen.
+Gib mindestens 1 Tag ein.“ Der zweite Satz spricht das Formular an; einen anderen Weg zu
+`t_exp` hat die Seite nicht.
+
+**Beschluss 3 — die Fälle.** Abgewiesen: eine Bürgschaft über `/intent` mit `t_exp` gleich der
+Uhr; dieselbe über `/sim/intent`; eine mit `t_exp` nach der Uhr, aber nicht nach dem `t` des
+Vorgängers. Angenommen: dieselbe Bürgschaft mit `t_exp` eine Sekunde nach der Uhr, und über
+`/prepare` ein Kern mit `core/revoke@1` und `t_exp` vor `t`, nach TV6. Die dritte Abweisung
+sieht eine Prüfung vor dem Heben, die letzte Annahme eine Prüfung ohne die Ausnahme für `core/*`.
+
+**Geändert.** `07-decisions.md`.

@@ -21326,3 +21326,31 @@ Verworfen:
 Branch; gemergt wird danach.
 
 **Geändert.** `07-decisions.md`.
+
+### D502 — Abnahme `p14-ablauf`; Olis Durchlauf mit halben und null Tagen
+
+**Geprüft.** Commits `299b51f` und `dc6093f` auf `p14-ablauf`, Basis `9654afc`, der Diff des
+Nachtrags ganz aus dem Spiegel. 1131 Tests grün, im Node 134 von 134. Beide Rücknahmeproben des
+Nachtrags nachgefahren, Ergebnis wie im Bericht. Eigene Probe: `ganzeZahl` schneidet mit
+`Math.trunc` ab, statt `null` zu geben; rot werden die Fälle „0.5“ und „1e-5“, der Test sieht
+also auch stilles Abrunden. Der Aufruf von `zeichnen` nach der Meldung stand nicht im Auftrag; ohne
+ihn erscheint die Meldung nicht, und er folgt „Ein Name fehlt.“ in `namenAufgabe`. Angenommen.
+
+**Olis Durchlauf.** Mit 0,5 Tagen erscheint „Punkte und Tage gehen nur in ganzen Zahlen.“, mit
+0 Tagen und gewählter Person der Satz aus D500 Beschluss 2. In beiden Fällen bietet die Seite
+keine Unterschrift an.
+
+**Befund — die Eingabe geht nach einer Meldung verloren.** Die Seite zeichnet nach der Meldung
+neu; die gewählte Person steht danach wieder auf „Person wählen …“, und „Bürgen …“ ist grau. Das
+gilt für jede Meldung, die über `meldung` und `zeichnen` geht, nicht nur hier. Offen, ohne
+eigenen Auftrag.
+
+**Beschluss 1 — gemergt.**
+
+**Beschluss 2 — das Feld „Euro“.** Die Rückfrage aus dem Nachtrag: „Beitrag zusagen“ schickt
+`Math.round(Number(euro.value) * 100)` und rundet Bruchteile eines Cents still. Das Feld folgt
+dem Muster aus D501 Beschluss 2: was sich nicht ohne Rest in Cent ausdrücken lässt, wird nicht
+geschickt, sondern mit einem Satz beantwortet. Die Einzelheiten stehen im Auftrag `p15-euro`,
+nach Lesen des Formulars.
+
+**Geändert.** `symbolon/node/`, `tests/node/test_api.py` (über den Merge); `07-decisions.md`.

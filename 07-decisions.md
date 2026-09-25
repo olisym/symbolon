@@ -20899,3 +20899,29 @@ offenen Punkte aus D489 Beschluss 3.
 Beschluss 3, gegen das Klickmodell.
 
 **Geändert.** `07-decisions.md`.
+
+### D491 — Abnahme `p9-vorschau`; der Bericht trägt den Diff nicht mehr
+
+**Geprüft.** Commit `f6b3eba` auf `p9-vorschau`, Basis `c7b4bd1`, der ganze Diff aus dem Spiegel:
+`symbolon/node/api.py`, `tests/node/test_vorschau.py`. 1127 Tests grün. Zwei Proben selbst
+gebaut, anders als die des Auftrags, beide rot an der Sache: zählt die Stimme eines Schlüssels,
+der nicht auf der Liste steht, wird genau `test_nicht_auf_der_liste` rot; sagt `accept-rules` für
+jeden Autor `MEMBER` voraus, wird genau `test_satzung_annehmen` rot. Die Vorhersage für `vote`
+liest `participants` nur, wenn die Sicht einen Teil `verein` trägt, also bei wohlgeformter Liste
+(D475). Oli hat den Bericht nicht weitergereicht, nur `make check`; die Abnahme stützt sich auf den
+Diff.
+
+**Beschluss 1 — gemergt.** Als Nächstes `p10-seite` (D490 Beschluss 4).
+
+**Befund — der Diff im Bericht wird zweimal übertragen.** Der Supervisor liest jeden Diff aus dem
+Spiegel, weil der Bericht nicht die Abnahme ist; zweimal war der Diff im Bericht ohnehin gekappt
+(D486, D487). Der vollständige Diff im Bericht kostet das Werkzeug Ausgabe und Oli das
+Weiterreichen, ohne dass eine Entscheidung an ihm hängt.
+
+**Beschluss 2 — `AGENTS.md §5` ohne Diff.** Der Bericht nennt Commit-Hash, `git diff --stat`,
+`make check`, die Rücknahmeproben, die Meldungen und jede Abweichung vom Auftrag; den Diff liest
+der Supervisor aus dem Spiegel. Voraussetzung ist der Push des Branches, der schon Teil des Wegs
+ist. Die Aufträge verlangen den Diff nicht mehr.
+
+**Geändert.** `symbolon/node/api.py`, `tests/node/test_vorschau.py` (über den Merge);
+`AGENTS.md`, `07-decisions.md`.

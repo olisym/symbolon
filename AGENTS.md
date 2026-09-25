@@ -45,9 +45,10 @@ trägt Verfahren, keine Norm und keinen Auftrag.
 ## 5. Abschluss
 
 - **Ein Commit auf dem Auftrags-Branch. Kein Merge, kein Push.**
-- Der Bericht enthält den **vollständigen** `git diff` gegen den Basis-Commit, nicht `--numstat`
-  und keine Zusammenfassung; das Ergebnis von `make check`; jede Meldung aus §3; jede Stelle, an
-  der dem Auftrag nicht zu folgen war.
+- Der Bericht enthält den Commit-Hash, `git diff --stat` gegen den Basis-Commit, das Ergebnis von
+  `make check`, jede Rücknahmeprobe mit dem Test, der rot wurde, jede Meldung aus §3 und jede
+  Stelle, an der dem Auftrag nicht zu folgen war. Den Diff selbst enthält er nicht: der
+  Supervisor liest ihn aus dem Spiegel, sobald der Branch gepusht ist (D491).
 - Der Bericht ist nicht die Abnahme. Geprüft wird der Diff.
 
 ## 6. Diese Datei

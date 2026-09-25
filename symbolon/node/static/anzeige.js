@@ -151,11 +151,15 @@ const ABWEISUNGEN = new Map([
     "Die Kette hat zwei Enden, weil zweimal an dieselbe Stelle unterschrieben wurde. " +
       "Gewählt werden muss, an welches Ende angeschlossen wird.",
   ],
+  [
+    "INCOHERENT_EXPIRY",
+    "Die Dauer ist zu kurz: das Ende muss nach der Unterschrift liegen. Gib mindestens 1 Tag ein.",
+  ],
 ]);
 
 // Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
-// mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3); eine unbekannte erscheint mit ihrem
-// Namen (D486 Beschluss 3).
+// mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3) und INCOHERENT_EXPIRY (D500 Beschluss 2);
+// eine unbekannte erscheint mit ihrem Namen (D486 Beschluss 3).
 export function abweisungInWorten(name) {
   return wortAus(ABWEISUNGEN, name);
 }
@@ -258,6 +262,13 @@ function tageInWorten(tage) {
 // (D498 Beschluss 1, D496 Beschluss 2).
 export function tageAusKern(t, tExp) {
   return Math.ceil((Number(tExp) - Number(t)) / 86400);
+}
+
+// Eine Eingabe als ganze Zahl: Number des Texts, wenn das ganz ist, sonst null
+// (D501 Beschluss 2).
+export function ganzeZahl(text) {
+  const zahl = Number(text);
+  return Number.isInteger(zahl) ? zahl : null;
 }
 
 // Ein Zeitpunkt als Abstand zur Uhr des S-Node aus GET /now, nie als Kalenderdatum

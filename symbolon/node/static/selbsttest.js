@@ -1,7 +1,7 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
-// D498 Beschluss 1 und 2, 01 §4).
+// D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2, 01 §4).
 
 import {
   artInWorten,
@@ -25,6 +25,7 @@ import {
   fassungSatz,
   folgeZeilen,
   frageInhalt,
+  ganzeZahl,
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
@@ -300,6 +301,12 @@ function anzeigeFaelle() {
     "abweisungInWorten: NOT_PARTICIPANT (D487 Beschluss 2)",
     abweisungInWorten("NOT_PARTICIPANT") === "Diese Person steht nicht auf der Mitgliederliste.",
     abweisungInWorten("NOT_PARTICIPANT"),
+  );
+  pruefe(
+    "abweisungInWorten: INCOHERENT_EXPIRY (D500 Beschluss 2)",
+    abweisungInWorten("INCOHERENT_EXPIRY") ===
+      "Die Dauer ist zu kurz: das Ende muss nach der Unterschrift liegen. Gib mindestens 1 Tag ein.",
+    abweisungInWorten("INCOHERENT_EXPIRY"),
   );
   pruefe(
     "hinweisSatzungGeaendert: mindestens ein GRANT_ONLY (D487 Beschluss 2, szenario-verein §4)",
@@ -704,6 +711,11 @@ function feinschliffFaelle() {
   gleich("tageAusKern: 365 Tage weniger drei Sekunden, als BigInt", tageAusKern(1003n, BigInt(jahr)), 365);
   gleich("tageAusKern: eine Sekunde", tageAusKern(1000, 1001), 1);
   gleich("tageAusKern: ein Tag und eine Sekunde", tageAusKern(1000, 1000 + tag + 1), 2);
+
+  // Punkte und Tage nur ganz (D501 Beschluss 2).
+  gleich("ganzeZahl: 365", ganzeZahl("365"), 365);
+  gleich("ganzeZahl: 0.5", ganzeZahl("0.5"), null);
+  gleich("ganzeZahl: 1e-5", ganzeZahl("1e-5"), null);
 
   return results;
 }

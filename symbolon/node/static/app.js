@@ -24,6 +24,7 @@ import {
   erfolgSatz,
   fassungSatz,
   frageInhalt,
+  ganzeZahl,
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
@@ -1008,14 +1009,22 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
       person,
       labelGewicht,
       labelTage,
-      knopfMitAuswahl("Bürgen …", [person], () =>
-        handeln("vouch", {
+      // Punkte und Tage nur ganz; Werte unter 1 benennt der S-Node (D501 Beschluss 2).
+      knopfMitAuswahl("Bürgen …", [person], async () => {
+        const punkte = ganzeZahl(gewicht.value);
+        const dauer = ganzeZahl(tage.value);
+        if (punkte === null || dauer === null) {
+          meldung("Punkte und Tage gehen nur in ganzen Zahlen.");
+          await zeichnen();
+          return;
+        }
+        await handeln("vouch", {
           scope: res,
           subject: person.value,
-          n: Number(gewicht.value),
-          t_exp: jetzt + Number(tage.value) * 86400,
-        }),
-      ),
+          n: punkte,
+          t_exp: jetzt + dauer * 86400,
+        });
+      }),
     ),
   );
   return abschnitt;

@@ -407,7 +407,27 @@ class _Missing(Exception):
     """Unbekannter Pfad, fehlender Genesis oder fehlender Seed."""
 
 
-def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPRequestHandler]:
+_STATIC = Path(__file__).resolve().parent / "static"
+_APP_HEADERS = (
+    ("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'"),
+    ("X-Content-Type-Options", "nosniff"),
+    ("Cache-Control", "no-store"),
+)
+_MEDIA = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json",
+}
+
+
+def _static_at_start() -> dict[str, Path]:
+    """Namen, die beim Start in static/ liegen (D481 Beschluss 5)."""
+    return {path.name: path for path in _STATIC.iterdir() if path.is_file()}
+
+
+def _handler(
+    store: SqliteStore, clock: Callable[[], int], files: Mapping[str, Path]
+) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -438,8 +458,30 @@ def _handler(store: SqliteStore, clock: Callable[[], int]) -> type[BaseHTTPReque
             except Exception as exc:
                 self._send(500, type(exc).__name__)
 
+        def _send_file(self, file: Path) -> None:
+            """Startseite und /app/ (D481 Beschluss 5, D477 Beschluss 1)."""
+            payload = file.read_bytes()
+            self.close_connection = True
+            self.send_response(200)
+            self.send_header("Content-Type", _MEDIA[file.suffix])
+            self.send_header("Content-Length", str(len(payload)))
+            for key, value in _APP_HEADERS:
+                self.send_header(key, value)
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(payload)
+
         def _route(self, post: bool) -> None:
             path = self.path.split("?", 1)[0]
+            if not post and path == "/":
+                self._send_file(files["index.html"])
+                return
+            if not post and path.startswith("/app/"):
+                found = files.get(path[len("/app/") :])
+                if found is None:
+                    raise _Missing()
+                self._send_file(found)
+                return
             if not post and path == "/scopes":
                 self._send(200, sorted(store.all_genesis()))
                 return
@@ -599,7 +641,9 @@ def serve(
 ) -> None:
     """Öffnet den Bestand in diesem Faden und bedient 127.0.0.1 (D476 Beschluss 5)."""
     store = SqliteStore(path)
-    server = HTTPServer((_HOST, port), _handler(store, clock or _clock_default))
+    server = HTTPServer(
+        (_HOST, port), _handler(store, clock or _clock_default, _static_at_start())
+    )
     try:
         if bound is not None:
             bound(server)

@@ -20,13 +20,18 @@ ROOT = Path(__file__).resolve().parent.parent
 # Unversioniert in diesen Bereichen ist ein vergessenes `git add`, kein Zwischenstand.
 SOURCE_DIRS = ("symbolon/", "tests/", "tools/")
 SOURCE_SUFFIXES = (".py",)
+# .js, .html und .json nur unter symbolon/ (D481 Beschluss 5).
+STATIC_SUFFIXES = (".js", ".html", ".json")
 
 # Unversionierte Spec-Dateien im Wurzelverzeichnis zählen ebenso.
 ROOT_SUFFIXES = (".md",)
 
 
 def is_source(path: str) -> bool:
+    """Quelldatei, einschließlich statischer Dateien unter symbolon/ (D481 Beschluss 5)."""
     if path.startswith(SOURCE_DIRS) and path.endswith(SOURCE_SUFFIXES):
+        return True
+    if path.startswith("symbolon/") and path.endswith(STATIC_SUFFIXES):
         return True
     return "/" not in path and path.endswith(ROOT_SUFFIXES)
 

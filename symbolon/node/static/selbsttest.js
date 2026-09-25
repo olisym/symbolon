@@ -1,7 +1,8 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
-// D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2, 01 §4).
+// D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
+// D503 Beschluss 1 und 3, 01 §4).
 
 import {
   artInWorten,
@@ -22,6 +23,7 @@ import {
   aenderungen,
   antragTitel,
   betrag,
+  centAus,
   fassungSatz,
   folgeZeilen,
   frageInhalt,
@@ -716,6 +718,14 @@ function feinschliffFaelle() {
   gleich("ganzeZahl: 365", ganzeZahl("365"), 365);
   gleich("ganzeZahl: 0.5", ganzeZahl("0.5"), null);
   gleich("ganzeZahl: 1e-5", ganzeZahl("1e-5"), null);
+
+  // Cent aus dem Text (D503 Beschluss 3).
+  gleich("centAus: 24", centAus("24"), 2400);
+  gleich("centAus: 19.99", centAus("19.99"), 1999);
+  gleich("centAus: 0.29", centAus("0.29"), 29);
+  gleich("centAus: 12.345", centAus("12.345"), null);
+  gleich("centAus: leer", centAus(""), null);
+  gleich("centAus: -5", centAus("-5"), null);
 
   return results;
 }

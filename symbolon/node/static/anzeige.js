@@ -271,6 +271,14 @@ export function ganzeZahl(text) {
   return Number.isInteger(zahl) ? zahl : null;
 }
 
+// Cent aus dem Text des Felds „Euro“: Ziffern, wahlweise ein Punkt und ein oder zwei Ziffern,
+// aus den Ziffern gerechnet und nicht über eine Gleitkommazahl; sonst null (D503 Beschluss 1).
+export function centAus(text) {
+  const teile = /^([0-9]+)(?:\.([0-9]{1,2}))?$/.exec(text);
+  if (teile === null) return null;
+  return Number(teile[1]) * 100 + Number((teile[2] ?? "").padEnd(2, "0"));
+}
+
 // Ein Zeitpunkt als Abstand zur Uhr des S-Node aus GET /now, nie als Kalenderdatum
 // (D496 Beschluss 2, D495 Befund 1).
 export function zeitpunktInWorten(t, jetzt) {

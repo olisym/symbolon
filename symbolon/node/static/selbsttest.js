@@ -1,6 +1,6 @@
 // Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
 // (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
-// D489 Beschluss 3, D492 Beschluss 1 bis 3, 01 §4).
+// D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, 01 §4).
 
 import {
   artInWorten,
@@ -15,16 +15,23 @@ import {
   verbuchen,
 } from "./geraet.js";
 import {
+  KEIN_SATZ,
   absichtSatz,
   abweisungInWorten,
   aenderungen,
   antragTitel,
   betrag,
+  fassungSatz,
   folgeZeilen,
+  frageInhalt,
+  geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
   mitgliedschaftInWorten,
+  personImSatz,
+  regieReihenfolge,
   standZeile,
+  vertrauenSatz,
   warnungInWorten,
   wertInWorten,
 } from "./anzeige.js";
@@ -488,11 +495,136 @@ function saetzeFaelle() {
   return results;
 }
 
+// Die Geschichte, die Wörter aus D494 Beschluss 5 und die Punkte aus D494 Beschluss 6.
+function fuehrungFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+
+  const ich = "01";
+  const [anna, bruno, chris, dora] = ["aa", "bb", "cc", "dd"];
+  const szenario = [
+    [anna, "ANNA"],
+    [bruno, "BRUNO"],
+    [chris, "CHRIS"],
+    [dora, "DORA"],
+  ];
+  const leer = {
+    ich,
+    namen: new Map(szenario),
+    kanten: [],
+    antraege: [],
+    liste: [anna, bruno, chris, dora],
+    satzung: {},
+    mitgliedschaft: null,
+    gabelungen: [],
+  };
+  const voll = {
+    ...leer,
+    namen: new Map([[ich, "OLI"], ...szenario]),
+    kanten: [{ author: chris, subject: ich }],
+    antraege: [
+      {
+        proposers: [anna],
+        yes: [],
+        changes: { added: [], removed: [], fields: [{ field: "beitrag", old: null, new: "24 Euro" }] },
+      },
+    ],
+    liste: [anna, bruno, chris, dora, ich],
+    mitgliedschaft: "MEMBER",
+    gabelungen: [bruno],
+  };
+  const offen = geschichte(leer);
+  const getan = geschichte(voll);
+  offen.forEach((schritt, index) => {
+    gleich(`geschichte: offen, ${schritt.text}`, schritt.getan, false);
+    gleich(`geschichte: getan, ${getan[index].text}`, getan[index].getan, true);
+  });
+  gleich(
+    "geschichte: erster offener Schritt ist der Name, als du",
+    offen.filter((schritt) => schritt.weiter).map((schritt) => [schritt.text, schritt.eigene]),
+    [["Du trägst deinen Namen ein", true]],
+  );
+  const verbuergt = geschichte({ ...leer, namen: voll.namen, kanten: [{ author: chris, subject: ich }] });
+  gleich(
+    "geschichte: nach Name und Bürgschaft ist ANNA dran",
+    verbuergt.filter((schritt) => schritt.weiter).map((schritt) => [schritt.text, schritt.person, schritt.name]),
+    [["ANNA beantragt deine Aufnahme", anna, "ANNA"]],
+  );
+  const vonAnna = geschichte({ ...leer, namen: voll.namen, kanten: [{ author: anna, subject: ich }] });
+  gleich("geschichte: eine Bürgschaft von ANNA ist nicht die von CHRIS", vonAnna[1].getan, false);
+  const aufnahme = {
+    proposers: [anna],
+    yes: [anna],
+    changes: { added: [ich], removed: [], fields: [] },
+  };
+  const abgestimmt = geschichte({ ...leer, namen: voll.namen, antraege: [aufnahme] });
+  gleich(
+    "geschichte: nach ANNAs Ja stimmt CHRIS",
+    [abgestimmt[2].getan, abgestimmt[3].getan, abgestimmt[3].name],
+    [true, false, "CHRIS"],
+  );
+
+  gleich("vertrauenSatz: Abstand 0", vertrauenSatz("ANNA", 0), "ANNA ist Anker des Vereins.");
+  gleich(
+    "vertrauenSatz: Abstand 1",
+    vertrauenSatz("CHRIS", 1),
+    "CHRIS ist verbürgt, einen Schritt vom Anker entfernt.",
+  );
+  gleich("vertrauenSatz: Abstand 2", vertrauenSatz("DORA", 2), "DORA ist verbürgt, 2 Schritte vom Anker entfernt.");
+  gleich("vertrauenSatz: ohne Abstand", vertrauenSatz("OLI", undefined), "OLI ist nicht verbürgt.");
+  gleich("fassungSatz", fassungSatz(2), "Es gilt die 2. Fassung der Satzung.");
+  gleich(
+    "regieReihenfolge: zuerst die eigene, dann nach Namen",
+    regieReihenfolge(
+      [
+        { I: "cc", name: "CHRIS" },
+        { I: "01", name: "OLI" },
+        { I: "aa", name: "ANNA" },
+      ],
+      "01",
+    ).map((person) => person.name),
+    ["OLI", "ANNA", "CHRIS"],
+  );
+
+  const mitSatz = frageInhalt("propose", { titel: "beitrag festlegen" }, { warnings: [], effect: { needed: 3, n: 4 } });
+  gleich(
+    "frageInhalt: mit Satz wird Unterschreiben angeboten",
+    [mitSatz.satz, mitSatz.unterschreiben],
+    ["Du beantragst: beitrag festlegen.", true],
+  );
+  const ohneSatz = frageInhalt("propose", {}, { warnings: [], effect: { needed: 3, n: 4 } });
+  gleich(
+    "frageInhalt: ohne Satz kein Unterschreiben",
+    [ohneSatz.satz, ohneSatz.unterschreiben, ohneSatz.folge],
+    [KEIN_SATZ, false, []],
+  );
+  gleich(
+    "absichtSatz: eine Stimme ohne lesbare Wahl",
+    absichtSatz("vote", { name: "ANNA", titel: "beitrag festlegen", wahl: null }),
+    null,
+  );
+  gleich(
+    "absichtSatz: 1 Punkt in der Einzahl",
+    absichtSatz("vouch", { name: "OLI", punkte: 1, datum: "1. Januar 1971" }),
+    "Du bürgst für OLI mit 1 Punkt bis 1. Januar 1971.",
+  );
+  const unbenannt = personImSatz(new Map(), "93fdd4aaaaaaaaaaaaaaaa315267");
+  gleich(
+    "absichtSatz: Einbringende ohne Namen",
+    absichtSatz("vote", { ...unbenannt, titel: "beitrag festlegen", wahl: "yes" }),
+    "Du stimmst Ja zum Antrag „beitrag festlegen“ einer Person ohne Namen (93fdd4…315267).",
+  );
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
   results.push(...anzeigeFaelle());
   results.push(...saetzeFaelle());
+  results.push(...fuehrungFaelle());
   return results;
 }
 

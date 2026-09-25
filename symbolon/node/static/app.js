@@ -1,7 +1,7 @@
 // Seite nach dem Klickmodell: links die Person, was ansteht, Widersprüche und der Verein in
-// Sätzen, darunter eingeklappt die Abschnitte; rechts die Regie (D492 Beschluss 1 bis 5,
-// D490 Beschluss 1 und 3, D489 Beschluss 3, D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5,
-// D481 Beschluss 3 und 5, D479 Beschluss 6).
+// Sätzen, darunter eingeklappt die Abschnitte; rechts die Regie mit der Geschichte
+// (D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
   ablauf,
@@ -22,14 +22,19 @@ import {
   auszaehlungInWorten,
   betrag,
   erfolgSatz,
+  fassungSatz,
   frageInhalt,
+  geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
   mitgliedschaftInWorten,
   nameVon,
+  personImSatz,
+  regieReihenfolge,
   standZeile,
   tilgungInWorten,
   verfassungsAenderungen,
+  vertrauenSatz,
   wertInWorten,
 } from "./anzeige.js";
 
@@ -273,7 +278,7 @@ async function felderAus(art, kern, kontext) {
   const ziel = hex(subjekt);
   const scope = kern.has(5n) ? hex(kern.get(5n)) : null;
   const view = scope === null ? undefined : kontext.sichten.get(scope);
-  const name = (schluessel) => kontext.namen.get(schluessel) ?? null;
+  const name = (schluessel) => personImSatz(kontext.namen, schluessel).name;
   const gelesen = kern.has(4n) ? dekodierenV(kern.get(4n)) : null;
   const v = gelesen && gelesen.name === "ACCEPT" ? gelesen.wert : null;
 
@@ -289,10 +294,12 @@ async function felderAus(art, kern, kontext) {
     const wahlWert = v instanceof Map ? v.get(0n) : undefined;
     const wahl = wahlWert === 1n ? "yes" : wahlWert === 0n ? "no" : null;
     const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
+    const einbringend = antrag ? personImSatz(kontext.namen, antrag.proposers[0]) : null;
     return {
       titel,
       zitate,
-      name: antrag ? name(antrag.proposers[0]) : null,
+      name: einbringend ? einbringend.name : null,
+      ohneName: einbringend ? einbringend.ohneName : false,
       wahl,
       teilnehmer: teilnehmer.includes(kontext.identitaet),
     };
@@ -527,27 +534,63 @@ function handelnFabrik(record, kontext) {
   };
 }
 
-// Rechts die Regie: die eigene Identität und jede simulierte Person, Aktualisieren, der
-// Selbsttest (D492 Beschluss 5, D484 Beschluss 3).
-function regieBereich(namen, simuliert, record) {
+function wechseln(wert) {
+  handelnAls = wert;
+  void zeichnen();
+}
+
+// Die Geschichte über den Personen: je Schritt ein Haken, wenn er getan ist, und beim ersten
+// offenen Schritt „Weiter als <Name>“ (D494 Beschluss 3).
+function geschichteBereich(schritte) {
+  const bereich = element("div", "geschichte");
+  bereich.append(element("div", "marke", "Die Geschichte"));
+  const ol = element("ol");
+  for (const schritt of schritte) {
+    const item = element("li", schritt.getan ? "getan" : "offen");
+    item.append(element("span", "haken", schritt.getan ? "✓" : ""), element("span", null, schritt.text));
+    if (schritt.weiter) {
+      const name = schritt.eigene ? schritt.name ?? "du" : schritt.name;
+      if (name) {
+        item.append(
+          knopf(`Weiter als ${name}`, () => wechseln(schritt.eigene ? "geraet" : schritt.person), "person weiter"),
+        );
+      }
+    }
+    ol.append(item);
+  }
+  bereich.append(ol);
+  return bereich;
+}
+
+// Rechts die Regie: die Geschichte, dann die eigene Identität und die übrigen nach Namen,
+// Aktualisieren, der Selbsttest (D494 Beschluss 3 und 5, D492 Beschluss 5, D484 Beschluss 3).
+function regieBereich(namen, simuliert, record, schritte) {
   const regie = element("aside", "regie");
+  const ich = record ? hex(record.pub) : null;
   regie.append(
     element("div", "marke", "Regie"),
     zeile("Die Seite links zeigt, was die gewählte Person sieht, und handelt als sie."),
+    geschichteBereich(schritte),
+    element("div", "marke", "Personen"),
+  );
+  const geordnet = regieReihenfolge(
+    [
+      ...(ich ? [{ I: ich, name: namen.get(ich) ?? null }] : []),
+      ...simuliert.filter((eintrag) => eintrag.I !== ich),
+    ],
+    ich,
   );
   const personen = [
-    {
-      wert: "geraet",
-      text: record ? `Ich · ${nameVon(namen, hex(record.pub))}` : "Ich",
-    },
-    ...simuliert.map((eintrag) => ({ wert: eintrag.I, text: eintrag.name ?? kurz(eintrag.I) })),
+    ...(ich ? [] : [{ wert: "geraet", text: "Ich" }]),
+    ...geordnet.map((eintrag) =>
+      eintrag.I === ich
+        ? { wert: "geraet", text: `Ich · ${nameVon(namen, ich)}` }
+        : { wert: eintrag.I, text: eintrag.name ?? kurz(eintrag.I) },
+    ),
   ];
   const auswahl = element("div", "personen");
   for (const person of personen) {
-    const button = knopf(person.text, () => {
-      handelnAls = person.wert;
-      void zeichnen();
-    }, "person");
+    const button = knopf(person.text, () => wechseln(person.wert), "person");
     button.setAttribute("aria-pressed", String(person.wert === handelnAls));
     auswahl.append(button);
   }
@@ -614,14 +657,51 @@ function stimmenZeile(antrag, namen) {
   return `Bisher Ja: ${ja}. Nein: ${nein}.`;
 }
 
-// „Jetzt zu tun“: die Aufgaben der Person in Sätzen, jede mit ihrem Knopf (D492 Beschluss 5,
-// D484 Beschluss 1).
+// Fehlt der eigenen Identität ein Name, ist das Eintragen die erste Aufgabe (D494 Beschluss 1).
+function namenAufgabe(identitaet) {
+  const block = element("div", "aufgabe");
+  const field = element("input");
+  field.type = "text";
+  field.maxLength = 64;
+  const label = element("label", null, "Dein Name ");
+  label.append(field);
+  block.append(
+    element("div", "satz", "Trag deinen Namen ein."),
+    knopfReihe(
+      label,
+      knopf(
+        "Namen eintragen",
+        async () => {
+          const gewaehlt = field.value.trim();
+          if (!gewaehlt) {
+            meldung("Ein Name fehlt.");
+          } else {
+            try {
+              await senden("/names", { I: identitaet, name: gewaehlt });
+              meldung(`Dein Name ${gewaehlt} ist eingetragen.`, true);
+            } catch (error) {
+              meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+            }
+          }
+          await zeichnen();
+        },
+        "haupt",
+      ),
+    ),
+  );
+  return block;
+}
+
+// „Jetzt zu tun“: die Aufgaben der Person in Sätzen, jede mit ihrem Knopf (D494 Beschluss 1,
+// D492 Beschluss 5, D484 Beschluss 1).
 function jetztBereich(tasks, kontext, handeln) {
   const bereich = element("section", "karte jetzt");
   bereich.id = "jetzt";
   bereich.append(marke("Jetzt zu tun"));
   const { namen, antraege, obligationen } = kontext;
-  if (tasks.length === 0) {
+  const ohneName = handelnAls === "geraet" && !namen.get(kontext.identitaet);
+  if (ohneName) bereich.append(namenAufgabe(kontext.identitaet));
+  if (tasks.length === 0 && !ohneName) {
     bereich.append(zeile("Nichts. Sobald etwas ansteht, steht es hier."));
     return bereich;
   }
@@ -745,7 +825,7 @@ function vereinGerade(view, kontext) {
     return bereich;
   }
   const { namen, antraege, obligationen } = kontext;
-  const saetze = [`Es gilt Epoche ${view.state.epoch.index}.`];
+  const saetze = [fassungSatz(view.state.epoch.index)];
   const mitglieder = view.verein.membership;
   saetze.push(`Auf der Mitgliederliste: ${aufzaehlung(mitglieder.map(([s]) => nameVon(namen, s)))}.`);
   const bestaetigt = mitglieder.filter(([, ergebnis]) => ergebnis.state === "MEMBER").length;
@@ -784,8 +864,31 @@ function eingeklappt(titel, offen, satz) {
   return details;
 }
 
-function auswahlNamen(namenListe, ausser = new Set()) {
+// Jede Auswahl einer Person beginnt leer mit „Person wählen …“ (D494 Beschluss 2).
+function personAuswahl() {
   const auswahl = element("select");
+  const leer = element("option", null, "Person wählen …");
+  leer.value = "";
+  auswahl.append(leer);
+  return auswahl;
+}
+
+// Ein Knopf, der erst handelt, wenn in jeder seiner Auswahlen eine Person gewählt ist
+// (D494 Beschluss 2).
+function knopfMitAuswahl(text, auswahlen, tun) {
+  const button = knopf(text, () => {
+    if (auswahlen.every((auswahl) => auswahl.value !== "")) tun();
+  });
+  const pruefen = () => {
+    button.disabled = !auswahlen.every((auswahl) => auswahl.value !== "");
+  };
+  for (const auswahl of auswahlen) auswahl.addEventListener("change", pruefen);
+  pruefen();
+  return button;
+}
+
+function auswahlNamen(namenListe, ausser = new Set()) {
+  const auswahl = personAuswahl();
   for (const eintrag of namenListe) {
     if (ausser.has(eintrag.I)) continue;
     const option = element("option", null, eintrag.name ?? kurz(eintrag.I));
@@ -795,11 +898,16 @@ function auswahlNamen(namenListe, ausser = new Set()) {
   return auswahl;
 }
 
-function neuerAntragFormular(gov, view, namenListe, namen, handeln) {
+// Die Formulare für Anträge nur für Handelnde auf der Liste (D494 Beschluss 2, 04 §2.1).
+function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) {
   const form = element("div", "formular");
   const teilnehmer = new Set(view?.state?.constitution_obj?.participants ?? []);
+  if (!teilnehmer.has(identitaet)) {
+    form.append(zeile("Anträge stellen kann nur, wer auf der Mitgliederliste steht."));
+    return form;
+  }
   const aufnehmen = auswahlNamen(namenListe, teilnehmer);
-  const ausschliessen = element("select");
+  const ausschliessen = personAuswahl();
   for (const schluessel of teilnehmer) {
     const option = element("option", null, nameVon(namen, schluessel));
     option.value = schluessel;
@@ -813,13 +921,13 @@ function neuerAntragFormular(gov, view, namenListe, namen, handeln) {
     zeile("Neuer Antrag:"),
     knopfReihe(
       aufnehmen,
-      knopf("Aufnehmen beantragen …", () =>
+      knopfMitAuswahl("Aufnehmen beantragen …", [aufnehmen], () =>
         handeln("propose", { scope: gov, change: { add: aufnehmen.value } }),
       ),
     ),
     knopfReihe(
       ausschliessen,
-      knopf("Ausschluss beantragen …", () =>
+      knopfMitAuswahl("Ausschluss beantragen …", [ausschliessen], () =>
         handeln("propose", { scope: gov, change: { remove: ausschliessen.value } }),
       ),
     ),
@@ -837,7 +945,7 @@ function neuerAntragFormular(gov, view, namenListe, namen, handeln) {
   return form;
 }
 
-function antraegeAbschnitt(antraege, gov, view, namenListe, namen, handeln) {
+function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, handeln) {
   const offen = antraege.some((antrag) => antrag.state === "PENDING");
   const abschnitt = eingeklappt(
     "Anträge",
@@ -880,7 +988,7 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, handeln) {
     }
     abschnitt.append(karte);
   }
-  abschnitt.append(neuerAntragFormular(gov, view, namenListe, namen, handeln));
+  abschnitt.append(neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln));
   return abschnitt;
 }
 
@@ -895,19 +1003,16 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
     abschnitt.append(zeile("Kein Vereinsleben."));
     return abschnitt;
   }
+  // Ein Satz je Person statt der Tabelle (D494 Beschluss 5).
   const bfs = view.vereinsleben.derivation.bfs;
-  const tabelle = element("table");
-  const kopfzeile = element("tr");
-  for (const text of ["Name", "Abstand", "Gewicht"]) kopfzeile.append(element("th", null, text));
-  tabelle.append(kopfzeile);
-  for (const schluessel of Object.keys(bfs.distance).sort()) {
-    const reihe = element("tr");
-    for (const wert of [nameVon(namen, schluessel), bfs.distance[schluessel], bfs.node_capacity[schluessel]]) {
-      reihe.append(element("td", null, String(wert)));
-    }
-    tabelle.append(reihe);
-  }
-  abschnitt.append(tabelle);
+  const schluessel = new Set([...namenListe.map((eintrag) => eintrag.I), ...Object.keys(bfs.distance)]);
+  const personen = regieReihenfolge(
+    [...schluessel].map((I) => ({ I, name: namen.get(I) ?? null })),
+    null,
+  );
+  abschnitt.append(
+    liste(personen.map((person) => vertrauenSatz(nameVon(namen, person.I), bfs.distance[person.I]))),
+  );
 
   const person = auswahlNamen(namenListe);
   const gewicht = element("input");
@@ -927,7 +1032,7 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
       person,
       labelGewicht,
       labelTage,
-      knopf("Bürgen …", () =>
+      knopfMitAuswahl("Bürgen …", [person], () =>
         handeln("vouch", {
           scope: res,
           subject: person.value,
@@ -970,7 +1075,7 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
     knopfReihe(
       glaeubiger,
       label,
-      knopf("Beitrag zusagen …", () =>
+      knopfMitAuswahl("Beitrag zusagen …", [glaeubiger], () =>
         handeln("obligation", {
           scope: res,
           creditor: glaeubiger.value,
@@ -990,14 +1095,12 @@ function kasseAbschnitt(view, obligationen, namenListe, namen, identitaet, hande
     "Für einen Empfänger: wer zugesagt hat, wer quittiert ist, wer fehlt.",
   );
   const auswahl = auswahlNamen(namenListe);
-  for (const option of auswahl.options) {
-    if (namen.get(option.value) === "KASSE") option.selected = true;
-  }
   abschnitt.append(auswahl);
   const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
   const ul = element("ul");
   const zeichneListe = () => {
     ul.replaceChildren();
+    if (auswahl.value === "") return;
     for (const eintrag of kassenZeilen(teilnehmer, obligationen, auswahl.value)) {
       const item = element("li", null, `${nameVon(namen, eintrag.teilnehmer)}: ${eintrag.zustand}`);
       const offene = eintrag.obligationen.find((schuld) => schuld.state === "OPEN");
@@ -1050,15 +1153,7 @@ async function zeichnenInhalt() {
   const namen = new Map(namenListe.map((eintrag) => [eintrag.I, eintrag.name]));
   const simuliert = namenListe.filter((eintrag) => eintrag.simulated);
   const record = await lesen();
-
-  const links = element("div", "links");
-  const regie = regieBereich(namen, simuliert, record);
-
-  if (handelnAls === "geraet" && !record) {
-    links.append(kopfBereich("Du hast noch keinen Schlüssel"), meldungKnoten(), anlegenFormular());
-    seite.replaceChildren(links, regie);
-    return;
-  }
+  const ich = record ? hex(record.pub) : null;
 
   const scopes = await holen("/scopes");
   const sichten = new Map();
@@ -1067,13 +1162,34 @@ async function zeichnenInhalt() {
   const res = findeScope(sichten, "vereinsleben");
   const govView = gov === null ? null : sichten.get(gov);
   const resView = res === null ? null : sichten.get(res);
-
-  const jetzt = await holen("/now");
-  const identitaet = handelnAls === "geraet" ? hex(record.pub) : handelnAls;
-  const tasks = await holen(`/tasks/${identitaet}`);
   const antraege = gov === null ? [] : await holen(`/proposals/${gov}`);
   const obligationen = res === null ? [] : await holen(`/obligations/${res}`);
   const forks = await holen("/forks");
+
+  const eigeneMitgliedschaft = govView?.verein?.membership.find(([subject]) => subject === ich);
+  const schritte = geschichte({
+    ich,
+    namen,
+    kanten: resView?.vereinsleben?.derivation.bfs.edges ?? [],
+    antraege,
+    liste: govView?.state?.constitution_obj?.participants ?? [],
+    satzung: govView?.state?.constitution_obj ?? null,
+    mitgliedschaft: eigeneMitgliedschaft ? eigeneMitgliedschaft[1].state : null,
+    gabelungen: forks.map((gruppe) => gruppe.I),
+  });
+
+  const links = element("div", "links");
+  const regie = regieBereich(namen, simuliert, record, schritte);
+
+  if (handelnAls === "geraet" && !record) {
+    links.append(kopfBereich("Du hast noch keinen Schlüssel"), meldungKnoten(), anlegenFormular());
+    seite.replaceChildren(links, regie);
+    return;
+  }
+
+  const jetzt = await holen("/now");
+  const identitaet = handelnAls === "geraet" ? ich : handelnAls;
+  const tasks = await holen(`/tasks/${identitaet}`);
 
   const kontext = { namen, sichten, antraege, obligationen, identitaet, felder: null };
   const handeln = handelnFabrik(record, kontext);
@@ -1082,14 +1198,16 @@ async function zeichnenInhalt() {
   frage.id = "frage";
   frage.hidden = true;
 
+  // Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen ist (D494 Beschluss 1).
+  const titel = namen.get(identitaet) ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
   links.append(
-    kopfBereich(`Du bist ${nameVon(namen, identitaet)}`, mitgliedschaftVon(govView, identitaet)),
+    kopfBereich(titel, mitgliedschaftVon(govView, identitaet)),
     meldungKnoten(),
     frage,
     jetztBereich(tasks, kontext, handeln),
     ...(await widerspruchKarten(forks, kontext)),
     vereinGerade(govView, kontext),
-    antraegeAbschnitt(antraege, gov, govView, namenListe, namen, handeln),
+    antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln),
     vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln),
     beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln),
     kasseAbschnitt(govView, obligationen, namenListe, namen, identitaet, handeln),

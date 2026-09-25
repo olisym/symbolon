@@ -21072,3 +21072,47 @@ Anker entfernt.“, und für Personen ohne Abstand „<Name> ist nicht verbürgt
 Stimme ohne lesbare Wahl, und „eine Person ohne Namen“ mit gekürztem Schlüssel.
 
 **Geändert.** `07-decisions.md`.
+
+### D495 — Abnahme `p11-fuehrung`; Registereinträge kommen als Anhang
+
+**Geprüft.** Commit `4a85279` auf `p11-fuehrung`, Basis `ff0f1a3`, aus dem Spiegel: `anzeige.js`,
+`style.css` und `tests/node/test_api.py` ganz, von `app.js` Name, Auswahl, Formulare und Regie.
+1130 Tests grün, in Node 115 von 115 Fällen. Die Regel für `[hidden]` steht mit `!important`,
+und der Test sichert zu, dass keine andere Regel `display` ebenso erzwingt; damit ist der Fehler
+aus D494 Befund 4 behoben. Eine eigene Probe blieb grün: hakt `geschichte` „Du bestätigst die
+Satzung“ bei jedem bekannten Zustand ab statt nur bei `MEMBER`, bemerkt es der Selbsttest nicht,
+weil sein offener Fall keinen Zustand führt. Der Code folgt D494 Beschluss 3.
+
+**Die zwei Rückfragen.** *Vorschlag im Formular „Bürgen“:* 1 Punkt von CHRIS trägt keine Kante,
+weil `⌊1·50/100⌋ = 0` (D44), und die Geschichte bleibt dann offen, obwohl unterschrieben wurde.
+Das Formular schlägt 50 vor wie V1 in `szenario-verein §3`; ob eine Bürgschaft Vertrauen
+weitergibt, sagt künftig die Folgezeile, wenn die Vorhersage es rechnen kann. *Satz bei einem
+Einbringenden ohne Namen:* der Wortlaut des Berichts gilt: „Du stimmst Ja zum Antrag „<Titel>“
+einer Person ohne Namen (<gekürzt>).“
+
+**Befund 1 — Datumsangaben aus der Weltuhr.** Der Bericht zeigt „bis 1. Januar 1971“. Die Weltuhr
+beginnt bei 1000 Sekunden (D479 Beschluss 1), und ein Datum daraus liegt im Jahr 1970. Dasselbe
+gilt für „unterschrieben am“ in den Widersprüchen. Ein absolutes Datum ist in der Demonstration
+irreführend; die Seite nennt Dauer und Abstand relativ zur Uhr des S-Node: „für 365 Tage“ aus
+`t_exp` minus `t` des dekodierten Kerns, „vor 3 Minuten“ aus `GET /now`. Das kommt mit Olis
+Befunden in den nächsten Auftrag, zusammen mit dem Vorschlag von 50 Punkten und dem fehlenden Fall
+aus der Prüfung.
+
+**Beschluss 1 — gemergt.**
+
+**Befund 2 — das Register wird jedes Mal ganz geliefert.** `07-decisions.md` hat 1,4 MB. Jeder
+neue Eintrag kommt bisher als ganze Datei zum Herunterladen. Durch den Chat geht die Datei dabei
+nicht; der Supervisor schreibt sie im eigenen Klon und nennt nur ihren Hash. Die Kosten liegen beim
+Herunterladen und beim Vergleich einer großen Datei, nicht bei den Tokens.
+
+**Beschluss 2 — ein Eintrag kommt als Anhang.** Der Supervisor liefert neue Einträge als eigene
+Datei `/tmp/dNNN.md`. Der Lieferblock prüft den Hash des Anhangs und den der Registerdatei vorher,
+hängt an und prüft den Hash der Registerdatei nachher. Das ist so streng wie die ganze Datei, weil
+der Hash nachher die ganze Datei festlegt. Ganz geliefert wird das Register nur noch, wenn ein
+älterer Eintrag geändert wird. *Verworfen:* das Register in eine abgeschlossene und eine laufende
+Datei zu teilen. `tools/check_specs.py`, die Verweise der Form `D123` und jede Suche im Register
+setzen eine Datei voraus; der Gewinn, eine kleinere Lieferung, ist mit dem Anhang ohne Umbau zu
+haben.
+
+**Geändert.** `symbolon/node/static/`, `tests/node/test_api.py` (über den Merge);
+`07-decisions.md`.

@@ -1,0 +1,94 @@
+/* Stil der Seite (D486 Beschluss 2, keine externe Datei, kein Rahmenwerk). */
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 48rem;
+  margin: 1rem auto;
+  padding: 0 1rem;
+  color: #1a1a1a;
+}
+
+h1, h2 {
+  margin-top: 1.5rem;
+}
+
+section {
+  border-top: 1px solid #ccc;
+  padding-top: 0.5rem;
+  margin-top: 1rem;
+}
+
+p {
+  margin: 0.3rem 0;
+}
+
+button {
+  margin: 0.15rem 0.3rem 0.15rem 0;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+}
+
+button:disabled, select:disabled, input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+select, input {
+  margin: 0.15rem 0.3rem 0.15rem 0;
+  padding: 0.2rem;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.2rem 0.5rem;
+  text-align: left;
+}
+
+ul {
+  padding-left: 1.2rem;
+}
+
+#dialog {
+  border: 2px solid #333;
+  padding: 0.75rem;
+}
+
+#dialog[hidden] {
+  display: none;
+}
+
+#meldung {
+  font-weight: bold;
+}
+
+#meldung:empty {
+  display: none;
+}
+
+/* Frage und Aufgaben nebeneinander ab einer Breite, in der beides lesbar bleibt, sonst
+   untereinander (D487 Beschluss 1). */
+.ansteht-spalten {
+  display: block;
+}
+
+.ansteht-spalten > * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .ansteht-spalten {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .ansteht-spalten > * {
+    margin-top: 0;
+  }
+}

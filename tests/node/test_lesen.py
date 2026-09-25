@@ -1,4 +1,7 @@
-"""Aufgaben und Anträge für die Bildschirme (D484 Beschluss 1 und 2, D482 Befund 2)."""
+"""Aufgaben, Anträge und Lesepfade für die Bildschirme.
+
+D484 Beschluss 1 und 2, D482 Befund 2, D486 Beschluss 1, D487 Beschluss 3.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +11,8 @@ import urllib.error
 import urllib.request
 from http.server import HTTPServer
 
+from symbolon import cbor_canon
+from symbolon.atom import claim_id
 from symbolon.node.api import serve
 from tools.verein import (
     BEITRAG,
@@ -284,5 +289,173 @@ def test_scope_ohne_verein(tmp_path) -> None:
     server = _start(path)
     try:
         assert _get(server, f"/proposals/{world.ex.N_res.hex()}") == []
+    finally:
+        _stop(server)
+
+
+def test_now(tmp_path) -> None:
+    """/now gibt die eingespeiste Uhr (D486 Beschluss 1, Abnahmekriterium 1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    server = _start(path)
+    try:
+        assert _get(server, "/now") == NOW
+    finally:
+        _stop(server)
+
+
+def test_obligationen(tmp_path) -> None:
+    """Doras Obligation an KASSE: OPEN, nach der Quittung SETTLED; N_gov leer (D486 Beschluss 1,
+
+    szenario-verein §6).
+    """
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path)
+    try:
+        assert _get(server, f"/obligations/{world.ex.N_gov.hex()}") == []
+
+        answered = _intent(
+            server,
+            world.dora.pub,
+            "obligation",
+            scope=world.ex.N_res.hex(),
+            creditor=world.kasse.pub.hex(),
+            amount=2400,
+            unit="EUR-Cent",
+        )
+        cid = answered["claim_id"]
+
+        rows = _get(server, f"/obligations/{world.ex.N_res.hex()}")
+        assert len(rows) == 1
+        row = rows[0]
+        assert row["claim_id"] == cid
+        assert row["debtor"] == world.dora.pub.hex()
+        assert row["creditor"] == world.kasse.pub.hex()
+        assert row["amount"] == 2400
+        assert row["unit"] == "EUR-Cent"
+        assert row["state"] == "OPEN"
+
+        _intent(server, world.kasse.pub, "receipt", obligation=cid)
+        row = _get(server, f"/obligations/{world.ex.N_res.hex()}")[0]
+        assert row["state"] == "SETTLED"
+
+        status, _body = _call(server, "GET", f"/obligations/{'00' * 32}")
+        assert status == 404
+    finally:
+        _stop(server)
+
+
+def test_obligationen_fremder_inhalt(tmp_path) -> None:
+    """v kein Map, Einheit kein UTF-8: beide erscheinen, amount und unit null, 200 (D486 Beschluss 1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path)
+    try:
+        predicate = f"nuc:{world.ex.N_res.hex()}/obligation@1"
+        status, body = _call(
+            server,
+            "POST",
+            "/sim/sign",
+            {
+                "I": world.dora.pub.hex(),
+                "p": predicate,
+                "J": [1, world.kasse.pub.hex()],
+                "v": cbor_canon.encode(42).hex(),
+                "N": world.ex.N_res.hex(),
+            },
+        )
+        assert status == 200, body
+        non_map_cid = json.loads(body)["claim_id"]
+
+        status, body = _call(
+            server,
+            "POST",
+            "/sim/sign",
+            {
+                "I": world.dora.pub.hex(),
+                "p": predicate,
+                "J": [1, world.kasse.pub.hex()],
+                "v": cbor_canon.encode({0: 500, 1: b"\xff\xfe"}).hex(),
+                "N": world.ex.N_res.hex(),
+            },
+        )
+        assert status == 200, body
+        bad_unit_cid = json.loads(body)["claim_id"]
+
+        rows = {row["claim_id"]: row for row in _get(server, f"/obligations/{world.ex.N_res.hex()}")}
+        for cid in (non_map_cid, bad_unit_cid):
+            assert rows[cid]["amount"] is None
+            assert rows[cid]["unit"] is None
+    finally:
+        _stop(server)
+
+
+def test_claims(tmp_path) -> None:
+    """p, t, I und der dekodierte Wert; kein kanonisches v ist null; unbekannt ist 404 (D486 Beschluss 1)."""
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path)
+    try:
+        vote_id = claim_id(world.base["vote_anna"]).hex()
+        row = _get(server, f"/claims/{vote_id}")
+        assert row["p"] == f"nuc:{world.ex.N_gov.hex()}/vote@1"
+        assert row["t"] == world.base["vote_anna"].t
+        assert row["I"] == world.anna.pub.hex()
+        assert row["value"] == {"0": 1}
+
+        predicate = f"nuc:{world.ex.N_res.hex()}/obligation@1"
+        status, body = _call(
+            server,
+            "POST",
+            "/sim/sign",
+            {
+                "I": world.dora.pub.hex(),
+                "p": predicate,
+                "J": [1, world.kasse.pub.hex()],
+                "v": bytes.fromhex("1801").hex(),
+                "N": world.ex.N_res.hex(),
+            },
+        )
+        assert status == 200, body
+        non_canon_cid = json.loads(body)["claim_id"]
+        assert _get(server, f"/claims/{non_canon_cid}")["value"] is None
+
+        status, _body = _call(server, "GET", f"/claims/{'11' * 32}")
+        assert status == 404
+    finally:
+        _stop(server)
+
+
+def test_ambiguous(tmp_path) -> None:
+    """Bruno stimmt Nein und dann Ja: ambiguous, nicht yes oder no; Anna bleibt draußen
+
+    (D487 Beschluss 3, szenario-verein §5.1).
+    """
+    path = tmp_path / "bestand.sqlite"
+    anlegen(path)
+    world = build()
+    server = _start(path)
+    try:
+        _intent(
+            server,
+            world.anna.pub,
+            "propose",
+            scope=world.ex.N_gov.hex(),
+            change={"set": {"field": "beitrag", "text": BEITRAG}},
+        )
+        _intent(server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="no")
+        _intent(server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes")
+        _intent(server, world.anna.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes")
+
+        antrag = _get(server, f"/proposals/{world.ex.N_gov.hex()}")[0]
+        assert antrag["ambiguous"] == [world.bruno.pub.hex()]
+        assert world.bruno.pub.hex() not in antrag["yes"]
+        assert world.bruno.pub.hex() not in antrag["no"]
+        assert world.anna.pub.hex() not in antrag["ambiguous"]
+        assert antrag["yes"] == [world.anna.pub.hex()]
     finally:
         _stop(server)

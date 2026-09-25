@@ -954,6 +954,8 @@ def _content_type(name: str) -> str:
         return "text/javascript; charset=utf-8"
     if name.endswith(".json"):
         return "application/json"
+    if name.endswith(".css"):
+        return "text/css; charset=utf-8"
     raise AssertionError(name)
 
 

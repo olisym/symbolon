@@ -20,7 +20,14 @@ from symbolon.governance.objects import Proposal
 from symbolon.governance.tally import TallyState
 from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
-from symbolon.node.view import TaskView, fork_evidence, proposals_view, scope_view, tasks_view
+from symbolon.node.view import (
+    TaskView,
+    fork_evidence,
+    obligations_view,
+    proposals_view,
+    scope_view,
+    tasks_view,
+)
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_nuc_name
 from symbolon.trust.groups import build_groups
@@ -417,6 +424,7 @@ _MEDIA = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json",
+    ".css": "text/css; charset=utf-8",
 }
 
 
@@ -503,6 +511,22 @@ def _handler(
             if not post and path.startswith("/tasks/"):
                 identity = _hex(path[len("/tasks/") :], 32)
                 self._send(200, [_task_json(t) for t in tasks_view(store, identity, clock())])
+                return
+            if not post and path == "/now":
+                self._send(200, clock())
+                return
+            if not post and path.startswith("/obligations/"):
+                scope = _hex(path[len("/obligations/") :], 32)
+                if scope not in store.all_genesis():
+                    raise _Missing()
+                self._send(200, obligations_view(store, scope, clock()))
+                return
+            if not post and path.startswith("/claims/"):
+                cid = _hex(path[len("/claims/") :], 32)
+                claim = store.get(cid)
+                if claim is None:
+                    raise _Missing()
+                self._send(200, _claim_json(claim))
                 return
             if not post and path == "/names":
                 self._send(200, _names(store))
@@ -647,6 +671,26 @@ _TASK_DETAIL_FIELD = {
 def _task_json(task: TaskView) -> dict[str, object]:
     body: dict[str, object] = {"scope": task.scope, "art": task.art}
     body[_TASK_DETAIL_FIELD[task.art]] = task.detail
+    return body
+
+
+def _decoded_v(v: bytes | None) -> object | None:
+    """``v`` dekodiert, wo es kanonisches CBOR ist, sonst ``None`` (D486 Beschluss 1, 01 §2)."""
+    if v is None:
+        return None
+    try:
+        canonical = cbor_canon.is_canonical(v)
+    except Exception:
+        return None
+    if not canonical:
+        return None
+    return cbor_canon.decode(v)
+
+
+def _claim_json(claim: Claim) -> dict[str, object]:
+    """Felder eines Claims plus der dekodierte Wert (D486 Beschluss 1)."""
+    body = json_value(claim)
+    body["value"] = json_value(_decoded_v(claim.v))
     return body
 
 

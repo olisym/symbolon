@@ -1,5 +1,6 @@
-// Selbsttest: die Vektoren und die Entscheidungen des Ablaufs
-// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, 01 §4).
+// Selbsttest: die Vektoren, die Entscheidungen des Ablaufs und die Anzeige
+// (D481 Beschluss 1 und 4, D482 Beschluss 1 bis 4, D486 Beschluss 5, D487 Beschluss 2 und 4,
+// 01 §4).
 
 import {
   artInWorten,
@@ -12,6 +13,17 @@ import {
   signCore,
   verbuchen,
 } from "./geraet.js";
+import {
+  abweisungInWorten,
+  aenderungen,
+  betrag,
+  hinweisSatzungGeaendert,
+  kassenZeilen,
+  mitgliedschaftInWorten,
+  standZeile,
+  warnungInWorten,
+  wertInWorten,
+} from "./anzeige.js";
 
 function bytesFromHex(text) {
   const out = new Uint8Array(text.length / 2);
@@ -198,9 +210,137 @@ async function funktionsFaelle(vectors, subtle) {
   return results;
 }
 
+// Die Sätze aus szenario-verein.md für die Anzeige, mindestens einer je genanntem Satz
+// (D486 Beschluss 5).
+function anzeigeFaelle() {
+  const results = [];
+  const pruefe = (satz, ok, detail) => results.push({ ok, expect: satz, detail });
+
+  pruefe(
+    "standZeile: 1 Ja, 1 Nein, 2 von 3 nötig (szenario-verein §3)",
+    standZeile({ yes: ["a"], no: ["b"], needed: 2, n: 3 }) === "1 Ja, 1 Nein, 2 von 3 nötig",
+    standZeile({ yes: ["a"], no: ["b"], needed: 2, n: 3 }),
+  );
+  pruefe(
+    "standZeile: 2 Ja, 0 Nein, 3 von 4 nötig (szenario-verein §4)",
+    standZeile({ yes: ["a", "b"], no: [], needed: 3, n: 4 }) === "2 Ja, 0 Nein, 3 von 4 nötig",
+    standZeile({ yes: ["a", "b"], no: [], needed: 3, n: 4 }),
+  );
+  pruefe(
+    "betrag: 2400 EUR-Cent als 24,00 € (szenario-verein §6)",
+    betrag(2400, "EUR-Cent") === "24,00 €",
+    betrag(2400, "EUR-Cent"),
+  );
+
+  const kasse = "kk";
+  const fremd = "xx";
+  const zeilen = kassenZeilen(
+    ["unterschrieben", "quittiert", "fehlt"],
+    [
+      { debtor: "unterschrieben", creditor: kasse, state: "OPEN" },
+      { debtor: "quittiert", creditor: kasse, state: "SETTLED" },
+      { debtor: "fehlt", creditor: fremd, state: "OPEN" },
+    ],
+    kasse,
+  );
+  const zustand = new Map(zeilen.map((zeile) => [zeile.teilnehmer, zeile.zustand]));
+  pruefe(
+    "kassenZeilen: unterschrieben (szenario-verein §6)",
+    zustand.get("unterschrieben") === "unterschrieben",
+    zustand.get("unterschrieben"),
+  );
+  pruefe(
+    "kassenZeilen: quittiert (szenario-verein §6)",
+    zustand.get("quittiert") === "quittiert",
+    zustand.get("quittiert"),
+  );
+  pruefe(
+    "kassenZeilen: eine Obligation an einen anderen Gläubiger zählt nicht, fehlt (szenario-verein §6)",
+    zustand.get("fehlt") === "fehlt",
+    zustand.get("fehlt"),
+  );
+
+  pruefe(
+    "warnungInWorten: ein unbekannter Name wörtlich",
+    warnungInWorten("UNBEKANNT") === "UNBEKANNT",
+    warnungInWorten("UNBEKANNT"),
+  );
+
+  pruefe(
+    "mitgliedschaftInWorten: GRANT_ONLY (D487 Beschluss 2)",
+    mitgliedschaftInWorten("GRANT_ONLY") ===
+      "steht auf der Liste, hat die geltende Satzung noch nicht bestätigt",
+    mitgliedschaftInWorten("GRANT_ONLY"),
+  );
+  pruefe(
+    "mitgliedschaftInWorten: APPLICANT (D487 Beschluss 2)",
+    mitgliedschaftInWorten("APPLICANT") === "hat bestätigt, steht nicht auf der Liste",
+    mitgliedschaftInWorten("APPLICANT"),
+  );
+  pruefe(
+    "abweisungInWorten: ALREADY_PARTICIPANT (D487 Beschluss 2)",
+    abweisungInWorten("ALREADY_PARTICIPANT") === "Diese Person steht schon auf der Mitgliederliste.",
+    abweisungInWorten("ALREADY_PARTICIPANT"),
+  );
+  pruefe(
+    "abweisungInWorten: NOT_PARTICIPANT (D487 Beschluss 2)",
+    abweisungInWorten("NOT_PARTICIPANT") === "Diese Person steht nicht auf der Mitgliederliste.",
+    abweisungInWorten("NOT_PARTICIPANT"),
+  );
+  pruefe(
+    "hinweisSatzungGeaendert: mindestens ein GRANT_ONLY (D487 Beschluss 2, szenario-verein §4)",
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "GRANT_ONLY" }],
+    ]) !== null,
+    hinweisSatzungGeaendert([
+      ["a", { state: "MEMBER" }],
+      ["b", { state: "GRANT_ONLY" }],
+    ]),
+  );
+  pruefe(
+    "hinweisSatzungGeaendert: kein GRANT_ONLY, kein Hinweis",
+    hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]) === null,
+    hinweisSatzungGeaendert([["a", { state: "MEMBER" }]]),
+  );
+
+  pruefe(
+    "wertInWorten: Wahl 1 einer Stimme als Ja (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/vote@1", { "0": 1 }) === "Ja",
+    wertInWorten("nuc:aabb/vote@1", { "0": 1 }),
+  );
+  pruefe(
+    "wertInWorten: Wahl 0 einer Stimme als Nein (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/vote@1", { "0": 0 }) === "Nein",
+    wertInWorten("nuc:aabb/vote@1", { "0": 0 }),
+  );
+  pruefe(
+    "wertInWorten: jeder andere Wert als JSON (D487 Beschluss 4)",
+    wertInWorten("nuc:aabb/ratify@1", { "0": ["x"] }) === '{"0":["x"]}',
+    wertInWorten("nuc:aabb/ratify@1", { "0": ["x"] }),
+  );
+
+  pruefe(
+    "aenderungen: ein Wert, der kein Text ist, als JSON (D487 Beschluss 4)",
+    JSON.stringify(
+      aenderungen(
+        { added: [], removed: [], fields: [{ field: "thresholds", old: null, new: { ordinary: [1, 2] } }] },
+        new Map(),
+      ),
+    ) === JSON.stringify(['thresholds: – → {"ordinary":[1,2]}']),
+    aenderungen(
+      { added: [], removed: [], fields: [{ field: "thresholds", old: null, new: { ordinary: [1, 2] } }] },
+      new Map(),
+    ),
+  );
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
+  results.push(...anzeigeFaelle());
   return results;
 }
 

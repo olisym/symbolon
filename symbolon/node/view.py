@@ -14,6 +14,7 @@ from symbolon.policy import constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
 from symbolon.profiles.credit import SettlementResult, SettlementState, settlement
 from symbolon.profiles.membership import MembershipResult, MembershipState, membership
+from symbolon.profiles.payload import read_v
 from symbolon.resolve import NucleusState, resolve_state
 from symbolon.trust.derive import Derivation, derive
 from symbolon.trust.params import resolve_trust_params
@@ -206,13 +207,17 @@ class ProposalChanges:
 
 @dataclass(frozen=True, slots=True)
 class ProposalView:
-    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt (D482 Befund 2, D484 Beschluss 2)."""
+    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt
+
+    (D482 Befund 2, D484 Beschluss 2, D487 Beschluss 3).
+    """
 
     proposal: bytes
     proposers: tuple[bytes, ...]
     state: TallyState
     yes: tuple[bytes, ...]
     no: tuple[bytes, ...]
+    ambiguous: tuple[bytes, ...]
     n: int | None
     needed: int | None
     changes: ProposalChanges
@@ -279,7 +284,7 @@ def _changes(current: dict, target: dict | None) -> ProposalChanges:
 
 
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
-    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2)."""
+    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3)."""
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
     view = scope_view(store, scope, now)
@@ -297,6 +302,16 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
             continue
         yes_authors = tuple(sorted({store.get(cid).I for cid in tally.yes}))
         no_authors = tuple(sorted({store.get(cid).I for cid in tally.no}))
+        ambiguous_authors = tuple(
+            sorted(
+                {
+                    store.get(finding.subject).I
+                    for finding in tally.findings
+                    if finding.kind is GovernanceFinding.AMBIGUOUS_VOTE
+                    and store.get(finding.subject) is not None
+                }
+            )
+        )
         proposal_obj = proposals.get(digest)
         target = constitutions.get(proposal_obj.constitution_hash) if proposal_obj else None
         result.append(
@@ -306,6 +321,7 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 state=tally.state,
                 yes=yes_authors,
                 no=no_authors,
+                ambiguous=ambiguous_authors,
                 n=tally.n,
                 needed=_needed(tally.threshold, tally.n),
                 changes=_changes(current, target),
@@ -362,6 +378,76 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                 if claim.J[0] == 1 and claim.J[1] == I:
                     tasks.append(TaskView(scope=scope, art="RECEIPT", detail=cid))
     return tuple(sorted(tasks, key=lambda item: (item.scope, item.art, item.detail)))
+
+
+@dataclass(frozen=True, slots=True)
+class ObligationView:
+    """Eine Zeile der Kassenliste: Schuldner, Gläubiger, Betrag, Zustand (D486 Beschluss 1)."""
+
+    claim_id: bytes
+    debtor: bytes
+    creditor: bytes | None
+    amount: int | None
+    unit: str | None
+    state: SettlementState
+
+
+def _is_amount(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _obligation_amount_unit(v: bytes | None) -> tuple[int | None, str | None]:
+    """Betrag und Einheit aus ``v``, oder beide ``null`` bei fremdem Inhalt (D486 Beschluss 1, 03 §3.3.1).
+
+    ``v`` bleibt Anzeige: das Protokoll liest es nie (01 §2). Ist ``v`` nicht die Form aus
+    03 §1.3 oder ist die Einheit kein UTF-8, erscheint die Obligation trotzdem, nur ohne Zahl.
+    """
+    obj, _kinds = read_v(v)
+    if obj is None:
+        return None, None
+    amount = obj.get(0)
+    if amount is not None and not _is_amount(amount):
+        return None, None
+    unit_raw = obj.get(1)
+    if unit_raw is None:
+        return amount, None
+    if not isinstance(unit_raw, bytes):
+        return None, None
+    try:
+        unit = unit_raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return None, None
+    return amount, unit
+
+
+def obligations_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ObligationView, ...]:
+    """Obligationen eines Scopes aus dem Zustand der Sicht, sortiert nach ``claim_id`` (D486 Beschluss 1).
+
+    Nutzt ``view.vereinsleben.settlements``, keine zweite Rechnung mit ``settlement``.
+    """
+    if scope not in store.all_genesis():
+        raise ValueError("genesis of scope is not in the store")
+    view = scope_view(store, scope, now)
+    if view.vereinsleben is None:
+        return ()
+    result: list[ObligationView] = []
+    for cid, settlement_result in view.vereinsleben.settlements:
+        claim = store.get(cid)
+        if claim is None:
+            continue
+        creditor = claim.J[1] if claim.J[0] == 1 else None
+        amount, unit = _obligation_amount_unit(claim.v)
+        result.append(
+            ObligationView(
+                claim_id=cid,
+                debtor=claim.I,
+                creditor=creditor,
+                amount=amount,
+                unit=unit,
+                state=settlement_result.state,
+            )
+        )
+    return tuple(result)
 
 
 def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:

@@ -20,8 +20,8 @@ ROOT = Path(__file__).resolve().parent.parent
 # Unversioniert in diesen Bereichen ist ein vergessenes `git add`, kein Zwischenstand.
 SOURCE_DIRS = ("symbolon/", "tests/", "tools/")
 SOURCE_SUFFIXES = (".py",)
-# .js, .html und .json nur unter symbolon/ (D481 Beschluss 5).
-STATIC_SUFFIXES = (".js", ".html", ".json")
+# .js, .html, .json und .css nur unter symbolon/ (D481 Beschluss 5, D487 Beschluss 4).
+STATIC_SUFFIXES = (".js", ".html", ".json", ".css")
 
 # Unversionierte Spec-Dateien im Wurzelverzeichnis zählen ebenso.
 ROOT_SUFFIXES = (".md",)

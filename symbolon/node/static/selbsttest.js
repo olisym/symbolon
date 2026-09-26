@@ -825,6 +825,18 @@ function feinschliffFaelle() {
     { satz: "DORA hat zweimal an dieselbe Stelle der Kette unterschrieben.", zaehltNicht: false },
   );
 
+  // Werte, die weder Ja noch Nein sind (D526 Beschluss 3, D526 Golden Numbers).
+  gleich(
+    "widerspruchSatz: die Werte 2 und 3",
+    widerspruchSatz("DORA", [stimme(2), stimme(3)], offen, leereNamen),
+    { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
+  );
+  gleich(
+    "widerspruchSatz: die Werte 1 und 2",
+    widerspruchSatz("DORA", [stimme(1), stimme(2)], offen, leereNamen),
+    { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
+  );
+
   return results;
 }
 

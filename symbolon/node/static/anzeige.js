@@ -196,8 +196,9 @@ export function widerspruchOben(claims, antraege) {
 }
 
 // Die Überschrift der Karte einer Gabelung und ob keine der Stimmen zählt: eine Doppelstimme mit
-// Ja und Nein „zugleich“, mit gleichen Werten „zweimal {Wert}“, beide zaehltNicht; sonst „zweimal
-// an dieselbe Stelle der Kette“ (D525 Beschluss 3, 04 §3.1 Bedingung 6).
+// gleichen Werten „zweimal {Wert}“, sonst mit nur Ja und Nein „zugleich“, sonst „zweimal
+// verschieden“, alle drei zaehltNicht; sonst „zweimal an dieselbe Stelle der Kette“
+// (D526 Beschluss 3, D525 Beschluss 3, 04 §3.1 Bedingung 6).
 export function widerspruchSatz(name, claims, antraege, namen) {
   if (!doppelstimme(claims)) {
     return { satz: `${name} hat zweimal an dieselbe Stelle der Kette unterschrieben.`, zaehltNicht: false };
@@ -205,7 +206,9 @@ export function widerspruchSatz(name, claims, antraege, namen) {
   const antrag = antraege.find((eintrag) => eintrag.proposal === claims[0].J[1]);
   const worum = antrag ? `zum Antrag „${antragTitel(antrag.changes, namen)}“` : "zu einem Antrag";
   const werte = claims.map((claim) => wertInWorten(claim.p, claim.value));
-  const was = werte.includes("Ja") && werte.includes("Nein") ? "Ja und Nein zugleich" : `zweimal ${werte[0]}`;
+  let was = "zweimal verschieden";
+  if (werte.every((wert) => wert === werte[0])) was = `zweimal ${werte[0]}`;
+  else if (werte.every((wert) => wert === "Ja" || wert === "Nein")) was = "Ja und Nein zugleich";
   return { satz: `${name} hat ${worum} ${was} unterschrieben.`, zaehltNicht: true };
 }
 

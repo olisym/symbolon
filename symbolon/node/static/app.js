@@ -1,7 +1,7 @@
 // Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
 // darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
 // Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
-// neuen Stand (D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// neuen Stand (D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -42,6 +42,7 @@ import {
   vertrauenSatz,
   wertInWorten,
   widerspruchOben,
+  widerspruchSatz,
   zeitpunktInWorten,
 } from "./anzeige.js";
 
@@ -815,7 +816,8 @@ function jetztBereich(tasks, kontext, handeln) {
   return bereich;
 }
 
-// Eine Widerspruchskarte je Gabelung, dazu ob sie oben steht (D507 Beschluss 1, D492 Beschluss 5,
+// Eine Widerspruchskarte je Gabelung, dazu ob sie oben steht; Überschrift und „Keine der beiden
+// Stimmen zählt.“ aus widerspruchSatz (D525 Beschluss 2 und 3, D492 Beschluss 5,
 // szenario-verein §5.2, 02 §8).
 async function widerspruchKarten(forks, kontext) {
   const karten = [];
@@ -826,15 +828,10 @@ async function widerspruchKarten(forks, kontext) {
     const werte = claims.map((claim) => wertInWorten(claim.p, claim.value));
     const karte = element("section", "karte widerspruch");
     karte.append(marke("Widerspruch"));
+    const { satz, zaehltNicht } = widerspruchSatz(name, claims, kontext.antraege, kontext.namen);
+    karte.append(element("div", "satz", satz));
     const punkte = [];
-    if (stimmen && werte.includes("Ja") && werte.includes("Nein")) {
-      const antrag = kontext.antraege.find((eintrag) => eintrag.proposal === claims[0].J[1]);
-      const worum = antrag ? `zum Antrag „${antragTitel(antrag.changes, kontext.namen)}“` : "zu einem Antrag";
-      karte.append(element("div", "satz", `${name} hat ${worum} Ja und Nein zugleich unterschrieben.`));
-      punkte.push("Keine der beiden Stimmen zählt.");
-    } else {
-      karte.append(element("div", "satz", `${name} hat zweimal an dieselbe Stelle der Kette unterschrieben.`));
-    }
+    if (zaehltNicht) punkte.push("Keine der beiden Stimmen zählt.");
     punkte.push(
       `${name}s Bürgschaften zählen ab jetzt nicht mehr. Wer nur über ${name} verbürgt war, ist es nicht mehr.`,
     );
@@ -1274,7 +1271,7 @@ async function zeichnenInhalt() {
   frage.hidden = true;
 
   // Ein Widerspruch steht oben, solange über den Antrag abgestimmt wird, sonst im Tab „Im
-  // Verein“ unter den Sätzen (D507 Beschluss 1).
+  // Verein“ unter den Sätzen (D525 Beschluss 2, D507 Beschluss 1).
   const widersprueche = await widerspruchKarten(forks, kontext);
   const oben = widersprueche.filter((eintrag) => eintrag.oben).map((eintrag) => eintrag.karte);
   const unten = widersprueche.filter((eintrag) => !eintrag.oben).map((eintrag) => eintrag.karte);

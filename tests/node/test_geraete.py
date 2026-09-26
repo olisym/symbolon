@@ -234,3 +234,25 @@ def test_geraetestimmen_nur_teilnehmer(tmp_path) -> None:
     _stimme(store, dev, world, 0, t=41)
     assert world.kasse.pub not in world.ex.constitution_2["participants"]
     assert _gruppen(store, world) == {}
+
+
+def test_folge_nennt_gleiche_wahl_und_liste(tmp_path) -> None:
+    """Die Folge sagt, ob die Wahl gleich ist und ob die Wurzel auf der Liste steht (D544)."""
+    world, geraete, store = _welt(tmp_path)
+    rumpf = {
+        "I": geraete["DORA"].pub.hex(),
+        "art": "vote",
+        "proposal": world.proposal_3.proposal_hash.hex(),
+        "choice": "yes",
+    }
+    _felder, _warnungen, folge = _intent_body(store, rumpf, _JETZT)
+    assert (folge["same"], folge["participant"]) == (False, True)
+    _stimme(store, world.dora, world, 1)
+    _felder, _warnungen, folge = _intent_body(store, rumpf, _JETZT)
+    assert (folge["same"], folge["participant"]) == (True, True)
+    rumpf["choice"] = "no"
+    _felder, _warnungen, folge = _intent_body(store, rumpf, _JETZT)
+    assert (folge["same"], folge["participant"]) == (False, True)
+    rumpf["I"] = world.kasse.pub.hex()
+    _felder, _warnungen, folge = _intent_body(store, rumpf, _JETZT)
+    assert folge["participant"] is False

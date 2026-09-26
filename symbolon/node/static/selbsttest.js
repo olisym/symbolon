@@ -491,6 +491,25 @@ function saetzeFaelle() {
     ],
   );
   gleich(
+    "folgeZeilen: vote, gleiche Wahl",
+    folgeZeilen("vote", { ...stimme, yes: 1, counts: false, same: true, participant: true }, { teilnehmer: false }),
+    ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt einmal: Du hast schon so abgestimmt."],
+  );
+  gleich(
+    "folgeZeilen: vote, Gerät einer Teilnehmerin, verschiedene Wahl",
+    folgeZeilen("vote", { ...stimme, yes: 0, counts: false, same: false, participant: true }, { teilnehmer: false }),
+    [
+      "Danach: 0 von 3 nötigen Ja-Stimmen",
+      "Es fehlen noch 3.",
+      "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
+    ],
+  );
+  gleich(
+    "folgeZeilen: vote, Wurzel nicht auf der Liste",
+    folgeZeilen("vote", { ...stimme, yes: 1, counts: false, same: false, participant: false }, { teilnehmer: true }),
+    ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."],
+  );
+  gleich(
     "folgeZeilen: vouch unter D",
     folgeZeilen("vouch", { used: 50, D: 100 }, {}),
     ["Danach: Du hast 50 von 100 Punkten vergeben."],

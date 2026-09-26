@@ -339,7 +339,8 @@ def _vote_effect(
     """Ja und Nein nach der Stimme, aus proposals_view und reached (D490 Beschluss 2, 04 §3.1, 04 §3.2).
 
     ``author`` ist die Wurzel der Stimme. Mit ``same`` bleiben Ja und Nein, wie sie sind
-    (D543 Beschluss 4, D542 Beschluss 4).
+    (D543 Beschluss 4, D542 Beschluss 4). Die Folge nennt ``same`` und die Teilnahme der
+    Wurzel (D544 Beschluss 1).
     """
     view = scope_view(store, proposal.scope, now)
     tally = _tally_of(view, digest)
@@ -347,7 +348,8 @@ def _vote_effect(
     if row is None or tally is None or tally.threshold is None or row.n is None:
         return None
     yes, no = len(row.yes), len(row.no)
-    if author not in view.state.constitution_obj["participants"]:
+    participant = author in view.state.constitution_obj["participants"]
+    if not participant:
         counts = False
     elif same:
         counts = False
@@ -371,6 +373,8 @@ def _vote_effect(
         "n": row.n,
         "passes": reached(yes, row.n, num, den),
         "counts": counts,
+        "same": same,
+        "participant": participant,
     }
 
 

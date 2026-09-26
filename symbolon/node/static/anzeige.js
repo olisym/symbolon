@@ -420,7 +420,8 @@ export function absichtSatz(art, felder) {
 }
 
 // Die Folge aus effect, „Danach:“ vor der ersten Zeile; ohne effect keine Zeile
-// (D492 Beschluss 2, D490 Beschluss 2).
+// (D492 Beschluss 2, D490 Beschluss 2). Bei einer Stimme gleiche Wahl aus effect.same, die
+// Teilnahme der Wurzel aus effect.participant, nur wo das fehlt aus felder (D544 Beschluss 1).
 export function folgeZeilen(art, effect, felder) {
   if (!effect) return [];
   const zeilen = [];
@@ -436,9 +437,12 @@ export function folgeZeilen(art, effect, felder) {
         zeilen.push(`Es fehlen noch ${fehlen}.`);
       }
     }
-    if (effect.counts === false) {
+    const teilnehmer = effect.participant !== undefined ? effect.participant : felder.teilnehmer;
+    if (effect.counts === false && effect.same === true) {
+      zeilen.push("Deine Stimme zählt einmal: Du hast schon so abgestimmt.");
+    } else if (effect.counts === false) {
       zeilen.push(
-        felder.teilnehmer === false
+        teilnehmer === false
           ? "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."
           : "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
       );

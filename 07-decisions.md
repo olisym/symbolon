@@ -23466,3 +23466,22 @@ Sitzungsstart führt sie unter „ohne Auftrag“.
 Erst danach wird O94 erledigt.
 
 **Geändert.** `07-decisions.md`.
+
+### D545 — Abnahme des Nachtrags zu `p27-geraete`; gleiche Wahl ausserhalb der Liste
+
+**Anlass.** Bericht des Werkzeugs, Commit `810b625` auf `p27-geraete`, Basis `98c9aa6` (D544).
+Gelesen: der vollständige Diff aus dem Spiegel. Er setzt D544 Beschluss 1 wörtlich um; die Tests
+sind die aus dem Nachtrag, die Proben N1 bis N4 rot an der Sache.
+
+**Befund — wieder mein Wortlaut.** D544 Beschluss 1 prüft in `folgeZeilen` die gleiche Wahl vor der
+Teilnahme. Stimmt eine Wurzel, die nicht auf der Liste steht, zweimal gleich, ist `same` wahr und
+`counts` falsch, und die Vorschau sagt „Deine Stimme zählt einmal“ über eine Stimme, die als
+`NON_MEMBER_VOTE` nie zählt. Im Klon gemessen: der Fall unten liefert auf `810b625` diese Zeile.
+Kein Bild erzeugt ihn, aber der Satz ist falsch, und Defekte werden vor dem Merge behoben.
+
+**Beschluss 1 — zweiter Nachtrag auf demselben Branch.** Bei `counts` falsch zuerst die Teilnahme:
+steht die Wurzel nicht auf der Liste, gilt „Deine Stimme zählt nicht: Du stehst nicht auf der
+Mitgliederliste.“, dann gleiche Wahl, dann die Zeile zur zweiten Stimme. Am Prototyp: der
+Selbsttest 178 von 178; mit der Reihenfolge von `810b625` wird genau der neue Fall rot (Probe N5).
+
+**Geändert.** `07-decisions.md`.

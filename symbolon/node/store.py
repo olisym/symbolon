@@ -240,6 +240,11 @@ class SqliteStore:
         rows = self._db.execute("SELECT pub, name FROM names").fetchall()
         return {row[0]: row[1] for row in rows}
 
+    def object_hashes(self) -> list[bytes]:
+        """Hashes aller gehaltenen Objekte, sortiert (D516 Beschluss 2, D514 Beschluss 2)."""
+        rows = self._db.execute("SELECT hash FROM objects ORDER BY hash").fetchall()
+        return [row[0] for row in rows]
+
     def object_at(self, digest: bytes) -> tuple[str, bytes] | None:
         """Art und Bytes eines Objekts, oder None (D479 Beschluss 5)."""
         row = self._db.execute(

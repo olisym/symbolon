@@ -13,9 +13,12 @@ from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
 from symbolon.governance.objects import Proposal
 from symbolon.policy import constitution_hash
+from symbolon.predicates import is_core_predicate
 from symbolon.resolve import resolve_state
 from symbolon.trust.params import resolve_trust_params
 from symbolon.verifier import InMemoryStore, structural_check
+
+_J_TAG_CLAIM_REF = 2
 
 
 class ObjectKind(str, Enum):
@@ -85,7 +88,12 @@ class SqliteStore:
         return [claim_from_bytes(row[0]) for row in rows]
 
     def submit_claim(self, data: bytes) -> Claim:
-        """Liefert einen Claim ein (01 §6, D473 Beschluss 1)."""
+        """Liefert einen Claim ein und räumt nach (01 §6, D473 Beschluss 1, D514 Beschluss 1).
+
+        Jeder gehaltene ``core/*``-Claim, der den eingelieferten Claim als Ziel nennt und einen
+        anderen Autor hat, ist von da an nicht gehalten (01 §6 „Nachträglich ungültig“) und wird
+        entfernt. Ein Nachfolger des entfernten Claims bleibt gehalten.
+        """
         claim = structural_check(data, self)
         cid = claim_id(claim)
         if self.get(cid) is None:
@@ -93,7 +101,17 @@ class SqliteStore:
                 "INSERT INTO claims (claim_id, data, I, h_prev) VALUES (?, ?, ?, ?)",
                 (cid, data, claim.I, claim.h_prev),
             )
-            self._db.commit()
+        for held in self.all_claims():
+            if (
+                is_core_predicate(held)
+                and held.J[0] == _J_TAG_CLAIM_REF
+                and held.J[1] == cid
+                and held.I != claim.I
+            ):
+                self._db.execute(
+                    "DELETE FROM claims WHERE claim_id = ?", (claim_id(held),)
+                )
+        self._db.commit()
         return claim
 
     def submit_object(self, kind: ObjectKind, data: bytes) -> bytes:

@@ -23485,3 +23485,25 @@ Mitgliederliste.“, dann gleiche Wahl, dann die Zeile zur zweiten Stimme. Am Pr
 Selbsttest 178 von 178; mit der Reihenfolge von `810b625` wird genau der neue Fall rot (Probe N5).
 
 **Geändert.** `07-decisions.md`.
+
+### D546 — Olis Durchlauf mit `--geraete`; O94 erledigt
+
+**Anlass.** `p27-geraete` ist abgenommen (D544, D545) und auf `main` vorgespult, `0f6e8a7`. Der
+Durchlauf mit Oli nach D490, über den Startbefehl mit `--geraete` und einem frischen Verzeichnis.
+
+**Befund — der Satz trägt.** Oli hat alle sechs Tabs geöffnet. Jede Seite zeigt oben keine Karte,
+im Tab „Im Verein“ Doras Satz und darunter Brunos Widerspruchskarte, keine Gabelkarte, wie in D542
+Beschluss 6 beschrieben. Alle sechs zeigen dasselbe. Seine Worte: die Information sei leicht
+abzulesen. Damit trägt der Satz aus D542 Beschluss 6 auf der Seite.
+
+**Beschluss 1 — O94 ist erledigt.** Knoten, Simulation und Karte rechnen je Wurzel; Bild (c) zeigt
+den Unterschied zu Bild (b) an denselben Takten. `offen.md` schliesst O94 in der Schliessform.
+
+**Beschluss 2 — der Branch `p27-geraete` wird gelöscht.** Er ist ganz in `main`.
+
+**Offen, ohne Auftrag.** Die zwei Lagen der schwächsten Stelle aus D543 (`CONFLICTING_APPROVAL` in
+der Gruppierung, ein gesperrtes Gerät in der Absicht). Die kalte Wurzel und die übrigen Profile nach
+D534 Beschluss 2. Die Aufnahme eines Geräts als Handlung im Netz. `DISPUTED_VOTE` ohne Satz auf der
+Seite (D542, P5).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

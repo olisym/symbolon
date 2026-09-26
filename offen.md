@@ -432,10 +432,7 @@ Stimmen zwei Geräte einer Wurzel verschieden, zählt keine (D529 Beschluss 2). 
 beide per `claim_id` nennt, entstand nachweislich nach beiden. Das ist der Stimmwechsel aus D487
 Befund 3 und hängt an D97. Öffnet, wenn der Prototyp aus D529 Beschluss 3 die Form trägt.
 
-### O94 Geräte im Knoten, in der Simulation und auf der Karte
+### O94 Geräte im Knoten, in der Simulation und auf der Karte — erledigt (D546)
 
-Die Schichten `02` und `04` rechnen Geräte der Wurzel zu (D538, D540). Der Knoten nicht:
-`node/api.py` (`_budget_of`) und `tools/ref_block.py` bilden Gruppen ohne Zurechnung (D537), und
-`node/view.py` zählt `tally.yes` in `claim_id`, nicht in Wurzeln (D539). Bild (b) aus D523 läuft
-noch mit einem geteilten Schlüssel. Öffnet mit dem Auftrag, der Doras Zweitgerät einen eigenen
-Schlüssel gibt.
+Bild (c) unter `--geraete`, Sicht je Wurzel, Stimmen einer Wurzel von mehreren Schlüsseln (D542
+bis D546).

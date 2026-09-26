@@ -21769,3 +21769,27 @@ Bestand wächst nicht mehr nur: wer Gleichheit zweier Knoten an der Anzahl misst
 nach dem Eintreffen eines Ziels Verschiedenes.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O90 neu).
+
+### D515 — Abnahme `p19-nachraeumen`; jede Reihenfolge ergibt einen Bestand
+
+**Geprüft.** Commit `e8cc3d3` auf `p19-nachraeumen`, Basis `abae73c`, der Diff ganz aus dem
+Spiegel: `symbolon/node/store.py` und `tests/node/test_nachraeumen.py`, wie der Bericht sagt. Im
+Klon ohne Bytecode 1137 Tests grün, `ruff` sauber. Das Nachräumen steht nur in `submit_claim`,
+und jede Einlieferung in den Bestand läuft dort durch; der Bericht nennt die Wege, sie decken sich
+mit meiner Lesung aus D514.
+
+**Rücknahmeproben.** Die drei aus dem Auftrag sind im Bericht gemeldet; Test B scheitert an
+`get(claim_id(w))`, nicht an der vorgelagerten Zusicherung. Die zwei übrigen naheliegenden Fehler
+aus D514 habe ich selbst gegen die neuen Tests gefahren: nur `revoke` statt auch `supersede` macht
+einen Test rot, der mitentfernte Nachfolger zwei. Jede der fünf Fassungen aus D514 fällt damit an
+einem Test dieses Branches durch.
+
+**Meldungen des Berichts, angenommen.** Die Konstante `_J_TAG_CLAIM_REF` steht ein zweites Mal in
+`store.py`, weil sie in `verifier.py` privat ist. Nachgeräumt wird auch, wenn der Claim schon
+gehalten war; das ändert nichts, weil ein fremder Claim auf ein bekanntes Ziel beim Einlesen
+abgewiesen wird. `verein3.sqlite` öffnet unverändert.
+
+**Beschluss 1 — gemergt.** Keine Oberfläche berührt, also kein Durchlauf mit Oli.
+
+**Geändert.** `symbolon/node/store.py`, `tests/node/test_nachraeumen.py` (über den Merge);
+`07-decisions.md`.

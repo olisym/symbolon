@@ -1,4 +1,4 @@
-"""Personen mit eigenem Verhalten, Stufe (a) (D521 Beschluss 1 bis 4)."""
+"""Personen mit eigenem Verhalten, Stufe (a) und (b) (D521 Beschluss 1 bis 4, D523)."""
 
 from __future__ import annotations
 
@@ -18,6 +18,10 @@ _ANTRAG_GERAET = "Annas Gerät"
 _ANTRAG_PERSON = "ANNA"
 _ZWEITGERAET = "Brunos Zweitgerät"
 _FESTSTELLER = "ANNA"
+_DORAS_ZWEITGERAET = "Doras Zweitgerät"
+
+# Der Takt der Trennung und der Takt der Wiederverbindung (D523 Beschluss 3).
+TRENNUNG = (3, 7)
 
 
 def absichten(geraet: str, person: str, I: str, aufgaben: list[dict]) -> list[dict]:
@@ -45,6 +49,14 @@ def absichten(geraet: str, person: str, I: str, aufgaben: list[dict]) -> list[di
         elif art == "RECEIPT":
             rumpfe.append({"I": I, "art": "receipt", "obligation": aufgabe["obligation"]})
     return rumpfe
+
+
+def verzoegert(jetzt: list[dict], vorher: list[dict]) -> list[dict]:
+    """Die Rümpfe aus ``jetzt``, die gleich einem aus ``vorher`` sind, in ihrer Reihenfolge.
+
+    Dora handelt auf dem Zweitgerät einen Takt später (D523 Beschluss 2).
+    """
+    return [rumpf for rumpf in jetzt if rumpf in vorher]
 
 
 def _handlung(rumpf: dict) -> str:
@@ -91,21 +103,46 @@ def _vereinsscope(url: str) -> str:
     raise RuntimeError("kein Scope trägt einen Verein")
 
 
-def takt(urls: list[str], nummer: int, gemeldet: set[tuple[str, str]]) -> list[str]:
+def takt(
+    urls: list[str],
+    nummer: int,
+    gemeldet: set[tuple[str, str]],
+    geraete: list[tuple[str, str, frozenset[str]]] = GERAETE,
+    gesehen: dict[tuple[str, str], list[dict]] | None = None,
+) -> list[str]:
     """Ein Takt ohne den Durchgang: erst die Personen, dann der Antrag (D521 Beschluss 2 bis 4).
 
-    Geräte in der Ordnung von ``GERAETE``, Personen je Gerät nach Namen sortiert. Eine Person mit
+    Geräte in der Ordnung von ``geraete``, Personen je Gerät nach Namen sortiert. Eine Person mit
     etwas zu tun und mehr als einer Spitze handelt dort nicht und wird je Gerät einmal gemeldet.
+
+    Enthält ``geraete`` Doras Zweitgerät, wird es in den Takten aus ``TRENNUNG`` vor den Personen
+    getrennt und wieder verbunden (D523 Beschluss 3), und Dora handelt dort nur auf den Rümpfen,
+    die schon im vorigen Takt unter ``gesehen`` lagen (D523 Beschluss 2).
     """
+    namen_geraete = [name for name, _datei, _personen in geraete]
+    versehen = _DORAS_ZWEITGERAET in namen_geraete
+    if versehen and gesehen is None:
+        raise ValueError("Doras Zweitgerät braucht gesehen")
     namen: dict[str, str] = {
         eintrag["name"]: eintrag["I"] for eintrag in _anfrage(urls[0], "GET", "/names")[1]
     }
     zeilen: list[str] = []
-    for (geraet, _datei, personen), url in zip(GERAETE, urls):
+    if versehen and nummer in TRENNUNG:
+        getrennt = nummer == TRENNUNG[0]
+        url = urls[namen_geraete.index(_DORAS_ZWEITGERAET)]
+        _anfrage(url, "POST", "/getrennt", {"getrennt": getrennt})
+        zustand = "vom Netz getrennt" if getrennt else "wieder verbunden"
+        zeilen.append(f"Takt {nummer}, {_DORAS_ZWEITGERAET}: {zustand}")
+    for (geraet, _datei, personen), url in zip(geraete, urls):
         for person in sorted(personen):
             I = namen[person]
             aufgaben: list[dict[str, Any]] = _anfrage(url, "GET", f"/tasks/{I}")[1]
             rumpfe = absichten(geraet, person, I, aufgaben)
+            if geraet == _DORAS_ZWEITGERAET:
+                assert gesehen is not None
+                vorher = gesehen.get((geraet, person), [])
+                gesehen[(geraet, person)] = rumpfe
+                rumpfe = verzoegert(rumpfe, vorher)
             if not rumpfe:
                 continue
             kopf = f"Takt {nummer}, {geraet}: {person}"
@@ -117,8 +154,7 @@ def takt(urls: list[str], nummer: int, gemeldet: set[tuple[str, str]]) -> list[s
             for rumpf in rumpfe:
                 zeilen.append(_einliefern(url, kopf, rumpf))
     if nummer == ANTRAG_TAKT:
-        index = [name for name, _datei, _personen in GERAETE].index(_ANTRAG_GERAET)
-        url = urls[index]
+        url = urls[namen_geraete.index(_ANTRAG_GERAET)]
         rumpf = {
             "I": namen[_ANTRAG_PERSON],
             "art": "propose",

@@ -22026,3 +22026,23 @@ austauschen, und jeder zeigt denselben Zustand, sobald er dieselben Claims hat
 **Geändert.** `symbolon/node/__main__.py`, `symbolon/node/api.py`, `symbolon/node/static/app.js`,
 `tools/netz.py`, `tools/verein_node.py`, `tests/node/test_netz.py` (über den Merge);
 `07-decisions.md`.
+
+### D520 — Schluss der Sitzung 00cm; Phase 4 in ihrer ersten Stufe erreicht
+
+**Anlass.** Olis Durchlauf durch das Bild der Lüge ist abgenommen und gemergt (D519). Oli: „können
+wir gerne hier schliessen“.
+
+**Beschluss 1 — Stand.** Der Bestand räumt nach (D514, D515), zwei Knoten gleichen über ein
+Werkzeug ab (D516, D517), fünf Geräte laufen mit einem Befehl (D518, D519). Der nächste Schritt ist
+offen: Personen mit eigenem Verhalten, die Knoten in Docker im Homelab, oder der Ablauf in der
+Seite. Oli entscheidet zu Beginn der nächsten Sitzung.
+
+**Beschluss 2 — Arbeitsweise.** Eine Rücknahmeprobe, die ein Auftrag verlangt, fährt der
+Supervisor vorher gegen den Test in der Fassung des Auftrags (D517). Ein Ablauf für Oli wird
+vorher über die Schnittstelle gefahren (D518). Beides steht im Sitzungsstart unter den
+Prüfregel-Kandidaten.
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cm.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt; `sitzungsstart-00cl.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cm.md`, `archiv/sitzungsstart-00cl.md`.

@@ -15,6 +15,7 @@ from symbolon.atom import claim_id
 from symbolon.index import classify_all
 from symbolon.verifier import ClaimStore, State
 
+from .attribution import Attribution, attribution
 from .findings import Finding, TrustFinding
 from .graph import BfsResult, bfs_capacities
 from .groups import build_groups
@@ -44,8 +45,15 @@ def derive(
     classifications = classify_all(store, now)
     claims = store.all_claims()
 
+    # 1. Zurechnung an die Wurzel (02 §2.1); fremde Scopes nur für die Flags (02 §8)
+    attributions: dict[bytes, Attribution] = {
+        scope: attribution(store, classifications, scope)
+    }
+
     # 2-3. Vouch-Claims des Scopes sammeln, v dekodieren, Gruppen bilden
-    groups, payload_findings = build_groups(claims, classifications, scope, params.D, now)
+    groups, payload_findings = build_groups(
+        claims, classifications, scope, params.D, now, attributions[scope]
+    )
 
     # 4. Budget je Autor prüfen -> OVERCOMMITTED_AUTHOR
     budget_by_author: dict[bytes, int] = {}
@@ -59,14 +67,18 @@ def derive(
         for author in overcommitted_authors
     )
 
-    equivocation_flagged_authors = {
-        c.I
-        for c in claims
-        if (
-            claim_id(c) in classifications
-            and classifications[claim_id(c)].state == State.EQUIVOCATION_FLAGGED
-        )
-    }
+    # Eine Gabel flaggt ihren Autor und die Wurzel, der sie in ihrem Scope zugerechnet
+    # ist, gleich in welchem Scope (02 §8, D43).
+    equivocation_flagged_authors: set[bytes] = set()
+    for c in claims:
+        cid = claim_id(c)
+        if cid not in classifications or classifications[cid].state != State.EQUIVOCATION_FLAGGED:
+            continue
+        equivocation_flagged_authors.add(c.I)
+        if c.N is not None:
+            if c.N not in attributions:
+                attributions[c.N] = attribution(store, classifications, c.N)
+            equivocation_flagged_authors.add(attributions[c.N].root(c))
     flagged_authors = overcommitted_authors | equivocation_flagged_authors
 
     # 5. Flags anwenden -> Kantenkandidaten

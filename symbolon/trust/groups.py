@@ -9,6 +9,7 @@ from symbolon.atom import Claim, claim_id
 from symbolon.predicates import parse_predicate
 from symbolon.verifier import Classification, State
 
+from .attribution import Attribution
 from .findings import Finding, TrustFinding
 
 BUDGET_STATES = frozenset(
@@ -94,10 +95,16 @@ def build_groups(
     scope: bytes,
     D: int,
     now: int,
+    attribution: Attribution | None = None,
 ) -> tuple[dict[tuple[bytes, bytes], Group], tuple[Finding, ...]]:
-    """Vouch-Claims des Scopes sammeln, v dekodieren, zu Gruppen aggregieren (02 §11.4 Schritte 2-3)."""
+    """Vouch-Claims des Scopes sammeln, v dekodieren, zu Gruppen aggregieren (02 §11.4 Schritte 2-3).
+
+    Mit ``attribution`` ist der Schlüssel die Wurzel des Budget-Sets, und ``n_kante`` liest
+    nur Mitglieder, deren Kante derselben Wurzel gehört (02 §2.1, „Eine Kante nur, wo auch
+    das Budget liegt“).
+    """
     findings: list[Finding] = []
-    members: dict[tuple[bytes, bytes], list[tuple[bytes, int, State]]] = {}
+    members: dict[tuple[bytes, bytes], list[tuple[bytes, int, State, bool]]] = {}
 
     for c in claims:
         if not _is_scope_vouch(c, scope):
@@ -114,13 +121,20 @@ def build_groups(
             findings.append(
                 Finding(kind=TrustFinding.VOUCH_WITHOUT_TEXP, subject=cid)
             )
-        key = (c.I, c.J[1])
-        members.setdefault(key, []).append((cid, n, classification.state))
+        if attribution is None:
+            key = (c.I, c.J[1])
+            edge_root = True
+        else:
+            key = (attribution.budget_root(c), c.J[1])
+            edge_root = attribution.root(c) == key[0]
+        members.setdefault(key, []).append((cid, n, classification.state, edge_root))
 
     groups: dict[tuple[bytes, bytes], Group] = {}
     for (author, subject), entries in members.items():
-        n_budget = max(n for _, n, _ in entries)
-        active_entries = [(cid, n) for cid, n, state in entries if state == State.ACTIVE]
+        n_budget = max(n for _, n, _, _ in entries)
+        active_entries = [
+            (cid, n) for cid, n, state, edge_root in entries if state == State.ACTIVE and edge_root
+        ]
         if active_entries:
             n_kante = max(n for _, n in active_entries)
             tied = sorted(cid for cid, n in active_entries if n == n_kante)

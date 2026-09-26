@@ -10,8 +10,15 @@ from enum import Enum
 from symbolon import cbor_canon
 
 PROTOCOL_IRREVOCABLE = frozenset(
-    {"obligation@1", "rotate-key@1", "rotate-ack@1"}
-)  # Boden, D70 / D153 / 00 §5.2
+    {
+        "obligation@1",
+        "rotate-key@1",
+        "rotate-ack@1",
+        "device-add@1",
+        "device-ack@1",
+        "device-end@1",
+    }
+)  # Boden, D70 / D153 / D535 / 00 §5.2
 TRUST_GRANTING = frozenset({"vouch@1"})  # Negativliste, D58 / 01 §5.4.3 b
 _CORE_ENTRIES = frozenset({"revoke@1", "supersede@1"})  # D71
 

@@ -47,7 +47,14 @@ def test_P_A() -> None:
         constitution_obj=CONSTITUTION_A,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == ()
 
@@ -60,7 +67,14 @@ def test_P_B() -> None:
         constitution_obj=CONSTITUTION_B,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == ()
     assert len(r.policy.warnings) == 1
@@ -76,7 +90,14 @@ def test_P_C() -> None:
         constitution_obj=CONSTITUTION_C,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == ()
 
@@ -89,7 +110,14 @@ def test_P_D() -> None:
         constitution_obj=None,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == (
         Finding(ProfileFinding.CONSTITUTION_UNAVAILABLE, CONSTITUTION_HASH_A),
@@ -144,7 +172,14 @@ def test_P_G() -> None:
         constitution_obj=CONSTITUTION_A,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == ()
 
@@ -159,7 +194,14 @@ def test_P_H() -> None:
         constitution_obj=None,
     )
     assert r.policy.irrevocable == frozenset(
-        {"obligation@1", "rotate-ack@1", "rotate-key@1"}
+        {
+            "device-ack@1",
+            "device-add@1",
+            "device-end@1",
+            "obligation@1",
+            "rotate-ack@1",
+            "rotate-key@1",
+        }
     )
     assert r.findings == (
         Finding(ProfileFinding.CONSTITUTION_UNAVAILABLE, CONSTITUTION_HASH_B),

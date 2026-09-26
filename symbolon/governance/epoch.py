@@ -17,10 +17,12 @@ from symbolon.governance.tally import (
     constitution_governable,
     reached,
     read_v,
+    vote_root,
 )
 from symbolon.index import classify_all
 from symbolon.policy import NucleusPolicy, constitution_hash
 from symbolon.predicates import is_nuc_name
+from symbolon.trust.attribution import attribution
 from symbolon.verifier import ClaimStore, State
 
 
@@ -73,7 +75,10 @@ def verify_ratification(
     now: int,
     policy: NucleusPolicy | None = None,
 ) -> RatificationResult:
-    """Prüft ein ``ratify@1`` gegen eine Auszählung (04 §4.1, D106, D109, D112, D200, D203, D275, D276, D432)."""
+    """Prüft ein ``ratify@1`` gegen eine Auszählung (04 §4.1, D106, D109, D112, D200, D203, D275, D276, D432).
+
+    Feststeller und Zeugen je Wurzel nach 02 §2.1 (04 §4.1 Bedingungen 1, 4 und 5).
+    """
     if (
         proposal.scope != epoch.scope
         or tally.epoch_id != epoch.epoch_id
@@ -116,7 +121,11 @@ def verify_ratification(
         return _unsupported(ratify, tally)
     if not is_nuc_name(ratify, "ratify"):
         return _unsupported(ratify, tally)
-    if ratify.I not in participants:
+    # Die Wurzel nach 02 §2.1 steht erst mit der Klassifikation fest; die Klassifikation rückt
+    # deshalb vor Bedingung 1, die Reihenfolge der Prüfungen bleibt.
+    by_cid = classify_all(store, now, policy)
+    attr = attribution(store, by_cid, epoch.scope)
+    if attr.root(ratify) not in participants:
         return _unsupported(ratify, tally)
     if ratify.t_exp is not None:
         return RatificationResult(
@@ -128,7 +137,6 @@ def verify_ratification(
                 ]
             ),
         )
-    by_cid = classify_all(store, now, policy)
     rid = claim_id(ratify)
     if rid not in by_cid or by_cid[rid].state is not State.ACTIVE:
         return _unsupported(ratify, tally)
@@ -146,7 +154,7 @@ def verify_ratification(
     if cited is None:
         return _unsupported(ratify, tally)
     witness_findings: list[Finding] = []
-    authors: list[bytes] = []
+    roots: list[bytes] = []
     for cid in cited:
         if not isinstance(cid, bytes) or len(cid) != 32:
             witness_findings.append(
@@ -163,17 +171,17 @@ def verify_ratification(
                 Finding(kind=GovernanceFinding.UNSUPPORTED_RATIFICATION, subject=rid)
             )
         else:
-            authors.append(present.I)
+            roots.append(vote_root(attr, present))
     if witness_findings:
         return RatificationResult(
             next_epoch=None, findings=dedupe_sort([*witness_findings, *tally.findings])
         )
-    if len(authors) != len(set(authors)):
+    if len(roots) != len(set(roots)):
         return _unsupported(ratify, tally)
     if tally.threshold is None or tally.n is None:
         return _unsupported(ratify, tally)
     num, den = tally.threshold
-    if not reached(len(cited), tally.n, num, den):
+    if not reached(len(set(roots)), tally.n, num, den):
         return _unsupported(ratify, tally)
     kind = constitution_governable(target_constitution_obj)
     if kind is not None:

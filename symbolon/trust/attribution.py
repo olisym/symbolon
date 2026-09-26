@@ -117,6 +117,14 @@ class Attribution:
             return AttributionStatus.UNDECIDED
         return AttributionStatus.ATTRIBUTED
 
+    def device_root(self, key: bytes) -> bytes | None:
+        """Wurzel des in diesem Scope wirksam aufgenommenen Geräts ``key``, sonst ``None``
+        (02 §2.1, „Wirksame Aufnahme“)."""
+        device = self.devices.get(key)
+        if device is None:
+            return None
+        return device.root
+
     def root(self, claim: Claim) -> bytes:
         """Wurzel für Kanten: die Wurzel bei ``ATTRIBUTED``, sonst ``claim.I`` (02 §2.1)."""
         if self.status(claim) is AttributionStatus.ATTRIBUTED:

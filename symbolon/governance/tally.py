@@ -19,7 +19,8 @@ from symbolon.governance.objects import Epoch, Proposal
 from symbolon.index import classify_all
 from symbolon.policy import NucleusPolicy, constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
-from symbolon.verifier import ClaimStore, State
+from symbolon.trust.attribution import Attribution, AttributionStatus, attribution
+from symbolon.verifier import Classification, ClaimStore, State
 
 _CLASS_BY_INDEX = {0: "ordinary", 1: "membership", 2: "amendment"}
 
@@ -124,6 +125,66 @@ def _is_known_choice(value: object) -> bool:
     return type(value) is int and value in (0, 1)
 
 
+def vote_root(attr: Attribution, vote: Claim) -> bytes:
+    """Wurzel einer Stimme: bei ``ATTRIBUTED`` und ``DISPUTED`` die Wurzel des aufgenommenen
+    Geräts, sonst ``vote.I`` (04 §3.1, 02 §2.1)."""
+    if attr.status(vote) in (AttributionStatus.ATTRIBUTED, AttributionStatus.DISPUTED):
+        return attr.device_root(vote.I)
+    return vote.I
+
+
+def _arbitrators(constitution_obj: dict) -> frozenset[bytes]:
+    """``arbitration.arbitrators`` der Verfassung; nicht wohlgeformt heisst keine (04 §3.1, 00 §5.1)."""
+    arbitration = constitution_obj.get("arbitration")
+    if not isinstance(arbitration, dict):
+        return frozenset()
+    arbitrators = arbitration.get("arbitrators")
+    if not isinstance(arbitrators, list):
+        return frozenset()
+    if not all(isinstance(a, bytes) and len(a) == 32 for a in arbitrators):
+        return frozenset()
+    return frozenset(arbitrators)
+
+
+def _reattributed(
+    store: ClaimStore,
+    classifications: dict[bytes, Classification],
+    *,
+    vote_cid: bytes,
+    scope: bytes,
+    constitution_obj: dict,
+) -> bool:
+    """Rechnet ein Verdikt die bestrittene Stimme ``vote_cid`` zu? (04 §3.1, D533, D539)
+
+    Nur Pfad (i): ``verdict.I`` in ``arbitration.arbitrators`` der Verfassung der Epoche, und
+    ``verdict@1`` steht in ihren ``irrevocable_predicates``. Ob die Anklage aktiv ist, zählt nicht.
+    """
+    if "verdict@1" not in constitution_obj.get("irrevocable_predicates", []):
+        return False
+    arbitrators = _arbitrators(constitution_obj)
+    if not arbitrators:
+        return False
+    accusations = {
+        claim_id(c)
+        for c in store.all_claims()
+        if is_nuc_name(c, "accusation") and c.N == scope and c.J == (2, vote_cid)
+    }
+    for c in store.all_claims():
+        if not is_nuc_name(c, "verdict") or c.N != scope:
+            continue
+        if c.J[0] != 2 or c.J[1] not in accusations:
+            continue
+        if c.t_exp is not None or c.I not in arbitrators:
+            continue
+        classification = classifications.get(claim_id(c))
+        if classification is None or classification.state is not State.ACTIVE:
+            continue
+        obj, _kind = read_v(c.v)
+        if obj is not None and _is_yes_choice(obj.get(0)):
+            return True
+    return False
+
+
 def _is_ratio(value: object) -> bool:
     """Wohlgeformtheit einer Schwelle (04-governance.md §3.5, D108)."""
     if not isinstance(value, (list, tuple)) or len(value) != 2:
@@ -185,7 +246,11 @@ def decide(
     now: int,
     policy: NucleusPolicy | None = None,
 ) -> TallyResult:
-    """Zählt Stimmen einer Epoche gegen einen Vorschlag (04-governance.md §3, D112, D145, D274, D275, D276)."""
+    """Zählt Stimmen einer Epoche gegen einen Vorschlag (04-governance.md §3, D112, D145, D274, D275, D276).
+
+    Mitgliedsprüfung, Zusammenfassung, ``CONFLICTING_APPROVAL`` und Zählung laufen je Wurzel
+    nach 02 §2.1; eine bestrittene Stimme fällt vor der Zusammenfassung heraus (04 §3.1, 04 §4.4).
+    """
     if proposal.scope != epoch.scope:
         raise ValueError("proposal scope does not match epoch scope")
     if (
@@ -264,8 +329,32 @@ def decide(
     threshold = applied_threshold(constitution_obj, target_constitution_obj, klass)
     participants = frozenset(constitution_obj["participants"])
     by_cid = classify_all(store, now, policy)
+    attr = attribution(store, by_cid, epoch.scope)
     findings: list[Finding] = []
     votes = [c for c in store.all_claims() if is_nuc_name(c, "vote")]
+    roots: dict[bytes, bytes] = {}
+    disputed: set[bytes] = set()
+
+    def counts_disputed(vote: Claim) -> bool:
+        """Bestritten und nicht durch ein Verdikt zugerechnet (04 §3.1, D532, D533)."""
+        cid = claim_id(vote)
+        if cid not in disputed:
+            return False
+        return not _reattributed(
+            store,
+            by_cid,
+            vote_cid=cid,
+            scope=epoch.scope,
+            constitution_obj=constitution_obj,
+        )
+
+    for vote in votes:
+        if vote.N != epoch.scope:
+            continue
+        cid = claim_id(vote)
+        roots[cid] = vote_root(attr, vote)
+        if attr.status(vote) is AttributionStatus.DISPUTED:
+            disputed.add(cid)
     candidates: list[Claim] = []
     for vote in votes:
         cid = claim_id(vote)
@@ -275,7 +364,7 @@ def decide(
         if vote.N != epoch.scope:
             findings.append(Finding(kind=GovernanceFinding.SCOPE_MISMATCH, subject=cid))
             continue
-        if vote.I not in participants:
+        if roots[cid] not in participants:
             findings.append(Finding(kind=GovernanceFinding.NON_MEMBER_VOTE, subject=cid))
             continue
         if vote.t_exp is not None:
@@ -296,33 +385,40 @@ def decide(
             continue
         if by_cid[cid].state is not State.ACTIVE:
             continue
+        if counts_disputed(vote):
+            findings.append(Finding(kind=GovernanceFinding.DISPUTED_VOTE, subject=cid))
+            continue
         candidates.append(vote)
 
-    by_author: dict[bytes, list[Claim]] = defaultdict(list)
+    by_root: dict[bytes, list[Claim]] = defaultdict(list)
     for vote in candidates:
-        by_author[vote.I].append(vote)
+        by_root[roots[claim_id(vote)]].append(vote)
     counting: list[Claim] = []
-    for group in by_author.values():
-        if len(group) > 1:
+    for group in by_root.values():
+        if len({_is_yes_choice(_choice(vote)) for vote in group}) > 1:
             for vote in group:
                 findings.append(
                     Finding(kind=GovernanceFinding.AMBIGUOUS_VOTE, subject=claim_id(vote))
                 )
         else:
-            counting.append(group[0])
+            counting.extend(group)
 
     excluded: set[bytes] = set()
     for vote in counting:
         if not _is_yes_choice(_choice(vote)):
             continue
-        author = vote.I
+        author = roots[claim_id(vote)]
         for other in votes:
-            if other.I != author or other.N != epoch.scope:
+            if other.N != epoch.scope:
                 continue
             other_cid = claim_id(other)
+            if roots[other_cid] != author:
+                continue
             if other.t_exp is not None:
                 continue
             if by_cid[other_cid].state is not State.ACTIVE:
+                continue
+            if counts_disputed(other):
                 continue
             obj, v_kind = read_v(other.v)
             if v_kind is GovernanceFinding.UNPARSABLE_V:
@@ -364,20 +460,25 @@ def decide(
 
     yes_ids: list[bytes] = []
     no_ids: list[bytes] = []
+    yes_roots: set[bytes] = set()
+    no_roots: set[bytes] = set()
     for vote in counting:
-        if vote.I in excluded:
+        cid = claim_id(vote)
+        if roots[cid] in excluded:
             continue
         if _is_yes_choice(_choice(vote)):
-            yes_ids.append(claim_id(vote))
+            yes_ids.append(cid)
+            yes_roots.add(roots[cid])
         else:
-            no_ids.append(claim_id(vote))
+            no_ids.append(cid)
+            no_roots.add(roots[cid])
     yes = tuple(sorted(yes_ids))
     no = tuple(sorted(no_ids))
     n = len(participants)
     num, den = threshold
-    if reached(len(yes), n, num, den):
+    if reached(len(yes_roots), n, num, den):
         state = TallyState.PASSED
-    elif hopeless(len(no), n, num, den):
+    elif hopeless(len(no_roots), n, num, den):
         state = TallyState.FAILED
     else:
         state = TallyState.PENDING

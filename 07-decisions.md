@@ -23226,3 +23226,112 @@ die ein Ergebnis zurücknehmen kann, gegen die Invarianten lesen (D539).
 nächsten Schritt; `sitzungsstart-00cn.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00co.md`, `archiv/sitzungsstart-00cn.md`.
+
+### D542 — O94: Bild (c) mit Geräteschlüsseln; der Beschluss hält; Doppelstimmen je Wurzel dauerhaft
+
+**Anlass.** O94, D541 Beschluss 2. Gelesen, ganz: `symbolon/node/api.py`, `symbolon/node/view.py`,
+`tools/netz.py`, `tools/personen.py`, `tools/verein_node.py`, `symbolon/trust/attribution.py`; dazu
+in `static/app.js` `widerspruchKarten`, `stimmenZeile` und `zeichnenInhalt`, in `tools/ref_block.py`
+den Aufruf von `build_groups`, D523 bis D541. Prototyp im Supervisor-Klon auf `794f807`, gemessen,
+verworfen.
+
+**Befund 1 — Brunos Lüge über Geräteschlüssel ist keine Gabel.** Zwei Ketten gabeln nicht, `/forks`
+bleibt leer. Die Widerspruchskarte aus D525 liest nur `/forks` und zeigte nichts. Zwei ihrer Sätze
+wären für Geräte auch falsch: dass die Bürgschaften nicht mehr zählen (D530 Befund 1) und dass beide
+Claims an derselben Stelle einer Kette stehen. Der Widerspruch steht nur in `AMBIGUOUS_VOTE`.
+
+**Befund 2 — die Sicht rechnet nach `I`.** `proposals_view` bildet `yes`, `no` und `ambiguous` über
+`store.get(cid).I` ab; Dora stünde zweimal unter Ja, einmal als unbenannter Geräteschlüssel.
+`_vote_effect` rechnet `passes` aus diesen Mengen. Ein Geräteschlüssel ist kein Teilnehmer und hat
+keine Aufgaben; die Wurzel behält ihre Aufgabe `VOTE`, weil `voted` nach `claim.I` prüft, ebenso
+`ALREADY_VOTED` in `_intent_body`. `_budget_of` und `tools/ref_block.py` rufen `build_groups` ohne
+Zurechnung auf (D537 Befund 2).
+
+**Befund 3 — ein Gerät kann nicht bestätigen und nicht quittieren.** `accept-rules@1` und
+`receipt@1` rechnen nach `I` (D534 Beschluss 2). Mit kalter Wurzel und Geräteschlüsseln auf jedem
+Gerät würde im Bild niemand Mitglied und nichts quittiert.
+
+**Befund 4 — die Anzeige am Antrag wäre in diesem Bild nie zu sehen.** Doras zweite Stimme kommt im
+Takt 7, nach der Feststellung. Dann gehört der Antrag zur alten Epoche, und `proposals_view` zeigt
+nur Anträge der geltenden. Brunos Widerspruch stünde zwischen Takt 3 und 4 am Antrag, etwa zwei
+Sekunden, danach nirgends. „Sichtbar“ aus D529 Beschluss 2 hinge am Takt. Eine Gruppierung aller
+`vote@1` des Scopes je Wurzel und Antrag findet am Endstand auf jedem Gerät beide Fälle; der Titel
+ergibt sich aus der Verfassung der Vorgängerepoche.
+
+**Beschluss 1 — Bild (c) unter `--geraete`.** `GERAETE_GERAETE` in `tools/netz.py`: die sechs Geräte
+aus `GERAETE_VERSEHEN`, die Zweitgeräte tragen statt des Schlüssels der Person je einen eigenen,
+`BRUNO (Zweitgerät)` und `DORA (Zweitgerät)`. `--versehen`, `--personen` und der Lauf ohne Schalter
+bleiben, wie sie sind; aus dem Grund im Verworfenen von D523, und weil der Vergleich die Demo ist:
+dieselben Takte, dieselben Personen, einmal fällt der Beschluss, einmal hält er. Die Regeln aus D521
+und D523 gelten unverändert, auch Doras Verzögerung und die Trennung im Takt 3 bis 7.
+
+**Beschluss 2 — die Wurzel liegt auf dem Erstgerät.** Nur die Zweitgeräte haben eigene Schlüssel.
+Grund ist Befund 3. Getragen: das Bild zeigt die kalte Wurzel aus D529 nicht; es ist die Form des
+Hauptgeräts bei WhatsApp. Die kalte Wurzel braucht erst die übrigen Profile nach D534 Beschluss 2.
+
+**Beschluss 3 — die Aufnahme liegt vorab im Bestand.** `anlegen` schreibt mit `geraete=True` in
+jeden Bestand dieselben Bytes: `device-add@1` der Wurzel an ihrer Spitze, `J = [identity, Gerät]`,
+`device-ack@1` des Geräts auf seinem Genesis-Anker, `J = [claim-ref, claim_id(add)]`, beide in
+`N_gov`, ohne `t_exp`, `t = 10`. Die Seeds der Geräte sind `h'2121…21'` (BRUNO) und `h'2222…22'`
+(DORA), je 32 Byte. Jeder Bestand trägt die Namen beider Geräte, den Seed nur, wo das Gerät ihn
+hält.
+Eine Aufnahme als Handlung im Netz braucht zwei neue Arten der Absicht und eine eigene Folge von
+Takten; das ist ein eigenes Bild.
+
+**Beschluss 4 — die Sicht rechnet je Wurzel.** Überall über `vote_root` mit der Zurechnung desselben
+Stands:
+
+- `proposals_view`: `yes`, `no` und `ambiguous` nennen Wurzeln.
+- `tasks_view` für einen Schlüssel, der im Scope als Gerät aufgenommen ist: die Aufgaben `VOTE` und
+  `RATIFY` seiner Wurzel, „abgestimmt“ heisst eine Stimme mit derselben Wurzel. Keine Aufgaben
+  `CONFIRM_RULES`, `CONTRIBUTION_OPEN` und `RECEIPT`: diese Profile rechnen nach `I`.
+- `_intent_body` für `vote`: `ALREADY_VOTED` und die Folge nach der Wurzel.
+- `_budget_of` und `tools/ref_block.py` mit Zurechnung, wie `derive` (D537 Befund 2).
+
+`/forks` und die Gabelkarte aus D525 bleiben unverändert.
+
+**Beschluss 5 — Stimmen einer Wurzel von mehreren Schlüsseln, dauerhaft.** Eine neue reine Funktion
+der Sicht gruppiert die aktiven `vote@1` eines Scopes mit `J`-Tag 3 nach Wurzel und Antrag, über
+alle Epochen. Sie nennt nur Gruppen mit Stimmen von mindestens zwei verschiedenen Schlüsseln; die
+Stimmen eines Schlüssels allein bleiben bei `/forks`, sonst stünde dieselbe Gabel zweimal auf der
+Seite. Bestrittene Stimmen stehen nicht darin. Jede Gruppe trägt die Stimmen mit Schlüssel und Wert
+und die Änderungen des Antrags gegen die Verfassung seiner Vorgängerepoche, für den Titel.
+
+**Beschluss 6 — was die Seite sagt.** Oli hat den Satz getragen: „Dora hat auf zwei Geräten gleich
+gestimmt und zählt einmal; der Beschluss hält. Bruno hat auf zwei Geräten verschieden gestimmt;
+keine seiner Stimmen zählt, aber er behält sein Vertrauen.“ Und den Ort von Doras Satz (Befund 4).
+
+- Verschiedene Wahl: eine Widerspruchskarte, `BRUNO hat zum Antrag „beitrag festlegen“ auf zwei
+  Geräten Ja und Nein unterschrieben.`, darunter `Keine der beiden Stimmen zählt.` und `BRUNOs
+  Bürgschaften zählen weiter.` Oben, solange der Antrag unter den Anträgen der Seite `PENDING` ist,
+  sonst im Tab „Im Verein“ unter den Sätzen; die Regel aus D525 Beschluss 2.
+- Gleiche Wahl: keine Karte, ein Satz im Tab „Im Verein“, `DORA hat zum Antrag „beitrag festlegen“
+  auf zwei Geräten Ja gestimmt. Das zählt einmal.`
+
+Werte, die weder Ja noch Nein sind, und das Zahlwort bei mehr als zwei Geräten entscheidet der
+Prototyp zum Auftrag.
+
+**Golden Numbers, am Prototyp gemessen.** Der Lauf über den Startbefehl mit `--geraete`, Wanduhr:
+
+- Die Takte wie in D523, bis auf Takt 5: dort bestätigt auch BRUNO die Satzung, weil ihn keine
+  Gabel meldet. Die Zeilen der Zweitgeräte nennen `BRUNO (Zweitgerät)` und `DORA (Zweitgerät)`.
+- Die Durchgänge verteilen 15, 15, 20, 4, 16 und 15 Einträge.
+- Nach Takt 3 auf Annas Gerät: `PASSED`, Ja ANNA, CHRIS und DORA, `ambiguous` BRUNO, 3 von 4 nötig.
+- Danach auf allen sechs Geräten: derselbe Stand, keine Gabel, Epoche 3; in `N_res` je zwei Kanten
+  von ANNA und BRUNO.
+- Die Gruppierung aus Beschluss 5 am Endstand, auf jedem Gerät: BRUNO mit den Werten 1 und 0, DORA
+  mit 1 und 1, beide zum Antrag mit dem Feld `beitrag` ohne alten Wert.
+- Ohne Geräte im Bestand ist der Prototyp neutral: 1181 Tests grün.
+
+**Verworfen.**
+
+- **Kalte Wurzel, Geräteschlüssel auf jedem Gerät.** Befund 3.
+- **Bild (b) unter `--versehen` auf Geräteschlüssel umstellen.** Die Golden Numbers aus D523 wären
+  still ersetzt, und der Vergleich ginge verloren.
+- **Doras Satz an der Antragskarte.** Befund 4; Oli hat den Ort mitgetragen.
+- **Die Widerspruchskarte aus `ambiguous` der geltenden Anträge.** Dieselbe Flüchtigkeit.
+
+**Schwächste Stelle.** Wie in D521 und D523 hängen die Regeln an Namen. Dazu zeigt das Bild die
+Aufnahme nicht als Handlung, und die Wurzel liegt warm auf dem Erstgerät.
+
+**Geändert.** `07-decisions.md`.

@@ -159,14 +159,16 @@ also auf Bruno an.
 ### 5.1 Nacheinander
 
 Bruno stimmt Ja und besinnt sich, am nächsten Tag stimmt er Nein. Beide Stimmen hängen
-nacheinander in seiner Kette. Die Auszählung zählt **keine** von beiden und vermerkt
-`AMBIGUOUS_VOTE` mit beiden `claim_id` (`04 §3.1`). Sein Ja ist damit weg, der Antrag steht bei
+nacheinander in seiner Kette. Das Nein nennt das Ja in `v` Key `1`, wie jede Stimme, die die Seite
+unterschreibt (D548), und ersetzt es: Bruno zählt als Nein, sein Ja ist weg, der Antrag steht bei
+`PENDING`. Nennt die zweite Stimme die erste nicht, zählt die Auszählung **keine** von beiden und
+vermerkt `AMBIGUOUS_VOTE` mit beiden `claim_id` (`04 §3.1`); auch dann steht der Antrag bei
 `PENDING`.
 
 Das ist kein Betrug, sondern eine Meinungsänderung. Zurücknehmen lässt sich eine Stimme nicht
-(`04 §8`); ersetzen schon, wenn die zweite die erste nennt (`04 §3.1`, D547). Brunos Nein nennt
-sein Ja nicht, also lähmt es beide. Der Bildschirm sagt es vorher, bei der zweiten Stimme:
-„Du hast schon abgestimmt. Eine zweite Stimme macht beide ungültig.“
+(`04 §8`); ersetzen schon (`04 §3.1`, D547). Der Bildschirm sagt es vorher, bei der zweiten
+Stimme: „Du hast schon anders abgestimmt. Diese Stimme ersetzt die frühere.“ und in der Folge
+„Deine frühere Stimme zählt dann nicht mehr.“
 
 ### 5.2 Die Gabelung
 

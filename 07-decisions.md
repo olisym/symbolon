@@ -23600,3 +23600,89 @@ dort kennt keine zweite Stimme die erste.
 
 **Geändert.** `07-decisions.md`, `04-governance.md`, `04-golden-anchors.md`, `example-nucleus.md`,
 `szenario-verein.md`.
+
+### D548 — Prototyp zum Auftrag `p28-ersetzen`; die Seite nennt frühere Stimmen; Auftrag
+
+**Anlass.** D547, offen für den Auftrag. Oli hat entschieden: die Seite nennt. Gelesen dazu:
+`decide` in `symbolon/governance/tally.py`, `_intent_body` und `_vote_effect` in
+`symbolon/node/api.py`, `geraetestimmen` in `symbolon/node/view.py`, `folgeZeilen` und die
+Warnungen in `anzeige.js`, `tests/node/test_lesen.py`, `test_vorschau.py`, `test_api.py`,
+`test_geraete.py`, `tools/verein.py` (`check_ambiguous_sequence`), `tools/netz.py` (`ABLAUF`).
+Prototyp im Supervisor-Klon auf `9906f98`, gemessen, verworfen.
+
+**Beschluss 1 — die Seite nennt jede frühere Stimme derselben Wurzel, die ihr Bestand kennt.** Die
+Absicht `vote` setzt `v` Key `1` auf die sortierten `claim_id` aller Stimmen zum Antrag im Scope,
+deren Wurzel die des Handelnden ist, auch solcher, die nicht zählen; ein Name ohne Ziel bleibt nach
+D547 Beschluss 2 ohne Wirkung. Ohne frühere Stimme fehlt Key `1`. Oli hat mitgetragen: sonst baut
+das Protokoll etwas, das auf der Seite niemand erreicht.
+
+**Beschluss 2 — was die Vorschau sagt.** Zählt die Wurzel schon mit dieser Wahl, bleibt alles, wie
+es ist: `SAME_VOTE`, `counts` falsch, `same` wahr. Sonst, bei einer früheren Stimme, ersetzt die
+neue: Warnung `CHANGE_VOTE`, Text „Du hast schon anders abgestimmt. Diese Stimme ersetzt die
+frühere.“, `counts` wahr, Ja und Nein ohne die frühere Wahl der Wurzel und mit der neuen, ein neues
+Feld `replaces` wahr und in der Folge die Zeile „Deine frühere Stimme zählt dann nicht mehr.“ Das
+gilt auch, wenn die Wurzel wegen eines Widerspruchs gerade gar nicht zählt: die neue Stimme löst ihn
+auf. `ALREADY_VOTED` entfällt, die Absicht erzeugt es nicht mehr; D543 Beschluss 4 („sonst
+`ALREADY_VOTED` mit der Folge von heute“) ist damit überholt.
+
+**Beschluss 3 — die Gruppierung aus D542 Beschluss 5 zählt nur, was nicht ersetzt ist.** Sonst
+stünde Brunos Widerspruch als Karte da, nachdem er ihn aufgelöst hat. Die Auszählung und die Sicht
+teilen dafür eine Funktion `maximal_votes` in `tally.py`, dazu `read_replaces` für Key `1`.
+
+**Beschluss 4 — der Vermerk `MALFORMED_REPLACES` steht nach der Prüfung der Wahl und vor der des
+Zustands**, wie die übrigen Formprüfungen (`04 §3.1`, D94). Die Stimme bleibt Kandidat.
+
+**Befund 1 — bestehende Erwartungen, die D547 und Beschluss 1 ändern.** Fünf Tests prüften die
+alte Regel, dass die zweite Stimme über die Seite beide lähmt: `test_zweite_stimme` in
+`test_vorschau.py` (D490 Kriterium 3, jetzt: das Nein ersetzt das Ja) und in `test_api.py`,
+`test_doppelstimme` und `test_ambiguous` in `test_lesen.py`, `test_stimme_ueber_geraet` in
+`tests/node/test_geraete.py`. Der Auftrag ändert sie ausdrücklich, mit Wortlaut. Mehrdeutigkeit
+über die Seite entsteht nur noch zwischen Geräten, die einander nicht kennen; die prüfen
+`test_sicht_je_wurzel` und die Bilder.
+
+**Befund 2 — die Bilder bleiben.** In `--versehen`, `--personen`, `--geraete` und im Ablauf aus D518
+stimmt keine zweite Stimme mit Kenntnis der ersten: die Zweitgeräte sind getrennt oder stimmen im
+selben Takt. Gemessen: `test_versehen`, `test_personen`, `test_netz`, `test_bild_c` grün.
+
+**Befund 2a — `szenario-verein §5.1`.** Der Bildschirm sagte „Eine zweite Stimme macht beide
+ungültig.“ Mit Beschluss 1 ersetzt Brunos Nein über die Seite sein Ja; der Abschnitt erzählt das
+jetzt und hält den Fall ohne Nennung daneben, den `check_ambiguous_sequence` in `tools/verein.py`
+weiter prüft. Der Antrag steht in beiden Fällen bei `PENDING`.
+
+**Befund 3 — der Eigenschaftstest aus D547 ist schwach.** Jede Regel, die nur Stimmen herausnimmt
+und die neue behält, erfüllt „nie weniger als ohne Nennung“ von selbst; die Rücknahmeprobe, die
+nennende Stimmen verwirft, bleibt dort grün und wird von `GV-55` bis `GV-57` gefangen. Er bleibt als
+Regressionstest der Messung, nicht als Schutz.
+
+**Befund 4 — ein Zweig in `folgeZeilen` ist von der Absicht aus nicht mehr erreichbar.** „Du hast
+schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.“ setzt `counts` falsch bei einer
+Teilnehmerin ohne gleiche Wahl voraus; das erzeugt `_vote_effect` nicht mehr. Der Zweig und seine
+Fälle im Selbsttest bleiben, der Auftrag rührt `folgeZeilen` nur für die neue Zeile an.
+
+**Befund 5 — nebenbei, ohne Auftrag.** `szenario-verein §9` sagt, eine Identität, die von zwei
+Geräten unterschreibe, gable sich selbst; seit D529 gilt das nur für einen geteilten Schlüssel.
+
+**Golden Numbers, am Prototyp.** 1203 Tests grün (1192, dazu acht in
+`tests/governance/test_ersetzen.py` und drei in `tests/node/test_ersetzen.py`), der Selbsttest 180
+von 180, `ruff` sauber. Rücknahmeproben, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| R1 | `maximal_votes` nimmt nichts heraus | GV-55, GV-56, Nachzügler, zwei Auflösungen, Auflösung auf dem Zweitgerät, drei Seitentests |
+| R2 | kein Vermerk `MALFORMED_REPLACES` | GV-58, keine Liste |
+| R3 | formwidriger Key macht die Stimme ungültig | GV-58, keine Liste |
+| R4 | Ersetzen über Wurzeln hinweg | GV-57 |
+| R5 | die nennende fällt statt der genannten | wie R1 |
+| R6 | die Absicht setzt keinen Key 1 | die Knotentests, drei Seitentests |
+| R7 | die Absicht nennt nur Stimmen desselben Schlüssels | die Knotentests, zwei Gerätetests |
+| R8 | gleiche Wahl zählt als Wechsel | gleiche Wahl nennt auch, zwei Gerätetests |
+| R9 | die Gruppierung ohne `maximal_votes` | Auflösung auf dem Zweitgerät |
+| R10 | keine Folgezeile für `replaces` | Selbsttest „ersetzt die frühere Stimme“ |
+| R11 | nennende Stimmen werden verworfen | GV-55 bis GV-57, Nachzügler, zwei Auflösungen |
+
+**Offen, ohne Auftrag.** Das Bild, in dem Bruno seinen Widerspruch auf dem Zweitgerät auflöst, und
+ein Satz auf seiner Karte, der sagt, dass eine neue Stimme beide ersetzt; beides mit Olis Durchlauf.
+
+**Beschluss 5 — Auftrag `p28-ersetzen`.**
+
+**Geändert.** `07-decisions.md`, `szenario-verein.md`.

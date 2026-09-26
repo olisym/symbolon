@@ -422,16 +422,20 @@ Stufe 1 schickt die volle Liste (D514 Beschluss 2). Über LoRa oder Reticulum ko
 
 Seit D123 entschieden: ein Schreiber, ein Ort; Geräte unterschreiben die Anfrage, nicht den Claim.
 
-### O92 Mehrere Geräte einer Person: D123 neu bewerten
+### O92 Mehrere Geräte einer Person: D123 neu bewerten — erledigt (D540)
 
-D123 bindet die Autorschaft an einen Ort; ein Zweitgerät unterschreibt nur die Anfrage. Oli hält
-das für unpraktisch, wenn der Ort nicht erreichbar ist (D528). Neu bewertet werden D123, `01 §8`
-und die Behandlung jeder Gabelung als Widerspruch (D43, D469, `04 §3.1`), gegen Literatur, die
-D124, D489 und D527 nicht geprüft haben. Leitfragen und Suchbegriffe im Sitzungsstart zu `00co`.
-Öffnet in der nächsten Sitzung.
+Wurzel und Geräteschlüssel je Scope, Zurechnung in `02 §2.1`, Auszählung je Wurzel (D529–D540).
 
 ### O93 Eine Stimme, die zwei widersprüchliche Stimmen derselben Wurzel auflöst
 
 Stimmen zwei Geräte einer Wurzel verschieden, zählt keine (D529 Beschluss 2). Eine neue Stimme, die
 beide per `claim_id` nennt, entstand nachweislich nach beiden. Das ist der Stimmwechsel aus D487
 Befund 3 und hängt an D97. Öffnet, wenn der Prototyp aus D529 Beschluss 3 die Form trägt.
+
+### O94 Geräte im Knoten, in der Simulation und auf der Karte
+
+Die Schichten `02` und `04` rechnen Geräte der Wurzel zu (D538, D540). Der Knoten nicht:
+`node/api.py` (`_budget_of`) und `tools/ref_block.py` bilden Gruppen ohne Zurechnung (D537), und
+`node/view.py` zählt `tally.yes` in `claim_id`, nicht in Wurzeln (D539). Bild (b) aus D523 läuft
+noch mit einem geteilten Schlüssel. Öffnet mit dem Auftrag, der Doras Zweitgerät einen eigenen
+Schlüssel gibt.

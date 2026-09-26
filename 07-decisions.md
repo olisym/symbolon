@@ -23169,3 +23169,37 @@ erreichen und vier Stimmen es täten.
 liest `tally.yes` für die Karte; das bleibt ausserhalb und kommt mit den Geräten im Knoten.
 
 **Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.
+
+### D540 — Abnahme `p26-auszaehlung`; O92 erledigt, O94 für den Knoten
+
+**Anlass.** Bericht des Werkzeugs, Commit `a229c36` auf `p26-auszaehlung`, Basis `03e30b9` (D539).
+Gelesen: der vollständige Diff gegen die Basis aus dem Spiegel. Im Klon auf dem Branch 1181 Tests
+grün, die Markdown-Prüfungen grün.
+
+**Geprüft gegen `04 §3.1`, `§4.1`, `§4.4`.** Die Wurzel einer Stimme ist bei `ATTRIBUTED` und
+`DISPUTED` die des Geräts, sonst der Autor; die Mitgliedsprüfung liest sie, eine bestrittene
+Stimme trägt deshalb `DISPUTED_VOTE` und nicht `NON_MEMBER_VOTE`. Das Verdikt zählt nur mit
+`verdict@1` im Boden der Verfassung, von einem Schiedsrichter, aktiv, ohne `t_exp`, mit
+kanonischem `v` und Ausgang `1`. Zusammenfassung, `CONFLICTING_APPROVAL` und Schwelle rechnen je
+Wurzel; bestrittene Stimmen zählen im Konflikt nicht mit. Die Feststellung prüft den Feststeller
+mit der Zurechnung für Kanten und die Zeugen mit der Wurzel der Stimme.
+
+**Eigene Proben.** Q3 (Schwelle zählt `claim_id`) und Q6 (Bedingung der Unwiderruflichkeit
+entfernt) im Klon nachgefahren, beide rot.
+
+**Beschluss 1 — Meldung 1 angenommen.** Die Klassifikation rückt in `epoch.py` vor Bedingung 1;
+die Reihenfolge der Prüfungen und Vermerke bleibt. Die Wurzel steht erst mit den Zuständen fest,
+und eine Rechnung vor einer Prüfung ist keine Prüfung.
+
+**Beschluss 2 — Meldung 4 angenommen.** Wohlgeformt heisst für `arbitration.arbitrators` eine Liste
+aus `bstr` der Länge 32, die Form aus `00 §5.1`. Jede andere Lage heisst: keine Schiedsrichter.
+
+**Befund — Commit vor dem Prüfergebnis.** Das Werkzeug meldet selbst, zuerst committet und erst
+dann den Ausgang von `make check` gelesen zu haben; es hat den Fehler vor dem Bericht behoben. Der
+abgenommene Stand ist der gemeldete Commit, und er ist grün.
+
+**Beschluss 3 — O92 erledigt, O94 neu.** Die Frage aus D528 ist beantwortet und in `02` und `04`
+gebaut. Offen ist der Knoten: `node/api.py`, `tools/ref_block.py` und `node/view.py` rechnen ohne
+Zurechnung, und Bild (b) läuft noch mit einem geteilten Schlüssel. Das ist O94.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

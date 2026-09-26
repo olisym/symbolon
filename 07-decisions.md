@@ -22509,3 +22509,30 @@ Preis ist ein Mehrheitsquorum, also die Einigung, die D124 als Preis jeder solch
 Es bestätigt D123 und D124.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O91 erledigt).
+
+### D528 — Schluss der Sitzung 00cn; Phase 4 erreicht, O92 für die nächste Sitzung
+
+**Anlass.** Nach D527 wandte Oli ein: „Wenn mein Zweitgerät voraussetzt das mein Erstgerät
+verfügbar ist dann könnte ich ja auch gleich das Erstgerät nutzen?“ Die Zweitgerät- und
+Schlüsselfrage sei nicht befriedigend gelöst; sie soll tief und unter neuen Suchbegriffen
+nachgelesen werden, ohne getroffene Beschlüsse als fest zu behandeln, in einer neuen Sitzung.
+
+**Beschluss 1 — Stand.** Phase 4 ist mit zwei Bildern erreicht: Bruno lügt (D521, D522), Dora
+vertut sich (D523, D524), und die Karte erklärt, warum ein Beschluss fällt (D525, D526).
+
+**Beschluss 2 — O92.** Der Strang geht über diese Sitzung hinaus und bekommt deshalb eine Nummer
+(Kandidat aus D412). Vorher gegen das Register gesucht (D527): Er steht nicht offen, sondern ist
+in D123 entschieden, und genau diese Entscheidung soll neu bewertet werden. O92 nennt deshalb
+D123 als das, was er in Frage stellt, nicht als offene Lücke. Die Leitfragen und Suchbegriffe
+stehen im Sitzungsstart.
+
+**Beschluss 3 — eine Lesart, die zuerst zu prüfen ist.** D123 bindet die Autorschaft an einen
+Ort, nicht an das Erstgerät. Ein Ort, der immer erreichbar ist, etwa ein S-Node im Homelab, träfe
+Olis Einwand im Netz nicht; über Funk in Phase 5 schon. Ob der Einwand D123 trifft oder nur eine
+Lesart davon, ist die erste Leitfrage.
+
+**Beschluss 4 — Sitzungsschluss.** `sitzungsstart-00cn.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt; `sitzungsstart-00cm.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `offen.md` (O92), `sitzungsstart-00cn.md`,
+`archiv/sitzungsstart-00cm.md`.

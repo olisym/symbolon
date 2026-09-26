@@ -421,3 +421,11 @@ Stufe 1 schickt die volle Liste (D514 Beschluss 2). Über LoRa oder Reticulum ko
 ### O91 Mehrere Geräte einer Person ohne geteilten Schlüssel — erledigt (D527)
 
 Seit D123 entschieden: ein Schreiber, ein Ort; Geräte unterschreiben die Anfrage, nicht den Claim.
+
+### O92 Mehrere Geräte einer Person: D123 neu bewerten
+
+D123 bindet die Autorschaft an einen Ort; ein Zweitgerät unterschreibt nur die Anfrage. Oli hält
+das für unpraktisch, wenn der Ort nicht erreichbar ist (D528). Neu bewertet werden D123, `01 §8`
+und die Behandlung jeder Gabelung als Widerspruch (D43, D469, `04 §3.1`), gegen Literatur, die
+D124, D489 und D527 nicht geprüft haben. Leitfragen und Suchbegriffe im Sitzungsstart zu `00co`.
+Öffnet in der nächsten Sitzung.

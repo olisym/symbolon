@@ -23031,3 +23031,45 @@ Wurzel der Kante, Wurzel des Budgets. `p26` braucht dieselben; eine Schnittstell
 wählt, müsste der nächste Auftrag nachlesen.
 
 **Geändert.** `02-trust-flow.md`, `07-decisions.md`.
+
+### D537 — Rückfrage aus `p25`: der Boden in den Golden Anchors; zwei Präzisierungen
+
+**Anlass.** Bericht des Werkzeugs zu `p25-zurechnung`, abgebrochen vor dem Commit, Basis `b6ba31b`.
+Mit dem erweiterten Boden werden `test_P_A`, `P_B`, `P_C`, `P_D`, `P_G` und `P_H` in
+`tests/profiles/test_policy.py` rot. Sie halten die dreielementige Menge aus `03-golden-anchors.md
+§4` fest, und die steht dort noch. Das Werkzeug hat richtig abgebrochen: grün würde es nur durch
+Nachziehen, und das darf nur eine Normänderung.
+
+**Befund 1 — mein Fehler.** D535 hat `00 §5.2` auf sechs Prädikate gebracht, aber nicht nach jeder
+Aufzählung derselben Menge gesucht. Übrig blieben die Golden Anchors P-A bis P-H und die Tabelle der
+Verfassungsfelder in `00 §4`. D536 prüfte `tests/test_policy.py`, nicht `tests/profiles/`. Kandidat,
+Schwester von D420: wer eine aufgezählte Menge der Spec ändert, sucht jede Aufzählung derselben
+Menge, in Golden Anchors und Tests eingeschlossen, bevor der Auftrag hinausgeht.
+
+**Beschluss 1 — die Anker folgen der Norm.** `03-golden-anchors.md` P-A, P-B, P-C, P-D, P-G und
+P-H tragen die sechselementige Menge, nach dem Muster von D157. `00 §4` nennt in der Tabelle den
+Boden statt dreier Namen. Die Aufträge `01a-policy-prompt.md` und `03-prompt.md` behalten ihren
+Wortlaut; sie beschreiben den Plan ihrer Zeit (D470).
+
+**Beschluss 2 — die Tests lesen die Anker, nicht den Code.** Das Werkzeug schlug vor, die sechs
+Tests aus `PROTOCOL_IRREVOCABLE` abzuleiten. Das prüfte den Code gegen sich selbst. Die Tests
+tragen die Menge aus der Ankertabelle, wie bisher; abgeleitet sind sie aus der Spec-Tabelle.
+
+**Beschluss 3 — ein formwidriges Ack nimmt nichts** (Rückfrage 2). „Geräte nehmen keine Geräte
+auf“ liest nur ein `device-ack@1` mit `J`-Tag `claim-ref`. Sonst nähme ein beliebiger formwidriger
+Claim der Wurzel allen ihren Aufnahmen die Wirkung. `02 §2.1` ist präzisiert.
+
+**Beschluss 4 — weitere Keys im Ende sind unschädlich** (Rückfrage 3), wie beim Vouch. `01 §7.3`
+sagt es.
+
+**Befund 2 — zwei Aufrufer ohne Zurechnung.** `symbolon/node/api.py` (`_budget_of`) und
+`tools/ref_block.py` rufen `build_groups` ohne Zurechnung auf; liegen Geräte im Bestand, weicht
+ihre Budgetsumme von `derive` ab. Beide gehören zum Knoten und kommen mit dem Auftrag, der Geräte in
+die Simulation bringt. Bis dahin liegen keine Geräte im Bestand eines Knotens.
+
+**Befund 3 — Lücken wie die Zustandsmaschine.** Das Werkzeug liest einen Vorgänger eines anderen
+Autors oder einen nachträglich ungültigen als Lücke, wie `_predecessor_known_and_valid`. Das ist
+richtig: eine Lücke macht die Lage unentscheidbar, und `02 §2.1` behandelt sie so.
+
+**Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `02-trust-flow.md`,
+`03-golden-anchors.md`, `07-decisions.md`.

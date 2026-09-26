@@ -661,6 +661,7 @@ Scopes verlangte einen weiteren Namensraum und damit eine inkompatible Änderung
 der genannte Claim lokal fehlt. Ist `v` abwesend, unlesbar, nicht kanonisch oder trägt Key `0`
 nicht in der deklarierten Form, gilt das Ende als Ende beim `device-ack@1`: danach bleibt nichts
 zugerechnet. Das ist die sichere Richtung für eine Sperre; ein defektes `v` hebt sie nicht auf.
+Weitere Keys neben `0` sind zulässig und unschädlich, wie in §7.1 (D537).
 
 - **Lebenszyklus:** alle drei sind irrevocable (Protokoll-Default, `00 §5.2`). Der Weg aus einer
   Aufnahme ist das Ende, nicht der Widerruf: ein Widerruf rechnete alles, was das Gerät gesagt hat,

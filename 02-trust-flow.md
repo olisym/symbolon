@@ -79,8 +79,9 @@ hält:
 beide im Zustand `active` nach Atom-Spec §6 und ohne `t_exp`. Hält `G` in `N` mehrere solche
 Acks, bindet das früheste in `G`s eigener Kette, nicht das zuerst empfangene — die Regel aus
 `00 §6.1` (D154). Liegt keines vor allen anderen, weil die Acks auf verschiedenen Zweigen stehen,
-bindet keines. Geräte nehmen keine Geräte auf: hat `W` in `N` selbst ein `device-ack@1` im Zustand
-`active` und ohne `t_exp` gezeichnet, bleibt `A` ohne Wirkung. Die Regel liest nur, ob `W` als
+bindet keines. Geräte nehmen keine Geräte auf: hat `W` in `N` selbst ein `device-ack@1` mit
+`J`-Tag `claim-ref` im Zustand `active` und ohne `t_exp` gezeichnet, bleibt `A` ohne Wirkung. Ein
+formwidriges Ack ist kein Ack und nimmt nichts (D537). Die Regel liest nur, ob `W` als
 Gerät gehandelt hat, nicht ob diese Aufnahme ihrerseits wirkt; sonst hinge die Wirkung einer
 Aufnahme an einer anderen, und zwei Schlüssel, die einander aufnehmen, hätten keine Auswertung
 (D536).

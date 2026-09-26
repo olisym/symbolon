@@ -220,7 +220,7 @@ werden, weil an ihnen Sicherheit hängt:
 
 | Feld | Typ | Zweck | Schließt |
 |------|-----|-------|----------|
-| `irrevocable_predicates` | array[text] | Prädikate, deren `core/revoke`/`core/supersede` **ignoriert** werden (Atom-Spec §5.4). Profilnamen ohne Scope-Präfix. `obligation@1`, `rotate-key@1` und `rotate-ack@1` gelten auch ungenannt (§5.2); trust-gewährende Prädikate werden verworfen (Atom-Spec §5.4.3 b). | **P-1 / DR-030** |
+| `irrevocable_predicates` | array[text] | Prädikate, deren `core/revoke`/`core/supersede` **ignoriert** werden (Atom-Spec §5.4). Profilnamen ohne Scope-Präfix. die sechs Prädikate des Bodens gelten auch ungenannt (§5.2); trust-gewährende Prädikate werden verworfen (Atom-Spec §5.4.3 b). | **P-1 / DR-030** |
 | `thresholds` | map{text→ratio} | Quorum je Schwellenklasse (`ordinary`, `membership`, `amendment`, …). | DR-012 |
 | `arbitration` | map | Zuständige Schiedsrichter / Klausel (§5.1). | **E-1 / DR-029** |
 | `enforcement_policy` | map (optional) | Cure-Kurve, terminale Fehler (Enf-Spec §4, §8). | DR-022 |

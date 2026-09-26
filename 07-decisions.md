@@ -22424,3 +22424,45 @@ zeigt Olis Durchlauf. Und die Karte sagt „beide“, auch wenn eine Gabelung dr
 bisher.
 
 **Geändert.** `07-decisions.md`.
+
+### D526 — Abnahme `p24-karte`; Olis Durchlauf; eine Doppelstimme mit fremden Werten
+
+**Anlass.** Der Bericht zu `p24-karte` meldet `b946cac`, 1154 Tests und 163 von 163 im
+Selbsttest. Gelesen: der vollständige Diff gegen `f5e1d43` in `anzeige.js` und `app.js`.
+Nachgefahren: der Selbsttest in Node mit 163 von 163, `node --check` auf `app.js`, `test_stil.py`
+grün.
+
+**Beschluss 1 — abgenommen, mit einem Nachtrag vor dem Merge.** Die Rücknahmeproben K1 bis K5
+wurden rot wie verlangt. `doppelstimme` als private Funktion bleibt, weil beide Funktionen dieselbe
+Prüfung brauchen. Die Kommentare in `app.js` bleiben.
+
+**Beschluss 2 — Olis Durchlauf.** Oli hat `--versehen` mit frischem Verzeichnis gefahren und
+Doras Gerät angesehen: beide Karten oben, „DORA hat zum Antrag ‚beitrag festlegen‘ zweimal Ja
+unterschrieben.“, darunter „Keine der beiden Stimmen zählt.“, unter den Tabs „2 Ja, 0 Nein, 3 von
+4 nötig“. Oli: „Ja ich denke das passt so“. Die Karte erklärt jetzt die Zählung.
+
+**Befund — Dora sieht ihren Widerspruch, aber nichts zu tun.** Auf ihrem eigenen Gerät steht
+„Jetzt zu tun: Nichts“. Das ist richtig, denn sie hat nichts mehr zu tun (D523 Befund 3), und es
+gibt keinen Weg zurück, der nicht einen neuen Schlüssel bräuchte (D489). Was eine ehrliche Person
+dann tut, ist O91. Ohne Auftrag.
+
+**Beschluss 3 — die Überschrift bei Werten, die weder Ja noch Nein sind.** Der Bericht meldet die
+Lücke: eine Stimme aus dem Abgleich kann einen anderen Wert tragen, `wertInWorten` gibt dann JSON,
+und die Überschrift sagte bei zwei verschiedenen solchen Werten „zweimal“ und den ersten. Die
+Lücke lag im Auftrag: er nannte die Lage nicht, dass fremder Inhalt formwidrig ist (Kandidat aus
+D474). Das ergänzt D525 Beschluss 3:
+
+- Sind alle Werte gleich: `zweimal {Wert}`.
+- Sonst, ist jeder Wert Ja oder Nein: `Ja und Nein zugleich`.
+- Sonst: `zweimal verschieden`, also etwa „DORA hat zum Antrag ‚beitrag festlegen‘ zweimal
+  verschieden unterschrieben.“
+
+`zaehltNicht` bleibt in allen drei Fällen wahr, weil nach `04 §3.1` Bedingung 6 keine Stimme einer
+Gabelung zählt, gleich welchen Wert sie trägt.
+
+**Golden Numbers, am Prototyp gemessen.** Zwei Fälle mehr, 165 von 165: die Werte 2 und 3, und
+Ja neben dem Wert 2; beide erwarten „DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden
+unterschrieben.“ und `zaehltNicht` wahr. Rücknahmeproben: L1 die alte Zeile aus `b946cac` macht
+beide Fälle rot, L2 „Ja und Nein zugleich“ statt „zweimal verschieden“ ebenso.
+
+**Geändert.** `07-decisions.md`.

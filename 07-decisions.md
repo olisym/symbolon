@@ -22466,3 +22466,46 @@ unterschrieben.“ und `zaehltNicht` wahr. Rücknahmeproben: L1 die alte Zeile a
 beide Fälle rot, L2 „Ja und Nein zugleich“ statt „zweimal verschieden“ ebenso.
 
 **Geändert.** `07-decisions.md`.
+
+### D527 — O91 ist durch D123 beantwortet; der Posten war ein Fehler von mir
+
+**Anlass.** Oli: „Bitte O91“. Vor jeder Suche habe ich das Register nach Geräten, Delegation und
+`01 §8` gelesen: `01 §8` „Ein-Schreiber-Annahme“, D123, D124, D489 Befund 2, D471 Beschluss 2.
+
+**Befund — die Frage ist seit D123 entschieden.** O91 fragte, wie eine Person mehrere Geräte hat,
+ohne einen Schlüssel zu teilen, und nannte Suchbegriffe, als wäre das offen. D123 hat es
+entschieden: ein Schreiber, ein Ort. Die Geräte halten je ein eigenes Schlüsselpaar und
+unterschreiben damit die Anfrage an den Ort; den Claim unterschreibt der Ort, und die
+Gerätesignatur betritt das Protokoll nie. Matrix' Cross-Signing steht dort schon, unterhalb des
+Protokolls, und D123 verwirft den Weg, den ich in der Aussprache zu D523 als erwartete Richtung
+genannt hatte: eigene Ketten je Gerät machen Equivocation zu einer freien Handlung, weil Alice auf
+zwei Geräten zweierlei sagen kann, ohne dass ein Beweis entsteht. D124 hat Keybase, Nostr und
+Secure Scuttlebutt geprüft, D489 Secure Scuttlebutt und Cosmos. Die Suchbegriffe in O91
+wiederholten fast alle diese Recherche.
+
+**Die Ursache.** Ich habe O91 geschrieben, ohne im Register nach der Frage zu suchen. Das ist der
+Kandidat aus D514, einen Weg zu suchen, bevor man darauf baut, und er gilt auch für einen Posten.
+Geschärft: Ein neuer Posten in `offen.md` wird vorher gegen das Register gesucht, mit den
+Wörtern der Frage und den Namen, die er nennen will.
+
+**Beschluss 1 — O91 ist erledigt.** Der Posten schliesst mit Verweis auf D123. D523 Befund 4
+(„was eine ehrliche Person stattdessen tut, ist O91“) liest sich damit als Verweis auf D123: Dora
+schreibt von einem Ort; ihr Zweitgerät schickt Anfragen dorthin.
+
+**Beschluss 2 — was die Simulation daraus lernt.** Doras Zweitgerät in D523 trägt DORAs Schlüssel
+und unterschreibt selbst. Es ist damit genau der Fall, den D123 ausschliesst, und das Bild zeigt,
+warum. Die Form nach D123 wäre ein Zweitgerät ohne DORAs Schlüssel, das seine Anfrage an Doras
+Gerät richtet. Getrennt kann es dann nicht für sie unterschreiben; das ist die in D123 getragene
+Grenze („Autorschaft ist erreichbarkeitsabhängig, Lesen nicht“). Ob das eine Stufe (c) wird,
+entscheidet Oli.
+
+**Beschluss 3 — die offene Stelle aus D489 ist nachgeholt.** D489 hielt fest, Hypercore sei nicht
+geprüft. Autobase, der Mehrschreiber-Aufsatz über Hypercore, gibt jedem Schreiber einen eigenen
+Kern, verknüpft die Einträge kausal und ordnet sie für alle gleich. Die Ordnung ist nur eventuell
+konsistent und kann sich umstellen, wenn neue kausale Information eintrifft; fest wird sie erst an
+Kontrollpunkten, die voranschreiten, solange eine Mehrheit der Indexer schreibt (Autobase,
+README, gelesen 2026-09-26). Das ist die Bauform, die D123 verwirft (Ketten je Gerät), und ihr
+Preis ist ein Mehrheitsquorum, also die Einigung, die D124 als Preis jeder solchen Lösung nennt.
+Es bestätigt D123 und D124.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O91 erledigt).

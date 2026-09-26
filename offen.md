@@ -418,11 +418,6 @@ Stufe 1 schickt die volle Liste (D514 Beschluss 2). Über LoRa oder Reticulum ko
 32 Byte für jeden gehaltenen Eintrag. Negentropy (Nostr NIP-77) gleicht Mengen bereichsweise ab.
 Öffnet in Phase 5, oder wenn eine Messung die Liste zu gross findet.
 
-### O91 Mehrere Geräte einer Person ohne geteilten Schlüssel
+### O91 Mehrere Geräte einer Person ohne geteilten Schlüssel — erledigt (D527)
 
-Ein Schlüssel auf zwei Geräten gabelt, sobald beide unabhängig schreiben; das trifft die ehrliche
-Person wie die lügende (D523 Befund 2 und 4). Vor einem eigenen Entwurf wird nachgelesen, was
-draussen gefunden wurde: Secure Scuttlebutt („multi-device“, „fusion identity“), Keybase
-(„sigchain“, „per-device keys“), Matrix („cross-signing“), Signal („Sesame“), Nostr („NIP-26
-delegated event signing“), Hypercore und Autobase („multi-writer“). Verwandt mit D489 und O89.
-Öffnet nach der Abnahme von Stufe (b).
+Seit D123 entschieden: ein Schreiber, ein Ort; Geräte unterschreiben die Anfrage, nicht den Claim.

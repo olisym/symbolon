@@ -22698,3 +22698,84 @@ die Rotation vorsieht, oder im Core. Dazu die Lage, dass eine Gerätekette schon
 Claims trägt, und das Ende „bis einschliesslich `claim_id`“ aus D529 Befund 6.
 
 **Geändert.** `07-decisions.md`.
+
+### D531 — Delegation an Geräte je Scope: device-add, device-ack, device-end; Budget je Wurzel
+
+**Anlass.** D530 Beschluss 2. Gelesen: `01 §2`, `01 §5`, `01 §6`, `01 §9`, Anhang A zu `01`,
+`00 §6.1`, `04 §2.3`, `symbolon/trust/derive.py`, `symbolon/trust/groups.py`,
+`tools/verein.py` (`check_anna_overcommit`, `check_chris_vouch_dora`). Oli hat F1 entschieden, die
+übrigen Punkte mit Position gebilligt.
+
+**F1 — die Delegation gilt je Scope.** `01 §2.2` kennt genau `core` und `nuc:<scope>`, und jedes
+`nuc:`-Prädikat braucht `N`. Eine Delegation über alle Scopes verlangte einen dritten Namensraum
+oder ein neues `core`-Prädikat; alte Prüfer wiesen sie als `UNKNOWN_NAMESPACE` ab, nach `01 §9`
+eine inkompatible Änderung. Je Scope bleibt das Protokoll, wie es ist, passt zur Partitionierung
+von Trust-Flow und Auszählung, und ein Verein erfährt nur von den Geräten, die in ihm sprechen.
+`01 §8` („Keine Delegation im Core“) gilt damit wörtlich weiter. Getragen: die Wurzel kommt nicht
+nur für ein neues Gerät heraus, sondern für jeden Verein; in einer Sitzung unterschreibt sie alle
+Geräte für alle Scopes dieses Vereins.
+
+**F2 — Aufnahme mit Gegenzeichnung.** Das Muster aus `00 §6.1` (`rotate-key` und `rotate-ack`,
+D125). Ohne Gegenzeichnung könnte Bruno Olis Schlüssel als sein Gerät eintragen; Olis Stimmen würden
+mit Brunos zusammengefasst und fielen als Doppelstimme weg.
+
+- `nuc:N/device-add@1`: `I` die Wurzel, `J = [identity, Geräteschlüssel]`, `N` der Scope.
+- `nuc:N/device-ack@1`: `I` der Geräteschlüssel, `J = [claim-ref, claim_id(add)]`, `N` derselbe
+  Scope.
+- Zugerechnet wird ein Claim des Geräts in `N` nur, wenn das `device-ack` in `N` in seiner Kette
+  Vorfahr oder er selbst ist. Die Ordnung kommt aus `h_prev`. Was das Gerät vorher sagte, bleibt
+  dem Gerät.
+- `device-add` und `device-ack` sind unwiderruflich wie Rotate und Ack (D153): ein Widerruf rechnete
+  alle Claims des Geräts rückwirkend ab.
+
+**F3 — das Ende eines Geräts.** `nuc:N/device-end@1`: `I` die Wurzel, `J = [claim-ref, c]`, `c` ein
+Claim des Geräts, frühestens sein `device-ack`. Zugerechnet bleibt, was Vorfahr von `c` oder `c`
+selbst ist. Bei mehreren Enden gilt jedes: zugerechnet ist, was vor oder gleich jedem `c` liegt.
+Kein Zeitstempel, kein Fenster (D529 Befund 6).
+
+**F4 — die Verweise auf Geschwisterspitzen bleiben O93.** Sie ordnen nur zwei Stimmen derselben
+Wurzel; jede andere Regel entscheidet am Inhalt. Sie gehören nicht ins Atom, sondern in `v` einer
+Stimme, und `04 §2.3` lässt dort nur bestimmte Schlüssel zu. O93 öffnet nach dem Bau der
+Delegation und muss D97 beantworten.
+
+**Messung — Budget und Gabel je Wurzel.** Prototyp im Supervisor-Klon auf `1af4821`, verworfen: in
+`groups.py` wird der Gruppenschlüssel `(I, J)` zu `(Wurzel, J)`, in `derive.py` die Menge der
+gegabelten Autoren auf die Wurzel abgebildet; die Delegation ist eine Tabelle. Mit leerer Tabelle
+1154 Tests grün. Anker BRUNO und ANNA, Scope `N_res`, wie in `check_anna_overcommit`.
+
+| Fall | überzeichnet | Kanten | DORA |
+|---|---|---|---|
+| heute: ANNA bürgt n=1 selbst | ANNA | BRUNO 2 | unerreicht |
+| ANNAs Gerät bürgt n=1, delegiert | ANNA | BRUNO 2 | unerreicht |
+| ANNAs Gerät bürgt n=1, nicht delegiert | – | BRUNO 2, ANNA 2 | unerreicht |
+| heute: CHRIS bürgt n=50 selbst | – | BRUNO 2, CHRIS 1, ANNA 2 | d=2, C=25 |
+| CHRIS' Gerät bürgt n=50, delegiert | – | BRUNO 2, CHRIS 1, ANNA 2 | d=2, C=25 |
+| CHRIS' Gerät bürgt n=50, nicht delegiert | – | BRUNO 2, ANNA 2 | unerreicht |
+| BRUNOs Gerät gabelt, delegiert | – | ANNA 2 | unerreicht |
+| BRUNOs Gerät gabelt, nicht delegiert | – | BRUNO 2, ANNA 2 | unerreicht |
+
+**Befund 1 — ein delegiertes Gerät bürgt wie die Wurzel.** In allen drei Paaren ist die delegierte
+Zeile gleich der Zeile von heute: dasselbe Budget, dieselbe Kante, dieselbe Kapazität. Ein
+Gerät ohne Delegation hat keinen Ruf, seine Bürgschaft erreicht nichts (D530 Befund 3).
+
+**Befund 2 — eine Gabel auf einem Gerät trifft die Wurzel.** Gabelt ein delegiertes Gerät, verliert
+die Wurzel jede Kante wie heute nach D43. Mit F3 lässt sich das heilen: endet die Wurzel das Gerät
+bei einem `c` vor der Gabel, sind beide Zweige nicht zugerechnet, und die Wurzel ist sauber. Das
+ist der Fall des gestohlenen Telefons.
+
+**Beschluss 1 — Zurechnung.** Ein Claim wird in Scope `N` der Wurzel zugerechnet, wenn er von der
+Wurzel stammt oder von einem Gerät nach F2 und F3. Wo heute nach `I` gerechnet wird, rechnet die
+Zurechnung nach der Wurzel: die Mitgliedsprüfung, die Gruppierung und `reached` in `04 §3.1`, die
+Zeugen eines `ratify@1`, die Gruppen und das Budget in `02`, die Menge der gegabelten Autoren
+(D43). Die Gabel selbst wird weiter je Kette erkannt (`01 §4`).
+
+**Beschluss 2 — Ort des normativen Texts.** Die Zurechnung braucht `02` als unterste Schicht, die
+sie liest; `04` baut darauf. Sie gehört deshalb als eigener Abschnitt nach `02`, die drei Profile
+aus F2 und F3 nach `03`, und `04 §3.1` verweist. Geprüft wird das am Text beim Schreiben.
+
+**Offen für den Auftrag.** Ein `device-end` kann eine gezählte Stimme herausnehmen und damit ein
+erreichtes Ergebnis fallen lassen; das berührt D97 und wird gemessen, bevor der Text steht. Eine
+Bürgschaft **auf** einen Geräteschlüssel bleibt beim Gerät und wird nicht zugerechnet; ob das so
+bleibt, ist nicht gemessen.
+
+**Geändert.** `07-decisions.md`.

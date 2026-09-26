@@ -22219,3 +22219,102 @@ Stufe, in der die Antragstellerin gabeln kann, muss die Prüfung dorthin ausdehn
 **Nächster Schritt.** Stufe (b) aus D521: ein ehrliches Zweitgerät neben Brunos Lüge.
 
 **Geändert.** `07-decisions.md`.
+
+### D523 — Personen mit eigenem Verhalten, Stufe (b): Doras Versehen neben Brunos Lüge
+
+**Anlass.** D521 hat Stufe (b) festgehalten, D522 als nächsten Schritt genannt. Oli: „Stufe (b)“.
+Gelesen wie für D521, dazu `tools/personen.py`, `tests/node/test_personen.py` und die
+Änderung von `tools/netz.py` aus `p22-personen`.
+
+**Der Satz.** Nach einem Lauf kann Oli sagen: „Dora hat sich nur vertan, Bruno hat gelogen. Das
+Netz sieht bei beiden dasselbe: keiner von beiden zählt mehr, und der Beschluss fällt.“ Oli: „ja
+passt so!“. Der Satz aus D521 hiess „ob es Absicht war, sagt es nicht“; die Messung unten hat ihn
+geschärft, weil das Versehen den Beschluss kostet.
+
+**Beschluss 1 — ein sechstes Gerät, nur für dieses Bild.** `GERAETE_VERSEHEN` in `tools/netz.py`
+ist `GERAETE` plus `("Doras Zweitgerät", "dora2.sqlite", frozenset({"DORA"}))`, Port 8476 aus
+der Reihenfolge. `GERAETE` bleibt bei fünf Geräten, damit Bild (a) und der Ablauf aus D518 sich
+nicht ändern.
+
+**Beschluss 2 — Dora ist ehrlich und handelt auf dem Zweitgerät einen Takt später.** Auf Doras
+Zweitgerät gelten die Regeln aus D521 Beschluss 2 wie auf jedem anderen Gerät. Dazu handelt Dora
+dort nur auf einer Absicht, die das Gerät schon im vorigen Takt ergab, genauer: auf den Rümpfen
+aus `absichten` dieses Takts, die gleich einem Rumpf des vorigen Takts sind. Ist das Gerät
+verbunden, ist die Aufgabe bis dahin erledigt angekommen, und Dora tut nichts doppelt. Grund:
+Wer zwei Geräte hat, sieht das zweite später an. Die Verzögerung ist das Einzige, was Dora von
+einem Gerät unterscheidet, auf dem sie allein handelt.
+
+**Beschluss 3 — die Trennung nach Plan.** Im Takt 3 wird Doras Zweitgerät vom Netz getrennt, im
+Takt 7 wieder verbunden, jeweils vor den Personen. Nicht zufällig, weil das Bild an der Reihenfolge
+hängt: Das Zweitgerät muss den Antrag haben (er kommt im Durchgang von Takt 2), bevor es getrennt
+wird, und es kommt erst nach der Feststellung zurück. D521 Beschluss 3 („das Werkzeug trennt kein
+Gerät“) gilt für Bild (a) weiter.
+
+**Beschluss 4 — der Startbefehl.** `python -m tools.netz <verzeichnis> --versehen` fährt Bild (b)
+mit den sechs Geräten; `--personen` bleibt Bild (a), ohne Schalter bleibt D518. Die Zeilen der
+Trennung: `Takt {n}, Doras Zweitgerät: vom Netz getrennt` und `… wieder verbunden`. Der Text
+zum Zusehen:
+
+1. Die Personen handeln selbst: in jedem Takt erst auf jedem Gerät, dann gleichen die Geräte ab.
+2. Nicht selbst klicken, solange sie handeln. Im Terminal steht, wer was tut.
+3. In den Tabs „Aktualisieren“, sobald „Es ist Neues angekommen“ erscheint.
+4. Bruno lügt: er stimmt auf beiden Geräten verschieden. Dora ist ehrlich: ihr Zweitgerät ist eine
+   Weile getrennt, und sie stimmt dort ein zweites Mal gleich ab.
+5. Kommt Doras Zweitgerät zurück, zeigt jedes Gerät zwei Widersprüche, und der Beschluss fällt.
+
+**Befunde, am Prototyp gemessen.** Sechs Knoten, die Regeln aus Beschluss 2, mit fester Uhr und
+mit einer Uhr, die je Takt um eins weiterläuft:
+
+| Uhr | Trennung | Gabeln | Epoche am Ende |
+|---|---|---|---|
+| fest | keine | BRUNO | 3 |
+| +1 je Takt | keine | BRUNO | 3 |
+| fest | Takt 3 bis 7 | BRUNO | 3 |
+| +1 je Takt | Takt 3 bis 7 | BRUNO, DORA | 2 |
+
+1. **Befund 3 aus D521 ist bestätigt.** Mit fester Uhr signiert Dora auf beiden Geräten dieselben
+   Bytes; es entsteht ein Claim, keine Gabel. Mit der Wanduhr und zwei Sekunden je Takt sind die
+   Zeitstempel immer verschieden, das Versehen also immer sichtbar.
+2. **Das Versehen kostet den Beschluss.** Sobald Doras Zweitgerät zurück ist, zählt ihre Stimme so
+   wenig wie Brunos. Die Ja-Stimmen von Anna und Chris reichen nicht, die Feststellung aus Takt 4
+   trägt nicht mehr, auf jedem Gerät steht wieder Epoche 2. Dass eine Feststellung fallen kann,
+   kannte D518 schon (Schritt 8).
+3. **Dora wird nicht gemeldet.** Nach dem Fall hat sie keine Aufgabe: Sie hat abgestimmt, und
+   ihre Satzung gilt. Die Meldung aus D521 hängt an Aufgaben; Dora hängt fest, ohne es zu merken.
+4. **Das Problem ist der geteilte Schlüssel, nicht die Uhr.** Die Uhr entscheidet nur, ob zwei
+   ehrliche Claims zufällig dieselben Bytes haben. Eine Kette mit einer Spitze je Schlüssel
+   verträgt keine zwei Geräte, die unabhängig schreiben (`01 §8`). Was eine ehrliche Person
+   stattdessen tut, ist O91.
+
+**Golden Numbers.** Der Lauf über den Startbefehl, mit Wanduhr:
+
+- Takt 0: ANNA, BRUNO und CHRIS bestätigen die Satzung. Takt 2: ANNA beantragt den Beitrag.
+- Takt 3: Doras Zweitgerät wird getrennt, dann stimmen ANNA, BRUNO, CHRIS und DORA Ja auf ihren
+  Geräten und BRUNO Nein auf Brunos Zweitgerät.
+- Takt 4: ANNA stellt den Beschluss fest, DORA stimmt Ja auf Doras Zweitgerät.
+- Takt 5: ANNA, CHRIS und DORA bestätigen, BRUNO wird auf Brunos Gerät gemeldet.
+- Takt 7: Doras Zweitgerät wird wieder verbunden. Danach nichts mehr.
+- Die Durchgänge verteilen 15, 15, 20, 4, 12 und 14 Einträge.
+- Danach auf allen sechs Geräten: derselbe Stand, zwei Gabelgruppen, BRUNO mit den Stimmen 0 und
+  1, DORA mit 1 und 1; die Epoche des Vereins wie im frisch angelegten Bestand.
+- Mit fester Uhr, sonst gleich: eine Gabelgruppe, BRUNO; die Epoche um eins höher.
+
+Die sechs naheliegenden Fehler habe ich gegen die Tests in der Fassung des Auftrags gefahren
+(D517), jeder macht mindestens einen Test rot, jeder an der Sache: R1 Dora handelt auf dem
+Zweitgerät sofort (gleiche Bytes, keine Gabel), R2 keine Trennung, R3 das Zweitgerät kommt nie
+zurück (der Stand weicht ab), R4 der Takt nimmt `GERAETE` statt der übergebenen Liste, R5 die
+Verzögerung vergleicht nur die Art, R6 jedes Gerät handelt verzögert, und Bild (a) muss dabei
+auch rot werden.
+
+**Verworfen.**
+
+- **Bild (b) ersetzt (a) unter `--personen`.** Die Golden Numbers aus D521 wären still ersetzt,
+  und das Bild der reinen Lüge ginge verloren.
+- **Dora handelt auf dem Zweitgerät im selben Takt.** Das gibt dieselben Bytes (Befund 1), und
+  mit der Wanduhr hinge die Gabel an der Sekunde, also am Zufall.
+- **Eine Zufallstrennung.** Aus demselben Grund wie in D521.
+
+**Schwächste Stelle.** Wie in D521 hängen die Regeln an Namen. Und das Bild zeigt, dass ein
+ehrliches Doppelgerät scheitert, aber nicht, wie es richtig ginge; das ist O91.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O91).

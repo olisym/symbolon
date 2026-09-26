@@ -22876,3 +22876,51 @@ Einzelfall, und der Antrag bräuchte selbst eine Mehrheit, in der die bestritten
 und ob eine Feststellung, die ein solches Verdikt voraussetzt, es als Zeugen nennen muss.
 
 **Geändert.** `07-decisions.md`.
+
+### D534 — Plan des normativen Texts für Geräte; zwei Berichtigungen; Schiedsrichter als Gremium
+
+**Anlass.** D531 Beschluss 2 und D533. Gelesen: `01 §7`, `02 §1` bis `§3.1`, `02 §9` bis `§11`,
+`03 §2`, `04 §2`, `04 §4.1`. Dazu Olis Frage, ob ein Schiedsrichter eine Abstimmung oder eine
+Multisig des Vereins sein kann.
+
+**Befund 1 — die Profile gehören nach `01 §7`, nicht nach `03`.** D531 Beschluss 2 legte die
+Zurechnung nach `02` und die drei Profile nach `03`. Dann läse `02` Profile einer höheren Schicht.
+`01 §7` führt schon die Profile, die `02` liest (`vouch@1`, `accept-rules@1`), unter `nuc:`,
+ausserhalb von `core`. Die drei Geräteprofile gehören dorthin; `01 §8` („Keine Delegation im
+Core“) bleibt wahr.
+
+**Befund 2 — D531 F4 zitierte falsch.** `vote@1` steht in `04 §2.2`, nicht in `§2.3`, und dort sind
+weitere Keys in `v` reserviert und werden ignoriert. Ein Verweis auf Geschwisterstimmen braucht
+deshalb kein `vote@2`, sondern einen belegten Key. Für O93 ist das die kleinere Änderung.
+
+**Befund 3 — D533 verwarf den Antrag mit falscher Begründung.** Dort stand, ein Antrag bräuchte
+eine Mehrheit, in der die bestrittene Stimme fehlt. Das stimmt nicht: die Stimme zum neuen Antrag
+ist nicht bestritten. Der tragende Grund ist ein anderer: ein Antrag nach `04` ist immer eine
+Änderung der Satzung mit neuer Epoche (`04 §2.1`, `04 §4`), und eine Reklamation ist keine. Der
+Beschluss aus D533 bleibt.
+
+**Befund 4 — ein Gremium kann Schiedsrichter sein, eine Abstimmung nicht direkt.** `03 §2.2` lässt
+ein FROST-Panel als Schiedsrichter zu: es signiert als eine Identität, und `00 §5.1` führt es in
+`arbitration.arbitrators` wie jeden Schlüssel. Eine Multisig des Vereins ist damit schon möglich;
+setzt der Verein die Schwelle des Panels auf eine Mehrheit seiner Mitglieder, entscheidet praktisch
+eine Abstimmung. Eine Abstimmung nach `04` selbst kann nicht Schiedsrichter sein, aus dem Grund in
+Befund 3. Wer im Beispielverein Schiedsrichter ist und ob eine Partei über ihre eigene Sache
+urteilen darf, ist eine Frage der Satzung, nicht des Protokolls.
+
+**Beschluss 1 — Ort des Texts, berichtigt.**
+
+- `01 §7.3` bis `§7.5`: `device-add@1`, `device-ack@1`, `device-end@1` nach D531 und D532.
+- `01 §8`: die Ein-Schreiber-Annahme verweist auf die Geräte; eine Identität ist weiter ein
+  Schreiber je Kette.
+- `02`: ein neuer Abschnitt zur Zurechnung an die Wurzel, mit dem bestrittenen Claim nach D532.
+  `02 §2` (Knoten), `§3.1` (Budget), `§8` (Flags), `§10` (Vermerke) und `§11.4` (ein Schritt vor der
+  Gruppenbildung) verweisen darauf.
+- `04 §3.1`: Mitgliedsprüfung, Zusammenfassung und Zählung je Wurzel, gleiche Wahl zählt einmal
+  (D530), die Zurechnung durch Verdikt (D533). `04 §4.1`: Bedingungen 1, 4 und 5 je Wurzel.
+
+**Beschluss 2 — erster Schnitt.** Zugerechnet wird in diesem Durchgang für `vouch@1`, `vote@1` und
+`ratify@1`. Die übrigen Profile (`accept-rules@1`, `obligation@1`, `receipt@1`, `verdict@1` und
+weitere) rechnen weiter nach `I`; ein Gerät kann dort nicht für die Wurzel sprechen. Das ist eine
+Lücke mit Absicht, nicht eine Regel: sie wird geschlossen, wenn ein Szenario sie braucht.
+
+**Geändert.** `07-decisions.md`.

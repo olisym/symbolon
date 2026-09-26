@@ -7,8 +7,9 @@ from dataclasses import dataclass
 
 from symbolon.atom import Claim, claim_id
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
-from symbolon.governance.objects import Proposal
-from symbolon.governance.tally import TallyResult, TallyState, decide, reached
+from symbolon.governance.objects import Proposal, epoch_id
+from symbolon.governance.tally import TallyResult, TallyState, decide, reached, vote_root
+from symbolon.governance.tally import read_v as read_vote_v
 from symbolon.index import classify_all
 from symbolon.policy import constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
@@ -16,6 +17,7 @@ from symbolon.profiles.credit import SettlementResult, SettlementState, settleme
 from symbolon.profiles.membership import MembershipResult, MembershipState, membership
 from symbolon.profiles.payload import read_v
 from symbolon.resolve import NucleusState, resolve_state
+from symbolon.trust.attribution import AttributionStatus, attribution
 from symbolon.trust.derive import Derivation, derive
 from symbolon.trust.params import resolve_trust_params
 from symbolon.verifier import State
@@ -284,7 +286,10 @@ def _changes(current: dict, target: dict | None) -> ProposalChanges:
 
 
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
-    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3)."""
+    """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3).
+
+    ``yes``, ``no`` und ``ambiguous`` nennen die Wurzeln der Stimmen (D542 Beschluss 4, 04 §3.1).
+    """
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
     view = scope_view(store, scope, now)
@@ -295,17 +300,18 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
     proposals = store.all_proposals()
     constitutions = store.all_constitutions()
     current = view.state.constitution_obj
+    attr = attribution(store, classify_all(store, now, view.state.policy), scope)
     result: list[ProposalView] = []
     for digest, tally in view.verein.decisions:
         proposers = grouped.get(digest)
         if not proposers:
             continue
-        yes_authors = tuple(sorted({store.get(cid).I for cid in tally.yes}))
-        no_authors = tuple(sorted({store.get(cid).I for cid in tally.no}))
+        yes_authors = tuple(sorted({vote_root(attr, store.get(cid)) for cid in tally.yes}))
+        no_authors = tuple(sorted({vote_root(attr, store.get(cid)) for cid in tally.no}))
         ambiguous_authors = tuple(
             sorted(
                 {
-                    store.get(finding.subject).I
+                    vote_root(attr, store.get(finding.subject))
                     for finding in tally.findings
                     if finding.kind is GovernanceFinding.AMBIGUOUS_VOTE
                     and store.get(finding.subject) is not None
@@ -331,18 +337,31 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
 
 
 def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
-    """Aufgaben einer Identität über alle Scopes, sortiert (D484 Beschluss 1)."""
+    """Aufgaben einer Identität über alle Scopes, sortiert (D484 Beschluss 1).
+
+    Ist ``I`` in einem Scope als Gerät aufgenommen, gelten dort die Aufgaben ``VOTE`` und
+    ``RATIFY`` seiner Wurzel und keine andere; „abgestimmt“ heisst eine Stimme zum Antrag mit
+    derselben Wurzel (D542 Beschluss 4, D534 Beschluss 2, 04 §3.1, 02 §2.1).
+    """
     tasks: list[TaskView] = []
     for scope in store.all_genesis():
         view = scope_view(store, scope, now)
+        attr = attribution(store, classify_all(store, now, view.state.policy), scope)
+        root = attr.device_root(I)
+        geraet = root is not None
+        wer = root if geraet else I
         if view.verein is not None:
             participants = frozenset(view.state.constitution_obj["participants"])
-            if I in participants:
+            if wer in participants:
                 member = next(
-                    (result for subject, result in view.verein.membership if subject == I),
+                    (result for subject, result in view.verein.membership if subject == wer),
                     None,
                 )
-                if member is not None and member.state is not MembershipState.MEMBER:
+                if (
+                    not geraet
+                    and member is not None
+                    and member.state is not MembershipState.MEMBER
+                ):
                     tasks.append(
                         TaskView(
                             scope=scope,
@@ -359,14 +378,14 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                             is_nuc_name(claim, "vote")
                             and claim.N == scope
                             and claim.J == (3, digest)
-                            and claim.I == I
+                            and vote_root(attr, claim) == wer
                             for claim in store.all_claims()
                         )
                         if not voted:
                             tasks.append(TaskView(scope=scope, art="VOTE", detail=digest))
                     elif tally.state is TallyState.PASSED:
                         tasks.append(TaskView(scope=scope, art="RATIFY", detail=digest))
-        if view.vereinsleben is not None:
+        if view.vereinsleben is not None and not geraet:
             for cid, result in view.vereinsleben.settlements:
                 if result.state is not SettlementState.OPEN:
                     continue
@@ -470,3 +489,86 @@ def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:
         )
         groups.append(ForkGroup(I=author, h_prev=prev, claims=entries))
     return tuple(groups)
+
+
+@dataclass(frozen=True, slots=True)
+class GeraeteStimmen:
+    """Stimmen einer Wurzel zu einem Antrag von mehreren Schlüsseln (D542 Beschluss 5, D543).
+
+    ``stimmen`` sind ``(claim_id, I, wahl)``, sortiert; ``changes`` gegen die Verfassung der
+    Vorgängerepoche des Antrags.
+    """
+
+    root: bytes
+    proposal: bytes
+    changes: ProposalChanges
+    stimmen: tuple[tuple[bytes, bytes, int], ...]
+
+
+def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteStimmen, ...]:
+    """Aktive ``vote@1`` eines Scopes je Wurzel und Antrag, über alle Epochen, nur wo Stimmen von
+    mindestens zwei Schlüsseln stammen (D542 Beschluss 5, D543 Beschluss 1 und 3, 04 §3.1, 02 §2.1).
+
+    Gelesen werden nur Stimmen mit ``J``-Tag 3, ohne ``t_exp``, ``ACTIVE``, nicht bestritten, mit
+    lesbarem, kanonischem ``v`` und Wahl ``0`` oder ``1``. Eine Gruppe erscheint nur, wenn ihr
+    Antrag im Bestand liegt, die Verfassung seiner Vorgängerepoche bekannt ist und die Wurzel unter
+    deren ``participants`` steht. Sortiert nach ``(root, proposal)``.
+    """
+    view = scope_view(store, scope, now)
+    if view.verein is None:
+        return ()
+    classified = classify_all(store, now, view.state.policy)
+    attr = attribution(store, classified, scope)
+    grouped: dict[tuple[bytes, bytes], list[tuple[bytes, bytes, int]]] = defaultdict(list)
+    for claim in store.all_claims():
+        if not is_nuc_name(claim, "vote") or claim.N != scope:
+            continue
+        if claim.J[0] != 3 or claim.t_exp is not None:
+            continue
+        cid = claim_id(claim)
+        classification = classified.get(cid)
+        if classification is None or classification.state is not State.ACTIVE:
+            continue
+        if attr.status(claim) is AttributionStatus.DISPUTED:
+            continue
+        obj, kind = read_vote_v(claim.v)
+        if obj is None or kind is not None:
+            continue
+        wahl = obj.get(0)
+        if type(wahl) is not int or wahl not in (0, 1):
+            continue
+        grouped[(vote_root(attr, claim), claim.J[1])].append((cid, claim.I, wahl))
+    proposals = store.all_proposals()
+    constitutions = store.all_constitutions()
+    result: list[GeraeteStimmen] = []
+    for (root, digest), stimmen in grouped.items():
+        if len({key for _cid, key, _wahl in stimmen}) < 2:
+            continue
+        proposal = proposals.get(digest)
+        if proposal is None:
+            continue
+        # Die Vorgängerverfassung: die bekannte, deren Epoche 0 bis zur geltenden die
+        # Vorgängerepoche des Antrags ist (04 §1.1, 04 §2.4).
+        vorgaenger = next(
+            (
+                constitution
+                for index in range(view.state.epoch.index + 1)
+                for key, constitution in constitutions.items()
+                if epoch_id(scope, index, key) == proposal.predecessor
+            ),
+            None,
+        )
+        if vorgaenger is None:
+            continue
+        participants = vorgaenger.get("participants")
+        if not isinstance(participants, list) or root not in participants:
+            continue
+        result.append(
+            GeraeteStimmen(
+                root=root,
+                proposal=digest,
+                changes=_changes(vorgaenger, constitutions.get(proposal.constitution_hash)),
+                stimmen=tuple(sorted(stimmen)),
+            )
+        )
+    return tuple(sorted(result, key=lambda item: (item.root, item.proposal)))

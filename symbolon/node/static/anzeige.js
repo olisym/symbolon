@@ -6,7 +6,8 @@
 // (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5, die Geschichte der
 // Demonstration (D494 Beschluss 3, D496 Beschluss 1, D509 Beschluss 1), Zeit relativ zur Uhr
 // des S-Node (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4), ob ein
-// Widerspruch oben steht und was seine Karte sagt (D525 Beschluss 1 bis 3, D507 Beschluss 1).
+// Widerspruch oben steht und was seine Karte sagt (D525 Beschluss 1 bis 3, D507 Beschluss 1), und
+// was die Seite über Stimmen einer Wurzel von mehreren Schlüsseln sagt (D542 Beschluss 6, D543).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -131,6 +132,7 @@ export function tilgungInWorten(zustand) {
 const WARNUNGEN = new Map([
   ["BUDGET_FULL", "Dein Budget ist voll. Verkleinere zuerst eine Bürgschaft."],
   ["ALREADY_VOTED", "Du hast schon abgestimmt. Eine zweite Stimme macht beide ungültig."],
+  ["SAME_VOTE", "Du hast schon so abgestimmt. Die Stimme zählt einmal."],
 ]);
 
 // Eine Warnung in Worten, aus den Sätzen in szenario-verein §3 und §5.1; eine unbekannte
@@ -210,6 +212,40 @@ export function widerspruchSatz(name, claims, antraege, namen) {
   if (werte.every((wert) => wert === werte[0])) was = `zweimal ${werte[0]}`;
   else if (werte.every((wert) => wert === "Ja" || wert === "Nein")) was = "Ja und Nein zugleich";
   return { satz: `${name} hat ${worum} ${was} unterschrieben.`, zaehltNicht: true };
+}
+
+// Der Satz zu Stimmen einer Wurzel von mehreren Schlüsseln, gruppe wie aus GET /geraetestimmen:
+// verschiedene Wahl eine Karte mit ihren Punkten, gleiche Wahl ein Satz ohne Karte. Die Zahl der
+// Geräte ist die Zahl verschiedener Schlüssel, zwei bis vier ausgeschrieben; „Keine der beiden“
+// nur bei genau zwei Stimmen (D542 Beschluss 6, D543 Beschluss 1 und 2).
+export function geraeteSatz(name, gruppe, namen) {
+  const titel = antragTitel(gruppe.changes, namen);
+  const geraete = new Set(gruppe.stimmen.map(([, schluessel]) => schluessel)).size;
+  const zahl = { 2: "zwei", 3: "drei", 4: "vier" }[geraete] ?? String(geraete);
+  const werte = new Set(gruppe.stimmen.map(([, , wahl]) => wahl));
+  if (werte.size > 1) {
+    return {
+      karte: true,
+      satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten Ja und Nein unterschrieben.`,
+      punkte: [
+        gruppe.stimmen.length === 2 ? "Keine der beiden Stimmen zählt." : "Keine dieser Stimmen zählt.",
+        `${name}s Bürgschaften zählen weiter.`,
+      ],
+    };
+  }
+  const wahl = werte.has(1) ? "Ja" : "Nein";
+  return {
+    karte: false,
+    satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten ${wahl} gestimmt. Das zählt einmal.`,
+    punkte: [],
+  };
+}
+
+// Ob die Karte einer Gruppe aus GET /geraetestimmen oben steht: genau dann, wenn ihr Antrag unter
+// den Anträgen der Seite im Stand PENDING steht (D542 Beschluss 6, D525 Beschluss 2).
+export function geraeteOben(gruppe, antraege) {
+  const antrag = antraege.find((eintrag) => eintrag.proposal === gruppe.proposal);
+  return antrag !== undefined && antrag.state === "PENDING";
 }
 
 // Titel eines Antrags aus changes: genau eine Änderung benennt ihn, jede andere Zahl heißt

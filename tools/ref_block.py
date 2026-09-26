@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from symbolon.trust import TrustParams, classify_all, trust
+from symbolon.trust.attribution import attribution
 from symbolon.trust.graph import bfs_capacities, infinity
 from symbolon.trust.groups import build_groups
 from symbolon.verifier import InMemoryStore, State, structural_check
@@ -82,8 +83,9 @@ def format_block(profile: dict[str, Any]) -> list[str]:
     claims = store.all_claims()
 
     classifications = classify_all(store, now)
+    # Mit Zurechnung wie derive (D542 Beschluss 4, D543 Beschluss 5, 02 §2.1).
     groups, _payload_findings = build_groups(
-        claims, classifications, scope, params.D, now
+        claims, classifications, scope, params.D, now, attribution(store, classifications, scope)
     )
     # include_flagged=True: dieselben Gruppen, die derive ungefiltert an die BFS reicht.
     bfs = bfs_capacities(anchors, groups, params)

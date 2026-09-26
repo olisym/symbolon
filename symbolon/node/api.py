@@ -18,7 +18,7 @@ from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
 from symbolon.governance.objects import Proposal
-from symbolon.governance.tally import TallyResult, TallyState, reached
+from symbolon.governance.tally import TallyResult, TallyState, reached, vote_root
 from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
@@ -26,6 +26,7 @@ from symbolon.node.view import (
     TaskView,
     _needed,
     fork_evidence,
+    geraetestimmen,
     obligations_view,
     proposals_view,
     scope_view,
@@ -35,6 +36,7 @@ from symbolon.policy import constitution_hash
 from symbolon.predicates import is_core_predicate, is_nuc_name
 from symbolon.profiles.credit import SettlementState
 from symbolon.profiles.membership import MembershipState, membership
+from symbolon.trust.attribution import attribution
 from symbolon.trust.groups import build_groups
 from symbolon.trust.params import resolve_trust_params
 
@@ -250,11 +252,18 @@ def _require_current(store: SqliteStore, proposal: Proposal, now: int):
 
 
 def _budget_of(store: SqliteStore, scope: bytes, author: bytes, now: int) -> tuple[int, int]:
-    """Summe aus Schritt 4 von derive, über build_groups (D479 Beschluss 4, 02 §3.1)."""
+    """Summe aus Schritt 4 von derive, über build_groups mit Zurechnung wie derive
+    (D479 Beschluss 4, D542 Beschluss 4, 02 §3.1, 02 §2.1)."""
     genesis = store.all_genesis()[scope]
     params = resolve_trust_params(scope=scope, genesis_obj=genesis)
+    classifications = classify_all(store, now)
     groups, _findings = build_groups(
-        store.all_claims(), classify_all(store, now), scope, params.D, now
+        store.all_claims(),
+        classifications,
+        scope,
+        params.D,
+        now,
+        attribution(store, classifications, scope),
     )
     total = 0
     for (who, _subject), group in groups.items():
@@ -318,9 +327,20 @@ def _tally_of(view: ScopeView, digest: bytes) -> TallyResult | None:
 
 
 def _vote_effect(
-    store: SqliteStore, digest: bytes, proposal: Proposal, author: bytes, choice: str, voted: bool, now: int
+    store: SqliteStore,
+    digest: bytes,
+    proposal: Proposal,
+    author: bytes,
+    choice: str,
+    voted: bool,
+    same: bool,
+    now: int,
 ) -> dict[str, Any] | None:
-    """Ja und Nein nach der Stimme, aus proposals_view und reached (D490 Beschluss 2, 04 §3.1, 04 §3.2)."""
+    """Ja und Nein nach der Stimme, aus proposals_view und reached (D490 Beschluss 2, 04 §3.1, 04 §3.2).
+
+    ``author`` ist die Wurzel der Stimme. Mit ``same`` bleiben Ja und Nein, wie sie sind
+    (D543 Beschluss 4, D542 Beschluss 4).
+    """
     view = scope_view(store, proposal.scope, now)
     tally = _tally_of(view, digest)
     row = next((item for item in proposals_view(store, proposal.scope, now) if item.proposal == digest), None)
@@ -328,6 +348,8 @@ def _vote_effect(
         return None
     yes, no = len(row.yes), len(row.no)
     if author not in view.state.constitution_obj["participants"]:
+        counts = False
+    elif same:
         counts = False
     elif voted:
         counts = False
@@ -423,7 +445,7 @@ def _intent_body(
         )
     elif art == "vote":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
-        _require_current(store, proposal, now)
+        view, _epoch = _require_current(store, proposal, now)
         choice = _text(_require(body, "choice"), "choice")
         if choice not in {"yes", "no"}:
             raise ValueError("choice is not yes or no")
@@ -434,16 +456,29 @@ def _intent_body(
             v=encoded.hex(),
             N=proposal.scope.hex(),
         )
-        voted = any(
-            claim.I == author
-            and claim.N == proposal.scope
+        # Frühere Stimmen derselben Wurzel; sind alle gleich der neuen Wahl, zählt sie einmal
+        # (D542 Beschluss 4, D543 Beschluss 4, 04 §3.1, 02 §2.1).
+        attr = attribution(store, classify_all(store, now, view.state.policy), proposal.scope)
+        root = attr.device_root(author) or author
+        earlier = [
+            claim
+            for claim in store.all_claims()
+            if claim.N == proposal.scope
             and claim.J == (3, digest)
             and is_nuc_name(claim, "vote")
-            for claim in store.all_claims()
+            and vote_root(attr, claim) == root
+        ]
+        voted = bool(earlier)
+        wahl = 1 if choice == "yes" else 0
+        same = voted and all(
+            _decoded_v(claim.v) == {0: wahl} and type(_decoded_v(claim.v)[0]) is int
+            for claim in earlier
         )
-        if voted:
+        if same:
+            warnings.append("SAME_VOTE")
+        elif voted:
             warnings.append("ALREADY_VOTED")
-        effect = _vote_effect(store, digest, proposal, author, choice, voted, now)
+        effect = _vote_effect(store, digest, proposal, root, choice, voted, same, now)
     elif art == "ratify":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
         view, epoch = _require_current(store, proposal, now)
@@ -661,6 +696,12 @@ def _handler(
                 if scope not in store.all_genesis():
                     raise _Missing()
                 self._send(200, proposals_view(store, scope, clock()))
+                return
+            if not post and path.startswith("/geraetestimmen/"):
+                scope = _hex(path[len("/geraetestimmen/") :], 32)
+                if scope not in store.all_genesis():
+                    raise _Missing()
+                self._send(200, geraetestimmen(store, scope, clock()))
                 return
             if not post and path.startswith("/tasks/"):
                 identity = _hex(path[len("/tasks/") :], 32)

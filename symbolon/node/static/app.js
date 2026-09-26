@@ -1,7 +1,7 @@
 // Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
 // darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
 // Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
-// neuen Stand (D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -27,6 +27,8 @@ import {
   fassungSatz,
   frageInhalt,
   ganzeZahl,
+  geraeteOben,
+  geraeteSatz,
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
@@ -858,6 +860,25 @@ async function widerspruchKarten(forks, kontext) {
   return karten;
 }
 
+// Eine Widerspruchskarte je Gruppe aus GET /geraetestimmen mit verschiedener Wahl, dazu ob sie
+// oben steht; wie die Gabelkarte mit Marke, Satz, Punkten und Kennungen (D542 Beschluss 6, D543).
+function geraeteKarten(kontext) {
+  const karten = [];
+  for (const gruppe of kontext.geraetestimmen) {
+    const { karte: alsKarte, satz, punkte } = geraeteSatz(nameVon(kontext.namen, gruppe.root), gruppe, kontext.namen);
+    if (!alsKarte) continue;
+    const karte = element("section", "karte widerspruch");
+    karte.append(
+      marke("Widerspruch"),
+      element("div", "satz", satz),
+      liste(punkte),
+      einzelheiten(gruppe.stimmen.map(([cid]) => `Kennung: ${cid}`)),
+    );
+    karten.push({ karte, oben: geraeteOben(gruppe, kontext.antraege) });
+  }
+  return karten;
+}
+
 // Der Verein in Sätzen, ohne eigene Marke: der Tab nennt den Bereich (D507 Beschluss 2,
 // D492 Beschluss 5, D487 Beschluss 2).
 function vereinGerade(view, kontext) {
@@ -889,6 +910,11 @@ function vereinGerade(view, kontext) {
   }
   for (const antrag of angenommen) {
     saetze.push(`„${antragTitel(antrag.changes, namen)}“ ist angenommen, aber noch nicht festgestellt.`);
+  }
+  // Stimmen einer Wurzel von mehreren Schlüsseln mit gleicher Wahl (D542 Beschluss 6).
+  for (const gruppe of kontext.geraetestimmen) {
+    const { karte, satz } = geraeteSatz(nameVon(namen, gruppe.root), gruppe, namen);
+    if (!karte) saetze.push(satz);
   }
   const offeneBeitraege = obligationen.filter((schuld) => schuld.state === "OPEN").length;
   if (offeneBeitraege > 0) {
@@ -1229,6 +1255,7 @@ async function zeichnenInhalt() {
   const antraege = gov === null ? [] : await holen(`/proposals/${gov}`);
   const obligationen = res === null ? [] : await holen(`/obligations/${res}`);
   const forks = await holen("/forks");
+  const geraetestimmen = gov === null ? [] : await holen(`/geraetestimmen/${gov}`);
 
   const eigeneMitgliedschaft = govView?.verein?.membership.find(([subject]) => subject === ich);
   const schritte = geschichte({
@@ -1263,7 +1290,7 @@ async function zeichnenInhalt() {
   const identitaet = handelnAls === "geraet" ? ich : handelnAls;
   const tasks = await holen(`/tasks/${identitaet}`);
 
-  const kontext = { namen, sichten, antraege, obligationen, identitaet, jetzt, felder: null };
+  const kontext = { namen, sichten, antraege, obligationen, geraetestimmen, identitaet, jetzt, felder: null };
   const handeln = handelnFabrik(record, kontext);
 
   const frage = element("section", "karte frage");
@@ -1271,8 +1298,9 @@ async function zeichnenInhalt() {
   frage.hidden = true;
 
   // Ein Widerspruch steht oben, solange über den Antrag abgestimmt wird, sonst im Tab „Im
-  // Verein“ unter den Sätzen (D525 Beschluss 2, D507 Beschluss 1).
-  const widersprueche = await widerspruchKarten(forks, kontext);
+  // Verein“ unter den Sätzen (D525 Beschluss 2, D507 Beschluss 1); ebenso die Karten der Stimmen
+  // einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6).
+  const widersprueche = [...(await widerspruchKarten(forks, kontext)), ...geraeteKarten(kontext)];
   const oben = widersprueche.filter((eintrag) => eintrag.oben).map((eintrag) => eintrag.karte);
   const unten = widersprueche.filter((eintrag) => !eintrag.oben).map((eintrag) => eintrag.karte);
 

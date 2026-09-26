@@ -1,4 +1,4 @@
-"""Fünf Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4, D523)."""
+"""Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4, D523, D542)."""
 
 from __future__ import annotations
 
@@ -26,6 +26,20 @@ GERAETE: list[tuple[str, str, frozenset[str]]] = [
 GERAETE_VERSEHEN: list[tuple[str, str, frozenset[str]]] = [
     *GERAETE,
     ("Doras Zweitgerät", "dora2.sqlite", frozenset({"DORA"})),
+]
+
+# Bild (c): die Geräte aus GERAETE_VERSEHEN, die Zweitgeräte mit eigenem Schlüssel
+# (D542 Beschluss 1 und 2).
+GERAETE_GERAETE: list[tuple[str, str, frozenset[str]]] = [
+    (
+        name,
+        datei,
+        {
+            "Brunos Zweitgerät": frozenset({"BRUNO (Zweitgerät)"}),
+            "Doras Zweitgerät": frozenset({"DORA (Zweitgerät)"}),
+        }.get(name, personen),
+    )
+    for name, datei, personen in GERAETE_VERSEHEN
 ]
 
 _PORT = 8471
@@ -66,6 +80,16 @@ ZUSEHEN_VERSEHEN = [
     "Kommt Doras Zweitgerät zurück, zeigt jedes Gerät zwei Widersprüche, und der Beschluss fällt.",
 ]
 
+# Der Text zum Zusehen in Bild (c) (D542 Beschluss 1, D543 Beschluss 5).
+ZUSEHEN_GERAETE = [
+    *ZUSEHEN_VERSEHEN[:3],
+    "Beide Zweitgeräte haben einen eigenen Schlüssel, den ihre Person aufgenommen hat. Bruno stimmt "
+    "auf seinen zwei Geräten verschieden. Dora ist ehrlich: ihr Zweitgerät ist eine Weile getrennt, "
+    "und sie stimmt dort ein zweites Mal gleich ab.",
+    "Kommt Doras Zweitgerät zurück, zählt ihre Stimme einmal, und der Beschluss hält. Brunos Stimmen "
+    "zählen nicht, seine Bürgschaften zählen weiter.",
+]
+
 
 def durchgang(urls: list[str]) -> int:
     """Ein Durchgang: runde über jedes Paar in der Ordnung von combinations (D518 Beschluss 2)."""
@@ -90,13 +114,23 @@ def main() -> None:
     """Legt an, startet, druckt und gleicht ab, bis Strg-C (D518 Beschluss 3, D521 Beschluss 4).
 
     Mit ``--personen`` fährt er vor jedem Durchgang einen Takt, beginnend bei 0. Mit
-    ``--versehen`` ebenso, über ``GERAETE_VERSEHEN`` (D523 Beschluss 4).
+    ``--versehen`` ebenso, über ``GERAETE_VERSEHEN`` (D523 Beschluss 4). Mit ``--geraete``
+    ebenso, über ``GERAETE_GERAETE`` und mit den Aufnahmen im Bestand (D542 Beschluss 1 und 3).
     """
-    if len(sys.argv) not in {2, 3} or sys.argv[2:] not in ([], ["--personen"], ["--versehen"]):
-        raise SystemExit("usage: python -m tools.netz <verzeichnis> [--personen | --versehen]")
+    erlaubt = ([], ["--personen"], ["--versehen"], ["--geraete"])
+    if len(sys.argv) not in {2, 3} or sys.argv[2:] not in erlaubt:
+        raise SystemExit(
+            "usage: python -m tools.netz <verzeichnis> [--personen | --versehen | --geraete]"
+        )
     schalter = sys.argv[2] if len(sys.argv) == 3 else None
     personen_an = schalter is not None
-    geraete = GERAETE_VERSEHEN if schalter == "--versehen" else GERAETE
+    mit_geraeten = schalter == "--geraete"
+    if mit_geraeten:
+        geraete = GERAETE_GERAETE
+    elif schalter == "--versehen":
+        geraete = GERAETE_VERSEHEN
+    else:
+        geraete = GERAETE
     # Erst hier: tools.personen liest GERAETE aus diesem Modul.
     from tools.personen import takt
 
@@ -104,7 +138,7 @@ def main() -> None:
     verzeichnis.mkdir(parents=True, exist_ok=True)
     for _name, datei, personen in geraete:
         if not (verzeichnis / datei).exists():
-            anlegen(verzeichnis / datei, personen)
+            anlegen(verzeichnis / datei, personen, geraete=mit_geraeten)
     urls = [f"http://{_HOST}:{_PORT + index}" for index in range(len(geraete))]
     prozesse: list[subprocess.Popen] = []
     try:
@@ -133,7 +167,12 @@ def main() -> None:
         print()
         if personen_an:
             print("Zum Zusehen:")
-            text = ZUSEHEN_VERSEHEN if schalter == "--versehen" else ZUSEHEN
+            if mit_geraeten:
+                text = ZUSEHEN_GERAETE
+            elif schalter == "--versehen":
+                text = ZUSEHEN_VERSEHEN
+            else:
+                text = ZUSEHEN
         else:
             print("Der Ablauf:")
             text = ABLAUF

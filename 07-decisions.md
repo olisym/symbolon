@@ -23073,3 +23073,40 @@ richtig: eine Lücke macht die Lage unentscheidbar, und `02 §2.1` behandelt sie
 
 **Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `02-trust-flow.md`,
 `03-golden-anchors.md`, `07-decisions.md`.
+
+### D538 — Abnahme `p25-zurechnung`
+
+**Anlass.** Bericht des Werkzeugs, Commit `29245c9` auf `p25-zurechnung`, Basis `8451c88` (D537).
+Gelesen: der vollständige Diff gegen die Basis aus dem Spiegel, `symbolon/` und `tests/`. Im Klon
+auf dem Branch: 1154 alte und 12 neue Tests grün, zusammen 1166; die Markdown-Prüfungen grün.
+
+**Geprüft gegen `02 §2.1`.** Wirksame Aufnahme: `device-add@1` und `device-ack@1` aktiv, ohne
+`t_exp`, im Scope, `J`-Tags geprüft, Wurzel ungleich Gerät. „Geräte nehmen keine Geräte auf“ liest
+nur ein Ack mit `J`-Tag `claim-ref` (D537). Bindend ist das Ack, das Vorfahr aller anderen ist;
+stehen sie auf verschiedenen Zweigen, keines. Das Ende: nur von der Wurzel, `J` das Gerät, ein
+unlesbarer Endpunkt gilt als Ack. Die Vorfahrenfrage läuft über dieselbe Vorgängerprüfung wie die
+Zustandsmaschine; eine Lücke heisst unentscheidbar. `budget_root` gibt die Wurzel bei
+`ATTRIBUTED` und `UNDECIDED`, sonst den Autor; `root` nur bei `ATTRIBUTED`. Die Gruppe liest
+`n_kante` nur aus Mitgliedern, deren Kante derselben Wurzel gehört. Die Gabel flaggt Autor und
+Wurzel, die Zurechnung eines fremden Scopes mit denselben Zuständen.
+
+**Eigene Proben.** Zwei der Rücknahmeproben im Klon nachgefahren, beide rot: Enden an der Quelle
+leer (R2, vier Tests rot) und die Formprüfung des Acks entfernt (R12, ein Test rot).
+
+**Befund 1 — eine Wurzel, die ihre eigene Aufnahme bestätigt, nimmt sich jede Aufnahme.** Ein
+`device-add@1` auf den eigenen Schlüssel wirkt nicht (`W ≠ G`); bestätigt die Wurzel es trotzdem,
+hat sie ein wohlgeformtes Ack gezeichnet und gilt nach `02 §2.1` als Gerät. Ihre übrigen Aufnahmen
+wirken dann nicht. Das folgt aus dem Wortlaut und trifft nur, wer es selbst tut; kein
+Handlungsbedarf.
+
+**Befund 2 — die Zurechnung läuft je Anfrage die Kette entlang.** `status` wird je Bürgschaft
+zweimal gerechnet, jedes Mal mit einem Gang über `h_prev`. Für die Bestände heute ist das klein.
+Beisst es, gehört ein Zwischenspeicher je Auswertung dazu, keine Normänderung.
+
+**Befund 3 — die Meldung zu `node/api.py` und `tools/ref_block.py`** steht in D537 Befund 2 und
+bleibt dort.
+
+**Beschluss.** Abgenommen. `p25-zurechnung` wird nach `main` übernommen. Als Nächstes
+`p26-auszaehlung` nach D536 Beschluss 1, vorher gemessen am Prototyp.
+
+**Geändert.** `07-decisions.md`.

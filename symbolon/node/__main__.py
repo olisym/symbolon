@@ -1,4 +1,4 @@
-"""Bedient einen Bestand, bis der Lauf unterbrochen wird (D476, D479 Beschluss 1)."""
+"""Bedient einen Bestand, bis der Lauf unterbrochen wird (D476, D479 Beschluss 1, D518 Beschluss 4)."""
 
 from __future__ import annotations
 
@@ -24,10 +24,11 @@ def main() -> None:
     parser.add_argument("datei")
     parser.add_argument("--port", type=int, default=8470)
     parser.add_argument("--uhr-ab", type=int, default=None)
+    parser.add_argument("--geraet", default=None)
     args = parser.parse_args()
     clock = None if args.uhr_ab is None else uhr_ab(args.uhr_ab)
     try:
-        serve(args.datei, port=args.port, clock=clock)
+        serve(args.datei, port=args.port, clock=clock, geraet=args.geraet)
     except KeyboardInterrupt:
         return
 

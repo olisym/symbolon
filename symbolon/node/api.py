@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from collections.abc import Callable, Mapping
@@ -547,8 +548,24 @@ def _static_at_start() -> dict[str, Path]:
     return {path.name: path for path in _STATIC.iterdir() if path.is_file()}
 
 
+def _stand(store: SqliteStore) -> str:
+    """Fingerabdruck des Bestands (D518 Beschluss 4).
+
+    SHA-256 über die Zahl der gehaltenen Claims als 8 Byte big-endian, die sortierten
+    ``claim_id`` und die sortierten Objekt-Hashes.
+    """
+    claims = sorted(claim_id(claim) for claim in store.all_claims())
+    digest = hashlib.sha256(len(claims).to_bytes(8, "big"))
+    for item in (*claims, *store.object_hashes()):
+        digest.update(item)
+    return digest.hexdigest()
+
+
 def _handler(
-    store: SqliteStore, clock: Callable[[], int], files: Mapping[str, Path]
+    store: SqliteStore,
+    clock: Callable[[], int],
+    files: Mapping[str, Path],
+    geraet: str | None = None,
 ) -> type[BaseHTTPRequestHandler]:
     # Schalter „getrennt“, nur im Speicher, nach dem Start verbunden (D516 Beschluss 3).
     schalter = {"getrennt": False}
@@ -603,6 +620,13 @@ def _handler(
                 return
             if not post and path == "/getrennt":
                 self._send(200, schalter["getrennt"])
+                return
+            # Gerätename und Stand, auch bei gesetztem Schalter (D518 Beschluss 4).
+            if not post and path == "/geraet":
+                self._send(200, {"name": geraet})
+                return
+            if not post and path == "/stand":
+                self._send(200, _stand(store))
                 return
             if post and path == "/getrennt":
                 value = _require(self._json_body(), "getrennt")
@@ -883,11 +907,15 @@ def serve(
     port: int = 8470,
     clock: Callable[[], int] | None = None,
     bound: Callable[[HTTPServer], None] | None = None,
+    geraet: str | None = None,
 ) -> None:
-    """Öffnet den Bestand in diesem Faden und bedient 127.0.0.1 (D476 Beschluss 5)."""
+    """Öffnet den Bestand in diesem Faden und bedient 127.0.0.1 (D476 Beschluss 5).
+
+    ``geraet`` ist der Name des Geräts, den ``GET /geraet`` nennt (D518 Beschluss 4).
+    """
     store = SqliteStore(path)
     server = HTTPServer(
-        (_HOST, port), _handler(store, clock or _clock_default, _static_at_start())
+        (_HOST, port), _handler(store, clock or _clock_default, _static_at_start(), geraet)
     )
     try:
         if bound is not None:

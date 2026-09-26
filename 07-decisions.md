@@ -23203,3 +23203,26 @@ gebaut. Offen ist der Knoten: `node/api.py`, `tools/ref_block.py` und `node/view
 Zurechnung, und Bild (b) läuft noch mit einem geteilten Schlüssel. Das ist O94.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D541 — Schluss der Sitzung 00co; O92 im Protokoll gelöst, O94 für die nächste Sitzung
+
+**Anlass.** Oli schliesst die Sitzung, weil der Verlauf lang geworden ist; der nächste Schritt
+liest Knotencode und beginnt besser mit leerem Kontext.
+
+**Beschluss 1 — Stand.** Mehrere Geräte einer Person sind im Protokoll gelöst: Wurzel und
+Geräteschlüssel je Scope, Sperre statt Strafe, Auszählung je Wurzel (D529 bis D540). Gebaut in
+`p25-zurechnung` und `p26-auszaehlung`, beide abgenommen und übernommen.
+
+**Beschluss 2 — der nächste Schritt ist O94.** Knoten, Simulation und Karte bekommen die Geräte, und
+Bild (b) zeigt Doras Zweitgerät mit eigenem Schlüssel. Die Fragen vor dem Auftrag stehen im
+Sitzungsstart.
+
+**Beschluss 3 — Prüfregel-Kandidaten.** Aus dieser Sitzung vier, im Sitzungsstart geführt und
+nicht übernommen: jede Aufzählung einer geänderten Menge suchen (D537), eine Regel an zwei Stellen
+an der Quelle zurücknehmen (D536), einen Schwellentest die Schwelle prüfen lassen (D539), eine Norm,
+die ein Ergebnis zurücknehmen kann, gegen die Invarianten lesen (D539).
+
+**Beschluss 4 — Sitzungsschluss.** `sitzungsstart-00co.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt; `sitzungsstart-00cn.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00co.md`, `archiv/sitzungsstart-00cn.md`.

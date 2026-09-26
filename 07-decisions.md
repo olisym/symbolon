@@ -22779,3 +22779,61 @@ Bürgschaft **auf** einen Geräteschlüssel bleibt beim Gerät und wird nicht zu
 bleibt, ist nicht gemessen.
 
 **Geändert.** `07-decisions.md`.
+
+### D532 — Das Ende eines Geräts ist eine Sperre; was es abschneidet, ist bestritten, nicht bestraft
+
+**Anlass.** D531, offener Punkt zu D97. Beim Vorbereiten der Messung zeigte sich, dass die Wurzel
+`c` in `device-end@1` frei wählt und das Protokoll nicht prüfen kann, ob „das war ein Dieb“ stimmt.
+Gelesen: D97, D117, `03 §2`, `01 §8`. Die Messung selbst entfiel: dass eine abgeschnittene Stimme
+eine Feststellung kippt, folgt aus der Regel und änderte keine Entscheidung.
+
+**Befund 1 — `device-end@1` ist ein Werkzeug zum Abstreiten.** Bruno stimmt per Gerät, bereut es und
+beendet das Gerät vor der Stimme: ein Widerruf, den D97 verbietet. Ein Schuldner unterschreibt eine
+Obligation auf dem Gerät und beendet es danach: das Löschen, gegen das `01 §5.4` Obligationen
+unwiderruflich macht. Umgekehrt muss das Ende schneiden, sonst stimmt ein Dieb nach der Sperre
+weiter.
+
+**Befund 2 — eine Gabel ist ein Beweis, ein Bestreiten nicht.** D43 darf bei einer Gabel automatisch
+wirken, weil derselbe Schlüssel zweierlei gesagt hat und das in den Bytes steht. „Das war ich nicht“
+ist eine Behauptung gegen eine Behauptung; das Protokoll garantiert, wer unterschrieb, nie die
+Wahrheit einer Behauptung (`01 §8`). Eine automatische Strafe behandelte die Behauptung wie einen
+Beweis. Olis Einwand: eine Identität, die über Jahrzehnte Ruf gesammelt hat, fiele wegen eines
+gestohlenen Telefons auf null.
+
+**Befund 3 — ohne Uhr gibt es kein „vor der Sperre“.** Eine Bank trennt Buchungen vor und nach der
+Sperre an ihrer Uhr. Die Claims nach `c` können vom Dieb vor oder nach dem Ende stammen; das
+Protokoll kann sie nicht trennen. Es braucht deshalb eine Voreinstellung für alle.
+
+**Beschluss 1 — das Kartenbild.** Oli hat es vorgegeben und getragen.
+
+- `device-end@1` ist die **Sperre**. Sie wirkt ohne Verfahren: Claims des Geräts nach `c` werden
+  nicht zugerechnet (D531 F3).
+- Was sie abschneidet, ist **von der Wurzel bestritten** und bleibt sichtbar, mit der Wurzel als
+  Urheber des Bestreitens. Kein automatischer Verlust, weder für die Wurzel noch für einen anderen.
+- Bestrittene Claims werden nicht zugerechnet, bis ein Verfahren anderes ergibt; das entspricht der
+  vorläufigen Gutschrift einer Reklamation. Das gilt auch für unwiderrufliche Prädikate.
+- Vorgebeugt wird am Gerät: es unterschreibt nur entsperrt (D471 Beschluss 2).
+
+**Getragen.** D97 wird für Stimmen auf Geräten von „unmöglich“ zu „sichtbar und anfechtbar“:
+Bruno kann eine bereute Stimme per Sperre abschneiden, und die Karte zeigt, dass er sie bestreitet.
+Dasselbe gilt für den Schuldner. Eine abgeschnittene Stimme kann eine Feststellung kippen, dieselbe
+Klasse wie D117 und D523. Eine Frist gibt es in v1 nicht (`04 §8`); ein „vor der Auszählung“ ist
+darum kein Zeitpunkt, und das Bestreiten kann auch nach einer Feststellung kommen.
+
+**Beschluss 2 — Protokoll und Anwendung.** Oli: die Meldung an das Gerät, ihre Begründung und der
+Weg, zu widersprechen oder zu eskalieren, sind Sache der Anwendung. Was zählt, ist es nicht: jede
+Auszählung muss auf jedem Gerät dasselbe ergeben. Ein Verfahren, das eine bestrittene Stimme wieder
+zurechnet, muss deshalb ein Claim sein, den jedes Gerät gleich auswertet.
+
+**Verworfen.** A: unwiderrufliche Claims werden nie abgeschnitten; der Dieb stimmt nach der Sperre
+weiter. B: alles nach `c` wird abgeschnitten, unsichtbar und folgenlos; jede Wurzel könnte jede
+Stimme und Schuld abstreiten, ohne dass es jemand sieht. C: das Abschneiden eines unwiderruflichen
+Claims gibt der Wurzel den Flag aus D43; es bestraft eine Behauptung (Befund 2).
+
+**Offen für den normativen Text.** Ob `03 §2` das Verfahren trägt. `accusation@1` kennt schon
+`J = [claim-ref, bestrittener_claim]`. Aber ein Verdikt bindet je nach Beobachter (`03 §2.4`), und
+eine Auszählung darf nicht je Beobachter verschieden ausfallen. Für Schulden, die zwei Parteien
+betreffen, passt das; für Stimmen ist zu prüfen, ob `verdict_status` mit den Schiedsrichtern aus der
+Satzung des Vereins für alle Geräte gleich entscheidet, oder ob es einen Akt nach `04` braucht.
+
+**Geändert.** `07-decisions.md`.

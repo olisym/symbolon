@@ -5,8 +5,8 @@
 // Dazu die Titel der Anträge und die Sätze der Absicht, der Folge und der Meldung
 // (D492 Beschluss 1 bis 3 und 5), die Wörter aus D494 Beschluss 5, die Geschichte der
 // Demonstration (D494 Beschluss 3, D496 Beschluss 1, D509 Beschluss 1), Zeit relativ zur Uhr
-// des S-Node (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4) und ob ein
-// Widerspruch oben steht (D507 Beschluss 1).
+// des S-Node (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4), ob ein
+// Widerspruch oben steht und was seine Karte sagt (D525 Beschluss 1 bis 3, D507 Beschluss 1).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -175,15 +175,41 @@ export function wertInWorten(p, value) {
   return value === null || value === undefined ? "–" : JSON.stringify(value);
 }
 
-// Ob die Karte einer Gabelung oben steht: „nur, solange beide Claims Stimmen sind, die eine Ja
-// und die andere Nein, und der Antrag, zu dem sie gehören, unter den Anträgen der Seite im Stand
-// PENDING steht“ (D507 Beschluss 1). claims wie aus GET /claims: p, value und J.
+// Ob eine Gabelung eine Doppelstimme ist: jeder Claim eine vote@1-Stimme, alle mit J == [3, h]
+// auf denselben Antrag h; die Werte spielen keine Rolle (D525 Beschluss 1). claims wie aus
+// GET /claims: p, value und J.
+function doppelstimme(claims) {
+  if (claims.length === 0) return false;
+  const antrag = claims[0].J[1];
+  return claims.every(
+    (claim) => claim.p.endsWith("/vote@1") && claim.J[0] === 3 && claim.J[1] === antrag,
+  );
+}
+
+// Ob die Karte einer Gabelung oben steht: genau dann, wenn die Gabelung eine Doppelstimme ist und
+// ihr Antrag unter den Anträgen der Seite im Stand PENDING steht (D525 Beschluss 2, ändert
+// D507 Beschluss 1).
 export function widerspruchOben(claims, antraege) {
-  const stimmen = claims.every((claim) => claim.p.endsWith("/vote@1"));
-  const werte = claims.map((claim) => wertInWorten(claim.p, claim.value));
-  if (!stimmen || !werte.includes("Ja") || !werte.includes("Nein")) return false;
+  if (!doppelstimme(claims)) return false;
   const antrag = antraege.find((eintrag) => eintrag.proposal === claims[0].J[1]);
   return antrag !== undefined && antrag.state === "PENDING";
+}
+
+// Die Überschrift der Karte einer Gabelung und ob keine der Stimmen zählt: eine Doppelstimme mit
+// gleichen Werten „zweimal {Wert}“, sonst mit nur Ja und Nein „zugleich“, sonst „zweimal
+// verschieden“, alle drei zaehltNicht; sonst „zweimal an dieselbe Stelle der Kette“
+// (D526 Beschluss 3, D525 Beschluss 3, 04 §3.1 Bedingung 6).
+export function widerspruchSatz(name, claims, antraege, namen) {
+  if (!doppelstimme(claims)) {
+    return { satz: `${name} hat zweimal an dieselbe Stelle der Kette unterschrieben.`, zaehltNicht: false };
+  }
+  const antrag = antraege.find((eintrag) => eintrag.proposal === claims[0].J[1]);
+  const worum = antrag ? `zum Antrag „${antragTitel(antrag.changes, namen)}“` : "zu einem Antrag";
+  const werte = claims.map((claim) => wertInWorten(claim.p, claim.value));
+  let was = "zweimal verschieden";
+  if (werte.every((wert) => wert === werte[0])) was = `zweimal ${werte[0]}`;
+  else if (werte.every((wert) => wert === "Ja" || wert === "Nein")) was = "Ja und Nein zugleich";
+  return { satz: `${name} hat ${worum} ${was} unterschrieben.`, zaehltNicht: true };
 }
 
 // Titel eines Antrags aus changes: genau eine Änderung benennt ihn, jede andere Zahl heißt

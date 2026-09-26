@@ -3,7 +3,7 @@
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
 // D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, D509 Beschluss 3,
-// 01 §4).
+// D525 Golden Numbers, 01 §4).
 
 import {
   artInWorten,
@@ -42,6 +42,7 @@ import {
   warnungInWorten,
   wertInWorten,
   widerspruchOben,
+  widerspruchSatz,
   zeitpunktInWorten,
 } from "./anzeige.js";
 
@@ -782,6 +783,58 @@ function feinschliffFaelle() {
     "widerspruchOben: zwei Claims, die keine Stimmen sind",
     widerspruchOben([buergschaft(50), buergschaft(60)], [{ proposal: antrag, state: "PENDING" }]),
     false,
+  );
+
+  // Eine Doppelstimme ist jedes Paar von Stimmen zum selben Antrag: wann sie oben steht und was
+  // ihre Karte sagt (D525 Beschluss 1 bis 3, D525 Golden Numbers).
+  const beitrag = { added: [], removed: [], fields: [{ field: "beitrag", old: null, new: "24 Euro" }] };
+  const offen = [{ proposal: antrag, state: "PENDING", changes: beitrag }];
+  const zweiAntraege = [stimme(1), { ...stimme(0), J: [3, "cd".repeat(32)] }];
+  gleich("widerspruchOben: zweimal Ja, Antrag PENDING", widerspruchOben([stimme(1), stimme(1)], offen), true);
+  gleich("widerspruchOben: zweimal Nein, Antrag PENDING", widerspruchOben([stimme(0), stimme(0)], offen), true);
+  gleich(
+    "widerspruchOben: zweimal Ja, Antrag PASSED",
+    widerspruchOben([stimme(1), stimme(1)], [{ proposal: antrag, state: "PASSED", changes: beitrag }]),
+    false,
+  );
+  gleich("widerspruchOben: Ja und Nein zu zwei Anträgen", widerspruchOben(zweiAntraege, offen), false);
+  const leereNamen = new Map();
+  gleich(
+    "widerspruchSatz: Ja und Nein",
+    widerspruchSatz("BRUNO", doppelt, offen, leereNamen),
+    { satz: "BRUNO hat zum Antrag „beitrag festlegen“ Ja und Nein zugleich unterschrieben.", zaehltNicht: true },
+  );
+  gleich(
+    "widerspruchSatz: zweimal Ja",
+    widerspruchSatz("DORA", [stimme(1), stimme(1)], offen, leereNamen),
+    { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal Ja unterschrieben.", zaehltNicht: true },
+  );
+  gleich(
+    "widerspruchSatz: zweimal Nein, Antrag unbekannt",
+    widerspruchSatz("DORA", [stimme(0), stimme(0)], [], leereNamen),
+    { satz: "DORA hat zu einem Antrag zweimal Nein unterschrieben.", zaehltNicht: true },
+  );
+  gleich(
+    "widerspruchSatz: Stimmen zu zwei Anträgen",
+    widerspruchSatz("DORA", zweiAntraege, offen, leereNamen),
+    { satz: "DORA hat zweimal an dieselbe Stelle der Kette unterschrieben.", zaehltNicht: false },
+  );
+  gleich(
+    "widerspruchSatz: zwei Bürgschaften",
+    widerspruchSatz("DORA", [buergschaft(50), buergschaft(60)], offen, leereNamen),
+    { satz: "DORA hat zweimal an dieselbe Stelle der Kette unterschrieben.", zaehltNicht: false },
+  );
+
+  // Werte, die weder Ja noch Nein sind (D526 Beschluss 3, D526 Golden Numbers).
+  gleich(
+    "widerspruchSatz: die Werte 2 und 3",
+    widerspruchSatz("DORA", [stimme(2), stimme(3)], offen, leereNamen),
+    { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
+  );
+  gleich(
+    "widerspruchSatz: die Werte 1 und 2",
+    widerspruchSatz("DORA", [stimme(1), stimme(2)], offen, leereNamen),
+    { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
   );
 
   return results;

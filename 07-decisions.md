@@ -23416,3 +23416,53 @@ bestritten; auch das erzeugt kein Bild.
 **Beschluss 6 — Auftrag `p27-geraete`** mit diesen Tests und Proben.
 
 **Geändert.** `07-decisions.md`.
+
+### D544 — Abnahme `p27-geraete` mit Nachtrag: die Folge einer Stimme nennt gleiche Wahl und Liste
+
+**Anlass.** Bericht des Werkzeugs, Commit `4532bde` auf `p27-geraete`, Basis `1c25c4a` (D543).
+Gelesen: der vollständige Diff gegen die Basis aus dem Spiegel, `symbolon/` und `tools/`; die
+Testdatei ist byteweise die aus dem Auftrag. Im Klon auf dem Branch nachgefahren: 1191 Tests grün,
+der Selbsttest 174 von 174, `ruff` sauber, die Markdown-Prüfungen grün.
+
+**Geprüft gegen D542 und D543.** Die Aufnahme setzt die Ketten fort und liefert dieselben Bytes; die
+Seeds stehen nur, wo genannt. `proposals_view`, `tasks_view`, die Absicht `vote`, `_budget_of` und
+`ref_block` rechnen je Wurzel. Die Gruppierung liest nur aktive, unbestrittene Stimmen mit Wahl 0
+oder 1 als `int`, verlangt zwei Schlüssel und die Teilnahme der Wurzel in der Vorgängerverfassung.
+Die Seite baut Karte und Satz nur aus `geraeteSatz`; die Gabelkarte ist unberührt. Die Läufe ohne
+`--geraete` bleiben, wie sie waren. Die Golden Numbers aus D542 sind im Bericht bestätigt.
+
+**Meldungen 2 bis 6 angenommen.** Der Vergleich der Wahl auch nach dem Typ folgt der Auszählung. Der
+Parameter `same` hat einen Aufrufer. Die Mitgliedschaft nach der Wurzel zu suchen ist richtig: nur
+so hält eine Bedingung die Regel, und G3 sieht sie. Beide Seeds bei `schluessel=None` folgt dem
+Muster für Personen. Die Suche nach der Vorgängerverfassung inline ist gut.
+
+**Befund — mein Fehler, Meldung 1.** Die Vorschau einer Stimme sagt bei `SAME_VOTE` in `folgeZeilen`
+„Deine Stimme zählt nicht: … Auch deine erste Stimme zählt dann nicht mehr.“, neben der Warnung „Die
+Stimme zählt einmal.“ D543 hat die Warnung geändert und die zweite Stelle desselben Satzes nicht
+gesucht; der Kandidat aus D537, diesmal an einem Satz statt an einer Menge. Dazu fand ich beim
+Nachlesen eine zweite Stelle: `felder.teilnehmer` prüft auf der Seite den Schlüssel, nicht die
+Wurzel. Auf einem Zweitgerät sagte die Vorschau einer abweichenden Stimme „Du stehst nicht auf der
+Mitgliederliste.“
+
+**Beschluss 1 — Nachtrag auf demselben Branch.** Die Folge einer Stimme trägt `same` und
+`participant`, beides aus `_vote_effect`, die Teilnahme für die Wurzel. `folgeZeilen` sagt bei
+`counts` falsch und `same` wahr „Deine Stimme zählt einmal: Du hast schon so abgestimmt.“; sonst
+liest es die Teilnahme aus `effect.participant` und nur, wo das fehlt, aus `felder.teilnehmer`.
+Die bestehenden Fälle behalten damit ihre Erwartung. Am Prototyp: 1192 Tests grün, der Selbsttest
+177 von 177; die Proben N1 bis N4 rot an der Sache.
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| N1 | kein Zweig für gleiche Wahl | `folgeZeilen: vote, gleiche Wahl` |
+| N2 | Teilnahme nur aus `felder` | zwei Fälle zu Gerät und Liste |
+| N3 | `same` fest falsch | `test_folge_nennt_gleiche_wahl_und_liste` |
+| N4 | `participant` fest wahr | `test_folge_nennt_gleiche_wahl_und_liste` |
+
+**Beschluss 2 — Rückfrage 2: kein Posten in `offen.md`.** Die zwei Lagen stehen als schwächste
+Stelle in D543, kein Bild erzeugt sie, und ein Posten ohne Anlass wäre ein Wartestand mehr. Der
+Sitzungsstart führt sie unter „ohne Auftrag“.
+
+**Nach dem Nachtrag.** Abnahme des Nachtrags, Merge, dann Olis Durchlauf mit `--geraete` (D490).
+Erst danach wird O94 erledigt.
+
+**Geändert.** `07-decisions.md`.

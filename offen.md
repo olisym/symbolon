@@ -429,3 +429,9 @@ das für unpraktisch, wenn der Ort nicht erreichbar ist (D528). Neu bewertet wer
 und die Behandlung jeder Gabelung als Widerspruch (D43, D469, `04 §3.1`), gegen Literatur, die
 D124, D489 und D527 nicht geprüft haben. Leitfragen und Suchbegriffe im Sitzungsstart zu `00co`.
 Öffnet in der nächsten Sitzung.
+
+### O93 Eine Stimme, die zwei widersprüchliche Stimmen derselben Wurzel auflöst
+
+Stimmen zwei Geräte einer Wurzel verschieden, zählt keine (D529 Beschluss 2). Eine neue Stimme, die
+beide per `claim_id` nennt, entstand nachweislich nach beiden. Das ist der Stimmwechsel aus D487
+Befund 3 und hängt an D97. Öffnet, wenn der Prototyp aus D529 Beschluss 3 die Form trägt.

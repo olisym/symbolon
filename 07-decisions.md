@@ -22536,3 +22536,106 @@ nächsten Schritt; `sitzungsstart-00cm.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `offen.md` (O92), `sitzungsstart-00cn.md`,
 `archiv/sitzungsstart-00cm.md`.
+
+### D529 — O92: Wurzel und Geräteschlüssel statt Ort; Widerspruch je Wurzel am Inhalt
+
+**Anlass.** O92, Olis Einwand aus D528. Gelesen: `01 §4`, `01 §8`, D43, D120, D123, D124, D469,
+D471, D489, D523, D527, D528, `04 §3.1`, `symbolon/governance/tally.py` und die Stellen in
+`symbolon/`, die `equivocation-flagged` lesen. Nachgeschlagen nur, was D124, D489 und D527 nicht
+geprüft haben: KERI, Kleppmann und Howard (2020) mit Jacob, Bayreuther und Hartenstein (2021),
+Keyhive, WhatsApp Multi-Device, Nostr NIP-26 und NIP-46, gelesen 2026-09-26. Nicht gelesen:
+p2panda, Willow und Meadowcap, Beelay, MLS (RFC 9420), der PDS des AT Protocol.
+
+**Befund 1 — D123 legt zwei Rollen in ein Wort.** „Ort“ ist zugleich, wer den Schlüssel hält, und
+wer die Spitze fortschreibt. Liegt der Schlüssel auf dem Gerät (D471 Beschluss 1), ist der Ort ein
+Gerät, und Olis Einwand trifft genau: ein Zweitgerät, das sein Erstgerät erreichen muss, ist kaum
+mehr wert als das Erstgerät. Ein immer erreichbarer Ort im Homelab hätte die Form eines Signier-
+dienstes nach NIP-46; er hielte den Schlüssel dauernd im Dienst, was D471 Beschluss 1 verwirft,
+und über Funk in Phase 5 wäre er oft nicht erreichbar.
+
+**Befund 2 — die Literatur trennt die beiden Rollen.** KERI delegiert Erzeugung und Rotation der
+Schlüssel eines eigenen Identifikators; die signierende Autorität üben dann eigene, widerrufbare
+Schlüssel aus, und der Delegierende wirkt nur an diesen Ereignissen mit, nicht an jeder Aussage
+(KERI, arXiv 1907.02143, Abschnitt 7.26; KID0007). WhatsApp gibt seit 2021 jedem Gerät einen
+eigenen Identitätsschlüssel; das Hauptgerät autorisiert neue Geräte, die Zweitgeräte laufen ohne
+es (Meta Engineering, 2021-07-14). Keyhive stellt die Geräte einer Person als Gruppe hinter einen
+Stellvertreter, und Dokumente kennen nur die Gruppe (Keyhive-Notizbuch, Eintrag 01). In allen
+dreien wird die Wurzel selten gebraucht, und das Gerät schreibt selbst.
+
+**Befund 3 — D123s Begründung trägt nur für den Kettenbeweis.** D123 verwirft Ketten je Gerät,
+weil Equivocation dann eine freie Handlung wäre. Das gilt, solange Widerspruch nur als gleiches
+`(I, h_prev)` erkannt wird. `04 §3.1` erkennt ihn schon heute am Inhalt (`AMBIGUOUS_VOTE`), und
+`02` zählt das Budget über alle Zustände. Je Wurzel statt je Schlüssel zusammengefasst, kollidieren
+zwei Geräte derselben Wurzel wieder. KERI erkennt Duplizität je Ereignisprotokoll; Widerspruch
+zwischen zwei Delegierten ist dort Sache der Anwendung, bei MaR also dieser Zusammenfassung.
+
+**Befund 4 — die Zurechnung ist kein Kunstgriff.** Ein Geräteschlüssel gehört zu einer Wurzel nur,
+wenn deren Kette es in einem Claim sagt. Ohne diesen Claim ist das Gerät eine fremde Identität mit
+dem Ruf null, denn die Bürgschaften zeigen auf die Wurzel. Mit ihm rechnet jeder Bestand, der ihn
+hält, jede Aussage des Geräts der Wurzel zu; das Gerät kann nicht wählen, wann es dazugehört. Den
+Ruf nutzen und den Widerspruch meiden geht nicht zugleich. Mehrere Wurzeln eines Menschen bleiben
+mehrere Fremde, wie heute; dagegen steht der Trust-Flow, nicht diese Form.
+
+**Befund 5 — ein DAG je Schlüssel ist unterlegen.** Im Hash-DAG ist Equivocation nur Nebenläufig-
+keit; eine Unterklasse von CRDTs bleibt ohne jede Erkennung konsistent (Jacob, Bayreuther und
+Hartenstein 2021, arXiv 2109.10554). MaR braucht Zurechenbarkeit, nicht Konvergenz. Ein DAG je
+Schlüssel führte zum selben Urteil am Inhalt wie Ketten je Gerät, verlöre aber, welches Gerät
+spricht, und dass ein gestohlener Schlüssel sich durch eine Gabelung verrät. Leitfrage 2 aus dem
+Sitzungsstart zu `00co` ist damit als Position beantwortet, ungemessen: keine Kette wird ein DAG.
+
+**Befund 6 — Entfernen ohne Uhr.** NIP-26 gilt heute als nicht empfohlen. In seinem Entwurf wurde
+festgehalten, dass sich bei einem kompromittierten Unterschlüssel nicht prüfen lässt, ob ein Event
+vor dem Widerruf entstand (nostr-protocol/nips, PR 28). MaR hat, was Nostr fehlt, eine Ordnung je
+Kette: die Wurzel kann ein Gerät bis einschliesslich einer `claim_id` beenden, und was danach in
+dessen Kette steht, trägt nicht. Kein Zeitstempel, kein Fenster (D124).
+
+**Befund 7 — `AMBIGUOUS_VOTE` fragt nicht nach der Wahl.** `tally.py` wertet jede Gruppe mit mehr
+als einer aktiven Stimme desselben Autors als mehrdeutig. Die Begründung in `04 §3.1` ist, dass
+zwei Stimmen Verschiedenes sagen; zweimal Ja deckt sie nicht. Für Bild (b) heisst das: auch mit
+eigenem Geräteschlüssel verlöre Dora den Beschluss.
+
+**Beschluss 1 — die Richtung für O92, noch nicht normativ.**
+
+- Die Wurzel ist der Schlüssel, an dem der Ruf hängt. Sie liegt kalt, etwa auf einem Offline-Gerät
+  nach Art eines Trezor (D471), und schreibt nur: Gerät aufnehmen, Gerät beenden bis einschliesslich
+  einer `claim_id`.
+- Jedes Gerät hat einen eigenen Schlüssel und eine eigene Kette mit einem Schreiber und führt seine
+  Spitze (D471 Beschluss 2, je Gerät). Einen Sequenzer über die Geräte hinweg gibt es nicht.
+- Widerspruch hat zwei Formen. Ein Gerät gabelt seine Kette: der Beweis aus `01 §4`, D43 gilt
+  unverändert. Zwei Geräte derselben Wurzel sagen Unvereinbares: erkannt am Inhalt, je Wurzel.
+- Ein verlorenes Gerät ist kein Verlust der Identität; die Wurzel beendet es. D124 bleibt für den
+  Verlust der Wurzel.
+
+Das Wort „Ort“ wird für diese Form nicht verwendet. Normativ wird sie erst nach dem Prototyp aus
+Beschluss 3; betroffen wären `01 §8` (Delegation, dort bewusst vertagt), D123, `02` (Zusammenfassung
+je Wurzel) und `04 §3.1`.
+
+**Beschluss 2 — Stimmen zweier Geräte derselben Wurzel.** Oli: ein Mensch bedient nur ein Gerät
+zugleich; verschiedene Stimmen sind Fehler oder Betrug.
+
+- Gleiche Wahl zählt einmal und wird sichtbar gemacht. Das ist das Muster aus `membership()` in
+  `03`, das `04 §3.1` nur für verschiedene Aussagen ausschliesst.
+- Verschiedene Wahl: keine der beiden zählt, sichtbar wie jede Doppelstimme (D525), ohne Verlust der
+  Kanten. Meinungsänderung und Lüge sind zwischen zwei Geräten nicht zu unterscheiden; Oli trägt
+  das.
+
+**Beschluss 3 — der Prototyp.** Im Supervisor-Klon wie in D521, verworfen nach der Messung. Bild
+(b), dazu Bruno: Doras und Brunos Zweitgeräte tragen je einen eigenen, von ihrer Wurzel
+aufgenommenen Schlüssel, und Stimmen werden je Wurzel zusammengefasst. Zwei Fassungen, `04 §3.1`
+wie heute und gleiche Wahl zählt einmal. Erwartet: Doras Beschluss fällt in der ersten und hält in
+der zweiten; Brunos Stimme zählt in beiden nicht, und er behält seine Kanten. Weicht Bruno ab, ist
+die Zusammenfassung falsch gebaut.
+
+**Beschluss 4 — die auflösende Stimme, getrennt: O93.** Oli: bei verschiedenen Stimmen soll der
+Mensch gefragt werden, was gilt. Im Protokoll ist das eine neue Stimme, die beide widersprüchlichen
+per `claim_id` nennt und damit nachweislich nach beiden entstand, eine Ordnung über Verweise statt
+über die Uhr. Das ist der Stimmwechsel aus D487 Befund 3: `vote@1` lässt sich heute nicht
+zurücknehmen, und ein erreichtes Ergebnis könnte wieder fallen (D97). Er gehört nicht in den ersten
+Prototyp.
+
+**Verworfen.** Ein immer erreichbarer Ort im Homelab (Befund 1). Ein DAG je Schlüssel (Befund 5).
+
+**Berichtigung.** In der Aussprache sagte ich, man setze „die Person“ als Autor ein. Das Protokoll
+kennt keine Personen, nur Schlüssel; gemeint war die Wurzel, und die Annahme dahinter ist Befund 4.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O93).

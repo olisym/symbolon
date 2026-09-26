@@ -21895,3 +21895,103 @@ dem Startbefehl und der Seite.
 
 **Geändert.** `symbolon/node/api.py`, `symbolon/node/store.py`, `tools/abgleich.py`,
 `tests/node/test_abgleich.py` (über den Merge); `07-decisions.md`.
+
+### D518 — Fünf Geräte, ein Netz, das Bild der Lüge; Startbefehl und Seite
+
+**Anlass.** D516 Schwächste Stelle: eine Runde gleicht zwei Knoten ab, für mehr fehlt die
+Reihenfolge. Und D513 Beschluss 1: ein Befehl startet alle Knoten. Gelesen:
+`szenario-verein §2`, `§5.2`, `§7`, `symbolon/node/static/app.js` (Kopf, Regie, Zeichnen),
+`geschichte` und `regieReihenfolge` in `anzeige.js`, `tools/verein.py` bis `build`,
+`tools/verein_node.py`, `symbolon/node/__main__.py`.
+
+**Beschluss 1 — ein Gerät je Person, dazu Brunos Zweitgerät.** Oli hat das Bild bestätigt: „Ja,
+genau so“. Fünf Knoten, je mit eigener Datei und eigenem Port, jeder ein Tab im Browser:
+
+| Gerät | Datei | Port | Schlüssel |
+|---|---|---|---|
+| Annas Gerät | `anna.sqlite` | 8471 | ANNA |
+| Brunos Gerät | `bruno.sqlite` | 8472 | BRUNO |
+| Brunos Zweitgerät | `bruno2.sqlite` | 8473 | BRUNO |
+| Chris' Gerät | `chris.sqlite` | 8474 | CHRIS, KASSE |
+| Doras Gerät | `dora.sqlite` | 8475 | DORA |
+
+Jedes Gerät beginnt mit dem Bestand aus `tools/verein_node.anlegen` und kennt alle fünf Namen, aber
+nur die Schlüssel seiner Spalte. KASSE lebt auf Chris' Gerät (`szenario-verein §7`). Brunos
+Schlüssel auf zwei Geräten ist die Lüge selbst: wer von zwei Geräten unterschreibt, gabelt sich
+(`01 §8`). Gemessen: der Bestand beginnt in Epoche 2 mit vier Teilnehmern, kein Antrag offen.
+
+**Beschluss 2 — ein Durchgang gleicht alle Paare ab, in fester Ordnung.** Ein Durchgang fährt
+`runde` über jedes Paar der Geräteliste in der Ordnung von `itertools.combinations`. Gemessen an
+Mengen: bei vier und fünf Knoten hält danach jeder die Vereinigung; ein Ring oder eine Kette über
+vier Knoten tut es nicht. Mit D514 Beschluss 1 gilt das auch, wo nachgeräumt wird, weil jede
+Reihenfolge der Einlieferung denselben Bestand ergibt. Ein getrenntes Gerät fällt aus seinen
+Paaren heraus, die übrigen gleichen sich weiter ab. Der Startbefehl fährt alle zwei Sekunden einen
+Durchgang.
+
+**Beschluss 3 — der Startbefehl.** `python -m tools.netz <verzeichnis>` legt fehlende Dateien an,
+startet die fünf Knoten als eigene Prozesse mit `--uhr-ab 1000`, wartet, bis jeder antwortet,
+druckt Gerät und Adresse und den Ablauf, und fährt dann die Durchgänge. Eine Zeile erscheint nur,
+wenn ein Durchgang etwas eingeliefert hat oder scheitert. `Strg-C` beendet alle Knoten. Eine
+vorhandene Datei wird weiter benutzt; ein frischer Anfang braucht ein neues Verzeichnis, wie bisher
+eine neue Datei.
+
+**Beschluss 4 — der Knoten kennt seinen Gerätenamen und nennt seinen Stand.** `--geraet <Name>`
+beim Start; `GET /geraet` gibt `{"name": ...}`, ohne Namen `null`. `GET /stand` gibt einen
+Fingerabdruck des Bestands: SHA-256 über die Zahl der Claims als 8 Byte big-endian, die sortierten
+`claim_id` und die sortierten Objekt-Hashes. Beide Routen stehen nicht unter `/peer/`: die Seite
+braucht sie auch, wenn das Gerät getrennt ist.
+
+**Beschluss 5 — was die Seite zeigt, wenn sie ein Gerät ist.** Nur wenn `GET /geraet` einen Namen
+gibt:
+
+- Der Titel des Tabs ist der Gerätename; die Regie nennt ihn oben.
+- Die Regie hat einen Knopf „Vom Netz trennen“ oder „Wieder verbinden“. Ist das Gerät getrennt,
+  steht links unter dem Kopf: „Dieses Gerät ist getrennt. Es bekommt nichts und gibt nichts
+  weiter.“
+- Die Geschichte steht nicht in der Regie. Sie erzählt die Aufnahme einer Person mit eigenem
+  Schlüssel und passt nicht zu fünf Geräten; den Ablauf druckt der Startbefehl.
+- Hat der Browser keinen eigenen Schlüssel, handelt die Seite beim ersten Zeichnen als die erste
+  simulierte Person in der Reihenfolge der Regie; eine spätere Wahl bleibt.
+
+Auf jedem Knoten fragt die Seite alle drei Sekunden `GET /stand`. Weicht er vom Stand beim letzten
+Zeichnen ab, steht links oben „Es ist Neues angekommen.“ mit dem Knopf „Aktualisieren“. Die Seite
+zeichnet nicht von selbst neu, damit keine Eingabe verloren geht (D502).
+
+Verworfen:
+
+- **Die Seite zeichnet bei neuem Stand selbst neu.** Eine halb getippte Eingabe ginge verloren, wie
+  in D502 nach einer Meldung.
+- **Den Vorlauf bis zum Antrag vorbauen.** Der Antrag entsteht in Annas Tab mit einem Klick; ein
+  vorgebauter Stand wäre ein zweiter Weg zum selben Bestand.
+- **Die Geschichte umschreiben.** Das Bild hat acht Schritte über fünf Tabs; ein gedruckter
+  Ablauf im Terminal neben den Tabs reicht für den ersten Durchlauf.
+
+**Der Ablauf, den der Startbefehl druckt.** Die Reihenfolge ist nicht beliebig. Das Zweitgerät
+muss den Antrag kennen, bevor es getrennt wird. Und Bruno darf auf seinem Hauptgerät zwischen
+Trennen und Nein nichts anderes unterschreiben: sonst stünde das Nein neben diesem Claim statt
+neben dem Ja, das Ja zählte, und das Bild zerfiele.
+
+1. Auf jedem Gerät ausser Brunos Zweitgerät erledigen, was unter „Jetzt zu tun“ steht. Brunos
+   Aufgaben erscheinen auf beiden Geräten; auf zweien erledigt, gabelten sie sich schon hier.
+2. Annas Gerät: einen Satzungstext beantragen, etwa den Beitrag. Warten, bis jedes Gerät „Es ist
+   Neues angekommen“ zeigt.
+3. Doras Gerät und Brunos Zweitgerät: vom Netz trennen.
+4. Anna und Chris stimmen Ja, jede auf ihrem Gerät.
+5. Bruno stimmt Ja auf Brunos Gerät und Nein auf Brunos Zweitgerät, sonst nichts.
+6. Annas Gerät: den Beschluss feststellen. Die neue Satzung gilt dort.
+7. Brunos Zweitgerät: wieder verbinden. Nach ein paar Sekunden zeigt jedes Gerät den Widerspruch.
+8. Doras Gerät: wieder verbinden und Ja stimmen; dann stellt Anna den Beschluss neu fest.
+
+**Golden Numbers, am Prototyp gemessen.** Vier Knoten mit je einem eigenen Claim: ein Durchgang
+liefert 12 ein, danach hält jeder vier, ein zweiter liefert 0. Jedes Gerät aus Beschluss 1 hält
+genau die Schlüssel seiner Spalte und alle fünf Namen. Die fünf naheliegenden Fehler habe ich gegen
+die Tests in der Fassung des Auftrags gefahren (D517), jeder macht genau einen Test rot: alle
+Schlüssel auf jedes Gerät, ein Ring statt aller Paare, `/stand` bei getrenntem Gerät gesperrt,
+`/stand` ohne Objekte, der Gerätename nicht an den Handler gereicht.
+
+**Schwächste Stelle.** Der Ablauf hängt an Olis Reihenfolge; ein Schritt ausser der Reihe gibt ein
+anderes, richtiges Bild, das er nicht erwartet. Die Seite prüft das nicht. Das zeigt der Durchlauf.
+Und die Uhr beginnt bei jedem Start bei 1000; nach einem Neustart hebt `_prepare` das `t` auf den
+Vorgänger, wie im Einzelknoten.
+
+**Geändert.** `07-decisions.md`.

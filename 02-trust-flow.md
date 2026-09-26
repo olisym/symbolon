@@ -78,8 +78,12 @@ hält:
 
 beide im Zustand `active` nach Atom-Spec §6 und ohne `t_exp`. Hält `G` in `N` mehrere solche
 Acks, bindet das früheste in `G`s eigener Kette, nicht das zuerst empfangene — die Regel aus
-`00 §6.1` (D154). Die Wurzel eines Geräts ist selbst kein Gerät: ist `W` in `N` wirksam
-aufgenommen, bleibt `A` ohne Wirkung. Geräte nehmen keine Geräte auf.
+`00 §6.1` (D154). Liegt keines vor allen anderen, weil die Acks auf verschiedenen Zweigen stehen,
+bindet keines. Geräte nehmen keine Geräte auf: hat `W` in `N` selbst ein `device-ack@1` im Zustand
+`active` und ohne `t_exp` gezeichnet, bleibt `A` ohne Wirkung. Die Regel liest nur, ob `W` als
+Gerät gehandelt hat, nicht ob diese Aufnahme ihrerseits wirkt; sonst hinge die Wirkung einer
+Aufnahme an einer anderen, und zwei Schlüssel, die einander aufnehmen, hätten keine Auswertung
+(D536).
 
 **Ende.** Ein `device-end@1` `E` mit `E.I == W`, `E.J == [identity, G]`, `E.N == N`, im Zustand
 `active` und ohne `t_exp`, beendet `G`. Sein Endpunkt `c` ist Key `0` seines `v`; ist `v` nicht
@@ -102,6 +106,15 @@ ist oder ob er nach einem Endpunkt liegt. Für das Budget-Set gilt deshalb die G
 Vouch eines wirksam aufgenommenen Geräts zählt zum Budget der Wurzel, solange nicht erwiesen ist,
 dass er vor `K` liegt oder bestritten ist. Sonst ließe sich die Budgetregel umgehen, indem ein
 Gerät Vorgänger zurückhält — derselbe Grund wie bei `pending` in §3.1.
+
+**Eine Kante nur, wo auch das Budget liegt.** Budget-Set und Aktiv-Set können denselben Claim
+verschieden zurechnen: ein `active` Claim, über dem die Kette eine Lücke hat, oder dessen Ende auf
+einen lokal fehlenden Endpunkt zeigt, zählt zum Budget der Wurzel und ist ihr nach der Zurechnung
+oben doch nicht sicher zugerechnet. Ein solcher Claim trägt **keine** Kante, weder für die Wurzel
+noch für das Gerät. Die Gruppe aus §3.1 wird nach der Zurechnung des Budget-Sets gebildet; `n_kante`
+liest nur Mitglieder, deren Kante nach der Zurechnung oben derselben Wurzel gehört. So bleibt
+`n_budget ≥ 1` für jede Gruppe mit Kante, und das Unter-Vertrauen liegt auf der sicheren Seite
+(§7, D536).
 
 **Bestritten heißt nicht bestraft.** Ein bestrittener Claim trägt keinen Vermerk dieser Schicht
 und flaggt niemanden. Er trägt weder Kante noch Budget der Wurzel. Er bleibt gespeichert; das Ende

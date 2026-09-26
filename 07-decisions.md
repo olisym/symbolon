@@ -22975,3 +22975,59 @@ Messausgabe übernommen (Kandidat aus D457).
 
 **Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `02-trust-flow.md`,
 `03-profiles.md`, `04-governance.md`, `07-decisions.md`.
+
+### D536 — Prototyp zur Zurechnung; zwei Berichtigungen in `02 §2.1`; Auftrag `p25-zurechnung`
+
+**Anlass.** D535, nächster Schritt. Gelesen: `symbolon/policy.py`, `symbolon/index.py`,
+`symbolon/verifier.py` (Zustandsmaschine, Vorgängerprüfung), `symbolon/trust/groups.py`,
+`symbolon/trust/derive.py`, `symbolon/governance/tally.py`, `symbolon/governance/findings.py`,
+`AGENTS.md`. Die Auszählung (`04`) folgt als eigener Auftrag.
+
+**Prototyp.** Im Supervisor-Klon auf `9dffe9f` gebaut, gemessen, verworfen: ein Modul für die
+Zurechnung nach `02 §2.1`, die Gruppenbildung und die Flags in `derive` darauf umgestellt, der Boden
+in `policy.py` erweitert. Elf Tests in der Fassung des Auftrags, alle grün; die bestehenden Tests
+unter `tests/trust` und `tests/test_policy.py` unverändert grün.
+
+**Befund 1 — die Gruppe braucht zwei Zurechnungen.** Der erste Prototyp bildete die Gruppe nach der
+Zurechnung des Budget-Sets und liess die Kante daran hängen. Ein Ende mit lokal fehlendem Endpunkt
+rechnet den Claim dem Budget der Wurzel zu und sperrt ihn zugleich; die Kante lief dann über die
+Wurzel, und DORA war erreicht, wo die Sperre sie abschneiden sollte. Berichtigt in `02 §2.1`: eine
+Kante nur, wo auch das Budget liegt.
+
+**Befund 2 — die Regel „Geräte nehmen keine Geräte auf“ war rekursiv.** `02 §2.1` fragte, ob die
+Wurzel selbst wirksam aufgenommen ist; das hängt an einer anderen Aufnahme, und zwei Schlüssel, die
+einander aufnehmen, hätten keine Auswertung. Berichtigt: gelesen wird, ob die Wurzel ein aktives
+`device-ack@1` gezeichnet hat. Dazu: stehen mehrere Acks eines Geräts auf verschiedenen Zweigen,
+bindet keines.
+
+**Befund 3 — das Ende wirkt an zwei Stellen.** Die Sperre schneidet in der Zurechnung und im
+Budget-Set. Eine Rücknahmeprobe, die sie nur an einer Stelle zurücknimmt, bleibt grün, weil die
+andere greift; die Proben R2 und R4 nehmen sie deshalb an der Quelle zurück, beim Lesen der Enden.
+
+**Rücknahmeproben am Prototyp.** Jede rot an der Sache, gefahren gegen die Tests in der Fassung des
+Auftrags (D517):
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| R1 | Budget-Set rechnet wie das Aktiv-Set zu | zurückgehaltener Vorgänger |
+| R2 | Enden werden nicht gelesen | Ende schneidet |
+| R3 | fehlender Endpunkt sperrt nicht | Endpunkt unbekannt |
+| R4 | defektes `v` eines Endes wird übergangen | Endpunkt defekt |
+| R5 | Gabel flaggt die Wurzel nur im ausgewerteten Scope | Gabel in `N_gov` |
+| R6 | das späteste Ack bindet | frühestes Ack |
+| R7 | ein Gerät darf Geräte aufnehmen | Gerät nimmt kein Gerät auf |
+| R8 | `t_exp` auf der Aufnahme wird übergangen | `t_exp` |
+| R9 | der Boden ohne die Geräteprädikate | Widerruf der Aufnahme |
+| R10 | Kante auch ohne Budget | Endpunkt unbekannt |
+| R11 | keine Zurechnung in der Gruppenbildung | delegiert wie Wurzel |
+
+**Beschluss 1 — zwei Aufträge.** `p25-zurechnung`: Boden, Zurechnung, Gruppen und Flags in `02`.
+`p26-auszaehlung`: `04 §3.1`, `§4.1`, `§4.4`, `DISPUTED_VOTE` und das Verdikt; er baut auf `p25` auf
+und wird nach dessen Abnahme geschrieben.
+
+**Beschluss 2 — der Auftrag nennt die Schnittstelle.** Modul `symbolon/trust/attribution.py`, eine
+Funktion `attribution(store, classifications, scope)`, drei Anfragen an ihr Ergebnis: Zustand,
+Wurzel der Kante, Wurzel des Budgets. `p26` braucht dieselben; eine Schnittstelle, die das Werkzeug
+wählt, müsste der nächste Auftrag nachlesen.
+
+**Geändert.** `02-trust-flow.md`, `07-decisions.md`.

@@ -361,8 +361,8 @@ Policy (D91).
 | `INV-04.3` | Kein Teilwissen führt zu `PASSED`. Fehlt ein Objekt, ist der Zustand `UNEVALUABLE`. |
 | `INV-04.4` | Zwei `ratify@1` für denselben Vorschlag liefern denselben `epoch_id`. |
 | `INV-04.5` | Die Auszählung liest keine Uhr. `t` wird nie ausgewertet; `t_exp` einer Stimme nur auf Anwesenheit, nie auf seinen Wert. |
-| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`) oder ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`, `04 §4.4`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). |
-| `INV-04.8` | Eine einmal etablierte Epoche bleibt etabliert: kein zusätzlicher Claim im Store nimmt einem gültigen `ratify@1` seine Wirkung. **Vorbehalt:** derselbe; eine etablierte Epoche fällt nur durch einen Zwilling oder eine weitere Stimme eines ihrer Zeugen (D117, D433, D434). |
+| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`) oder ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`, `04 §4.4`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). Mit Geräten ist Autor die Wurzel (`02 §2.1`); sie entwertet eine Stimme ihres Geräts auch durch eine Sperre (`device-end@1`, D532) oder durch eine Aufnahme mit Gegenzeichnung, die zwei Stimmen verschiedener Wahl zusammenführt (D539). |
+| `INV-04.8` | Eine einmal etablierte Epoche bleibt etabliert: kein zusätzlicher Claim im Store nimmt einem gültigen `ratify@1` seine Wirkung. **Vorbehalt:** derselbe; eine etablierte Epoche fällt nur durch einen Zwilling, eine weitere Stimme eines ihrer Zeugen oder einen Claim seiner Wurzel aus `INV-04.7` (D117, D433, D434, D539). |
 | `INV-04.6` | Bei `num/den > 1/2` gibt es zu einer Epoche höchstens einen Vorschlag im Zustand `PASSED`. |
 
 `INV-04.2` und `INV-04.6` sind als Eigenschaftstests über einem Bereich zu prüfen, nicht an
@@ -384,11 +384,14 @@ gültige Stimme desselben Autors auf denselben Vorschlag nimmt beide aus der Men
 (`AMBIGUOUS_VOTE`), ein Ja auf einen anderen Vorschlag derselben Epoche ebenso
 (`CONFLICTING_APPROVAL`). Allen dreien gemeinsam sind Urheber und Art: nur der Autor der
 entfallenden Stimme kann sie entwerten, durch einen Zwilling oder eine weitere eigene Stimme.
-Widerruf und Supersede bleiben wirkungslos, das ist der Schutz aus D105 und D107, und der
-Vorbehalt lockert ihn nicht (D434). Ein Eigenschaftstest zu `INV-04.7` und `INV-04.8` prüft den
-Vorbehalt in dieser Form — schrumpft die Menge oder fällt die Epoche, ist der auslösende Claim ein
-Zwilling oder eine Stimme vom Autor jeder entfallenen Stimme — oder schliesst Ausgänge aus und
-sagt es.
+Widerruf und Supersede bleiben wirkungslos, das ist der Schutz aus D105 und D107, und der Vorbehalt
+lockert ihn nicht (D434). Mit Geräten bleibt der Urheber derselbe, nur heisst er Wurzel: Sperre und
+Aufnahme sind Claims der Wurzel der entfallenden Stimme, und die Aufnahme braucht dazu die
+Gegenzeichnung des Geräts. Ein Verdikt, das eine bestrittene Stimme zurechnet, zählt nur, wenn
+`verdict@1` unwiderruflich ist; ein Widerruf öffnet damit auch hier nichts (`04 §3.1`, D539). Ein
+Eigenschaftstest zu `INV-04.7` und `INV-04.8` prüft den Vorbehalt in dieser Form — schrumpft die
+Menge oder fällt die Epoche, ist der auslösende Claim ein Zwilling oder eine Stimme vom Autor jeder
+entfallenen Stimme — oder schliesst Ausgänge aus und sagt es.
 
 `INV-04.8` ist `INV-04.7` eine Ebene höher: die Stimmenmenge zu sichern nützt nichts, wenn die
 Materialisierung darüber zurückgenommen werden kann (D107). `GV-34` prüft die Gegenrichtung —

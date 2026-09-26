@@ -23110,3 +23110,62 @@ bleibt dort.
 `p26-auszaehlung` nach D536 Beschluss 1, vorher gemessen am Prototyp.
 
 **Geändert.** `07-decisions.md`.
+
+### D539 — Prototyp zur Auszählung je Wurzel; das Verdikt muss unwiderruflich sein; Auftrag `p26`
+
+**Anlass.** D538, nächster Schritt. Gelesen, ganz: `symbolon/governance/tally.py`,
+`symbolon/governance/epoch.py` ab der Zeugenprüfung, `tests/governance/fixtures.py`,
+`tests/helpers.py`; dazu `04-golden-anchors.md §3` mit `INV-04.7` und `INV-04.8`.
+
+**Befund 1 — ein widerrufbares Verdikt öffnete den Widerruf wieder.** `04 §3.1` rechnete eine
+bestrittene Stimme per Verdikt zu, ohne zu sagen, ob das Verdikt widerrufbar ist. Widerruft der
+Schiedsrichter es, entfällt eine zählende Stimme durch einen Widerruf, und genau das schliesst
+`INV-04.7` aus (D105, D107, D434). Berichtigt: das Verdikt zählt nur, wenn `verdict@1` in
+`irrevocable_predicates` der Verfassung dieser Epoche steht. Die Satzung des Beispielvereins führt
+es nicht; dort bleibt eine bestrittene Stimme bestritten, bis die Satzung es ändert.
+
+**Befund 2 — der Vorbehalt der Invariante kannte die Wurzel nicht.** `INV-04.7` und `INV-04.8`
+sagen, nur der Autor einer Stimme könne sie entwerten. Mit Geräten tut es auch die Sperre der
+Wurzel und eine Aufnahme, die zwei Stimmen verschiedener Wahl zusammenführt; beides sind Claims der
+Wurzel, die Aufnahme mit Gegenzeichnung des Geräts. Nachgezogen in `04-golden-anchors.md §3`. Der
+Eigenschaftstest dazu erzeugt keine Geräte und bleibt gültig.
+
+**Befund 3 — gleiche Wahl gilt auch ohne Geräte.** `04 §3.1` sagt seit D535, mehrere aktive Stimmen
+derselben Wurzel mit gleicher Wahl zählen einmal. Das trifft auch zwei Stimmen eines Schlüssels
+nacheinander, die bisher `AMBIGUOUS_VOTE` trugen. `GV-16` stellt zwei Stimmen verschiedener Wahl und
+bleibt, wie er ist; kein Vektor stellt zweimal dieselbe Wahl.
+
+**Prototyp.** Im Supervisor-Klon auf `ecb6d62` gebaut, gemessen, verworfen. Die Auszählung fasst
+nach der Wurzel aus `p25` zusammen, zählt gleiche Wahl einmal und Wurzeln an der Schwelle, vermerkt
+`DISPUTED_VOTE`, rechnet per Verdikt zurück und prüft `CONFLICTING_APPROVAL` je Wurzel; die
+Feststellung prüft Feststeller und Zeugen je Wurzel. Welt aus `tests/governance/fixtures.py`, weil
+nur dort eine Verfassung mit `verdict@1` ohne neue Epoche zu bauen ist. Zwölf Tests in der Fassung
+des Auftrags grün, alle 1177 Tests grün.
+
+**Befund 4 — ein Schwellentest braucht die Schwelle.** Der erste Test zu „Wurzeln an der Schwelle“
+blieb grün, als die Zählung auf `claim_id` zurückgenommen wurde: bei `3/4` von fünf erreichten weder
+zwei Wurzeln noch drei Stimmen die Schwelle. Der Test steht jetzt so, dass drei Wurzeln sie nicht
+erreichen und vier Stimmen es täten.
+
+**Rücknahmeproben am Prototyp**, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| Q1 | Zusammenfassung nach `I` | verschiedene Wahl |
+| Q2 | gleiche Wahl mehrdeutig | gleiche Wahl einmal |
+| Q3 | Schwelle zählt `claim_id` | Wurzeln an der Schwelle |
+| Q4 | Mitgliedsprüfung nach `I` | Gerät wie Wurzel |
+| Q5 | Bestreiten übergangen | bestritten |
+| Q6 | Verdikt ohne Unwiderruflichkeit | Bedingungen des Verdikts |
+| Q7 | Verdikt jedes Schlüssels | Bedingungen des Verdikts |
+| Q8 | Ausgang des Verdikts ungelesen | Bedingungen des Verdikts |
+| Q9 | `t_exp` auf dem Verdikt übergangen | Bedingungen des Verdikts |
+| Q10 | `CONFLICTING_APPROVAL` nach `I` | Konflikt über Geräte |
+| Q11 | `CONFLICTING_APPROVAL` mit bestrittenen Stimmen | Konflikt ohne Bestrittene |
+| Q12 | Zeugen nach `I` | Feststellung je Wurzel |
+| Q13 | Feststeller nach `I` | Feststellung je Wurzel |
+
+**Beschluss.** Auftrag `p26-auszaehlung` mit diesen Fällen und Proben. `symbolon/node/view.py`
+liest `tally.yes` für die Karte; das bleibt ausserhalb und kommt mit den Geräten im Knoten.
+
+**Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.

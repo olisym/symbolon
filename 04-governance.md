@@ -250,7 +250,12 @@ zugerechnete, wenn der Bestand hält:
 1. eine `accusation@1` `X` mit `X.N == scope` und `X.J == [claim-ref, claim_id(Stimme)]`, und
 2. ein `verdict@1` `V` im Zustand `active`, ohne `t_exp`, mit `V.N == scope`,
    `V.J == [claim-ref, claim_id(X)]`, `V.I` in `arbitration.arbitrators` der **Verfassung dieser
-   Epoche** und `v` Key `0 == 1`.
+   Epoche** und `v` Key `0 == 1`, und
+3. `verdict@1` steht in `irrevocable_predicates` der Verfassung dieser Epoche.
+
+Bedingung 3 ist der Schutz aus D105 und D107 für den Rückweg: ein widerrufbares Verdikt nähme
+einer zählenden Stimme durch einen Widerruf die Wirkung, und das schliesst `INV-04.7` aus (D539).
+Ob die Anklage `X` selbst noch aktiv ist, zählt nicht; sie zeigt nur, worüber geurteilt wurde.
 
 Nur dieser Pfad zählt. Die Unterwerfung nach Profile-II `§2.4.1` ist widerruflich und wird gegen
 `now` geprüft; eine Auszählung, die sie läse, änderte sich mit jedem Widerruf. Hat die Verfassung

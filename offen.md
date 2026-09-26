@@ -426,11 +426,9 @@ Seit D123 entschieden: ein Schreiber, ein Ort; Geräte unterschreiben die Anfrag
 
 Wurzel und Geräteschlüssel je Scope, Zurechnung in `02 §2.1`, Auszählung je Wurzel (D529–D540).
 
-### O93 Eine Stimme, die zwei widersprüchliche Stimmen derselben Wurzel auflöst
+### O93 Eine Stimme, die zwei widersprüchliche Stimmen derselben Wurzel auflöst — erledigt (D549)
 
-Stimmen zwei Geräte einer Wurzel verschieden, zählt keine (D529 Beschluss 2). Eine neue Stimme, die
-beide per `claim_id` nennt, entstand nachweislich nach beiden. Das ist der Stimmwechsel aus D487
-Befund 3 und hängt an D97. Öffnet, wenn der Prototyp aus D529 Beschluss 3 die Form trägt.
+Eine Stimme ersetzt, was sie in `v` Key `1` nennt; die Seite nennt frühere Stimmen (D547–D549).
 
 ### O94 Geräte im Knoten, in der Simulation und auf der Karte — erledigt (D546)
 

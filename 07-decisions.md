@@ -23686,3 +23686,40 @@ ein Satz auf seiner Karte, der sagt, dass eine neue Stimme beide ersetzt; beides
 **Beschluss 5 — Auftrag `p28-ersetzen`.**
 
 **Geändert.** `07-decisions.md`, `szenario-verein.md`.
+
+### D549 — Abnahme `p28-ersetzen`; O93 erledigt
+
+**Anlass.** Bericht des Werkzeugs, Commit `60f8113` auf `p28-ersetzen`, Basis `66c3625` (D548).
+Gelesen: der vollständige Diff gegen die Basis aus dem Spiegel. Beide neuen Testdateien sind
+byteweise die aus dem Auftrag. Im Klon auf dem Branch nachgefahren: 1203 Tests grün, der Selbsttest
+180 von 180. Die Rücknahmeproben R1 bis R11 sind laut Bericht an der Sache rot, jede mindestens an
+den verlangten Tests; am Prototyp hatte ich dieselben gefahren (D548).
+
+**Geprüft gegen D547 und D548.** `read_replaces` und `maximal_votes` wie verlangt; der Vermerk
+`MALFORMED_REPLACES` steht nach der Prüfung der Wahl und vor der des Zustands, die Stimme bleibt
+Kandidat. Die Zusammenfassung je Wurzel reicht jede Gruppe durch `maximal_votes`,
+`CONFLICTING_APPROVAL` ist unberührt. Die Absicht nennt jede frühere Stimme der Wurzel, sortiert;
+`SAME_VOTE`, `CHANGE_VOTE`, `replaces` und die Folgezeile wie beschrieben; `ALREADY_VOTED` ist weg.
+`geraetestimmen` zählt nach `maximal_votes`.
+
+**Meldungen angenommen.** Der Parametername `author` statt `wurzel` ist richtig, der Docstring sagt,
+was er ist. Eine Menge aller Namen in `maximal_votes` ist gleichwertig, weil sich eine Stimme nicht
+selbst nennen kann. `CHANGE_VOTE` für einen Nicht-Teilnehmer mit früherer Stimme ist wahr (die
+Stimme ersetzt im Protokoll), und die Folge sagt dazu, dass er nicht auf der Liste steht. Der Kopf
+von `selbsttest.js` ohne D548 ist nicht verlangt.
+
+**Beschluss 1 — O93 ist erledigt.** Die Regel steht in `04 §3.1`, die Auszählung und die Seite
+folgen ihr. D97 ist beantwortet (D547 Befund 2).
+
+**Beschluss 2 — der Branch `p28-ersetzen` wird gelöscht**, nachdem `main` auf ihn vorgespult ist.
+
+**Offen, ohne Auftrag.**
+
+- **Das Folgebild.** In Bild (c) ist der Antrag festgestellt, bevor Bruno seinen Widerspruch sieht;
+  er kann ihn dort nicht mehr auflösen. Ein Bild, in dem er es kann, braucht eine eigene Folge von
+  Takten und einen Satz auf der Karte, der sagt, dass eine neue Stimme beide ersetzt; beides mit
+  Olis Durchlauf (D490).
+- **Der Selbsttest in `make check`** (Rückfrage des Werkzeugs, zweimal ein Skript im Scratchpad).
+  Er hängt dann an Node; ein eigener kleiner Auftrag, wenn es wieder gebraucht wird.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

@@ -510,6 +510,11 @@ function saetzeFaelle() {
     ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."],
   );
   gleich(
+    "folgeZeilen: vote, gleiche Wahl, Wurzel nicht auf der Liste",
+    folgeZeilen("vote", { ...stimme, yes: 1, counts: false, same: true, participant: false }, { teilnehmer: true }),
+    ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."],
+  );
+  gleich(
     "folgeZeilen: vouch unter D",
     folgeZeilen("vouch", { used: 50, D: 100 }, {}),
     ["Danach: Du hast 50 von 100 Punkten vergeben."],

@@ -21995,3 +21995,34 @@ Und die Uhr beginnt bei jedem Start bei 1000; nach einem Neustart hebt `_prepare
 Vorgänger, wie im Einzelknoten.
 
 **Geändert.** `07-decisions.md`.
+
+### D519 — Abnahme `p21-netz`; Olis Durchlauf durch das Bild der Lüge
+
+**Geprüft.** Commit `a7766ab` auf `p21-netz`, Basis `61022e6`, der Diff ganz aus dem Spiegel:
+`symbolon/node/__main__.py`, `symbolon/node/api.py`, `symbolon/node/static/app.js`,
+`tools/netz.py`, `tools/verein_node.py` und `tests/node/test_netz.py`, wie der Bericht sagt. Im
+Klon ohne Bytecode 1148 Tests grün, `app.js` syntaktisch sauber. Die fünf Rücknahmeproben decken
+sich mit dem Bericht und mit meinen aus D518.
+
+**Der Ablauf über die Schnittstelle, selbst gefahren,** mit dem echten Startbefehl und
+`/sim/intent` in jedem Knoten. Nach Schritt 6 zeigt Annas Gerät Epoche 3. Nach Schritt 7 zeigen
+Annas, beide Geräte Brunos und Chris' Gerät je eine Gabelung, Epoche 2 und 2 Ja auf dem Antrag;
+Doras Gerät, noch getrennt, zeigt keine. Nach Schritt 8 stehen alle fünf in Epoche 3. Das ist
+`szenario-verein §5.2` über fünf Prozesse, ohne ein Gerät, das alles weiss.
+
+**Olis Durchlauf.** Fünf Tabs, der gedruckte Ablauf, alle acht Schritte: „hab alles genau so
+durch machen können. Alles gut gefunden, alles wie beschrieben. Das hat sich richtig gut
+angefühlt.“ Kein Befund an der Seite.
+
+**Meldungen des Berichts, angenommen.** Die Hilfen `_stand`, `ABLAUF` und `_antwortet`, das eigene
+`_start` im Test, und dass die Seite `/stand` als Erstes liest. Aus dem eigenen Lauf, ohne
+Auftrag: ein zweites Strg-C, während der Startbefehl auf die Knoten wartet, druckt einen
+Traceback; kein Knoten bleibt übrig.
+
+**Beschluss 1 — gemergt.** Damit steht Phase 4 in ihrer ersten Stufe: mehrere Knoten, die Claims
+austauschen, und jeder zeigt denselben Zustand, sobald er dieselben Claims hat
+(`ROADMAP.md §6`).
+
+**Geändert.** `symbolon/node/__main__.py`, `symbolon/node/api.py`, `symbolon/node/static/app.js`,
+`tools/netz.py`, `tools/verein_node.py`, `tests/node/test_netz.py` (über den Merge);
+`07-decisions.md`.

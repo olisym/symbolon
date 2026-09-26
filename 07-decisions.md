@@ -23335,3 +23335,84 @@ Prototyp zum Auftrag.
 Aufnahme nicht als Handlung, und die Wurzel liegt warm auf dem Erstgerät.
 
 **Geändert.** `07-decisions.md`.
+
+### D543 — Prototyp zum Auftrag `p27-geraete`; gleiche Wahl in der Folge einer Stimme; Auftrag
+
+**Anlass.** D542, nächster Schritt. Gelesen dazu: `symbolon/governance/tally.py` von der
+Mitgliedsprüfung bis zur Schwelle, `static/selbsttest.js` ab den Fällen aus D525, `AGENTS.md`,
+`tests/node/test_versehen.py`. Prototyp im Supervisor-Klon auf `67d9952`, gemessen, verworfen.
+
+**Beschluss 1 — Werte, die weder Ja noch Nein sind, gehören nicht in die Gruppe.** Die Auszählung
+vermerkt sie als `UNKNOWN_VOTE_CHOICE` und lässt sie vor der Zusammenfassung fallen; Ja neben 2
+zählt als Ja. Die Gruppierung aus D542 Beschluss 5 liest deshalb nur Stimmen mit lesbarem,
+kanonischem `v` und Wahl 0 oder 1. Damit kennt die Seite nur Ja und Nein und sagt nie, dass eine
+Stimme nicht zählt, die zählt. Die Fassungen aus D526 Beschluss 3 bleiben der Gabelkarte.
+
+**Beschluss 2 — Zahlwort und „beide“.** Die Zahl der Geräte ist die Zahl verschiedener Schlüssel
+der Gruppe, zwei bis vier ausgeschrieben, sonst die Ziffer. „Keine der beiden Stimmen zählt.“ steht
+nur bei genau zwei Stimmen, sonst „Keine dieser Stimmen zählt.“ Damit ist die schwächste Stelle aus
+D525 für diese Karte geschlossen.
+
+**Beschluss 3 — nur Teilnehmer.** Eine Gruppe erscheint nur, wenn ihre Wurzel unter `participants`
+der Verfassung der Vorgängerepoche des Antrags steht. Sonst sagte die Seite „zählt einmal“ über
+eine Stimme, die als `NON_MEMBER_VOTE` nie zählt.
+
+**Befund — die Folge einer Stimme kannte die gleiche Wahl nicht.** `_vote_effect` zieht bei jeder
+zweiten Stimme die erste ab, und die Warnung `ALREADY_VOTED` sagt „Eine zweite Stimme macht beide
+ungültig.“ Seit D535 zählt gleiche Wahl einmal, auch ohne Geräte (D539 Befund 3). Mit Geräten wird
+das sichtbar: stimmt Dora auf dem Zweitgerät, was sie schon gestimmt hat, sagte die Vorschau falsch,
+ihre Stimme fiele weg.
+
+**Beschluss 4 — `SAME_VOTE`.** Sind alle früheren Stimmen derselben Wurzel zum Antrag gleich der
+neuen Wahl, heisst die Warnung `SAME_VOTE`, Text „Du hast schon so abgestimmt. Die Stimme zählt
+einmal.“, und die Folge lässt Ja und Nein, wie sie sind, mit `counts` falsch. Sonst bleibt
+`ALREADY_VOTED` mit der Folge von heute.
+
+**Beschluss 5 — Kleinigkeiten des Auftrags.**
+
+- Die Aufnahme steht in einer Funktion `aufnahmen(world)` in `tools/verein_node.py`, die die Ketten
+  der Wurzeln fortsetzt; `anlegen` und die Tests rufen sie, so dass ein Test auf einer frischen Welt
+  an denselben Spitzen weiterschreibt wie der Bestand.
+- Die Zeilen der Personen nennen den Namen des Schlüssels, also `BRUNO (Zweitgerät)`; die Regeln aus
+  D521 und D523 hängen weiter am Namen des Geräts.
+- `tools/ref_block.py` bekommt die Zurechnung ohne eigenen Test: die Profile unter `rs/` tragen
+  keine Geräte, eine Rücknahmeprobe bliebe grün. Das schliesst D537 Befund 2.
+- Der Kopf von `tools/netz.py` nennt nicht mehr fünf Geräte (D524).
+
+**Golden Numbers, am Prototyp gemessen.** 1191 Tests grün, zehn davon neu in
+`tests/node/test_geraete.py`; der Selbsttest in Node 174 von 174, neun Fälle neu; `test_stil.py`
+grün. Der Startbefehl mit `--geraete` gibt die Zahlen aus D542, am Ende auf allen sechs Geräten
+Epoche 3 und die Gruppen BRUNO mit 0 und 1, DORA mit 1 und 1.
+
+**Rücknahmeproben am Prototyp**, gefahren gegen die Tests in der Fassung des Auftrags (D517), jede
+rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| G1 | `proposals_view` nennt `I` | Sicht je Wurzel |
+| G2 | „abgestimmt“ nach `I` | Aufgaben eines Geräts |
+| G3 | ein Gerät bekommt `CONFIRM_RULES` | Aufgaben eines Geräts |
+| G4 | die Absicht rechnet nach `I` | Stimme über ein Gerät |
+| G5 | `_budget_of` ohne Zurechnung | Budget je Wurzel |
+| G6 | ein Schlüssel reicht für eine Gruppe | Gruppen |
+| G7 | nur Anträge der geltenden Epoche | Gruppen, Bild (c) |
+| G8 | Titel gegen die geltende Verfassung | Gruppen |
+| G9 | Werte ausser 0 und 1 in der Gruppe | fremde Werte |
+| G10 | bestrittene Stimmen in der Gruppe | Bestrittene |
+| G11 | `anlegen` ohne Gegenzeichnung | sieben Tests |
+| G12 | gleiche Wahl wie verschiedene | Stimme über ein Gerät |
+| G13 | Gruppe ohne Prüfung der Teilnahme | nur Teilnehmer |
+| K1 | gleiche Wahl als Karte | zweimal Ja, zweimal Nein |
+| K2 | Zahlwort fest „zwei“ | drei Geräte |
+| K3 | immer „beiden“ | drei Geräte, drei Stimmen |
+| K4 | Geräte als Stimmen gezählt | drei Stimmen von zwei Geräten |
+| K5 | oben ohne Stand des Antrags | Antrag `PASSED` |
+
+**Schwächste Stelle.** Die Gruppierung sieht `CONFLICTING_APPROVAL` nicht; eine Wurzel, die zwei
+Anträgen derselben Epoche zustimmt, stünde mit „zählt einmal“ da. Kein Bild erzeugt das. Und die
+Absicht behandelt ein gesperrtes Gerät wie seine Wurzel, die Auszählung nennt seine Stimme
+bestritten; auch das erzeugt kein Bild.
+
+**Beschluss 6 — Auftrag `p27-geraete`** mit diesen Tests und Proben.
+
+**Geändert.** `07-decisions.md`.

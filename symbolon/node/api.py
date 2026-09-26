@@ -14,7 +14,7 @@ from typing import Any
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from symbolon import cbor_canon
-from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign
+from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
 from symbolon.governance.objects import Proposal
 from symbolon.governance.tally import TallyResult, TallyState, reached
@@ -550,6 +550,9 @@ def _static_at_start() -> dict[str, Path]:
 def _handler(
     store: SqliteStore, clock: Callable[[], int], files: Mapping[str, Path]
 ) -> type[BaseHTTPRequestHandler]:
+    # Schalter „getrennt“, nur im Speicher, nach dem Start verbunden (D516 Beschluss 3).
+    schalter = {"getrennt": False}
+
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -595,6 +598,19 @@ def _handler(
 
         def _route(self, post: bool) -> None:
             path = self.path.split("?", 1)[0]
+            if path.startswith("/peer/"):
+                self._peer(post, path)
+                return
+            if not post and path == "/getrennt":
+                self._send(200, schalter["getrennt"])
+                return
+            if post and path == "/getrennt":
+                value = _require(self._json_body(), "getrennt")
+                if not isinstance(value, bool):
+                    raise ValueError("getrennt is not a bool")
+                schalter["getrennt"] = value
+                self._send(200, {})
+                return
             if not post and path == "/":
                 self._send_file(files["index.html"])
                 return
@@ -718,6 +734,50 @@ def _handler(
                 sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
                 cid = _submit(store, core_bytes(prepared), sigma)
                 self._send(200, {"claim_id": cid})
+                return
+            raise _Missing()
+
+        def _peer(self, post: bool, path: str) -> None:
+            """Routen des Netzes unter /peer/ (D516 Beschluss 2 und 3, D514 Beschluss 2).
+
+            Ist der Schalter gesetzt, antwortet jede Route mit 503, bevor sie den Bestand liest
+            oder den Rumpf auswertet. Der Rumpf wird dann nur gelesen und verworfen, damit die
+            Antwort den Client vor dem Schließen der Verbindung erreicht.
+            """
+            if schalter["getrennt"]:
+                if post:
+                    header = self.headers.get("Content-Length", "0")
+                    length = int(header) if header.isdigit() else 0
+                    if length <= _LIMIT:
+                        self.rfile.read(length)
+                self._send(503, "getrennt")
+                return
+            if not post and path == "/peer/bestand":
+                claims = sorted(claim_id(claim) for claim in store.all_claims())
+                self._send(200, {"claims": claims, "objects": store.object_hashes()})
+                return
+            if not post and path.startswith("/peer/claims/"):
+                claim = store.get(_hex(path[len("/peer/claims/") :], 32))
+                if claim is None:
+                    raise _Missing()
+                self._send(200, {"data": signed_bytes(claim)})
+                return
+            if not post and path.startswith("/peer/objects/"):
+                found = store.object_at(_hex(path[len("/peer/objects/") :], 32))
+                if found is None:
+                    raise _Missing()
+                self._send(200, {"kind": found[0], "data": found[1]})
+                return
+            if post and path == "/peer/claims":
+                body = self._json_body()
+                claim = store.submit_claim(_hex(_require(body, "data")))
+                self._send(200, {"claim_id": claim_id(claim)})
+                return
+            if post and path == "/peer/objects":
+                body = self._json_body()
+                kind = ObjectKind(_require(body, "kind"))
+                digest = store.submit_object(kind, _hex(_require(body, "data")))
+                self._send(200, {"hash": digest})
                 return
             raise _Missing()
 

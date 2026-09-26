@@ -22318,3 +22318,109 @@ auch rot werden.
 ehrliches Doppelgerät scheitert, aber nicht, wie es richtig ginge; das ist O91.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O91).
+
+### D524 — Abnahme `p23-versehen`; Olis Durchlauf mit Doras Versehen
+
+**Anlass.** Der Bericht zu `p23-versehen` meldet `c737d6c` mit 1154 Tests. Gelesen: der
+vollständige Diff gegen `9d29e01`, also `tools/netz.py`, `tools/personen.py` und
+`tests/node/test_versehen.py`. Nachgefahren: `python -m pytest -q` mit 1154 grün, `ruff` sauber,
+der Startbefehl mit `--versehen`. Den Endstand der sechs Knoten, den der Bericht nicht abgefragt
+hat, habe ich über die Schnittstelle gelesen: derselbe Stand, die Gabeln BRUNO und DORA, Epoche 2.
+
+**Beschluss 1 — abgenommen ohne Defekt.** Die Rücknahmeproben R1 bis R6 wurden rot wie
+verlangt. Die Meldungen bleiben: die private Konstante für Doras Zweitgerät, das `assert` nur für
+die Typprüfung, das leere `gesehen` auch unter `--personen`, die Helfer im Test. „Genau eine
+Feststellung“ ist strenger als verlangt und richtig: festgestellt wird einmal, gefallen ist sie
+danach. Der Kopf von `tools/netz.py` nennt noch fünf Geräte; ohne Folge.
+
+**Beschluss 2 — Olis Durchlauf.** Oli hat `--versehen` gefahren und die sechs Tabs angesehen.
+Oli: „Ja der Satz trägt. Ich denke ist alles gut.“ Auf seinem Bild von Annas Gerät: die Karte
+BRUNOs oben, die Karte DORAs im Tab „Im Verein“, dazu „Es gilt die 2. Fassung der Satzung“ und
+„Offener Antrag: ‚beitrag festlegen‘, 2 Ja, 0 Nein, 3 von 4 nötig“.
+
+**Befund — die Seite sagt nicht, warum der Beschluss fiel.** Oli fragte, ob die zwei Orte der
+Karten gewollt sind. Nach D507 Beschluss 1 ja: oben steht nur ein Ja neben einem Nein. D507 hat
+eine Doppelstimme als Ja und Nein gedacht. Doras zweimal Ja fällt deshalb in den anderen Zweig von
+`widerspruchKarten`, und dort fehlt dreierlei: die Karte steht unten, obwohl sie den offenen
+Antrag betrifft; ihr fehlt „Keine der beiden Stimmen zählt.“, obwohl `04 §3.1` Bedingung 6 genau
+das sagt; und sie nennt den Antrag nicht. Dass es nur 2 Ja sind, muss man sich zusammenrechnen.
+Oli: „gleich angehen“. Das ist D525.
+
+**Geändert.** `07-decisions.md`.
+
+### D525 — Eine Doppelstimme ist jedes Paar von Stimmen zum selben Antrag
+
+**Anlass.** D524 Befund. Gelesen: `04 §3.1`, in `static/anzeige.js` `widerspruchOben`,
+`wertInWorten` und `antragTitel`, in `static/app.js` `widerspruchKarten`, in
+`static/selbsttest.js` die Fälle aus D507 Beschluss 3.
+
+**Die Norm.** `04 §3.1` Bedingung 6: eine Stimme zählt nur, wenn sie `ACTIVE` ist, und das schliesst
+Equivocation aus. Das gilt für jede Stimme einer Gabelung, gleich was die andere sagt. Doras
+zweimal Ja zählt so wenig wie Brunos Ja und Nein; Olis Bild zeigt es an „2 Ja“.
+
+**Beschluss 1 — was eine Doppelstimme ist.** Eine Gabelung ist eine Doppelstimme, wenn jeder ihrer
+Claims eine `vote@1`-Stimme ist und alle mit `J == (3, h)` auf denselben Antrag `h` zeigen. Die
+Werte spielen keine Rolle. Stimmen zu verschiedenen Anträgen und Gabelungen mit anderen Claims
+sind keine Doppelstimme; für sie bleibt die Karte, wie sie ist.
+
+**Beschluss 2 — wann sie oben steht.** Das ändert D507 Beschluss 1: `widerspruchOben` gibt `true`
+genau dann, wenn die Gabelung eine Doppelstimme ist und ihr Antrag unter den Anträgen der Seite im
+Stand `PENDING` steht. Die Bedingung „die eine Ja und die andere Nein“ fällt weg.
+
+**Beschluss 3 — was sie sagt.** Eine neue reine Funktion in `anzeige.js`,
+`widerspruchSatz(name, claims, antraege, namen)`, gibt `{ satz, zaehltNicht }`:
+
+- Doppelstimme mit Ja und Nein: `{name} hat {worum} Ja und Nein zugleich unterschrieben.`, wie
+  bisher.
+- Doppelstimme mit gleichen Werten: `{name} hat {worum} zweimal {Wert} unterschrieben.`, der Wert
+  aus `wertInWorten`, also Ja oder Nein.
+- `{worum}` wie bisher: `zum Antrag „{antragTitel}“`, oder `zu einem Antrag`, wenn der Antrag nicht
+  unter den Anträgen der Seite steht.
+- In beiden Fällen `zaehltNicht: true`, und die Karte trägt den Punkt „Keine der beiden Stimmen
+  zählt.“ vor dem Punkt zu den Bürgschaften.
+- Sonst: `{name} hat zweimal an dieselbe Stelle der Kette unterschrieben.` und `zaehltNicht:
+  false`, wie bisher.
+
+`widerspruchKarten` in `app.js` baut Überschrift und Punkt nur noch aus `widerspruchSatz`. Die
+Karte bleibt neutral: sie sagt nicht, ob gelogen oder sich vertan wurde, weil das Netz das nicht
+wissen kann (D523).
+
+**Golden Numbers, am Prototyp gemessen.** Der Selbsttest wächst von 154 auf 163 Fälle, in Node
+über `vektoren.json` gefahren, alle grün. `test_stil.py` bleibt grün. Die neun Fälle und ihre
+erwarteten Werte, zuerst `widerspruchOben`:
+
+| Fall | erwartet |
+|---|---|
+| `widerspruchOben`: zweimal Ja, Antrag `PENDING` | `true` |
+| `widerspruchOben`: zweimal Nein, Antrag `PENDING` | `true` |
+| `widerspruchOben`: zweimal Ja, Antrag `PASSED` | `false` |
+| `widerspruchOben`: Ja und Nein zu zwei Anträgen | `false` |
+
+Die Fälle zu `widerspruchSatz`, der Antrag mit dem Feld `beitrag` ohne alten Wert:
+
+- Ja und Nein: „BRUNO hat zum Antrag „beitrag festlegen“ Ja und Nein zugleich unterschrieben.“,
+  `zaehltNicht` wahr.
+- zweimal Ja: „DORA hat zum Antrag „beitrag festlegen“ zweimal Ja unterschrieben.“, wahr.
+- zweimal Nein, Antrag unbekannt: „DORA hat zu einem Antrag zweimal Nein unterschrieben.“, wahr.
+- Stimmen zu zwei Anträgen: „DORA hat zweimal an dieselbe Stelle der Kette unterschrieben.“,
+  falsch.
+- zwei Bürgschaften: dieselbe Überschrift, falsch.
+
+Die fünf naheliegenden Fehler habe ich gegen diese Fälle gefahren (D517), jeder macht mindestens
+einen rot: K1 die alte Regel für oben, K2 die Prüfung auf denselben Antrag fehlt, K3 `zaehltNicht`
+nur bei Ja und Nein, K4 immer „Ja und Nein zugleich“, K5 „zweimal Ja“ fest statt des Werts.
+
+**Verworfen.**
+
+- **Ein Wort für die Absicht auf der Karte.** Siehe D523; das Netz kennt keine Absicht.
+- **Ein Satz dazu, dass Annas Feststellung nicht mehr trägt.** Das ist ein eigener Satz über
+  Beschlüsse, die zurückfallen, und betrifft mehr als diese Karte. Offen, ohne Auftrag.
+- **Die Stimme neben einem anderen Claim.** Nach `04 §3.1` zählt auch eine Stimme nicht, die an
+  derselben Stelle wie etwa eine Bestätigung steht. Die Karte sagt dann weiter nur „zweimal an
+  dieselbe Stelle“. Im Bild kommt das nicht vor; offen, ohne Auftrag.
+
+**Schwächste Stelle.** Was `app.js` aus `widerspruchSatz` macht, sieht der Selbsttest nicht; das
+zeigt Olis Durchlauf. Und die Karte sagt „beide“, auch wenn eine Gabelung drei Claims hätte, wie
+bisher.
+
+**Geändert.** `07-decisions.md`.

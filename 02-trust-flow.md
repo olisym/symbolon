@@ -36,17 +36,20 @@ Sie führt **kein** neues Claim-Feld ein — sie ist reine Auswertung über dem 
 Für eine Anfrage `(Scope N, Zweck π)`:
 
 - **Knoten** `V` = Identitäten (Ed25519-Verify-Keys).
-- **Kanten** `E` = gerichtete Kante `I → J` für jeden **aktiven** `nuc:N/vouch@1`-Claim
-  mit Autor `I`, Subjekt `J`. „Aktiv" heißt: strukturell gültig, nicht abgelaufen, nicht
+- **Kanten** `E` = gerichtete Kante `W → J` für jeden **aktiven** `nuc:N/vouch@1`-Claim
+  mit Subjekt `J`, wobei `W` die Wurzel ist, der der Claim nach §2.1 zugerechnet wird. Ohne
+  Geräte ist `W` der Autor `I`. Ein Gerät ist für die Kanten, die es schreibt, kein eigener
+  Knoten; als Subjekt einer Bürgschaft bleibt es einer, und das Vertrauen dorthin gehört dem
+  Gerät, nicht seiner Wurzel. „Aktiv" heißt: strukturell gültig, nicht abgelaufen, nicht
   widerrufen, nicht supersediert (Atom-Spec §6). Ein **partial-sync**-Vouch, dessen Vorgänger
   noch fehlt, ist erst `pending` (Atom-Spec §6) und trägt **noch keine** Kante bei — er wird
   aufgenommen, sobald er `active` wird. Das ist dieselbe sichere Richtung wie §7: fehlendes
   Wissen senkt nur, es erfindet keine Kante.
-- **Eine Kante je `(I, J)`.** Mehrere Vouches derselben Identität auf dasselbe Subjekt im
-  selben Scope erzeugen **eine** Kante mit `n_kante = max n` über die aktiven
-  Gruppenmitglieder (§3.1) — keine parallelen Kanten, keine addierten Kapazitäten. Eine
-  Beziehung ist eine Kante. Trägt kein Gruppenmitglied eine gültige Belegung nach §3.1,
-  entsteht **keine** Kante, auch wenn der Claim nach Atom-Spec §6 `active` ist.
+- **Eine Kante je `(W, J)`.** Mehrere Vouches derselben Wurzel auf dasselbe Subjekt im selben Scope,
+  gleich von welchem ihrer Geräte, erzeugen **eine** Kante mit `n_kante = max n` über die aktiven
+  Gruppenmitglieder (§3.1) — keine parallelen Kanten, keine addierten Kapazitäten. Eine Beziehung
+  ist eine Kante. Trägt kein Gruppenmitglied eine gültige Belegung nach §3.1, entsteht **keine**
+  Kante, auch wenn der Claim nach Atom-Spec §6 `active` ist.
 - **Scope-Partition.** Es gibt einen Graphen *pro* `N`. Vertrauen aus Scope A fließt nicht
   nach Scope B (Kontextbindung).
 - **Zweck-Filter.** Trägt der Vouch in `v` einen Zweck-Tag, werden für Zweck `π` nur passende
@@ -59,6 +62,51 @@ Für eine Anfrage `(Scope N, Zweck π)`:
   führt Torwächter-Zwecke daher in eigenen Scopes; das Budget aus §3.1 bindet dann nur die
   Torwächterschaft, nicht das Zuhören. Ein Nukleus darf beides zusammenlegen — er macht sich
   damit angreifbar.
+
+### 2.1 Zurechnung an die Wurzel
+
+Eine Identität kann Geräte nach Atom-Spec §7.3 aufnehmen (D529 bis D535). Diese Schicht bestimmt,
+wem ein Claim eines Geräts gehört; `04 §3.1` verwendet dieselbe Bestimmung. Alles gilt je Scope
+`N`. „Vorfahr“ heißt Vorfahr in der Kette des Geräts über `h_prev` (Atom-Spec §4); ein Claim ist
+sein eigener Vorfahr.
+
+**Wirksame Aufnahme.** Ein Gerät `G` ist in `N` von der Wurzel `W` aufgenommen, wenn der Bestand
+hält:
+
+1. ein `device-add@1` `A` mit `A.I == W`, `A.J == [identity, G]`, `A.N == N`, `W ≠ G`, und
+2. ein `device-ack@1` `K` mit `K.I == G`, `K.J == [claim-ref, claim_id(A)]`, `K.N == N`,
+
+beide im Zustand `active` nach Atom-Spec §6 und ohne `t_exp`. Hält `G` in `N` mehrere solche
+Acks, bindet das früheste in `G`s eigener Kette, nicht das zuerst empfangene — die Regel aus
+`00 §6.1` (D154). Die Wurzel eines Geräts ist selbst kein Gerät: ist `W` in `N` wirksam
+aufgenommen, bleibt `A` ohne Wirkung. Geräte nehmen keine Geräte auf.
+
+**Ende.** Ein `device-end@1` `E` mit `E.I == W`, `E.J == [identity, G]`, `E.N == N`, im Zustand
+`active` und ohne `t_exp`, beendet `G`. Sein Endpunkt `c` ist Key `0` seines `v`; ist `v` nicht
+lesbar im Sinn von Atom-Spec §7.3, ist der Endpunkt `K`.
+
+**Zurechnung.** Ein Claim `C` mit `C.I == G` und `C.N == N` wird `W` zugerechnet, wenn `K` Vorfahr
+von `C` ist und für jedes Ende von `G` sein Endpunkt `c` Nachfahr von `C` ist, also `C` Vorfahr von
+`c`. Sonst gehört `C` dem Gerät allein. Liegt `C` nach einem Endpunkt, ist `C` **von der Wurzel
+bestritten**; das Ende ist die Aussage der Wurzel, dass sie ihn nicht gemacht hat (D532). Ein
+Claim, dessen Autor kein aufgenommenes Gerät ist, gehört seinem Autor; `wurzel(C) = C.I`.
+
+**Ohne Uhr.** Die Bestimmung liest nur Ketten. Ob ein Claim vor oder nach einem Ende entstand,
+entscheidet `h_prev`, nicht `t`. Ein Endpunkt, der lokal fehlt, ist von keinem Claim Nachfahr: bis
+er eintrifft, bleibt nach der Aufnahme nichts zugerechnet. Das ist die sichere Richtung für eine
+Sperre.
+
+**Budget-Set.** Die Zurechnung oben braucht vollständige Ketten, und ein Claim im Aktiv-Set hat
+sie. Ein Vouch im Budget-Set kann `pending` sein; dann ist nicht entscheidbar, ob `K` sein Vorfahr
+ist oder ob er nach einem Endpunkt liegt. Für das Budget-Set gilt deshalb die Gegenrichtung: ein
+Vouch eines wirksam aufgenommenen Geräts zählt zum Budget der Wurzel, solange nicht erwiesen ist,
+dass er vor `K` liegt oder bestritten ist. Sonst ließe sich die Budgetregel umgehen, indem ein
+Gerät Vorgänger zurückhält — derselbe Grund wie bei `pending` in §3.1.
+
+**Bestritten heißt nicht bestraft.** Ein bestrittener Claim trägt keinen Vermerk dieser Schicht
+und flaggt niemanden. Er trägt weder Kante noch Budget der Wurzel. Er bleibt gespeichert; das Ende
+bleibt sichtbar, mit der Wurzel als Urheberin. Ob er der Wurzel doch gehört, ist keine Frage der
+Bytes (Atom-Spec §8), sondern eines Verfahrens: für Stimmen `04 §3.1`, sonst Profile-II §2.
 
 ---
 
@@ -112,7 +160,9 @@ Ein Vouch deklariert in `v`, wie viel Vertrauen er weiterreicht.
   sichere Richtung (Unter-Vertrauen) und erhält die exakte Integer-Arithmetik der harten
   Sicht.
 - **Selbstbindungsbudget.** Für jede Identität `I` und jeden Scope `N` gilt `Σ wᵢ ≤ 1`,
-  gleichbedeutend `Σ_J n_budget ≤ D`, über alle Gruppen `(I, J, N)` im Budget-Set.
+  gleichbedeutend `Σ_J n_budget ≤ D`, über alle Gruppen `(I, J, N)` im Budget-Set. `I` ist
+  hier und im Folgenden die Wurzel nach §2.1: die Vouches aller Geräte einer Wurzel teilen ihr
+  Budget. Gemessen in D531: ein delegiertes Gerät bürgt wie die Wurzel selbst.
 
 > **Nicht abgelaufen ist ein Prädikat, kein Zustand.** Die Zugehörigkeit zum Budget-Set
 > prüft `t_exp` gegen `now` (`now ≤ t_exp`, fehlendes `t_exp` bindet unbegrenzt) —
@@ -215,7 +265,9 @@ sind es zwei Prädikate und nicht eines (D402).
 > `Σ_J n > D` und einem gemeinsamen Geltungspunkt: `max tᵢ ≤ min t_expᵢ`, wobei ein fehlendes
 > `t_exp` als unbegrenzt zählt. Der Beweis liest **kein** `now`. Nur er ist selbst-validierend
 > und mechanisch slashbar, ohne Verdikt — dieselbe Klasse wie Equivocation (Atom-Spec §4,
-> Profile-II §2.3).
+> Profile-II §2.3). Trägt ein Gerät dazu bei, gehören `device-add@1` und `device-ack@1` zum
+> Beweis; ein bestrittener Vouch gehört nie dazu, denn ob er der Wurzel gehört, ist eine
+> Behauptung gegen eine Behauptung (§2.1, D532).
 
 Der Beweis ist ein Widerspruch zwischen signierten Zahlen: der Autor hat selbst bezeugt, wann er
 gehandelt hat und worauf er sich binden wollte. Das ist die Bauform aus D354 und erfüllt damit
@@ -702,7 +754,11 @@ Der *Mechanismus* ist festgelegt; die *Werte* sind Interpretation (A2):
 - **Geflaggte Autoren.** Ein Autor ist **geflaggt**, wenn er `OVERCOMMITTED_AUTHOR` trägt
   (§3.1) oder wenn der Bestand einen Equivocation-Beweis gegen ihn hält (Atom-Spec §4): mindestens
   ein Claim dieses Autors steht im Zustand `equivocation-flagged`, **gleich in welchem Scope**.
-  Der Beweis betrifft die Kette des Autors, und die Kette kennt keinen Scope.
+  Der Beweis betrifft die Kette des Autors, und die Kette kennt keinen Scope. Autor ist hier die
+  Wurzel nach §2.1: gabelt ein Gerät, und ist einer der gegabelten Claims der Wurzel in
+  irgendeinem Scope zugerechnet, ist die Wurzel geflaggt, **gleich in welchem Scope** — wie ohne
+  Geräte (D43). Beendet die Wurzel das Gerät bei einem Endpunkt vor der Gabel, ist keiner der
+  gegabelten Claims zugerechnet, und die Wurzel bleibt ungeflaggt (D531 Befund 2).
   `time-regression-flagged` flaggt nur den Claim, nicht den Autor (Atom-Spec Anhang B.1). Ob die
   Gruppen eines geflaggten Autors noch Kanten tragen, ist Policy (`include_flagged`, Default
   *nein*).
@@ -916,12 +972,13 @@ Die Reihenfolge ist ergebnisrelevant und daher normativ. Bei einem Intervall-`no
 je Auswertungspunkt (§11.1):
 
 1. Jeden Claim des Bestands nach Atom-Spec §6 gegen `now` klassifizieren. Ein Claim, den der
-   Bestand nachträglich ungültig macht, wird übergangen (Atom-Spec §6, D452).
+   Bestand nachträglich ungültig macht, wird übergangen (Atom-Spec §6, D452). Danach die
+   Zurechnung an die Wurzel nach §2.1 bestimmen; sie liest die Zustände aus diesem Schritt.
 2. Das Gewicht `v` der Vouch-Claims des Scopes im Budget-Set lesen (§3.1) → `n` oder ein Vermerk
    nach §10. Ein Vouch ausserhalb des Budget-Sets wird nicht gelesen und trägt keinen Vermerk
    (D400).
-3. Gruppen `(I, J, N)` bilden → `n_budget`, `n_kante` (§3.1).
-4. Budget je Autor prüfen → `OVERCOMMITTED_AUTHOR`.
+3. Gruppen `(W, J, N)` bilden, `W` die Wurzel nach §2.1 → `n_budget`, `n_kante` (§3.1).
+4. Budget je Wurzel prüfen → `OVERCOMMITTED_AUTHOR`, Subjekt die Wurzel.
 5. Flags anwenden: bei `include_flagged = False` fallen die Gruppen geflaggter Autoren weg (§8)
    → Kantenkandidaten.
 6. Breitensuche über `E⁺`, schichtweise → `d`, `C`, `cap`, `SUBGRANULAR_VOUCH` (§3).

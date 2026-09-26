@@ -124,7 +124,7 @@ verschiedene Dinge und kollidieren nicht.
 | `obligation@1` | 0 | uint | `amount` | nein — uninterpretiert |
 | | 1 | bstr | `unit_ref` | nein — byte-vergleichbar, nie geparst |
 | `receipt@1` | 0 | uint | `amount` | **ja** — Anwesenheit verhindert Tilgung (§3.3.2) |
-| `verdict@1` | 0 | uint | `outcome` | nein — Bedeutung ist Policy |
+| `verdict@1` | 0 | uint | `outcome` | nein — Bedeutung ist Policy; Ausnahme `04 §3.1`: `1` rechnet eine bestrittene Stimme zu |
 | | 1 | bstr | `reason_ref` | nein |
 | `accusation@1` | — | — | keine reservierten Keys | vollständig opak |
 | `submit-arbitration@1` | — | — | keine reservierten Keys | vollständig opak |

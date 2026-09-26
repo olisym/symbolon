@@ -243,13 +243,15 @@ auf E-1.
 
 ### 5.2 Sicherheits-Default: ein Boden, keine Rückfallebene
 
-`obligation@1`, `rotate-key@1` und `rotate-ack@1` sind **immer** irrevocable
-(Protokoll-Default, Profile-II §3.3.3 und §6.1). `irrevocable_predicates` kann die Menge nur
+`obligation@1`, `rotate-key@1`, `rotate-ack@1`, `device-add@1`, `device-ack@1` und
+`device-end@1` sind **immer** irrevocable (Protokoll-Default, Profile-II §3.3.3 und §6.1,
+Atom-Spec §7.3). `irrevocable_predicates` kann die Menge nur
 **erweitern**, nie verkleinern — gemessen am Boden, nicht an der Vorgängerfassung. Ein Amendment
 darf ein früher deklariertes Prädikat weglassen (`04 §8`, D424):
 
 ```
-wirksame Menge  =  { "obligation@1", "rotate-key@1", "rotate-ack@1" }
+wirksame Menge  =  { "obligation@1", "rotate-key@1", "rotate-ack@1",
+                     "device-add@1", "device-ack@1", "device-end@1" }
                    ∪  irrevocable_predicates  ∖  unsicher (Atom-Spec §5.4.3 b)
 ```
 
@@ -257,6 +259,12 @@ Die beiden Rotationsprädikate stehen aus einem eigenen Grund darin (D153): wär
 widerrufbar, könnte der Nachfolger seine Zustimmung zurücknehmen und die Autorität spränge auf
 den Vorgänger zurück — genau die Lage, die D125 unter „letzter gewinnt" verworfen hat, nur von
 der anderen Seite erreicht.
+
+Die drei Geräteprädikate stehen aus demselben Grund darin (D535). Ein widerrufbares `device-add@1`
+oder `device-ack@1` nähme dem Gerät rückwirkend alles, was es gesagt hat, und wäre damit genau das
+Werkzeug zum Abstreiten, das D532 an eine Sperre bindet. Ein widerrufbares `device-end@1` höbe
+eine Sperre ohne Verfahren auf. Der Weg aus einer Aufnahme ist die Sperre (Atom-Spec §7.3), der
+Weg zurück das Verdikt (`04 §3.1`).
 
 
 Damit gilt der Schutz in drei Fällen gleichermaßen: die Verfassung schweigt; sie nennt

@@ -22924,3 +22924,54 @@ weitere) rechnen weiter nach `I`; ein Gerät kann dort nicht für die Wurzel spr
 Lücke mit Absicht, nicht eine Regel: sie wird geschlossen, wenn ein Szenario sie braucht.
 
 **Geändert.** `07-decisions.md`.
+
+### D535 — Normativer Text für Geräte in `00`, `01`, `02`, `03` und `04`
+
+**Anlass.** D534 Beschluss 1, auf Olis Wunsch nach vollständigem Lesen. Gelesen, jeweils ganz:
+`02-trust-flow.md`, `04-governance.md`; dazu `01 §4` bis `§8`, `00 §5.2`, `00 §6.1`, `03 §1.3`,
+`03 §2`, `symbolon/policy.py` (`PROTOCOL_IRREVOCABLE`).
+
+**Was der Text festlegt.** Die Profile stehen in `01 §7.3`, die Zurechnung in `02 §2.1`, die
+Auszählung in `04 §3.1`, `§4.1` und `§4.4`. Die Entscheidungen D529 bis D534 sind dort
+ausgeschrieben. Beim Schreiben fielen neun Punkte an, die keiner dieser Einträge entschied.
+
+1. **Das Ende nennt das Gerät in `J` und den Endpunkt in `v`.** So bleibt das Ende eindeutig, wenn
+   der Endpunkt lokal fehlt. Ein defektes `v` gilt als Ende beim Ack: eine Sperre darf an einem
+   Kodierfehler nicht scheitern.
+2. **Die drei Geräteprädikate stehen im Boden aus `00 §5.2`.** Ein Widerruf der Aufnahme rechnete
+   rückwirkend alles ab, was das Gerät sagte, und wäre das Abstreiten ohne Sperre, das D532
+   ausschliesst. Zu `01 §5.4.3` (b), nach dem Zugang verleihende Prädikate nicht irrevocable sein
+   dürfen: (b) schützt davor, dass ein Widerruf wirkungslos bleibt, und hier wirkt das Ende. Das
+   Muster ist `rotate-key@1` (D153). `PROTOCOL_IRREVOCABLE` in `symbolon/policy.py` folgt im
+   Auftrag.
+3. **Ein `t_exp` auf den drei Prädikaten macht sie wirkungslos.** Eine Aufnahme, die mit der Uhr
+   erlischt, rechnete Stimmen je nach Uhr des Beobachters zu; dieselbe Begründung wie für
+   `VOTE_WITH_EXPIRY`.
+4. **Mehrere Acks eines Geräts: das früheste in seiner Kette bindet** (D154). Ein Gerät gehört
+   höchstens einer Wurzel je Scope, sonst zählte es doppelt.
+5. **Geräte nehmen keine Geräte auf.** Die Zurechnung ist ein Schritt, keine Kette; eine Wurzel,
+   die selbst Gerät ist, hätte zwei Rollen in einer Auswertung.
+6. **Das Budget-Set rechnet in der Gegenrichtung zu.** Ein `pending` Vouch eines aufgenommenen
+   Geräts zählt zum Budget der Wurzel, solange nicht erwiesen ist, dass er vor dem Ack liegt oder
+   bestritten ist. Sonst hielte ein Gerät Vorgänger zurück, dieselbe Umgehung wie in `02 §3.1`.
+7. **Das Flag einer Gabel ist für die Wurzel global wie in D43**, sobald ein gegabelter Claim ihr
+   in irgendeinem Scope zugerechnet ist. Ein erster Entwurf band es an den Scope der Aufnahme;
+   dann könnte eine Wurzel in einem Verein über ihr Gerät lügen und im anderen voll zählen.
+8. **Eine bestrittene Stimme trägt den Vermerk `DISPUTED_VOTE`** und fällt vor der
+   Zusammenfassung heraus. Sie macht eine andere Stimme derselben Wurzel nicht mehrdeutig; das
+   ist der Zweck der Sperre. `02` vermerkt nichts: eine bestrittene Bürgschaft ist wie eine
+   zurückgezogene.
+9. **Der Ausgang `1` eines Verdikts rechnet zu**, nur für die Anklage gegen eine Stimme und nur
+   über Pfad (i). `03 §1.3` nennt die Ausnahme in der Tabelle; im Übrigen bleibt der Ausgang
+   Policy.
+
+**Dazu.** Eine Bürgschaft **auf** einen Geräteschlüssel bleibt beim Gerät (`02 §2`), wie D531
+offen liess. `04 §3.2` und `§3.3` nennen die drei getragenen Ausnahmen von der Monotonie: D117,
+D532, D533. `04 §8` trägt die Sperre nach einer Feststellung. Der erste Schnitt aus D534
+Beschluss 2 gilt: `accept-rules@1`, `obligation@1` und die übrigen Profile rechnen weiter nach `I`.
+
+**Nicht geändert.** Golden Anchors und Vektoren. Sie entstehen mit dem Auftrag und werden aus der
+Messausgabe übernommen (Kandidat aus D457).
+
+**Geändert.** `00-nucleus-genesis-constitution.md`, `01-claim-atom.md`, `02-trust-flow.md`,
+`03-profiles.md`, `04-governance.md`, `07-decisions.md`.

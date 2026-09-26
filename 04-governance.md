@@ -195,7 +195,7 @@ Eine `vote@1`-Stimme zählt für einen Vorschlag genau dann, wenn alle Bedingung
 
 1. `vote.N == scope`
 2. `vote.J == (3, proposal_hash)`
-3. `vote.I` ist Element von `P` — sonst Vermerk `NON_MEMBER_VOTE`
+3. `wurzel(vote)` nach `02 §2.1` ist Element von `P` — sonst Vermerk `NON_MEMBER_VOTE`
 4. `vote.t_exp` ist nicht gesetzt — sonst Vermerk `VOTE_WITH_EXPIRY`
 5. `vote.v[0]` ist `0` oder `1` — sonst Vermerk `UNKNOWN_VOTE_CHOICE`
 6. Der Claim ist `ACTIVE` nach `classify_all` unter der scope-lokalen Policy (D91). Weil
@@ -218,14 +218,46 @@ Der Ablauf aus Bedingung 5 bleibt trotzdem erreichbar, wenn ein Nukleus `t_exp` 
 Policy-Maximallaufzeit erzwingt (`02 §6.2`). Ein solcher Nukleus kann keine Stimmen führen; das
 ist eine Verfassungsfrage und keine Protokollfrage.
 
-**Zwei aktive Stimmen desselben Autors auf denselben Vorschlag zählen nicht** — weder die eine
-noch die andere. Vermerk `AMBIGUOUS_VOTE`, Subjekt sind beide `claim_id`. Die Parallele ist
-`02 §2`: trägt kein Gruppenmitglied eine gültige Belegung, entsteht keine Kante.
+**Zusammengefasst wird je Wurzel** (`02 §2.1`). Ohne Geräte ist die Wurzel der Autor. Stimmen
+verschiedener Geräte derselben Wurzel sind Stimmen dieser Wurzel.
+
+**Zwei aktive Stimmen derselben Wurzel mit verschiedener Wahl zählen nicht** — weder die eine
+noch die andere. Vermerk `AMBIGUOUS_VOTE`, Subjekt sind alle beteiligten `claim_id`. Die Parallele
+ist `02 §2`: trägt kein Gruppenmitglied eine gültige Belegung, entsteht keine Kante. Zwischen zwei
+Geräten ohne Verbindung sind Meinungsänderung und Lüge nicht zu unterscheiden; beide zählen nicht,
+und beide sind sichtbar (D529 Beschluss 2).
+
+**Mehrere aktive Stimmen derselben Wurzel mit gleicher Wahl zählen einmal** (D530). Die Wurzel
+zählt als eine Stimme dieser Wahl, und **jede** dieser Stimmen ist ein gültiger Zeuge nach `§4.1`.
+Ein Vermerk entsteht nicht; die Stimmen sagen dasselbe. Sie entstehen, wenn ein Mensch auf einem
+Gerät abstimmt, ohne zu wissen, dass er es auf einem anderen schon getan hat.
 
 > **Abgrenzung zu `03`, ausdrücklich.** `membership()` löst mehrere aktive `accept-rules` mit
-> `min(claim_id)` auf. Das ist dort richtig, weil alle dasselbe sagen. Zwei Stimmen sagen
-> Verschiedenes. Wer das Muster aus `03` überträgt, erzeugt ein Ergebnis aus einer Aussage, die
-> niemand gemacht hat (D101).
+> `min(claim_id)` auf. Das ist dort richtig, weil alle dasselbe sagen. Zwei Stimmen verschiedener
+> Wahl sagen Verschiedenes. Wer das Muster aus `03` überträgt, erzeugt ein Ergebnis aus einer
+> Aussage, die niemand gemacht hat (D101). Auch für gleiche Wahl trägt `min(claim_id)` nicht: eine
+> Feststellung, die eine andere der gleichen Stimmen zitiert, fiele nach der Reihenfolge zweier
+> Hashes (D530 Befund 2).
+
+**Eine bestrittene Stimme zählt nicht** (D532). Hat die Wurzel das Gerät bei einem Endpunkt vor
+der Stimme beendet (`02 §2.1`), ist die Stimme nicht zugerechnet; Vermerk `DISPUTED_VOTE`,
+Subjekt ihre `claim_id`. Sie fällt vor der Zusammenfassung heraus und macht deshalb auch keine
+andere Stimme derselben Wurzel mehrdeutig.
+
+**Ein Verdikt rechnet sie wieder zu** (D533). Eine bestrittene Stimme zählt wie eine
+zugerechnete, wenn der Bestand hält:
+
+1. eine `accusation@1` `X` mit `X.N == scope` und `X.J == [claim-ref, claim_id(Stimme)]`, und
+2. ein `verdict@1` `V` im Zustand `active`, ohne `t_exp`, mit `V.N == scope`,
+   `V.J == [claim-ref, claim_id(X)]`, `V.I` in `arbitration.arbitrators` der **Verfassung dieser
+   Epoche** und `v` Key `0 == 1`.
+
+Nur dieser Pfad zählt. Die Unterwerfung nach Profile-II `§2.4.1` ist widerruflich und wird gegen
+`now` geprüft; eine Auszählung, die sie läse, änderte sich mit jedem Widerruf. Hat die Verfassung
+keine Schiedsrichter, bleibt die Stimme bestritten: ob es eine Stelle für Kulanz gibt, entscheidet
+die Satzung. Ein Schiedsrichter kann ein FROST-Panel sein (Profile-II `§2.2`); ein Gremium des
+Vereins ist damit möglich, eine Abstimmung nach dieser Schicht nicht, denn ein Vorschlag ist immer
+eine Verfassungsänderung (D534 Befund 3 und 4).
 
 **Kanonizität von `v` in Bedingung 5** (D274). Ist `v` nicht kanonisch kodiert, wird sein Inhalt
 gar nicht erst gelesen: Vermerk `NON_CANONICAL_V`, Subjekt die `claim_id` der Stimme, und die
@@ -251,8 +283,10 @@ Nichtteilnahme wirkt wie Ablehnung. Die Schwelle gilt gegenüber den **Berechtig
 gegenüber den Erschienenen.
 
 Beide Mengen wachsen nur (D97), beide Bedingungen sind einmal wahr für immer wahr, und sie
-schließen einander aus. Ein Vorschlag scheitert daran, dass genug Berechtigte ihn ausdrücklich
-ablehnen — nicht daran, dass eine Frist abgelaufen ist.
+schließen einander aus. Drei Ausnahmen sind benannt und getragen, alle mit sichtbarem Anlass: der
+Zwilling einer gegabelten Stimme (D117, `§8`), die Sperre eines Geräts, die eine Stimme bestreitet
+(D532), und das Verdikt, das sie wieder zurechnet (D533). Ein Vorschlag scheitert daran, dass
+genug Berechtigte ihn ausdrücklich ablehnen — nicht daran, dass eine Frist abgelaufen ist.
 
 ### 3.3 Zustände
 
@@ -263,8 +297,8 @@ ablehnen — nicht daran, dass eine Frist abgelaufen ist.
 | `PENDING` | weder noch |
 | `UNEVALUABLE` | die Auszählung kann nicht laufen (`§3.5`) |
 
-`PASSED` und `FAILED` sind absorbierend. `PENDING` ist die Voreinstellung und bedeutet, dass
-weiteres Wissen das Ergebnis noch drehen kann.
+`PASSED` und `FAILED` sind absorbierend, bis auf die drei Ausnahmen aus `§3.2`. `PENDING` ist die
+Voreinstellung und bedeutet, dass weiteres Wissen das Ergebnis noch drehen kann.
 
 Es gibt **kein Zeitfenster und keinen Abschluss**. Eine Abstimmung wird geschlossen, indem eine
 Entscheidung materialisiert wird und damit die Epoche wechselt (`§4.3`), nicht indem ein Datum
@@ -430,11 +464,12 @@ Ein `ratify@1`-Claim etabliert die Folgeepoche genau dann, wenn:
    **`ValueError`**, kein Vermerk: ein fehlzugeordnetes Objekt ist ein Aufruferfehler und keine
    Lage der Welt (D82, D92, D109). Ist `tally.state` gleich `UNEVALUABLE`, entsteht keine Epoche;
    Vermerk `TALLY_UNEVALUABLE` — „ich konnte nicht auswerten", nicht „die Behauptung stimmt nicht".
-1. `ratify.N == scope`, `ratify.J == (3, proposal_hash)`, `ratify.I` ist Element von `P`
+1. `ratify.N == scope`, `ratify.J == (3, proposal_hash)`, `wurzel(ratify)` nach `02 §2.1` ist
+   Element von `P`
 2. der Claim ist `ACTIVE`
 3. jede `claim_id` in `v[0]` bezeichnet eine Stimme, die nach `§3.1` zählt, mit `choice == 1`
-4. keine zwei bezeichnen Stimmen desselben Autors
-5. die Anzahl überschreitet die Schwelle nach `§3.2` und `§3.4`
+4. keine zwei bezeichnen Stimmen derselben Wurzel
+5. die Anzahl der Wurzeln überschreitet die Schwelle nach `§3.2` und `§3.4`
 6. die Zielverfassung ist **regierbar**: `participants` ist deklariert und wohlgeformt nach
    `§3.5`, und `irrevocable_predicates` führt `vote@1` und `ratify@1`
 
@@ -549,8 +584,9 @@ werden und behauptet sich dort gegen den geänderten Status quo.
 ### 4.4 Höchstens ein Ja je Mitglied je Epoche
 
 Ein Mitglied darf in einer Epoche höchstens einen Vorschlag mit `choice == 1` bedenken. Zwei
-aktive Ja-Stimmen desselben Autors auf **verschiedene** Vorschläge derselben Epoche zählen beide
-nicht; Vermerk `CONFLICTING_APPROVAL`, Subjekt sind alle beteiligten `claim_id`.
+aktive Ja-Stimmen derselben Wurzel (`02 §2.1`) auf **verschiedene** Vorschläge derselben Epoche
+zählen beide nicht; Vermerk `CONFLICTING_APPROVAL`, Subjekt sind alle beteiligten `claim_id`.
+Eine bestrittene Stimme zählt dabei nicht mit.
 
 Nein-Stimmen sind unbeschränkt. Gegen mehrere Vorschläge gleichzeitig zu sein ist kohärent; zwei
 verschiedene Dokumente gleichzeitig als das geltende zu benennen ist es nicht.
@@ -835,6 +871,12 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   gleichgültig wäre; ohne Unwiderruflichkeit gibt es keine Monotonie (D97). Wer seine Meinung
   ändert und ein zweites Mal abstimmt, nimmt beiden Stimmen die Wirkung: auf denselben Vorschlag
   nach `§3.1`, als zweites Ja auf einen anderen derselben Epoche nach `§4.4` (D470).
+
+- **Eine Sperre kann eine Stimme bestreiten, auch nach einer Feststellung.** Beendet eine Wurzel
+  ein Gerät vor einer Stimme, zählt die Stimme nicht mehr, und eine darauf gestützte Epoche fällt
+  wie in D117. Wer so eine bereute Stimme zurückzieht, tut es sichtbar, mit seinem Namen am Ende,
+  und der Verein kann darüber urteilen (`§3.1`). Ohne Frist ist „vor der Auszählung“ kein
+  Zeitpunkt (D532).
 
 - **Agenda-Macht bleibt, ist aber klein.** Der Vorschlagende wählt den Inhalt. Er wählt weder die
   Wählerschaft noch einen Kantenschnitt noch einen Zweckkontext; all das ist mit dem Snapshot

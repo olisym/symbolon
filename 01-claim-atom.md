@@ -621,16 +621,65 @@ Referenz-Vektor: **TV1** (Genesis-Vouch Alice → Bob, Anhang C).
 
 Referenz-Vektoren: **TV2** (Alice, verkettet auf TV1) und **TV4** (Bob, Genesis; Anhang C).
 
+### 7.3 Geräte — `nuc:<N>/device-add@1`, `device-ack@1`, `device-end@1`
+
+Eine Identität kann in einem Scope Schlüssel aufnehmen, die für sie sprechen. Die aufnehmende
+Identität heißt **Wurzel**, der aufgenommene Schlüssel **Gerät** (D529, D531). Jedes Gerät ist ein
+eigener Schreiber mit eigener Kette nach §4; die Ein-Schreiber-Annahme aus §8 gilt je Kette
+unverändert. Das Atom prüft jeden Claim unter seinem eigenen `I` und weiß von Wurzeln nichts. Wem
+ein Claim zugerechnet wird, bestimmt die Auswertung (Trust-Flow-Spec §2.1).
+
+| `nuc:<N>/device-add@1` | Belegung |
+|------|----------|
+| `I`  | die Wurzel |
+| `J`  | `[identity, Gerät]` |
+| `v`  | abwesend oder opak |
+| `N`  | **Pflicht** — die Aufnahme gilt nur in diesem Scope |
+
+| `nuc:<N>/device-ack@1` | Belegung |
+|------|----------|
+| `I`  | das Gerät |
+| `J`  | `[claim-ref, claim_id(device-add)]` |
+| `v`  | abwesend oder opak |
+| `N`  | **Pflicht** — derselbe Scope wie die Aufnahme |
+
+| `nuc:<N>/device-end@1` | Belegung |
+|------|----------|
+| `I`  | die Wurzel |
+| `J`  | `[identity, Gerät]` |
+| `v`  | kanonische CBOR-Map mit `0 : bstr`, Länge 32 — die `claim_id` des letzten Claims des Geräts, der zugerechnet bleibt |
+| `N`  | **Pflicht** |
+
+**Warum eine Gegenzeichnung.** Ohne `device-ack@1` könnte eine Wurzel den Schlüssel eines anderen
+als ihr Gerät eintragen; dessen Stimmen würden mit ihren zusammengefasst und fielen als
+Doppelstimme weg. Es ist das Muster aus `00 §6.1` (D125).
+
+**Warum je Scope.** Nach §2.2 braucht jedes `nuc:`-Prädikat ein `N`. Eine Aufnahme über alle
+Scopes verlangte einen weiteren Namensraum und damit eine inkompatible Änderung nach §9 (D531 F1).
+
+**Warum das Ende in `v` steht.** `J` nennt das Gerät, damit das Ende auch dann eindeutig ist, wenn
+der genannte Claim lokal fehlt. Ist `v` abwesend, unlesbar, nicht kanonisch oder trägt Key `0`
+nicht in der deklarierten Form, gilt das Ende als Ende beim `device-ack@1`: danach bleibt nichts
+zugerechnet. Das ist die sichere Richtung für eine Sperre; ein defektes `v` hebt sie nicht auf.
+
+- **Lebenszyklus:** alle drei sind irrevocable (Protokoll-Default, `00 §5.2`). Der Weg aus einer
+  Aufnahme ist das Ende, nicht der Widerruf: ein Widerruf rechnete alles, was das Gerät gesagt hat,
+  rückwirkend ab. Das ist kein Fall von §5.4.3 (b), obwohl die Aufnahme Zugang verleiht; (b)
+  schützt davor, dass ein Widerruf wirkungslos bleibt, und das Ende wirkt. Tragen die drei ein
+  `t_exp`, wirken sie nicht.
+- **Interpretation:** Zurechnung, Sperre und Bestreiten normiert Trust-Flow-Spec §2.1; welche
+  Stimmen zählen, `04 §3.1`.
+
 ---
 
 ## 8. Bewusst getragene v1-Grenzen
 
-- **Ein-Schreiber-Annahme.** Eine Identity = ein logischer Schreiber = eine Kette. Mehrere
-  Geräte mit demselben Schlüssel forken die eigene Kette ⇒ Selbst-Equivocation. Multi-Device
-  erfordert daher eines von: (a) alle Signaturen über *ein* Gerät routen, (b) jedes Gerät als
-  *eigene* Identity, oder (c) FROST über die Geräte. Reale operative Einschränkung, kein Bug —
-  der Preis für triviale Tamper-Evidence ohne Konsens. Sauberer Fix später via Delegation
-  (Sub-Keys), bewusst vertagt.
+- **Ein-Schreiber-Annahme.** Ein Schlüssel = ein logischer Schreiber = eine Kette. Mehrere
+  Geräte mit demselben Schlüssel forken die eigene Kette ⇒ Selbst-Equivocation. Mehrere Geräte
+  einer Identität haben deshalb je einen eigenen Schlüssel, den die Identität als Wurzel nach
+  §7.3 aufnimmt (D529, D531). Ein Gerät kann schreiben, ohne dass die Wurzel erreichbar ist; die
+  Wurzel wird nur für Aufnahme und Ende gebraucht. Reale operative Einschränkung, kein Bug — der
+  Preis für triviale Tamper-Evidence ohne Konsens.
 - **Key-Rotation: nicht im Core, aber ausdrückbar (DF-0).** Der Core kennt keine Rotation. Der
   **Normalfall** ist ein verkettetes `rotate-key@1`-**Profil** (Interpretationsschicht, **kein**
   `core`): Der alte Schlüssel signiert als letzten Akt seiner Kette einen Verweis auf den neuen.
@@ -639,6 +688,8 @@ Referenz-Vektoren: **TV2** (Alice, verkettet auf TV1) und **TV4** (Bob, Genesis;
   fällt damit zwangsläufig an die Mitglieder. Kein neues Atom-Feld nötig.
 - **Keine Delegation im Core.** „Schlüssel A signiert für Identity B" schmuggelt Scope-Semantik
   ein; bleibt in der Interpretationsschicht, bis sich zeigt, dass Verifikation ohne sie nicht geht.
+  Die Geräteaufnahme aus §7.3 ist genau das: Delegation je Scope, unter `nuc:`, ausgewertet von
+  Trust-Flow-Spec §2.1 und nicht vom Atom.
 - **Oracle-Problem & physische Durchsetzung** liegen außerhalb des Atoms. Das Protokoll
   garantiert *Non-Repudiation* und *Record-Integrität* — nie die *Wahrheit* einer Behauptung
   und nie die *Durchsetzung* eines Verdikts.

@@ -1,4 +1,4 @@
-"""Fünf Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3)."""
+"""Fünf Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4)."""
 
 from __future__ import annotations
 
@@ -41,6 +41,15 @@ ABLAUF = [
     "Doras Gerät: wieder verbinden und Ja stimmen; dann stellt Anna den Beschluss neu fest.",
 ]
 
+# Der Text zum Zusehen, wenn die Personen handeln (D521 Beschluss 4).
+ZUSEHEN = [
+    "Die Personen handeln selbst: in jedem Takt erst auf jedem Gerät, dann gleichen die Geräte ab.",
+    "Nicht selbst klicken, solange sie handeln. Im Terminal steht, wer was tut.",
+    "In den Tabs „Aktualisieren“, sobald „Es ist Neues angekommen“ erscheint.",
+    "Bruno stimmt auf beiden Geräten, bevor sie sich sehen. Nach dem Abgleich zeigt jedes Gerät den "
+    "Widerspruch.",
+]
+
 
 def durchgang(urls: list[str]) -> int:
     """Ein Durchgang: runde über jedes Paar in der Ordnung von combinations (D518 Beschluss 2)."""
@@ -62,9 +71,16 @@ def _antwortet(url: str, prozess: subprocess.Popen) -> bool:
 
 
 def main() -> None:
-    """Legt an, startet, druckt und gleicht ab, bis Strg-C (D518 Beschluss 3)."""
-    if len(sys.argv) != 2:
-        raise SystemExit("usage: python -m tools.netz <verzeichnis>")
+    """Legt an, startet, druckt und gleicht ab, bis Strg-C (D518 Beschluss 3, D521 Beschluss 4).
+
+    Mit ``--personen`` fährt er vor jedem Durchgang einen Takt, beginnend bei 0.
+    """
+    if len(sys.argv) not in {2, 3} or sys.argv[2:] not in ([], ["--personen"]):
+        raise SystemExit("usage: python -m tools.netz <verzeichnis> [--personen]")
+    personen_an = len(sys.argv) == 3
+    # Erst hier: tools.personen liest GERAETE aus diesem Modul.
+    from tools.personen import takt
+
     verzeichnis = Path(sys.argv[1])
     verzeichnis.mkdir(parents=True, exist_ok=True)
     for _name, datei, personen in GERAETE:
@@ -96,12 +112,26 @@ def main() -> None:
         for (name, _datei, _personen), url in zip(GERAETE, urls):
             print(f"{name}: {url}/")
         print()
-        print("Der Ablauf:")
-        for nummer, schritt in enumerate(ABLAUF, start=1):
+        if personen_an:
+            print("Zum Zusehen:")
+            text = ZUSEHEN
+        else:
+            print("Der Ablauf:")
+            text = ABLAUF
+        for nummer, schritt in enumerate(text, start=1):
             print(f"{nummer}. {schritt}")
         print(flush=True)
+        gemeldet: set[tuple[str, str]] = set()
+        nummer = 0
         while True:
             time.sleep(_TAKT)
+            if personen_an:
+                try:
+                    for zeile in takt(urls, nummer, gemeldet):
+                        print(zeile, flush=True)
+                except Exception as exc:
+                    print(f"Ein Takt ist gescheitert ({exc}); es geht weiter.", flush=True)
+                nummer += 1
             try:
                 verteilt = durchgang(urls)
             except Exception as exc:

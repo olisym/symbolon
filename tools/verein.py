@@ -424,7 +424,7 @@ def check_epoch_3(w: Verein) -> None:
 
 
 def check_ambiguous_sequence(w: Verein) -> None:
-    """Bruno Ja dann Nein: beide AMBIGUOUS_VOTE, Auszählung PENDING (szenario-verein §5.1)."""
+    """Bruno Ja dann Nein ohne Nennung: beide AMBIGUOUS_VOTE, Auszählung PENDING (szenario-verein §5.1)."""
     anna, chris = _yes_anna_chris(w)
     ja = _vote(w.bruno, w.proposal_3, 1, t=_T_BRUNO, scope=w.ex.N_gov)
     nein = _vote(w.bruno, w.proposal_3, 0, t=_T_BRUNO + 1, scope=w.ex.N_gov)

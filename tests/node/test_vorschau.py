@@ -138,7 +138,7 @@ def test_stimmen(tmp_path) -> None:
 
 
 def test_zweite_stimme(tmp_path) -> None:
-    """Kriterium 3: Brunos Nein nach seinem Ja zählt nicht und nimmt das Ja heraus (04 §3.1)."""
+    """Kriterium 3: Brunos Nein nach seinem Ja ersetzt das Ja (04 §3.1, D547, D548)."""
     path = tmp_path / "bestand.sqlite"
     anlegen(path)
     world = build()
@@ -153,9 +153,9 @@ def test_zweite_stimme(tmp_path) -> None:
 
         answered = _sim(server, world.bruno.pub, "vote", proposal=digest, choice="no")
         effect = answered["effect"]
-        assert effect["counts"] is False
+        assert effect["counts"] is True
         assert effect["yes"] == len(vorher["yes"]) - 1
-        assert effect["no"] == len(vorher["no"])
+        assert effect["no"] == len(vorher["no"]) + 1
 
         nachher = _antrag(server, world.ex.N_gov)
         assert len(nachher["yes"]) == effect["yes"]

@@ -8,7 +8,14 @@ from dataclasses import dataclass
 from symbolon.atom import Claim, claim_id
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
 from symbolon.governance.objects import Proposal, epoch_id
-from symbolon.governance.tally import TallyResult, TallyState, decide, reached, vote_root
+from symbolon.governance.tally import (
+    TallyResult,
+    TallyState,
+    decide,
+    maximal_votes,
+    reached,
+    vote_root,
+)
 from symbolon.governance.tally import read_v as read_vote_v
 from symbolon.index import classify_all
 from symbolon.policy import constitution_hash, participants_wellformed
@@ -508,6 +515,7 @@ class GeraeteStimmen:
 def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteStimmen, ...]:
     """Aktive ``vote@1`` eines Scopes je Wurzel und Antrag, über alle Epochen, nur wo Stimmen von
     mindestens zwei Schlüsseln stammen (D542 Beschluss 5, D543 Beschluss 1 und 3, 04 §3.1, 02 §2.1).
+    Gezählt wird je Gruppe nach ``maximal_votes``, also ohne ersetzte Stimmen (D548 Beschluss 3).
 
     Gelesen werden nur Stimmen mit ``J``-Tag 3, ohne ``t_exp``, ``ACTIVE``, nicht bestritten, mit
     lesbarem, kanonischem ``v`` und Wahl ``0`` oder ``1``. Eine Gruppe erscheint nur, wenn ihr
@@ -519,7 +527,7 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
         return ()
     classified = classify_all(store, now, view.state.policy)
     attr = attribution(store, classified, scope)
-    grouped: dict[tuple[bytes, bytes], list[tuple[bytes, bytes, int]]] = defaultdict(list)
+    grouped: dict[tuple[bytes, bytes], list[Claim]] = defaultdict(list)
     for claim in store.all_claims():
         if not is_nuc_name(claim, "vote") or claim.N != scope:
             continue
@@ -537,11 +545,16 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
         wahl = obj.get(0)
         if type(wahl) is not int or wahl not in (0, 1):
             continue
-        grouped[(vote_root(attr, claim), claim.J[1])].append((cid, claim.I, wahl))
+        grouped[(vote_root(attr, claim), claim.J[1])].append(claim)
     proposals = store.all_proposals()
     constitutions = store.all_constitutions()
     result: list[GeraeteStimmen] = []
-    for (root, digest), stimmen in grouped.items():
+    for (root, digest), claims in grouped.items():
+        # Nur was nicht ersetzt ist (D548 Beschluss 3, 04 §3.1).
+        stimmen = [
+            (claim_id(claim), claim.I, read_vote_v(claim.v)[0][0])
+            for claim in maximal_votes(claims)
+        ]
         if len({key for _cid, key, _wahl in stimmen}) < 2:
             continue
         proposal = proposals.get(digest)

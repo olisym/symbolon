@@ -208,7 +208,7 @@ def test_nach_ratifizierung_und_ausschluss(tmp_path) -> None:
 
 
 def test_doppelstimme(tmp_path) -> None:
-    """Ja dann Nein: kein VOTE mehr, weder yes noch no (D484 Beschluss 1 und 2, szenario-verein §5.1)."""
+    """Ja dann Nein über die Seite: das Nein ersetzt das Ja, kein VOTE mehr (D484 Beschluss 1 und 2, D548)."""
     path = tmp_path / "bestand.sqlite"
     anlegen(path)
     world = build()
@@ -226,7 +226,7 @@ def test_doppelstimme(tmp_path) -> None:
 
         antrag = _get(server, f"/proposals/{world.ex.N_gov.hex()}")[0]
         assert world.bruno.pub.hex() not in antrag["yes"]
-        assert world.bruno.pub.hex() not in antrag["no"]
+        assert antrag["no"] == [world.bruno.pub.hex()]
         assert "VOTE" not in _arts(_tasks(server, world.bruno.pub), world.ex.N_gov)
         for person in (world.anna, world.chris, world.dora):
             assert "VOTE" in _arts(_tasks(server, person.pub), world.ex.N_gov)
@@ -431,9 +431,9 @@ def test_claims(tmp_path) -> None:
 
 
 def test_ambiguous(tmp_path) -> None:
-    """Bruno stimmt Nein und dann Ja: ambiguous, nicht yes oder no; Anna bleibt draußen
+    """Bruno stimmt über die Seite Nein und dann Ja: das Ja ersetzt, nichts ist mehrdeutig
 
-    (D487 Beschluss 3, szenario-verein §5.1).
+    (D487 Beschluss 3, D548; mehrdeutig über zwei Geräte prüft test_geraete).
     """
     path = tmp_path / "bestand.sqlite"
     anlegen(path)
@@ -452,10 +452,8 @@ def test_ambiguous(tmp_path) -> None:
         _intent(server, world.anna.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes")
 
         antrag = _get(server, f"/proposals/{world.ex.N_gov.hex()}")[0]
-        assert antrag["ambiguous"] == [world.bruno.pub.hex()]
-        assert world.bruno.pub.hex() not in antrag["yes"]
-        assert world.bruno.pub.hex() not in antrag["no"]
-        assert world.anna.pub.hex() not in antrag["ambiguous"]
-        assert antrag["yes"] == [world.anna.pub.hex()]
+        assert antrag["ambiguous"] == []
+        assert antrag["no"] == []
+        assert antrag["yes"] == sorted([world.anna.pub.hex(), world.bruno.pub.hex()])
     finally:
         _stop(server)

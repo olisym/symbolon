@@ -867,7 +867,7 @@ def test_zweite_stimme(tmp_path) -> None:
             server, world.bruno.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="no"
         )
         assert status == 200, body
-        assert "ALREADY_VOTED" in json.loads(body)["warnings"]
+        assert "CHANGE_VOTE" in json.loads(body)["warnings"]
         status, body = _intent(
             server, world.chris.pub, "vote", proposal=DOC_PROPOSAL_3.hex(), choice="yes"
         )

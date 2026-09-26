@@ -131,12 +131,12 @@ export function tilgungInWorten(zustand) {
 
 const WARNUNGEN = new Map([
   ["BUDGET_FULL", "Dein Budget ist voll. Verkleinere zuerst eine Bürgschaft."],
-  ["ALREADY_VOTED", "Du hast schon abgestimmt. Eine zweite Stimme macht beide ungültig."],
+  ["CHANGE_VOTE", "Du hast schon anders abgestimmt. Diese Stimme ersetzt die frühere."],
   ["SAME_VOTE", "Du hast schon so abgestimmt. Die Stimme zählt einmal."],
 ]);
 
-// Eine Warnung in Worten, aus den Sätzen in szenario-verein §3 und §5.1; eine unbekannte
-// erscheint mit ihrem Namen (D486 Beschluss 3).
+// Eine Warnung in Worten, aus den Sätzen in szenario-verein §3 und §5.1, CHANGE_VOTE aus
+// D548 Beschluss 2; eine unbekannte erscheint mit ihrem Namen (D486 Beschluss 3).
 export function warnungInWorten(name) {
   return wortAus(WARNUNGEN, name);
 }
@@ -422,7 +422,8 @@ export function absichtSatz(art, felder) {
 // Die Folge aus effect, „Danach:“ vor der ersten Zeile; ohne effect keine Zeile
 // (D492 Beschluss 2, D490 Beschluss 2). Bei einer Stimme gleiche Wahl aus effect.same, die
 // Teilnahme der Wurzel aus effect.participant, nur wo das fehlt aus felder (D544 Beschluss 1);
-// bei counts falsch zuerst die Teilnahme, dann gleiche Wahl (D545 Beschluss 1).
+// bei counts falsch zuerst die Teilnahme, dann gleiche Wahl (D545 Beschluss 1); ersetzt die
+// Stimme eine frühere, sagt eine Zeile das (D548 Beschluss 2).
 export function folgeZeilen(art, effect, felder) {
   if (!effect) return [];
   const zeilen = [];
@@ -439,6 +440,10 @@ export function folgeZeilen(art, effect, felder) {
       }
     }
     const teilnehmer = effect.participant !== undefined ? effect.participant : felder.teilnehmer;
+    // Die neue Stimme ersetzt die frühere (D548 Beschluss 2).
+    if (effect.counts === true && effect.replaces === true) {
+      zeilen.push("Deine frühere Stimme zählt dann nicht mehr.");
+    }
     if (effect.counts === false) {
       if (teilnehmer === false) {
         zeilen.push("Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste.");

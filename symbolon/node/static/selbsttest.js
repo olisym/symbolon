@@ -515,6 +515,16 @@ function saetzeFaelle() {
     ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste."],
   );
   gleich(
+    "folgeZeilen: vote, ersetzt die frühere Stimme",
+    folgeZeilen("vote", { ...stimme, yes: 2, counts: true, same: false, replaces: true, participant: true }, { teilnehmer: true }),
+    ["Danach: 2 von 3 nötigen Ja-Stimmen", "Es fehlt noch eine.", "Deine frühere Stimme zählt dann nicht mehr."],
+  );
+  gleich(
+    "warnungInWorten: andere Wahl",
+    warnungInWorten("CHANGE_VOTE"),
+    "Du hast schon anders abgestimmt. Diese Stimme ersetzt die frühere.",
+  );
+  gleich(
     "folgeZeilen: vouch unter D",
     folgeZeilen("vouch", { used: 50, D: 100 }, {}),
     ["Danach: Du hast 50 von 100 Punkten vergeben."],

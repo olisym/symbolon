@@ -333,14 +333,15 @@ def _vote_effect(
     author: bytes,
     choice: str,
     voted: bool,
-    same: bool,
     now: int,
 ) -> dict[str, Any] | None:
     """Ja und Nein nach der Stimme, aus proposals_view und reached (D490 Beschluss 2, 04 §3.1, 04 §3.2).
 
-    ``author`` ist die Wurzel der Stimme. Mit ``same`` bleiben Ja und Nein, wie sie sind
-    (D543 Beschluss 4, D542 Beschluss 4). Die Folge nennt ``same`` und die Teilnahme der
-    Wurzel (D544 Beschluss 1).
+    ``author`` ist die Wurzel der Stimme, ``voted`` sagt, ob sie schon eine Stimme zum Antrag
+    hat. Zählt die Wurzel schon mit dieser Wahl, bleiben Ja und Nein, wie sie sind (``same``,
+    D543 Beschluss 4, D542 Beschluss 4); sonst ersetzt die neue Stimme jede frühere, und die
+    Wurzel wird aus Ja und Nein heraus- und mit der neuen Wahl hineingezählt (``replaces``,
+    D548 Beschluss 2). Die Folge nennt ``same`` und die Teilnahme der Wurzel (D544 Beschluss 1).
     """
     view = scope_view(store, proposal.scope, now)
     tally = _tally_of(view, digest)
@@ -349,18 +350,15 @@ def _vote_effect(
         return None
     yes, no = len(row.yes), len(row.no)
     participant = author in view.state.constitution_obj["participants"]
-    if not participant:
+    same = voted and author in (row.yes if choice == "yes" else row.no)
+    if not participant or same:
         counts = False
-    elif same:
-        counts = False
-    elif voted:
-        counts = False
+    else:
+        counts = True
         if author in row.yes:
             yes -= 1
         if author in row.no:
             no -= 1
-    else:
-        counts = True
         if choice == "yes":
             yes += 1
         else:
@@ -375,6 +373,7 @@ def _vote_effect(
         "counts": counts,
         "same": same,
         "participant": participant,
+        "replaces": voted and not same,
     }
 
 
@@ -418,7 +417,7 @@ def _intent_body(
 ) -> tuple[dict[str, Any], list[str], dict[str, Any] | None]:
     """Ableitung einer Absicht auf den Rumpf von _prepare und ihre Folge
 
-    (D479 Beschluss 2, D490 Beschluss 2, 04 §2.1, 04 §2.2, 04 §2.3).
+    (D479 Beschluss 2, D490 Beschluss 2, D548 Beschluss 1 und 2, 04 §2.1, 04 §2.2, 04 §2.3).
     """
     author = _hex(_require(body, "I"), 32)
     art = _text(_require(body, "art"), "art")
@@ -453,36 +452,32 @@ def _intent_body(
         choice = _text(_require(body, "choice"), "choice")
         if choice not in {"yes", "no"}:
             raise ValueError("choice is not yes or no")
-        encoded = cbor_canon.encode({0: 1 if choice == "yes" else 0})
-        fields.update(
-            p=f"nuc:{proposal.scope.hex()}/vote@1",
-            J=[3, digest.hex()],
-            v=encoded.hex(),
-            N=proposal.scope.hex(),
-        )
-        # Frühere Stimmen derselben Wurzel; sind alle gleich der neuen Wahl, zählt sie einmal
-        # (D542 Beschluss 4, D543 Beschluss 4, 04 §3.1, 02 §2.1).
+        # Frühere Stimmen derselben Wurzel, auch solche, die nicht zählen; die neue Stimme nennt
+        # sie in v Key 1 und ersetzt sie (D548 Beschluss 1, D542 Beschluss 4, 04 §3.1, 02 §2.1).
         attr = attribution(store, classify_all(store, now, view.state.policy), proposal.scope)
         root = attr.device_root(author) or author
-        earlier = [
-            claim
+        earlier = sorted(
+            claim_id(claim)
             for claim in store.all_claims()
             if claim.N == proposal.scope
             and claim.J == (3, digest)
             and is_nuc_name(claim, "vote")
             and vote_root(attr, claim) == root
-        ]
-        voted = bool(earlier)
-        wahl = 1 if choice == "yes" else 0
-        same = voted and all(
-            _decoded_v(claim.v) == {0: wahl} and type(_decoded_v(claim.v)[0]) is int
-            for claim in earlier
         )
-        if same:
-            warnings.append("SAME_VOTE")
-        elif voted:
-            warnings.append("ALREADY_VOTED")
-        effect = _vote_effect(store, digest, proposal, root, choice, voted, same, now)
+        wahl = 1 if choice == "yes" else 0
+        value: dict[int, Any] = {0: wahl} if not earlier else {0: wahl, 1: earlier}
+        fields.update(
+            p=f"nuc:{proposal.scope.hex()}/vote@1",
+            J=[3, digest.hex()],
+            v=cbor_canon.encode(value).hex(),
+            N=proposal.scope.hex(),
+        )
+        voted = bool(earlier)
+        effect = _vote_effect(store, digest, proposal, root, choice, voted, now)
+        # Zählt die Wurzel schon mit dieser Wahl, SAME_VOTE; sonst ersetzt die Stimme
+        # (D548 Beschluss 2, D543 Beschluss 4).
+        if voted:
+            warnings.append("SAME_VOTE" if effect is not None and effect["same"] else "CHANGE_VOTE")
     elif art == "ratify":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
         view, epoch = _require_current(store, proposal, now)

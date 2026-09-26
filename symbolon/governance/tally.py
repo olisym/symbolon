@@ -125,6 +125,39 @@ def _is_known_choice(value: object) -> bool:
     return type(value) is int and value in (0, 1)
 
 
+def read_replaces(obj: dict) -> tuple[tuple[bytes, ...], bool]:
+    """``v`` Key 1 einer Stimme: die genannten ``claim_id`` und ob der Key formwidrig ist
+    (04 §2.2, 04 §3.1, D547 Beschluss 3).
+
+    Ohne Key 1 ``((), False)``; keine Liste oder ein Eintrag kein Bytestring der Länge 32
+    ``((), True)``.
+    """
+    if 1 not in obj:
+        return (), False
+    names = obj[1]
+    if not isinstance(names, list):
+        return (), True
+    if not all(isinstance(name, bytes) and len(name) == 32 for name in names):
+        return (), True
+    return tuple(names), False
+
+
+def maximal_votes(votes: list[Claim]) -> list[Claim]:
+    """Die Stimmen ohne die, die eine andere Stimme dieser Liste in ``v`` Key 1 nennt
+    (04 §3.1, D547 Beschluss 1 und 2, D548 Beschluss 3).
+
+    Eine Stimme, deren ``v`` nicht lesbar oder deren Key 1 formwidrig ist, nennt nichts.
+    """
+    named: set[bytes] = set()
+    for vote in votes:
+        obj, _kind = read_v(vote.v)
+        if obj is None:
+            continue
+        names, _malformed = read_replaces(obj)
+        named.update(names)
+    return [vote for vote in votes if claim_id(vote) not in named]
+
+
 def vote_root(attr: Attribution, vote: Claim) -> bytes:
     """Wurzel einer Stimme: bei ``ATTRIBUTED`` und ``DISPUTED`` die Wurzel des aufgenommenen
     Geräts, sonst ``vote.I`` (04 §3.1, 02 §2.1)."""
@@ -250,6 +283,8 @@ def decide(
 
     Mitgliedsprüfung, Zusammenfassung, ``CONFLICTING_APPROVAL`` und Zählung laufen je Wurzel
     nach 02 §2.1; eine bestrittene Stimme fällt vor der Zusammenfassung heraus (04 §3.1, 04 §4.4).
+    Vor der Zusammenfassung fällt je Wurzel jede Stimme heraus, die eine andere nennt; ein
+    formwidriger Key 1 zählt, als fehlte er (04 §3.1, D547, D548 Beschluss 3 und 4).
     """
     if proposal.scope != epoch.scope:
         raise ValueError("proposal scope does not match epoch scope")
@@ -383,6 +418,9 @@ def decide(
                 Finding(kind=GovernanceFinding.UNKNOWN_VOTE_CHOICE, subject=cid)
             )
             continue
+        _names, malformed = read_replaces(obj)
+        if malformed:
+            findings.append(Finding(kind=GovernanceFinding.MALFORMED_REPLACES, subject=cid))
         if by_cid[cid].state is not State.ACTIVE:
             continue
         if counts_disputed(vote):
@@ -395,6 +433,7 @@ def decide(
         by_root[roots[claim_id(vote)]].append(vote)
     counting: list[Claim] = []
     for group in by_root.values():
+        group = maximal_votes(group)
         if len({_is_yes_choice(_choice(vote)) for vote in group}) > 1:
             for vote in group:
                 findings.append(

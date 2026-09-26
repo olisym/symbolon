@@ -101,7 +101,7 @@ def test_aufgaben_eines_geraets(tmp_path) -> None:
 
 
 def test_stimme_ueber_geraet(tmp_path) -> None:
-    """ALREADY_VOTED und die Folge nach der Wurzel (D542 Beschluss 4)."""
+    """SAME_VOTE, CHANGE_VOTE und die Folge nach der Wurzel (D542 Beschluss 4, D548)."""
     world, geraete, store = _welt(tmp_path)
     rumpf = {
         "I": geraete["DORA"].pub.hex(),
@@ -116,7 +116,8 @@ def test_stimme_ueber_geraet(tmp_path) -> None:
     assert warnungen == ["SAME_VOTE"] and folge["counts"] is False and folge["yes"] == 1
     rumpf["choice"] = "no"
     _felder, warnungen, folge = _intent_body(store, rumpf, _JETZT)
-    assert warnungen == ["ALREADY_VOTED"] and folge["counts"] is False and folge["yes"] == 0
+    assert warnungen == ["CHANGE_VOTE"] and folge["counts"] is True
+    assert (folge["yes"], folge["no"], folge["replaces"]) == (0, 1, True)
 
 
 def test_budget_je_wurzel(tmp_path) -> None:

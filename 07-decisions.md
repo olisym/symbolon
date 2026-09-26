@@ -22046,3 +22046,133 @@ Prüfregel-Kandidaten.
 nächsten Schritt; `sitzungsstart-00cl.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cm.md`, `archiv/sitzungsstart-00cl.md`.
+
+### D521 — Personen mit eigenem Verhalten, Stufe (a): Brunos Lüge aus einer Regel
+
+**Anlass.** D520 Beschluss 1 liess den nächsten Schritt offen. Oli wählt die Personen mit eigenem
+Verhalten (`ROADMAP §6`: „viele Personen mit eigenem Verhalten“), zuerst Bild (a), Bild (b) als
+nächste Stufe. Gelesen: `tools/netz.py`, `tools/abgleich.py`, `tools/verein_node.py`,
+`symbolon/node/__main__.py`, in `symbolon/node/api.py` `_intent_body`, `_sim_tip`, `_route`,
+`_peer` und `_task_json`, in `symbolon/node/view.py` `tasks_view` und `fork_evidence`,
+`tests/node/test_netz.py`, und in `static/app.js`, wie die Seite eine Gabelung nennt.
+
+**Der Satz.** Nach einem Lauf kann Oli sagen: „Jede Lücke zwischen zwei Abgleichen ist eine
+Trennung. Bruno nutzt sie, und nach dem nächsten Abgleich sieht es jedes Gerät.“ Oli: „passt“.
+Mein erster Vorschlag lautete „Bruno konnte nur lügen, solange ein Gerät getrennt war“; die
+Messung unten hat ihn widerlegt.
+
+**Beschluss 1 — die Personen sind ein Werkzeug, der Knoten bleibt, wie er ist.** `tools/personen.py`
+handelt über die bestehenden Routen: `GET /names`, `GET /tasks/<I>`, `GET /tips/<I>`,
+`GET /scopes`, `GET /scopes/<scope>` und `POST /sim/intent`. Grund wie D516: das Verhalten gehört
+zur Simulation, nicht zum Protokoll. Ein Knoten, der selbst handelte, wäre ein zweiter Weg zu
+denselben Claims.
+
+**Beschluss 2 — die Regeln.** Jede Person handelt auf jedem Gerät, das ihren Schlüssel trägt
+(D518 Beschluss 1), nach ihren Aufgaben aus `GET /tasks/<I>`:
+
+| Aufgabe | auf Brunos Zweitgerät | auf jedem anderen Gerät |
+|---|---|---|
+| `CONFIRM_RULES` | nichts | `accept-rules` mit `scope` und `constitution` der Aufgabe |
+| `VOTE` | `vote` mit `no` | `vote` mit `yes` |
+| `RATIFY` | nichts | `ratify`, nur ANNA |
+| `RECEIPT` | nichts | `receipt` |
+| `CONTRIBUTION_OPEN` | nichts | nichts |
+
+Dazu beantragt ANNA auf Annas Gerät einmal, im Takt 2, im Scope, dessen Ansicht unter
+`GET /scopes/<scope>` einen Verein trägt, die Änderung
+`{"set": {"field": "beitrag", "text": "30 Euro im Jahr, fällig im Januar, an die Kasse"}}`.
+
+Hat eine Person auf einem Gerät etwas zu tun und dort mehr als eine Spitze, handelt sie dort
+nicht; das Werkzeug meldet es einmal je Gerät und Person. Eine Abweisung durch den Knoten ist eine
+Zeile, kein Abbruch.
+
+Gründe. Brunos Zweitgerät tut nur `VOTE`, weil das Bild die Lüge zeigt, nicht ein Versehen; das
+Versehen ist Bild (b). Nur ANNA stellt fest, weil ein Beschluss eine Feststellung braucht und
+mehrere dasselbe Ende nur wiederholten. `CONTRIBUTION_OPEN` hat keine Absicht des Schuldners: die
+Zahlung geschieht ausserhalb, der Gläubiger quittiert (`03 §3.3`). Eine gegabelte Person wählt
+kein Ende, weil keine Regel das entscheiden kann; die Seite fragt dafür den Menschen (D492).
+
+**Beschluss 3 — ein Takt, ohne Zufall.** Ein Takt lässt erst die Personen handeln, Geräte in der
+Ordnung von `GERAETE`, Personen je Gerät nach Namen sortiert, dann im Takt 2 den Antrag, dann
+einen Durchgang (D518 Beschluss 2). Das Werkzeug trennt kein Gerät. Kein Seed, kein Zufall: der
+Ablauf ist durch die Regeln bestimmt, und ein Test kann ihn festhalten.
+
+**Beschluss 4 — der Startbefehl.** `python -m tools.netz <verzeichnis> --personen` fährt vor
+jedem Durchgang einen Takt, beginnend bei 0, und druckt dessen Zeilen. Statt des Ablaufs aus D518
+druckt er, wie man zusieht. Ohne den Schalter bleibt alles wie in D518. Der Knopf „Vom Netz
+trennen“ auf der Seite bleibt; solange die Personen handeln, klickt Oli nicht selbst, sonst
+treffen Mensch und Regel dieselbe Aufgabe.
+
+Die Zeilen, `{n}` die Nummer des Takts, `{Gerät}` der Name aus `GERAETE`, `{NAME}` der Name der
+Person:
+
+- `Takt {n}, {Gerät}: {NAME} bestätigt die Satzung`, ebenso `stimmt Ja`, `stimmt Nein`,
+  `stellt den Beschluss fest`, `quittiert`, `beantragt den Beitrag`.
+- Bei einer Abweisung dieselbe Zeile, dahinter `, abgewiesen ({Antwort})`.
+- `Takt {n}, {Gerät}: {NAME} hat sich widersprochen und handelt hier nicht weiter.`
+
+Der Text zum Zusehen:
+
+1. Die Personen handeln selbst: in jedem Takt erst auf jedem Gerät, dann gleichen die Geräte ab.
+2. Nicht selbst klicken, solange sie handeln. Im Terminal steht, wer was tut.
+3. In den Tabs „Aktualisieren“, sobald „Es ist Neues angekommen“ erscheint.
+4. Bruno stimmt auf beiden Geräten, bevor sie sich sehen. Nach dem Abgleich zeigt jedes Gerät den
+   Widerspruch.
+
+**Befunde, am Prototyp gemessen.** Fünf Knoten über den Startcode aus `tools/netz.py`, die Regeln
+aus Beschluss 2, dazu zum Vergleich zufällige Trennungen mit Seed, 6 Seeds zu 12 Takten:
+
+| Trennungen | Gabel Brunos | Stand am Ende gleich |
+|---|---|---|
+| keine | 6 von 6, auf allen fünf Geräten | 6 von 6 |
+| je Takt und Gerät mit 0,15 für 3 Takte | 4 von 6 | 6 von 6 |
+
+1. **Die Lüge braucht keine Trennung.** Liegt der Antrag auf beiden Geräten Brunos, stimmt er im
+   nächsten Takt auf beiden, bevor ein Durchgang sie zusammenbringt.
+2. **Eine Trennung kann die Lüge verhindern.** Verpasst eines der Geräte den Antrag, kommt die
+   Stimme des anderen mit dem Antrag an, und die Abstimmung steht dort nicht mehr an.
+3. **Gleiche Bytes gabeln nicht.** Stimmt Bruno mit fester Uhr auf beiden Geräten Ja, entsteht
+   derselbe Claim, weil Ed25519 deterministisch signiert; die Rücknahmeprobe R1 unten zeigt es.
+   Ein ehrliches Doppelgerät gabelt nur, wenn die Zeitstempel verschieden sind.
+
+**Golden Numbers.** Der Lauf ohne Trennung, mit fester Uhr wie im Test und mit der Wanduhr über
+den Startbefehl gleich:
+
+- Takt 0: ANNA, BRUNO und CHRIS bestätigen die Satzung; DORA hat keine Aufgabe.
+- Takt 1 still. Takt 2: ANNA beantragt den Beitrag.
+- Takt 3: fünf Stimmen, BRUNO Ja auf Brunos Gerät und Nein auf Brunos Zweitgerät.
+- Takt 4: ANNA stellt den Beschluss fest. Takt 5: ANNA, CHRIS und DORA bestätigen, BRUNO wird auf
+  Brunos Gerät gemeldet. Takt 6 still.
+- Danach auf jedem Gerät: derselbe Stand, eine Gabelgruppe, ihr Autor BRUNO, ihre Stimmen 0 und 1;
+  die Epoche des Vereins von 2 auf 3. Keine Abweisung, genau eine Meldung.
+- Über den Startbefehl verteilen die Durchgänge 12, 12, 20, 4 und 12 Einträge.
+- Ist Brunos Zweitgerät vom ersten Takt an getrennt: keine Gabel, keine Meldung, Epoche 3 auf den
+  vier verbundenen Geräten, deren Stand gleich.
+
+Die sechs naheliegenden Fehler habe ich gegen die Tests in der Fassung des Auftrags gefahren
+(D517). Jeder macht mindestens einen Test rot, jeder an der Sache: R1 Brunos Zweitgerät stimmt Ja
+(die Gabel fehlt), R2 das Zweitgerät tut alles, R3 eine gegabelte Person handelt weiter (der Lauf
+wird nie still), R4 der Antrag geht an den ersten Scope, R5 jeder stellt fest, R6 die Meldung
+kommt in jedem Takt.
+
+**Verworfen.**
+
+- **Zufällige Trennungen in Stufe (a).** Die Lüge braucht sie nicht (Befund 1). Sie machen das
+  Bild unsicher (Befund 2) und brächten einen Seed, ohne dass der Satz davon abhängt.
+- **Die Personen im Knoten.** Siehe Beschluss 1.
+- **Mehr Personen.** `tools/verein_node.anlegen` baut die fünf der Genesis; mehr bräuchten eine
+  andere Welt. Das ist ein eigener Schritt.
+- **Bruno wählt ein Ende.** Siehe Beschluss 2.
+
+**Stufe (b), festgehalten.** Dora bekommt ein Zweitgerät und tut ehrlich auf beiden dasselbe.
+Olis Satz dann: „Das Netz sieht bei beiden dasselbe; ob es Absicht war, sagt es nicht.“ Die Stufe
+misst Befund 3, statt ihn vorauszusetzen. Die Seite nennt eine Gabelung schon „Widerspruch“, nicht
+„Lüge“ (`app.js`, `widerspruchKarten`); daran muss (b) nichts ändern.
+
+**Schwächste Stelle.** Die Regeln hängen an Namen: ANNA stellt fest, Brunos Zweitgerät lügt. Das
+ist eine Tabelle, kein Modell von Personen. Für ein Bild genügt es; für viele Personen braucht es
+Regeln, die an Rollen hängen. Und der ganze Lauf dauert zwölf Sekunden; Oli sieht das Ergebnis
+eher als den Hergang. Die Uhr, die bei jedem Start bei 1000 beginnt (D518), trifft den Lauf nicht,
+weil `_prepare` das `t` auf den Vorgänger hebt.
+
+**Geändert.** `07-decisions.md`.

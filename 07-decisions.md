@@ -22176,3 +22176,46 @@ eher als den Hergang. Die Uhr, die bei jedem Start bei 1000 beginnt (D518), trif
 weil `_prepare` das `t` auf den Vorgänger hebt.
 
 **Geändert.** `07-decisions.md`.
+
+### D522 — Abnahme `p22-personen`; Olis Durchlauf mit Personen, die selbst handeln
+
+**Anlass.** Der Bericht zu `p22-personen` meldet `76dfbb6` mit 1151 Tests. Gelesen: der
+vollständige Diff gegen `ae1d214`, also `tools/personen.py`, `tools/netz.py` und
+`tests/node/test_personen.py`. Nachgefahren: `python -m pytest -q` mit 1151 grün, `ruff` sauber,
+der Startbefehl mit `--personen` und mit einem falschen Argument.
+
+**Beschluss 1 — abgenommen ohne Defekt.** Die Regeln folgen der Tabelle in D521 Beschluss 2, der
+Takt folgt Beschluss 3, der Startbefehl Beschluss 4. Die Zeilen des Laufs und die Durchgänge
+treffen die Golden Numbers aus D521, mit fester Uhr wie mit der Wanduhr. Die sechs
+Rücknahmeproben wurden rot wie verlangt. R6 scheitert an der Grenze von 20 Takten und nicht an der
+Zusicherung „genau eine Meldung“; das ist die Sache, weil eine Meldung in jedem Takt den Lauf nie
+still werden lässt.
+
+**Beschluss 2 — die Meldungen des Werkzeugs.**
+
+1. **Eine Abweisung ist jede Antwort 4xx aus `/sim/intent`, auch 409 bei mehr als einer Spitze;
+   eine andere Antwort bricht ab.** Das legt D521 Beschluss 2 aus. Eine 4xx ist ein Urteil des
+   Knotens über die Absicht, eine 5xx ist ein Fehler. Das Werkzeug hat die Implementierung
+   repariert, nicht den Test, nachdem R3 zuerst an der falschen Stelle rot wurde.
+2. **Die Hilfen und der Import von `_anfrage` und `_ZEITLIMIT` aus `tools/abgleich.py` bleiben.**
+   Die Hilfen benennen nur, was D521 festlegt. `_anfrage` bricht bei jeder Antwort ausser 200 ab;
+   für `/names`, `/tasks`, `/tips` und `/scopes` ist das richtig, weil keine davon unter `/peer/`
+   liegt und keine bei getrenntem Gerät 503 gibt.
+3. **Der späte Import von `takt` in `main` und die Zeile „Ein Takt ist gescheitert“ bleiben.**
+   Das eine vermeidet einen Kreisimport, das andere hat die Form der Zeile zum Durchgang aus D518
+   Beschluss 3.
+4. **„Etwas zu tun“ heisst, `absichten` ist nicht leer.** So war D521 gemeint; die Golden Numbers
+   erzwingen es.
+
+**Beschluss 3 — Olis Durchlauf.** Oli hat `python -m tools.netz ~/mar-daten/netz-p1 --personen`
+gefahren, im Terminal zugesehen und danach die fünf Tabs geöffnet. Oli: „Ja sieht alles gut aus
+für mich. Ich sehe alles so wie beschrieben!“ Damit ist `ROADMAP §6` in der Form erreicht, die
+D521 gewählt hat: Personen mit eigenem Verhalten, mehrere S-Nodes, und wer lügt, fällt auf.
+
+**Befund, ohne Auftrag.** Der Antrag im Takt 2 prüft die Spitzen ANNAs nicht, weil die Prüfung
+nach D521 an den Aufgaben hängt und der Antrag keine Aufgabe ist. Im Bild gabelt ANNA nie. Eine
+Stufe, in der die Antragstellerin gabeln kann, muss die Prüfung dorthin ausdehnen.
+
+**Nächster Schritt.** Stufe (b) aus D521: ein ehrliches Zweitgerät neben Brunos Lüge.
+
+**Geändert.** `07-decisions.md`.

@@ -21690,3 +21690,82 @@ machen“.
 nächsten Schritt; `sitzungsstart-00ck.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cl.md`, `archiv/sitzungsstart-00ck.md`.
+
+### D514 — Phase 4: Abgleich mit voller Liste; der Bestand räumt fremde Lebenszyklus-Claims nach
+
+**Anlass.** D513 Beschluss 1: zuerst nachlesen, dann der Abgleich als eigener Beschluss. Gelesen:
+`symbolon/verifier.py`, `symbolon/node/store.py`, die Routen in `symbolon/node/api.py`,
+`tools/verein_node.py`, `01 §6`, D138, D336 bis D342, D452, D473.
+
+**Nachgelesen.**
+
+- **Secure Scuttlebutt, EBT** (`epidemic-broadcast-trees`, `ssb-ebt`). Repliziert je Autor ein
+  Log über Sequenznummern; Knoten tauschen je Feed die höchste bekannte Nummer, und das Anhängen
+  weist eine Nachricht ab, die nicht die nächste ist. Passt nicht: ein Claim trägt keine
+  Sequenznummer (`01 §2`), `01 §6` verlangt keine Reihenfolge, und eine Gabelung ist in MaR der
+  Gegenstand (`01 §4`), in SSB ein Defekt des Feeds.
+- **Nostr NIP-77, Negentropy.** Bereichsbasierter Mengenabgleich; die Ordnung der Elemente dient
+  nur als Sortierschlüssel. Passt der Form nach. Spart gegenüber der vollen Liste erst, wenn die
+  Menge gross ist und beide Seiten grossteils dasselbe halten.
+- **D336 bis D342.** Umordnung, dauerhafter Verlust und Uhrendrift degradieren ohne Absturz; ein
+  Knoten mit Teilwissen weicht stabil ab und kommt nach der Nachlieferung zum selben Ergebnis.
+  Das trägt einen Abgleich ohne Änderung an der Auswertung.
+
+**Gemessen, im Supervisor-Klon auf `b797495`, ohne Bytecode.**
+
+- Ein Claim ohne bekannten Vorgänger wird angenommen und ist `pending` (`01 §6`, Anhang B.3). Die
+  Reihenfolge innerhalb einer Kette bindet das Einlesen nicht.
+- Objekte hängen nicht voneinander ab: `submit_object` prüft Form und Hash, sonst nichts. 200
+  zufällige Teilbestände des Vereins, 13 Claims und 10 Objekte, Lücken und Reihenfolge zufällig:
+  keine Sicht wirft, abgefragt für die Scopes mit Genesis im Bestand, wie die Routen es tun.
+  Vollständig geliefert, in fünf Reihenfolgen: eine Sicht.
+- **Befund.** `SqliteStore.submit_claim` ruft `structural_check(data, self)`. Damit hängt
+  `FOREIGN_LIFECYCLE` an der Reihenfolge, genau wie D138 es beschrieben und D452 unter „beim
+  Einlesen mit Store prüfen“ verworfen hat. D473 Beschluss 1 hat den Store nicht ausgeschlossen,
+  und der Code nimmt ihn. Fremder Widerruf `w` auf den Vouch `v`, dazu ein Nachfolger von `w` und
+  ein zweiter Claim des Autors von `v`: `v` vor `w` hält 3 Claims, `w` vor `v` hält 4. Die
+  Auswertung ist gleich, weil `w` nach D452 übergangen wird; die Bestände bleiben verschieden. In
+  einem Abgleich böte der zweite Knoten `w` in jeder Runde an, und der erste wiese ihn in jeder
+  Runde ab. Einen solchen Claim kann jede Identität für jede öffentliche `claim_id` signieren.
+
+**Beschluss 1 — der Bestand räumt nach.** Liefert `submit_claim` einen Claim ein, entfernt der
+Bestand jeden gehaltenen `core/*`-Claim, der diesen Claim als Ziel nennt und einen anderen Autor
+hat. Das ist `01 §6` „von da an nicht gehalten“, im Bestand des Knotens ausgeführt; die Norm
+ändert sich nicht. Ein Nachfolger des entfernten Claims bleibt gehalten und ist `pending`, wie
+`§6` es verlangt. Der Reject beim Einlesen mit Store bleibt. Damit führt jede Reihenfolge zum
+selben Bestand: kommt das Ziel zuerst, wird der fremde Claim abgewiesen; kommt er zuerst, wird er
+mit dem Ziel entfernt.
+
+Verworfen:
+
+- **Einlesen ohne Store, wie D138 es für `store_laden` beschlossen hat.** Die Bestände würden
+  gleich, aber jeder Knoten hielte den fremden Claim, gegen „nicht gehalten“ in `01 §6`, und der
+  Claim verbreitete sich auf jeden Knoten.
+- **Die Tabelle behält ihn, der Abgleich bietet nur Gehaltenes an.** Zwei Wahrheiten
+  nebeneinander, gegen D473 Beschluss 2.
+
+**Beschluss 2 — Stufe 1 des Abgleichs ist die volle Liste.** Ein Knoten nennt seinem Nachbarn
+jede `claim_id` und jeden Objekt-Hash, die er hält, und holt, was ihm fehlt. Jeder Claim geht beim
+Eintreffen durch `submit_claim`, jedes Objekt durch `submit_object`. Beim Verein kostet die Liste
+32 Byte je Eintrag. `sim_keys` und `names` verlassen den Knoten nie: das eine sind Seeds, das
+andere das eigene Adressbuch. Verworfen: EBT, aus den Gründen oben. Vertagt: Negentropy, als O90.
+
+**Beschluss 3 — Reihenfolge der Aufträge.** Zuerst das Nachräumen (`p19-nachraeumen`), dann der
+Abgleich zwischen zwei Prozessen. Ohne das Nachräumen kommt der Abgleich an einem einzigen
+fremden Claim nie zur Ruhe.
+
+**Golden Numbers, am Code gemessen.** Welt: A bürgt für C (`v`); B widerruft `v` fremd (`w`) und
+bürgt danach für C (`n`, Nachfolger von `w`); D ersetzt `v` fremd (`su`); C widerruft `v` fremd
+(`w2`); A widerruft `v` selbst (`eigen`). Über alle 720 Reihenfolgen der sechs Claims hält der
+Bestand nach Beschluss 1 genau `v`, `n` und `eigen`; heute sind es 8 verschiedene Bestände. Die
+naheliegenden Fehler selbst nachgebaut, jede Fassung fällt an derselben Probe durch: Autor nicht
+verglichen (2 Bestände), nur `revoke` statt auch `supersede` (2), nur der erste fremde Claim
+entfernt (7), der Nachfolger mit entfernt (2). Die volle Suite bleibt mit dem Nachräumen grün,
+kein bestehender Test hängt am alten Verhalten.
+
+**Schwächste Stelle.** Das Nachräumen liest bei jedem Einliefern alle Claims. Beim Verein ist das
+nichts; beisst es, gehört ein Verweis auf das Ziel in den Bestand, mit eigener Messung. Und der
+Bestand wächst nicht mehr nur: wer Gleichheit zweier Knoten an der Anzahl misst, misst vor und
+nach dem Eintreffen eines Ziels Verschiedenes.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O90 neu).

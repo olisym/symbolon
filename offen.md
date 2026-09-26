@@ -411,3 +411,9 @@ Das Wort ist ausgemustert, fünf Teilprobleme gehen an ihre Szenarien, nichts ba
 Die Quittung wird byteweise gegen den Gläubiger geprüft (`03 §3.3.2`); wer den Schlüssel der Kasse
 einmal hatte, kann weiter quittieren. Aus D468 Beschluss 2. Öffnet mit einem Szenario, in dem das
 Amt wechselt.
+
+### O90 Negentropy für den Abgleich über knappe Strecken
+
+Stufe 1 schickt die volle Liste (D514 Beschluss 2). Über LoRa oder Reticulum kostet sie je Runde
+32 Byte für jeden gehaltenen Eintrag. Negentropy (Nostr NIP-77) gleicht Mengen bereichsweise ab.
+Öffnet in Phase 5, oder wenn eine Messung die Liste zu gross findet.

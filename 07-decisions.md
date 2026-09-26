@@ -23723,3 +23723,28 @@ folgen ihr. D97 ist beantwortet (D547 Befund 2).
   Er hängt dann an Node; ein eigener kleiner Auftrag, wenn es wieder gebraucht wird.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D550 — Schluss der Sitzung 00cp; O93 und O94 erledigt, das Folgebild für die nächste Sitzung
+
+**Anlass.** Oli schliesst die Sitzung nach D549; der Verlauf ist lang, und der nächste Schritt liest
+wieder Werkzeug- und Seitencode.
+
+**Beschluss 1 — Stand.** Mehrere Geräte einer Person sind in Knoten, Simulation und Karte gebaut
+und von Oli durchlaufen (O94, D542 bis D546). Eine Stimme ersetzt, was sie nennt, und die Seite
+nennt (O93, D547 bis D549); D97 ist beantwortet. Gebaut in `p27-geraete` und `p28-ersetzen`, beide
+abgenommen und übernommen.
+
+**Beschluss 2 — der nächste Schritt ist das Folgebild aus D549:** Bruno löst seinen Widerspruch auf
+dem Zweitgerät auf, bevor der Antrag festgestellt ist. Die Fragen vor dem Auftrag stehen im
+Sitzungsstart.
+
+**Beschluss 3 — Prüfregel-Kandidaten.** Aus dieser Sitzung drei, im Sitzungsstart geführt und nicht
+übernommen: jede Stelle suchen, die denselben Sachverhalt in anderer Form ausspricht (D544, D545,
+geschärft aus D537); ein Eigenschaftstest, den jede Regel einer Klasse erfüllt, schützt nicht
+(D548); eine neue Regel der Auszählung an jeder Stelle suchen, die dieselbe Menge selbst rechnet
+(D547, D548).
+
+**Beschluss 4 — Sitzungsschluss.** `sitzungsstart-00cp.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt für `00cq`; `sitzungsstart-00co.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cp.md`, `archiv/sitzungsstart-00co.md`.

@@ -434,3 +434,8 @@ Eine Stimme ersetzt, was sie in `v` Key `1` nennt; die Seite nennt frühere Stim
 
 Bild (c) unter `--geraete`, Sicht je Wurzel, Stimmen einer Wurzel von mehreren Schlüsseln (D542
 bis D546).
+
+### O95 Das Folgebild: Bruno löst seinen Widerspruch auf
+
+Bild unter `--aufloesen`: Anna wartet, Bruno ersetzt beide Stimmen, die Seite sagt es (D551).
+Öffnet mit dem Auftrag nach dem Prototyp.

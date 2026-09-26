@@ -23748,3 +23748,106 @@ geschärft aus D537); ein Eigenschaftstest, den jede Regel einer Klasse erfüllt
 nächsten Schritt für `00cq`; `sitzungsstart-00co.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cp.md`, `archiv/sitzungsstart-00co.md`.
+
+### D551 — Das Folgebild: Anna wartet, Bruno löst seinen Widerspruch auf, die Seite sagt es
+
+**Anlass.** D550 Beschluss 2, das Folgebild aus D549. Gelesen, ganz: `tools/personen.py`,
+`tools/netz.py`, `geraetestimmen` in `symbolon/node/view.py`, `maximal_votes` in
+`symbolon/governance/tally.py`, `proposals_view`; in `static/app.js` `geraeteKarten` und
+`vereinGerade`, in `static/anzeige.js` `geraeteSatz`, `geraeteOben` und `widerspruchOben`, die Fälle
+dazu in `selbsttest.js`; D523, D542, D547 bis D550. Bild (c) über den Startbefehl nachgefahren: die
+Takte und Durchgänge aus D542. Prototyp als Hülle um `takt` im Supervisor-Klon auf `52c0b8b`,
+gemessen, verworfen.
+
+**Befund 1 — das Fenster ist ein Takt, und Anna kommt zuerst.** Brunos Widerspruch wird im Durchgang
+von Takt 3 sichtbar; Anna stellt im Takt 4 fest. Annas Gerät steht in `GERAETE` vor Brunos, also
+handelt sie in jedem Takt vor ihm. In Bild (c) kann Bruno nicht auflösen, ohne dass sich an der
+Reihenfolge oder an Annas Verhalten etwas ändert.
+
+**Befund 2 — der Antrag ist in diesem Fenster `PASSED`, nicht `PENDING`.** Drei Ja von vier reichen
+ohne Bruno. `geraeteOben` stellt die Karte nur bei `PENDING` nach oben, also steht sie genau dann,
+wenn Bruno noch etwas tun kann, im Tab „Im Verein“. Das gilt auch heute in Bild (c).
+
+**Befund 3 — Knoten und Protokoll tragen das Bild ohne Änderung.** Mit zwei Regeln in der Hülle,
+„Anna stellt nicht fest, solange eine Gruppe aus `/geraetestimmen` zu diesem Antrag verschieden
+wählt“ und „Bruno stimmt auf seinem Gerät neu Ja, sobald eine Gruppe seiner Wurzel verschieden
+wählt und ihr Antrag unter den Anträgen der Seite steht“: die Absicht nennt beide früheren Stimmen
+(D548 Beschluss 1), die Gruppe verschwindet, der Antrag zählt BRUNO unter Ja, Anna stellt einen Takt
+später fest.
+
+**Befund 4 — nach der Feststellung bleibt von der Auflösung nichts sichtbar.** `geraetestimmen`
+liefert nur Gruppen, in denen nach `maximal_votes` Stimmen von zwei Schlüsseln übrig sind; die
+aufgelöste Gruppe fällt heraus. Der Antrag gehört nach Takt 5 zur alten Epoche und steht nicht mehr
+unter den Anträgen (D542 Befund 4). Wer die Seite danach öffnet, sieht Doras Satz und nichts von
+Bruno.
+
+**Beschluss 1 — Anna wartet (Fassung A, Olis Wahl).** Anna stellt einen Antrag nicht fest, solange
+auf ihrem Gerät eine Gruppe aus `/geraetestimmen` zu diesem Antrag verschiedene Wahl zeigt. Das ist
+eine Regel der Person, nicht des Protokolls (D489): eine Vorsitzende wartet einen offenen
+Widerspruch ab. Die Stimmen bleiben die aus Bild (c), damit der Vergleich Zeile für Zeile lesbar
+bleibt. Meine Position war A.
+
+**Beschluss 2 — ein vierter Schalter, `--aufloesen`.** Er fährt die Geräte aus `GERAETE_GERAETE` mit
+den Aufnahmen im Bestand wie `--geraete`, dazu die Regeln aus Beschluss 1 und 3. Beide Regeln
+gelten nur unter diesem Schalter; unter `--geraete` wartete Anna sonst für immer, und die Golden
+Numbers aus D542 wären still ersetzt. `--geraete`, `--versehen`, `--personen` und der Lauf ohne
+Schalter bleiben, wie sie sind.
+
+**Beschluss 3 — Bruno hat sich vertan und stellt es auf seinem Gerät richtig.** Auf Brunos Gerät,
+nicht auf dem Zweitgerät, stimmt BRUNO neu Ja, sobald dort eine Gruppe seiner Wurzel verschiedene
+Wahl zeigt und ihr Antrag unter den Anträgen der Seite steht. Die Absicht nennt die früheren
+Stimmen selbst. Anders als in Bild (c) lügt Bruno hier nicht; der Text zum Zusehen sagt das.
+
+**Beschluss 4 — die Karte steht oben, solange ihr Antrag nicht festgestellt ist.** `geraeteOben`
+heisst: der Antrag steht unter den Anträgen der Seite, in jedem Zustand. `proposals_view` führt
+genau die Anträge der geltenden Epoche; eine Feststellung wechselt die Epoche. Bis dahin wirkt eine
+neue Stimme, auch bei `PASSED` und `FAILED`. `widerspruchOben` für Gabeln bleibt bei `PENDING`: dort
+löst eine neue Stimme den Verlust der Bürgschaften nicht auf. Die Regel aus D525 Beschluss 2 gilt
+damit für Gabeln weiter, für Stimmen von Geräten nicht mehr.
+
+**Beschluss 5 — was die Seite sagt, Olis Ja.** Auf allen Geräten derselbe Wortlaut, dritte Person.
+
+- Die Karte bekommt, solange sie oben steht, einen dritten Punkt: `Eine neue Stimme von BRUNO
+  ersetzt beide.`, bei mehr als zwei Stimmen `… ersetzt alle.` Nach der Feststellung entfällt er.
+- Nach der Auflösung ein Satz im Tab „Im Verein“, ohne Karte: `BRUNO hat zum Antrag „beitrag
+  festlegen“ auf zwei Geräten verschieden gestimmt und das mit einer neuen Stimme ersetzt. Sie
+  zählt: Ja.` Grund ist Befund 4.
+
+**Beschluss 6 — die Sicht liefert die ersetzten Stimmen mit.** Eine Gruppe aus `geraetestimmen`
+erscheint, wenn ihre aktiven Stimmen insgesamt von mindestens zwei Schlüsseln stammen, nicht erst
+nach `maximal_votes`. Welche Stimmen zählen und welche ersetzt sind, trägt sie getrennt; die Form
+und die Fälle mit mehr als einer übrigen Stimme entscheidet der Prototyp zum Auftrag. Jede Stelle,
+die dieselbe Menge rechnet, wird dabei gesucht (D548, Kandidat aus D547).
+
+**Beschluss 7 — das Terminal.** Annas Warten steht je Antrag einmal im Terminal, wie die Meldung aus
+D521; Brunos Auflösung als eigene Zeile. Den Wortlaut beider Zeilen und des Texts zum Zusehen legt
+der Prototyp vor.
+
+**Golden Numbers, an der Hülle gemessen.** Wanduhr, sechs Geräte:
+
+- Takt 0 bis 3 wie in D542.
+- Takt 4: ANNA wartet; DORA (Zweitgerät) stimmt Ja; BRUNO stimmt auf Brunos Gerät neu Ja.
+- Takt 5: ANNA stellt den Beschluss fest. Takt 6: ANNA, BRUNO, CHRIS und DORA bestätigen die
+  Satzung. Takt 7: Doras Zweitgerät wieder verbunden.
+- Die Durchgänge verteilen 15, 15, 20, 4, 4, 16 und 16 Einträge.
+- Auf Annas Gerät nach Takt 3: `PASSED`, Ja ANNA, CHRIS und DORA, `ambiguous` BRUNO; nach Takt 4:
+  `PASSED`, Ja ANNA, BRUNO, CHRIS und DORA, `ambiguous` leer.
+- Am Ende auf allen sechs Geräten: derselbe Stand, keine Gabel, Epoche 3; `/geraetestimmen` heute
+  nur DORA mit 1 und 1.
+
+**Verworfen.**
+
+- **B, ein Antrag, der ohne Bruno nicht durchkommt.** Die Stimmen wichen von Bild (c) ab, und der
+  Vergleich ginge verloren.
+- **Anna wartet in jedem Bild.** Unter `--geraete` stellte sie nie fest (Beschluss 2).
+- **Bruno löst auf dem Zweitgerät auf.** Er hat sich dort vertan; wer richtigstellt, nimmt das
+  Gerät, dem er traut. Die Auszählung wäre dieselbe.
+- **Eine Fassung in der zweiten Person auf Brunos Geräten.** Sie bräuchte eine zweite Satzfamilie je
+  Identität; „überall dasselbe“ hat in D546 getragen.
+- **Die Karte oben nur bei `PENDING`.** Befund 2.
+
+**Schwächste Stelle.** Wie in D521 bis D542 hängen die Regeln an Namen. Und Anna wartet ohne Frist:
+löste Bruno nie auf, stellte sie nie fest. Im Bild tut er es; für eine echte Vorsitzende ist das
+eine Frage des Vereins, nicht des Protokolls.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O95).

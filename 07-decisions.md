@@ -23507,3 +23507,96 @@ D534 Beschluss 2. Die Aufnahme eines Geräts als Handlung im Netz. `DISPUTED_VOT
 Seite (D542, P5).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D547 — O93: eine Stimme ersetzt frühere Stimmen derselben Wurzel, die sie nennt; Antwort auf D97
+
+**Anlass.** O93, D529 Beschluss 4, D487 Befund 3. Oli: bei verschiedenen Stimmen soll der Mensch
+gefragt werden, was gilt; und ob man seine Wahl ändern können sollte. Gelesen: D97, `04 §2.2`,
+`§3.1`, `§3.2`, `§4.1`, `§4.4`, `§8`, `INV-04.7` und `INV-04.8` samt Erläuterung, `decide` in
+`symbolon/governance/tally.py`, `tests/governance/test_geraete.py`. Prototyp im Supervisor-Klon auf
+`132a5b0`, gemessen, verworfen.
+
+**Die Form.** Ein belegter Key in `v`, wie D534 Befund 2 vorschlug: `v = {0: choice, 1: [claim_id,
+…]}`. Kein `vote@2`. `04 §2.2` hielt weitere Keys für spätere Durchgänge frei.
+
+**Befund 1 — die nennende Stimme zählt nie weniger als dieselbe Stimme ohne Nennung.** Gemessen an
+400 zufälligen Folgen von bis zu fünf Stimmen einer Wurzel über die Wurzel und zwei Geräte, mit
+zufälligen Nennungen früherer Stimmen, an allen 2468 Zwischenständen: zählt die Wurzel ohne Nennung
+eine Wahl, zählt sie mit Nennung dieselbe, ohne Ausnahme. Der Grund ist einfach: was nach der
+Nennung übrig bleibt, ist eine Teilmenge dessen, was ohne sie übrig bliebe, und die neue Stimme ist
+darin. Eine Menge, die ohne Nennung einheitlich ist, ist es mit ihr auch.
+
+**Befund 2 — das ist die Antwort auf D97.** D97 schützt, dass die Menge der Stimmen nur wächst,
+dass nichts widerrufen wird und dass keine Uhr wirkt. Nichts davon ändert sich: die genannte Stimme
+bleibt im Bestand und `ACTIVE`, und die Nennung ordnet über Verweise. Die einzige Stelle, an der
+eine zählende Stimme heute ihre Wirkung verliert, ohne dass ein Fremder etwas tun kann, ist ein
+eigener Claim ihrer Wurzel (`INV-04.7`, Vorbehalt): die zweite Stimme lähmt beide. Befund 1 sagt,
+dass die Nennung an dieser Stelle nichts abwärts öffnet, was die zweite Stimme nicht schon öffnet.
+Die Frist aus D487 Befund 3 wird deshalb nicht gebraucht: ein erreichtes `PASSED` kann durch die
+bloße zweite Stimme heute schon fallen, eine Frist hätte davor nichts geschützt.
+
+**Befund 3 — die Fassungen A und B.** A: die Nennung wirkt nur, wenn die genannten Stimmen
+verschieden wählen, also nach einem Widerspruch. B: sie wirkt immer. Beide bestehen Befund 1, und B
+zählt an keinem Zwischenstand weniger als A. Gemessen an drei Bildern: Ja und Nein zweier Geräte,
+dann eine Auflösung, die beide nennt, zählt unter A und B die Wahl der Auflösung. Ja, dann Nein
+desselben Schlüssels mit Nennung des Ja, lähmt unter A beide und zählt unter B das Nein. Zwei
+Auflösungen zweier Geräte, verschieden und einander nicht nennend, lähmen unter beiden.
+
+**Beschluss 1 — B, Olis Wahl.** Die nennende Stimme ersetzt. Meine Position war B: A schützt nichts,
+was B preisgibt, zwingt aber wer ehrlich umdenkt durch einen Zwischenstand, den die Seite als
+Widerspruch zeigen muss, und braucht eine Gültigkeitsbedingung mehr. D97 heisst damit: eine Stimme
+ist unwiderruflich und nur durch eine eigene spätere ersetzbar. Die Regel steht in `04 §3.1`.
+
+**Beschluss 2 — Namen ohne Ziel bleiben still.** Ein Name, der auf keine zählfähige Stimme derselben
+Wurzel auf denselben Vorschlag zeigt, bleibt ohne Wirkung und ohne Vermerk. Der tragende Fall ist
+die Stimme, die noch nicht eingetroffen ist: trifft sie ein, ist sie schon ersetzt, und jeder
+Beobachter kommt mit vollständigem Bestand zum selben Ergebnis. Ein Name auf eine fremde Wurzel kann
+keine fremde Stimme ersetzen, das schliesst die Zusammenfassung je Wurzel aus.
+
+**Beschluss 3 — ein formwidriger Key 1 zählt, als fehlte er, mit Vermerk `MALFORMED_REPLACES`.**
+Nicht still, wie D95 verlangt; aber auch nicht ungültig wie eine Stimme mit `t_exp`: eine
+ungültige Stimme zählte weniger als dieselbe Stimme ohne Key 1 und bräche Befund 1. So gilt Befund
+1 auch für ihn, und ein Knoten, der Key 1 noch nicht kennt, zählt für jede Wurzel nie mehr als ein
+Knoten, der ihn kennt.
+
+**Beschluss 4 — `04 §4.4` bleibt vorsichtig.** Eine ersetzte Ja-Stimme bleibt `ACTIVE` und zählt für
+die Regel „höchstens ein Ja je Epoche“ weiter. Der Beweis dort rechnet mit allen aktiven Ja-Stimmen;
+ihn zu lockern bräuchte einen eigenen. Folge: sein Ja innerhalb einer Epoche auf einen anderen
+Vorschlag zu verlegen geht nicht durch Ersetzen.
+
+**Befund 4 — die Liste der Ausnahmen in `04 §3.2` war schon vorher unvollständig.** Sie nannte
+Zwilling, Sperre und Verdikt, nicht die zweite Stimme aus `§8` und nicht `CONFLICTING_APPROVAL` aus
+`§4.4`, die `INV-04.7` beide führt. Jetzt stehen alle darin, dazu die ersetzende Stimme.
+
+**Befund 5 — derselbe Sachverhalt stand an weiteren Stellen.** Gesucht mit den Wörtern der Regel,
+nach dem Kandidaten aus D537 und den Nachträgen D544, D545: `example-nucleus.md` sagte, ein Nein
+halte die Verfassung „für immer“; das stimmt nicht mehr, der Neinsager kann es selbst ersetzen.
+`szenario-verein §5.1` nannte die Meinungsänderung eine, die das Protokoll nicht vorsieht. Die Seite
+(`app.js`, `anzeige.js`) sagt „Eine zweite Stimme macht beide ungültig“; das bleibt wahr, solange
+die Seite nichts nennt, und gehört zum Auftrag.
+
+**Befund 6 — Knoten verschiedener Fassung.** Ein Knoten, der Key 1 ignoriert, sieht nach Befund 1
+höchstens `PENDING`, wo ein neuer `PASSED` sieht, nie umgekehrt. Eine Feststellung, die eine
+ersetzende Stimme zitiert, ist für ihn aber `UNSUPPORTED_RATIFICATION`: die Epochen zweier Fassungen
+können auseinanderlaufen, bis beide dieselbe Regel haben. Die Rust-Fassung ruht (D409); wer sie
+weckt, übernimmt diese Regel.
+
+**Normativ.** `04 §2.2` (Key 1), `§3.1` (die Regel und warum sie mit D97 verträglich ist), `§3.2`
+(die Ausnahmen), `§4.4` (Beschluss 4), `§8` (die Grenze heisst „nicht zurücknehmen, aber
+ersetzen“), `04-golden-anchors.md` (`INV-04.7` und Erläuterung, `GV-55` bis `GV-58`),
+`example-nucleus.md`, `szenario-verein §5.1`.
+
+**Verworfen.**
+
+- **A.** Befund 3 und Beschluss 1.
+- **`vote@2`.** Ein neues Profil für einen optionalen Verweis; `04 §2.2` hielt den Key frei.
+- **Nur Stimmen nennen, die noch zählen.** Eine Stimme, die noch nicht eingetroffen ist, zählt noch
+  nicht; die Einschränkung machte das Ergebnis von der Reihenfolge des Eintreffens abhängig.
+- **Ein formwidriger Key 1 macht die Stimme ungültig.** Beschluss 3.
+
+**Offen, für den Auftrag.** Ob die Seite eine neue Stimme mit den früheren Stimmen derselben Wurzel
+nennt, die sie kennt, und was sie dann sagt. Die Bilder aus D523 und D542 bleiben davon unberührt:
+dort kennt keine zweite Stimme die erste.
+
+**Geändert.** `07-decisions.md`, `04-governance.md`, `04-golden-anchors.md`, `example-nucleus.md`,
+`szenario-verein.md`.

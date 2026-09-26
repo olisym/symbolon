@@ -163,8 +163,9 @@ nacheinander in seiner Kette. Die Auszählung zählt **keine** von beiden und ve
 `AMBIGUOUS_VOTE` mit beiden `claim_id` (`04 §3.1`). Sein Ja ist damit weg, der Antrag steht bei
 `PENDING`.
 
-Das ist kein Betrug, sondern eine Meinungsänderung, die das Protokoll nicht vorsieht: eine Stimme
-lässt sich nicht zurücknehmen (`04 §8`). Der Bildschirm sagt es vorher, bei der zweiten Stimme:
+Das ist kein Betrug, sondern eine Meinungsänderung. Zurücknehmen lässt sich eine Stimme nicht
+(`04 §8`); ersetzen schon, wenn die zweite die erste nennt (`04 §3.1`, D547). Brunos Nein nennt
+sein Ja nicht, also lähmt es beide. Der Bildschirm sagt es vorher, bei der zweiten Stimme:
 „Du hast schon abgestimmt. Eine zweite Stimme macht beide ungültig.“
 
 ### 5.2 Die Gabelung

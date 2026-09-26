@@ -340,6 +340,10 @@ Vermerk erscheint, und die Stimme zählt nicht.
 | `GV-52` | `vote.v = h'a2000101ff'` — dekodiert zu Key `0`, Wert `1`, re-serialisiert nicht | `UNPARSABLE_V`, die Stimme zählt nicht |
 | `GV-53` | dieselbe Kodierung als Zweit-Ja desselben Autors auf einen **anderen** Vorschlag derselben Epoche | `UNPARSABLE_V`, **kein** `CONFLICTING_APPROVAL`, das erste Ja zählt |
 | `GV-54` | `ratify.v = h'a2000101ff'`, Auszählung sonst tragend | `UNPARSABLE_V`, **kein** `UNSUPPORTED_RATIFICATION`, keine Epoche |
+| `GV-55` | Ja, danach Nein desselben Autors mit `v` Key `1` = die `claim_id` des Ja | das Nein zählt, **kein** `AMBIGUOUS_VOTE`, das Ja zählt nicht |
+| `GV-56` | Ja und Nein zweier Geräte derselben Wurzel, danach ein Ja der Wurzel, das beide nennt | das neue Ja zählt, **kein** `AMBIGUOUS_VOTE`; ein `ratify@1`, das das erste Ja zitiert, `UNSUPPORTED_RATIFICATION` |
+| `GV-57` | `v` Key `1` nennt die Stimme eines anderen Autors | ohne Wirkung und ohne Vermerk, beide Stimmen zählen |
+| `GV-58` | Ja, danach Nein desselben Autors mit `v` Key `1` = eine Liste mit einem Bytestring der Länge 31 | `MALFORMED_REPLACES` für das Nein, dazu `AMBIGUOUS_VOTE` für beide |
 
 `GV-24` ist mit dem Bestandsnukleus aus `00 §3.1` unmittelbar prüfbar: `N = 65309fe2…` setzt
 `weight_mode = 1` und liefert damit `UNEVALUABLE`, nie ein Ergebnis. Derselbe Nukleus trifft auch
@@ -361,7 +365,7 @@ Policy (D91).
 | `INV-04.3` | Kein Teilwissen führt zu `PASSED`. Fehlt ein Objekt, ist der Zustand `UNEVALUABLE`. |
 | `INV-04.4` | Zwei `ratify@1` für denselben Vorschlag liefern denselben `epoch_id`. |
 | `INV-04.5` | Die Auszählung liest keine Uhr. `t` wird nie ausgewertet; `t_exp` einer Stimme nur auf Anwesenheit, nie auf seinen Wert. |
-| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`) oder ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`, `04 §4.4`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). Mit Geräten ist Autor die Wurzel (`02 §2.1`); sie entwertet eine Stimme ihres Geräts auch durch eine Sperre (`device-end@1`, D532) oder durch eine Aufnahme mit Gegenzeichnung, die zwei Stimmen verschiedener Wahl zusammenführt (D539). |
+| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`), eine Stimme, die sie ersetzt (`v` Key `1`, `04 §3.1`, D547) oder ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`, `04 §4.4`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). Mit Geräten ist Autor die Wurzel (`02 §2.1`); sie entwertet eine Stimme ihres Geräts auch durch eine Sperre (`device-end@1`, D532) oder durch eine Aufnahme mit Gegenzeichnung, die zwei Stimmen verschiedener Wahl zusammenführt (D539). |
 | `INV-04.8` | Eine einmal etablierte Epoche bleibt etabliert: kein zusätzlicher Claim im Store nimmt einem gültigen `ratify@1` seine Wirkung. **Vorbehalt:** derselbe; eine etablierte Epoche fällt nur durch einen Zwilling, eine weitere Stimme eines ihrer Zeugen oder einen Claim seiner Wurzel aus `INV-04.7` (D117, D433, D434, D539). |
 | `INV-04.6` | Bei `num/den > 1/2` gibt es zu einer Epoche höchstens einen Vorschlag im Zustand `PASSED`. |
 
@@ -379,10 +383,11 @@ erreichtes `PASSED` kann dadurch auf `PENDING` zurückkippen und eine materialis
 verfallen. Die Richtung ist stets abwärts, und der Vorgang hinterlässt einen selbst signierten
 Beweis (D117).
 
-Equivocation ist nicht der einzige solche Ausgang, sondern einer von dreien (D433). Eine zweite
-gültige Stimme desselben Autors auf denselben Vorschlag nimmt beide aus der Menge
+Equivocation ist nicht der einzige solche Ausgang, sondern einer von vieren (D433, D547). Eine
+zweite gültige Stimme desselben Autors auf denselben Vorschlag nimmt beide aus der Menge
 (`AMBIGUOUS_VOTE`), ein Ja auf einen anderen Vorschlag derselben Epoche ebenso
-(`CONFLICTING_APPROVAL`). Allen dreien gemeinsam sind Urheber und Art: nur der Autor der
+(`CONFLICTING_APPROVAL`), und eine Stimme, die eine andere desselben Autors in `v` Key `1` nennt,
+nimmt die genannte heraus. Allen vieren gemeinsam sind Urheber und Art: nur der Autor der
 entfallenden Stimme kann sie entwerten, durch einen Zwilling oder eine weitere eigene Stimme.
 Widerruf und Supersede bleiben wirkungslos, das ist der Schutz aus D105 und D107, und der Vorbehalt
 lockert ihn nicht (D434). Mit Geräten bleibt der Urheber derselbe, nur heisst er Wurzel: Sperre und

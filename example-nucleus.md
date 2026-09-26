@@ -16,8 +16,9 @@ sondern der Regelfall, und Aldi wie Vapiano sind die bekannten Beispiele.
 
 **Bei zwei Mitgliedern gibt es keine Wahl.** Jede nach D108 zulässige Schwelle verlangt
 Einstimmigkeit; das folgt aus `2·num ≥ den` und ist nicht parametrierbar. Ein Nein, und die
-Verfassung steht für immer — Vorlagen laufen nicht ab (D100), Nein-Stimmen sind unwiderruflich
-(D97), und wer den Blockierenden entfernen will, braucht seine Zustimmung.
+Verfassung steht, bis der Neinsager selbst es ersetzt — Vorlagen laufen nicht ab (D100), eine
+Stimme ist unwiderruflich und nur durch eine eigene spätere ersetzbar (D97, D547), und wer den
+Blockierenden entfernen will, braucht seine Zustimmung.
 
 Deshalb sind es hier **drei**: zwei Gründer und eine Dritte. Nicht als Instanz über ihnen — die
 gibt es in MaR nicht (`04 §8`) —, sondern als Mitglied unter Gleichen. Bei `n = 3` und

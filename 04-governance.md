@@ -114,11 +114,15 @@ Führt einen Vorschlag ein. Erzeugt für sich keinen Zustand und verdrängt nich
 | `I` | ein Element von `P` der laufenden Epoche |
 | `N` | `N` des Nukleus |
 | `J` | `[object-hash, proposal_hash]` (Tag 3) |
-| `v` | `{0: choice}` |
+| `v` | `{0: choice}` oder `{0: choice, 1: [claim_id, …]}` |
 
 `v` Key `0` ist **typ-normativ**: `choice` ist ein `uint`, `0` bedeutet Nein, `1` bedeutet Ja.
 Andere Werte sind unbekannt und zählen weder als Ja noch als Nein; sie erzeugen den Vermerk
-`UNKNOWN_VOTE_CHOICE`. Weitere Keys sind für spätere Durchgänge reserviert und werden ignoriert.
+`UNKNOWN_VOTE_CHOICE`.
+
+`v` Key `1` ist optional: eine Liste von `claim_id` früherer Stimmen derselben Wurzel auf denselben
+Vorschlag, die diese Stimme **ersetzt** (`§3.1`, D547). Jeder Eintrag ist ein Bytestring der Länge
+32. Weitere Keys sind für spätere Durchgänge reserviert und werden ignoriert.
 
 Es gibt **keinen dritten Wert** für Enthaltung. Wer sich nicht äußert, gibt keine Stimme ab; das
 ist von einer Nein-Stimme in der Wirkung nicht unterschieden (`§3.2`), aber in der Diagnose (D94).
@@ -232,6 +236,29 @@ zählt als eine Stimme dieser Wahl, und **jede** dieser Stimmen ist ein gültige
 Ein Vermerk entsteht nicht; die Stimmen sagen dasselbe. Sie entstehen, wenn ein Mensch auf einem
 Gerät abstimmt, ohne zu wissen, dass er es auf einem anderen schon getan hat.
 
+**Eine Stimme kann frühere Stimmen derselben Wurzel ersetzen** (D547). Seien die Stimmen einer
+Wurzel auf einen Vorschlag die, die nach den Bedingungen 1 bis 6 zählen können und nicht
+bestritten sind. Vor der Zusammenfassung fällt jede dieser Stimmen heraus, die von einer anderen
+von ihnen in `v` Key `1` genannt wird. Die beiden Regeln darüber gelten für das, was übrig bleibt.
+Die genannte Stimme bleibt im Bestand und `ACTIVE`. Sie wird nicht widerrufen, sondern überholt; die
+Nennung beweist, dass die neue Stimme nach ihr entstand, ohne Uhr.
+
+- Ein Name, der auf keine solche Stimme zeigt, bleibt ohne Wirkung und ohne Vermerk: eine fremde
+  Wurzel, ein anderer Vorschlag, eine Stimme, die nach den Bedingungen oben nicht zählen kann,
+  oder eine lokal unbekannte. Eine Stimme, die später eintrifft, ist bei ihrem Eintreffen schon
+  ersetzt.
+- Zwei Stimmen, die einander nicht nennen, bleiben beide; zwei ersetzende Stimmen zweier Geräte
+  mit verschiedener Wahl zählen deshalb nicht, wie jede Doppelstimme.
+- Ist Key `1` formwidrig — keine Liste, oder ein Eintrag ist kein Bytestring der Länge 32 —, zählt
+  die Stimme, als fehlte Key `1`; Vermerk `MALFORMED_REPLACES`, Subjekt ihre `claim_id`.
+
+**Warum das mit D97 verträglich ist.** Die Menge der Stimmen wächst weiter nur, nichts wird
+widerrufen, und keine Uhr wirkt. Eine ersetzende Stimme zählt für ihre Wurzel nie weniger als
+dieselbe Stimme ohne Nennung: zählt die Wurzel ohne Nennung eine Wahl, zählt sie mit Nennung
+dieselbe. Die Nennung öffnet damit keinen Weg abwärts, den die zweite Stimme nicht schon hat; sie
+macht aus einer Meinungsänderung, die beide Stimmen lähmt, eine, die gilt. Wer ein zweites Mal
+verschieden stimmt, ohne die erste Stimme zu nennen, lähmt beide wie bisher.
+
 > **Abgrenzung zu `03`, ausdrücklich.** `membership()` löst mehrere aktive `accept-rules` mit
 > `min(claim_id)` auf. Das ist dort richtig, weil alle dasselbe sagen. Zwei Stimmen verschiedener
 > Wahl sagen Verschiedenes. Wer das Muster aus `03` überträgt, erzeugt ein Ergebnis aus einer
@@ -288,8 +315,10 @@ Nichtteilnahme wirkt wie Ablehnung. Die Schwelle gilt gegenüber den **Berechtig
 gegenüber den Erschienenen.
 
 Beide Mengen wachsen nur (D97), beide Bedingungen sind einmal wahr für immer wahr, und sie
-schließen einander aus. Drei Ausnahmen sind benannt und getragen, alle mit sichtbarem Anlass: der
-Zwilling einer gegabelten Stimme (D117, `§8`), die Sperre eines Geräts, die eine Stimme bestreitet
+schließen einander aus. Die Ausnahmen sind benannt und getragen, alle mit sichtbarem Anlass: der
+Zwilling einer gegabelten Stimme (D117, `§8`), eine weitere Stimme derselben Wurzel auf denselben
+Vorschlag (`§3.1`, `§8`), eine Stimme, die eine andere ersetzt (`§3.1`, D547), ein Ja auf einen
+anderen Vorschlag derselben Epoche (`§4.4`), die Sperre eines Geräts, die eine Stimme bestreitet
 (D532), und das Verdikt, das sie wieder zurechnet (D533). Ein Vorschlag scheitert daran, dass
 genug Berechtigte ihn ausdrücklich ablehnen — nicht daran, dass eine Frist abgelaufen ist.
 
@@ -593,6 +622,11 @@ aktive Ja-Stimmen derselben Wurzel (`02 §2.1`) auf **verschiedene** Vorschläge
 zählen beide nicht; Vermerk `CONFLICTING_APPROVAL`, Subjekt sind alle beteiligten `claim_id`.
 Eine bestrittene Stimme zählt dabei nicht mit.
 
+**Eine ersetzte Ja-Stimme zählt für diese Regel weiter** (D547). Sie bleibt `ACTIVE`, und der
+Beweis unten rechnet mit allen aktiven Ja-Stimmen; ihn für ersetzte zu lockern bräuchte einen
+eigenen. Wer sein Ja auf einen anderen Vorschlag derselben Epoche verlegen will, kann das deshalb
+nicht durch Ersetzen.
+
 Nein-Stimmen sind unbeschränkt. Gegen mehrere Vorschläge gleichzeitig zu sein ist kohärent; zwei
 verschiedene Dokumente gleichzeitig als das geltende zu benennen ist es nicht.
 
@@ -872,10 +906,13 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   weil er den Minderheitenschutz genau dort aufhebt, wo er gebraucht wird. Der Weg bleibt der neue
   Kontext: ein Genesis braucht niemandes Zustimmung.
 
-- **Eine Stimme lässt sich nicht zurücknehmen.** Ohne Frist gibt es kein Fenster, nach dem es
-  gleichgültig wäre; ohne Unwiderruflichkeit gibt es keine Monotonie (D97). Wer seine Meinung
-  ändert und ein zweites Mal abstimmt, nimmt beiden Stimmen die Wirkung: auf denselben Vorschlag
-  nach `§3.1`, als zweites Ja auf einen anderen derselben Epoche nach `§4.4` (D470).
+- **Eine Stimme lässt sich nicht zurücknehmen, aber ersetzen.** Ohne Frist gibt es kein Fenster,
+  nach dem es gleichgültig wäre; ohne Unwiderruflichkeit gibt es keine Monotonie (D97). Wer seine
+  Meinung ändert und ein zweites Mal abstimmt, ohne die erste Stimme zu nennen, nimmt beiden die
+  Wirkung: auf denselben Vorschlag nach `§3.1`, als zweites Ja auf einen anderen derselben Epoche
+  nach `§4.4` (D470). Nennt die zweite Stimme die erste, ersetzt sie sie auf demselben Vorschlag
+  (`§3.1`, D547); ein erreichtes `PASSED` kann dadurch fallen wie durch die bloße zweite Stimme,
+  nicht öfter.
 
 - **Eine Sperre kann eine Stimme bestreiten, auch nach einer Feststellung.** Beendet eine Wurzel
   ein Gerät vor einer Stimme, zählt die Stimme nicht mehr, und eine darauf gestützte Epoche fällt

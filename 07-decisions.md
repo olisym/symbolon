@@ -21862,3 +21862,36 @@ sind. Und eine Runde gleicht genau zwei Knoten ab; für drei und mehr braucht es
 der Paare, die der nächste Auftrag mit dem Startbefehl festlegt.
 
 **Geändert.** `07-decisions.md`.
+
+### D517 — Abnahme `p20-abgleich`; eine Rücknahmeprobe des Auftrags sah der Test nicht
+
+**Geprüft.** Commit `eeab7c7` auf `p20-abgleich`, Basis `be59658`, der Diff ganz aus dem Spiegel:
+`symbolon/node/api.py`, `symbolon/node/store.py`, `tools/abgleich.py` und
+`tests/node/test_abgleich.py`, wie der Bericht sagt. Im Klon ohne Bytecode 1145 Tests grün,
+`ruff` sauber. Die Runde liest zuerst und liefert dann ein, an A vor B, Objekte vor Claims, nach
+Hex sortiert (D516 Beschluss 1). Der Schalter greift vor jedem Lesen des Bestands und jedem
+Auswerten des Rumpfs. Die Golden Numbers aus D516 stehen als Zusicherungen in den Tests.
+
+**Eigene Probe.** `/peer/bestand` trotz gesetztem Schalter offen: `test_getrennt` wird rot. Die
+fünf Proben des Auftrags decken sich mit dem Bericht.
+
+**Befund an mir — die Probe 2 des Auftrags hätte der Test in meiner Fassung nicht gesehen.**
+Nennt der Bestand keine Objekte, sind beide Bestände trotzdem gleich, und `eingeliefert` stimmt mit
+der Zahl aus derselben falschen Liste überein. Das Werkzeug hat es gemeldet und den Test gegen den
+Bestand aus der Datei gestellt, statt gegen die Route; so steht er jetzt. Das ist das vierte Mal
+nach D501, D504 und D512, und diesmal hatte ich die Probe sogar benannt, aber nicht gegen den Test
+gefahren, den ich beschrieben hatte. Der Kandidat aus dem Sitzungsstart wird schärfer: eine
+Rücknahmeprobe, die ein Auftrag verlangt, fährt der Supervisor vorher gegen den Test in der
+Fassung des Auftrags, nicht nur gegen die Implementierung.
+
+**Meldungen des Berichts, angenommen.** Ein POST über einem MiB wird bei gesetztem Schalter nicht
+gelesen; der Client kann dann einen Abbruch sehen statt der 503. Das trifft die Simulation nicht.
+`GET /peer/claims/<id>` gibt `signed_bytes` statt der gespeicherten Bytes; beide sind gleich, weil
+`submit_claim` nur kanonische Claims hält. Die Übernahme der Helfer aus `test_api.py`, der Name
+`pruefen` und die Form der Druckzeile bleiben.
+
+**Beschluss 1 — gemergt.** Keine Oberfläche berührt, also kein Durchlauf mit Oli; der kommt mit
+dem Startbefehl und der Seite.
+
+**Geändert.** `symbolon/node/api.py`, `symbolon/node/store.py`, `tools/abgleich.py`,
+`tests/node/test_abgleich.py` (über den Merge); `07-decisions.md`.

@@ -22837,3 +22837,42 @@ betreffen, passt das; für Stimmen ist zu prüfen, ob `verdict_status` mit den S
 Satzung des Vereins für alle Geräte gleich entscheidet, oder ob es einen Akt nach `04` braucht.
 
 **Geändert.** `07-decisions.md`.
+
+### D533 — Eine bestrittene Stimme rechnet nur ein Schiedsrichter der Satzung wieder zu
+
+**Anlass.** D532, offener Punkt: trägt `03 §2` das Verfahren, das eine bestrittene Stimme wieder
+zurechnet, so dass jedes Gerät gleich auszählt? Gelesen: `03 §2.1` bis `§2.4.4`, `00 §5.1`.
+
+**Befund 1 — die Bindung ist maschinell entscheidbar, nur ihre Wirkung ist Sicht.** `03 §2.4`
+trennt zwei Dinge: das Gewicht eines Schiedsrichters aus Sicht des Beobachters und die Bindung. Die
+Bindung prüft `verdict_status` byteweise, ohne Schlüsselauflösung. Die Sorge aus D532, ein Verdikt
+binde je Beobachter, betrifft die Wirkung auf Vertrauen, nicht die Frage, ob es bindet.
+
+**Befund 2 — nur Pfad (i) steht fest.** Pfad (i), `verdict.I` in `arbitration.arbitrators`, hängt an
+der Satzung, und welche Satzung gilt, entscheidet die Epoche. Pfad (ii) hängt an Unterwerfungen, die
+nach `03 §2.4.3` zum Zeitpunkt `now` aktiv sein müssen und widerruflich sind; eine Auszählung, die
+ihn liest, änderte sich mit jedem Widerruf. Dazu kommt `t_exp` auf dem Verdikt selbst, das die
+Auszählung von der Uhr des Beobachters abhängig machte; für Stimmen schliesst `04 §3.1` das aus.
+
+**Befund 3 — die Auszählung müsste einen Ausgang lesen.** `03 §2.2` liest `v` Key `0` nie; was ein
+Ausgang bedeutet, ist Policy. Eine Zurechnung durch Verdikt verlangt einen Ausgang mit fester
+Bedeutung, den `04` liest.
+
+**Beschluss 1 — der Weg zurück für Stimmen.** Eine bestrittene Stimme wird für die Auszählung einer
+Epoche wieder zugerechnet, wenn ein `verdict@1` sie zurechnet, das über Pfad (i) nach der Satzung
+dieser Epoche bindet und kein `t_exp` trägt. Die Anklage zeigt mit `J = [claim-ref, Stimme]` auf die
+bestrittene Stimme. Pfad (ii) zählt dafür nicht. Hat die Satzung keine Schiedsrichter, bleibt die
+Stimme bestritten und nicht zugerechnet: ob ein Verein eine Stelle für Kulanz hat, entscheidet
+seine Satzung.
+
+**Beschluss 2 — für alles andere gilt `03 §2` unverändert.** Eine bestrittene Bürgschaft oder
+Obligation wirkt, wie jedes Verdikt wirkt: nach Bindung und nach dem Gewicht, das der Beobachter
+dem Schiedsrichter gibt. Dort ist die Sicht je Beobachter gewollt.
+
+**Verworfen.** Eine Zurechnung durch Antrag und Feststellung nach `04`. Sie ist schwer für einen
+Einzelfall, und der Antrag bräuchte selbst eine Mehrheit, in der die bestrittene Stimme fehlt.
+
+**Offen für den normativen Text.** Der Wert des Ausgangs in `v` Key `0`, der „zugerechnet“ heisst,
+und ob eine Feststellung, die ein solches Verdikt voraussetzt, es als Zeugen nennen muss.
+
+**Geändert.** `07-decisions.md`.

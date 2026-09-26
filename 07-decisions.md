@@ -21793,3 +21793,72 @@ abgewiesen wird. `verein3.sqlite` öffnet unverändert.
 
 **Geändert.** `symbolon/node/store.py`, `tests/node/test_nachraeumen.py` (über den Merge);
 `07-decisions.md`.
+
+### D516 — Der Abgleich, Stufe 1: ein Netz trägt Schnappschüsse, der Knoten hat einen Schalter
+
+**Anlass.** D514 Beschluss 3; das Nachräumen ist gemergt (D515). Gelesen: `symbolon/node/api.py`
+ganz, `symbolon/node/__main__.py`, `symbolon/node/store.py`, der Serverstart in
+`tests/node/test_api.py`, `tools/verein_node.py`, `ROADMAP.md §6`.
+
+**Der Befund, der den Zuschnitt entscheidet.** `serve` bedient einen einfädigen `HTTPServer`, und
+die SQLite-Verbindung des Bestands gehört diesem Faden. Ein Knoten, der seinen Nachbarn selbst
+fragt, hält beim Warten seinen eigenen Server an; fragen zwei Knoten einander zugleich, wartet
+jeder auf den anderen.
+
+**Beschluss 1 — das Netz ist ein eigenes Werkzeug.** `tools/abgleich.py` gleicht zwei Knoten in
+einer Runde ab. Die Knoten fragen einander nicht; sie antworten nur. Das ist die Rolle, die
+`Welt.zustellen` in den Szenarien hat (D336): das Netz gehört zur Simulation, nicht zum Knoten.
+Eine Runde hat zwei Phasen. Zuerst liest sie: beide Bestände, dann jedes fehlende Objekt und jeden
+fehlenden Claim beim Knoten, der ihn hält. Dann liefert sie ein: zuerst alles an den ersten
+Knoten, dann alles an den zweiten, je Knoten die Objekte vor den Claims, jede Gruppe nach Hex
+sortiert. Weil sie zuerst liest, kann das Nachräumen eines Knotens mitten in der Runde keinen
+Claim verschwinden lassen, den sie noch holen will. Nach einer Runde halten beide Knoten
+denselben Bestand: jeder erhält alles, was dem anderen fehlt, und nach D514 Beschluss 1 ergibt
+jede Reihenfolge denselben Bestand.
+
+Verworfen:
+
+- **Der Knoten fragt selbst**, aus einem zweiten Faden. Der Bestand bräuchte eine zweite
+  Verbindung und eine Sperre, und die gegenseitige Anfrage bliebe ein Warten aufeinander. Das
+  gehört zu Phase 5, wo ein Transport ohnehin dazwischen steht.
+- **Die bestehenden Routen `/claims` und `/objects` für das Netz.** Sie kennen keinen Schalter;
+  das Netz liefe an ihm vorbei.
+
+**Beschluss 2 — die Routen des Netzes stehen unter `/peer/`.** `GET /peer/bestand` gibt die
+sortierten `claim_id` und Objekt-Hashes; `GET /peer/claims/<id>` die Bytes eines Claims;
+`GET /peer/objects/<hash>` Art und Bytes eines Objekts; `POST /peer/claims` und
+`POST /peer/objects` liefern ein, über `submit_claim` und `submit_object` wie jede andere
+Einlieferung. `sim_keys` und `names` haben keine Route unter `/peer/` (D514 Beschluss 2).
+
+**Beschluss 3 — der Schalter „getrennt“ steht im Knoten.** `GET /getrennt` gibt ihn, `POST
+/getrennt` setzt ihn. Ist er gesetzt, antwortet jede Route unter `/peer/` mit 503; alle anderen
+Routen arbeiten weiter, der Knoten bleibt also bedienbar. Der Schalter lebt im Speicher und steht
+nach dem Start auf verbunden. Das ist die Netztrennung aus D513 Beschluss 1, ohne das Netz
+anzufassen.
+
+**Beschluss 4 — was die Runde meldet.** Die Zahl der eingelieferten Einträge, die Abweisungen je
+Name und ob ein Knoten getrennt war. Eine Abweisung beendet die Runde nicht; sie ist in der
+Simulation erwartbar, etwa `ForeignLifecycle`. Eine 503 beendet sie, eine andere Antwort ist ein
+Fehler. Eine Bestandsliste, die nicht die Form hat, ist ein Fehler, bevor etwas eingeliefert
+wird.
+
+**Golden Numbers, am Code gemessen** mit einer Runde über zwei Bestände im Speicher.
+
+- *Fremder Widerruf.* Knoten X hält `v`, Knoten Y hält `w` (fremder Widerruf auf `v`) und `n`
+  (Nachfolger von `w`). Runde 1: 2 eingeliefert, 1 Abweisung `ForeignLifecycle`, danach halten
+  beide `{v, n}`. Runde 2: 0 eingeliefert, keine Abweisung.
+- *Gabelung.* Dieselbe Identität bürgt an Knoten P mit `n=4`, an Knoten Q mit `n=3`, beide am
+  Genesis-Anker. Vorher zeigt jeder Knoten 0 Gabelungen, nach einer Runde jeder genau 1. Das ist
+  das Bild aus D513: jeder Knoten allein sieht nichts, nach dem Abgleich sehen beide den
+  Widerspruch.
+- *Verein.* Ein Knoten aus `tools/verein_node.anlegen`, einer leer. Nach einer Runde hält der
+  leere alle Claims und Objekte des vollen, heute 13 und 10, aber keinen Namen und keinen
+  simulierten Schlüssel.
+
+**Schwächste Stelle.** Das Werkzeug glaubt dem Knoten, dass die Bytes zur angefragten `claim_id`
+gehören. Ein lügender Nachbar kann eine Runde nicht verfälschen, weil jeder Knoten selbst prüft;
+er kann sie aber ohne Ende wiederholen lassen. Das gehört zu Phase 5, wo Nachbarn fremde Geräte
+sind. Und eine Runde gleicht genau zwei Knoten ab; für drei und mehr braucht es eine Reihenfolge
+der Paare, die der nächste Auftrag mit dem Startbefehl festlegt.
+
+**Geändert.** `07-decisions.md`.

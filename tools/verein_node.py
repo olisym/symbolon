@@ -29,8 +29,12 @@ def _proposal_bytes(proposal: Proposal) -> bytes:
     )
 
 
-def anlegen(path: str | Path) -> None:
-    """Legt den Bestand des Vereins an (D476, szenario-verein §9, example-nucleus §5)."""
+def anlegen(path: str | Path, schluessel: set[str] | frozenset[str] | None = None) -> None:
+    """Legt den Bestand des Vereins an (D476, szenario-verein §9, example-nucleus §5).
+
+    Ist ``schluessel`` gesetzt, trägt es nur die simulierten Schlüssel dieser Namen ein; die
+    Namen immer für alle fünf (D518 Beschluss 1).
+    """
     world = build()
     store = SqliteStore(path)
     store.submit_object(ObjectKind.GENESIS, world.ex.genesis_gov_cbor)
@@ -55,7 +59,8 @@ def anlegen(path: str | Path) -> None:
         (world.kasse, "KASSE"),
     )
     for author, name in named:
-        store.add_sim_key(_seed(author))
+        if schluessel is None or name in schluessel:
+            store.add_sim_key(_seed(author))
         store.add_name(author.pub, name)
     store.close()
 

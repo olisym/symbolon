@@ -1,6 +1,7 @@
 // Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
 // darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
-// Geschichte (D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
+// neuen Stand (D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
 
 import {
@@ -50,6 +51,13 @@ let handelnAls = "geraet";
 // Der gewählte Tab überdauert ein Zeichnen, nicht ein Neuladen; beim ersten Laden „Im Verein“
 // (D506 Beschluss 2).
 let gewaehlterTab = "Im Verein";
+
+// Der Gerätename aus GET /geraet, einmal beim ersten Zeichnen gelesen; undefined, solange nicht
+// gelesen, null ohne Namen (D518 Beschluss 5).
+let geraetName;
+
+// Der Stand aus GET /stand, den das letzte Zeichnen gelesen hat (D518 Beschluss 5).
+let gezeichneterStand = null;
 
 function hex(bytes) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -518,6 +526,15 @@ function handelnFabrik(record, kontext) {
   };
 }
 
+async function schalten(getrennt) {
+  try {
+    await senden("/getrennt", { getrennt });
+  } catch (error) {
+    meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+  }
+  await zeichnen();
+}
+
 function wechseln(wert) {
   handelnAls = wert;
   void zeichnen();
@@ -548,15 +565,27 @@ function geschichteBereich(schritte) {
 
 // Rechts die Regie: die Geschichte, dann die eigene Identität und die übrigen nach Namen,
 // Aktualisieren, der Selbsttest (D494 Beschluss 3 und 5, D492 Beschluss 5, D484 Beschluss 3).
-// Ist jeder Schritt getan, steht die Geschichte nicht mehr da (D509 Beschluss 2).
-function regieBereich(namen, simuliert, record, schritte) {
+// Ist jeder Schritt getan, steht die Geschichte nicht mehr da (D509 Beschluss 2). Ist die Seite
+// ein Gerät, nennt die Regie oben seinen Namen, hat den Knopf zum Trennen und keine Geschichte
+// (D518 Beschluss 5).
+function regieBereich(namen, simuliert, record, schritte, getrennt) {
   const regie = element("aside", "regie");
   const ich = record ? hex(record.pub) : null;
-  regie.append(
-    element("div", "marke", "Regie"),
-    zeile("Die Seite links zeigt, was die gewählte Person sieht, und handelt als sie."),
-  );
-  if (!schritte.every((schritt) => schritt.getan)) regie.append(geschichteBereich(schritte));
+  regie.append(element("div", "marke", "Regie"));
+  if (geraetName) {
+    regie.append(
+      element("div", "satz", geraetName),
+      knopf(
+        getrennt ? "Wieder verbinden" : "Vom Netz trennen",
+        () => void schalten(!getrennt),
+        "person",
+      ),
+    );
+  }
+  regie.append(zeile("Die Seite links zeigt, was die gewählte Person sieht, und handelt als sie."));
+  if (!geraetName && !schritte.every((schritt) => schritt.getan)) {
+    regie.append(geschichteBereich(schritte));
+  }
   regie.append(element("div", "marke", "Personen"));
   const geordnet = regieReihenfolge(
     [
@@ -619,6 +648,36 @@ function anlegenFormular() {
     ),
   );
   return abschnitt;
+}
+
+// Links oben, verborgen, bis GET /stand vom gezeichneten Stand abweicht; die Seite zeichnet nicht
+// von selbst neu (D518 Beschluss 5, D502).
+function neuesBereich() {
+  const bereich = element("section", "karte");
+  bereich.id = "neues";
+  bereich.hidden = true;
+  bereich.append(
+    element("div", "satz", "Es ist Neues angekommen."),
+    knopfReihe(knopf("Aktualisieren", () => void zeichnen(), "haupt")),
+  );
+  return bereich;
+}
+
+// Unter dem Kopf, solange das Gerät getrennt ist (D518 Beschluss 5).
+function getrenntBereich(getrennt) {
+  if (!getrennt) return [];
+  return [element("div", "warnung", "Dieses Gerät ist getrennt. Es bekommt nichts und gibt nichts weiter.")];
+}
+
+async function standPruefen() {
+  const hinweis = document.querySelector("#neues");
+  if (!hinweis || gezeichneterStand === null) return;
+  try {
+    const stand = await holen("/stand");
+    hinweis.hidden = stand === gezeichneterStand;
+  } catch {
+    // Ein Fehler der Abfrage wird übergangen (D518 Beschluss 5).
+  }
 }
 
 function mitgliedschaftVon(view, identitaet) {
@@ -1145,11 +1204,23 @@ function findeScope(sichten, teil) {
 
 async function zeichnenInhalt() {
   const seite = document.querySelector("#seite");
+  const stand = await holen("/stand");
   const namenListe = await holen("/names");
   const namen = new Map(namenListe.map((eintrag) => [eintrag.I, eintrag.name]));
   const simuliert = namenListe.filter((eintrag) => eintrag.simulated);
   const record = await lesen();
   const ich = record ? hex(record.pub) : null;
+
+  // Als Gerät: Titel des Tabs, Schalter und ohne eigenen Schlüssel beim ersten Zeichnen die erste
+  // simulierte Person nach der Reihenfolge der Regie (D518 Beschluss 5).
+  if (geraetName === undefined) {
+    geraetName = (await holen("/geraet")).name;
+    if (geraetName && !record && simuliert.length > 0) {
+      handelnAls = regieReihenfolge(simuliert, null)[0].I;
+    }
+  }
+  if (geraetName) document.title = geraetName;
+  const getrennt = geraetName ? await holen("/getrennt") : false;
 
   const scopes = await holen("/scopes");
   const sichten = new Map();
@@ -1176,11 +1247,18 @@ async function zeichnenInhalt() {
   });
 
   const links = element("div", "links");
-  const regie = regieBereich(namen, simuliert, record, schritte);
+  const regie = regieBereich(namen, simuliert, record, schritte, getrennt);
 
   if (handelnAls === "geraet" && !record) {
-    links.append(kopfBereich("Du hast noch keinen Schlüssel"), meldungKnoten(), anlegenFormular());
+    links.append(
+      neuesBereich(),
+      kopfBereich("Du hast noch keinen Schlüssel"),
+      ...getrenntBereich(getrennt),
+      meldungKnoten(),
+      anlegenFormular(),
+    );
     seite.replaceChildren(links, regie);
+    gezeichneterStand = stand;
     return;
   }
 
@@ -1254,7 +1332,9 @@ async function zeichnenInhalt() {
   // ist (D494 Beschluss 1).
   const titel = namen.get(identitaet) ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
   links.append(
+    neuesBereich(),
     kopfBereich(titel, mitgliedschaftVon(govView, identitaet)),
+    ...getrenntBereich(getrennt),
     meldungKnoten(),
     frage,
     jetztBereich(tasks, kontext, handeln),
@@ -1263,6 +1343,7 @@ async function zeichnenInhalt() {
     inhalt,
   );
   seite.replaceChildren(links, regie);
+  gezeichneterStand = stand;
 }
 
 // Scheitert das Laden, erscheint statt einer leeren Seite ein Satz mit einem Knopf, der es
@@ -1282,3 +1363,5 @@ async function zeichnen() {
 }
 
 void zeichnen();
+// Auf jedem Knoten alle drei Sekunden (D518 Beschluss 5).
+setInterval(() => void standPruefen(), 3000);

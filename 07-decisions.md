@@ -22639,3 +22639,62 @@ Prototyp.
 kennt keine Personen, nur Schlüssel; gemeint war die Wurzel, und die Annahme dahinter ist Befund 4.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O93).
+
+### D530 — Prototyp zu D529: Bild (b) mit Geräteschlüsseln; gleiche Wahl zählt je Wurzel, nicht min
+
+**Anlass.** D529 Beschluss 3. Gebaut im Supervisor-Klon auf `372dbeb`, gemessen, verworfen. Gelesen
+dafür: `symbolon/governance/tally.py` (`decide`), `symbolon/governance/epoch.py` (Stützung eines
+`ratify@1`), `tools/verein.py` (`_vote`, `_ratify`, `_fork_bruno`, `check_flagged_trust`).
+
+**Bauform des Prototyps.** Die Delegation ist eine Tabelle Geräteschlüssel zu Wurzel, kein Claim.
+`decide` bildet `vote.I` vor der Mitgliedsprüfung, der Gruppierung und der Prüfung auf
+`CONFLICTING_APPROVAL` auf die Wurzel ab und zählt `reached` über verschiedene Wurzeln; `epoch.py`
+prüft die Verschiedenheit der Zeugen ebenfalls je Wurzel. Mit leerer Tabelle ist der Code neutral:
+1154 Tests grün, und die beiden Zeilen ohne Delegation ergeben mit und ohne Patch dasselbe.
+
+**Die Welt.** Der Verein aus `tools/verein.py`, Antrag 3 gegen Epoche 2. Ja von ANNA, CHRIS, DORA
+und BRUNO auf ihren Geräten; auf dem Zweitgerät DORA Ja, BRUNO Nein. Dazu das `ratify@1` aus Takt 4
+in D523: ANNA stellt fest und zitiert die Stimmen von ANNA, CHRIS und Doras Erstgerät. Kanten aus
+`derive` mit den Ankern BRUNO und ANNA wie in `check_flagged_trust`.
+
+| Form | Regel | Auszählung | zählende Ja | Epoche | Kanten BRUNO |
+|---|---|---|---|---|---|
+| ein Schlüssel auf zwei Geräten (heute) | `04 §3.1` | PENDING | ANNA, CHRIS | 2 | 0 |
+| Geräteschlüssel ohne Delegation | `04 §3.1` | PASSED | ANNA, CHRIS, DORA, BRUNO | 3 | 2 |
+| Geräteschlüssel, delegiert | `04 §3.1` | PENDING | ANNA, CHRIS | 2 | 2 |
+| Geräteschlüssel, delegiert | gleiche Wahl zählt einmal, `min(claim_id)` | PASSED | ANNA, CHRIS, Doras Zweitgerät | 2 | 2 |
+| Geräteschlüssel, delegiert | gleiche Wahl zählt je Wurzel einmal, jede Stimme stützt | PASSED | ANNA, CHRIS, beide DORA | 3 | 2 |
+
+**Befund 1 — die Erwartung aus D529 Beschluss 3 hält.** Mit der Regel von heute fällt Doras
+Beschluss auch mit eigenem Geräteschlüssel; mit „gleiche Wahl zählt einmal“ hält er. Brunos Stimmen
+tragen in beiden Fassungen `AMBIGUOUS_VOTE`, und er behält seine zwei Kanten, wo der geteilte
+Schlüssel sie ihm nimmt (D43). Das ist Olis „sichtbar, nicht automatisch slashen“ aus D529
+Beschluss 2.
+
+**Befund 2 — `min(claim_id)` trägt nicht.** Das Muster aus `membership()` in `03` wählt eine der
+beiden Stimmen nach dem Hash. Hier traf es Doras Zweitgerät; die Feststellung aus Takt 4 zitiert
+das Erstgerät, `epoch.py` verlangt jeden Zeugen in `tally.yes`, und die Epoche fällt auf 2, obwohl
+die Auszählung PASSED ist. Ob eine Feststellung hält, hinge an der Reihenfolge zweier Hashes. D529
+Beschluss 2 nannte dieses Muster; das war ungemessen falsch übertragen, derselbe Fehler wie in
+D503.
+
+**Befund 3 — ein Geräteschlüssel ohne Delegation wiegt nichts.** Seine Stimme ist
+`NON_MEMBER_VOTE`, Brunos Nein von dort zählt nicht und kollidiert nicht. Das bestätigt D529
+Befund 4: wer die Verbindung verschweigt, hat einen Burner, und dessen Aussage trägt nicht.
+
+**Befund 4 — zwei Rechenstellen zählen künftig Wurzeln.** `reached` in `decide` und die Prüfung
+verschiedener Zeugen in `epoch.py`. Zitiert ein `ratify@1` beide Stimmen einer Wurzel, weist die
+zweite Stelle es ab; das ist richtig und gehört als Fall in den Auftrag. Das Budget in `02` ist
+nicht gemessen.
+
+**Beschluss 1 — D529 Beschluss 2, berichtigt.** Stimmen zwei Geräte derselben Wurzel gleich, zählt
+die Wurzel einmal, und jede der gleichen Stimmen darf ein `ratify@1` stützen. `min(claim_id)` ist
+verworfen (Befund 2). Verschiedene Wahl bleibt, wie D529 Beschluss 2 sagt.
+
+**Beschluss 2 — die Form trägt; der nächste Schritt ist die Delegation als Claim.** Der Prototyp
+hat die Zuordnung als Tabelle vorausgesetzt. Bevor ein Auftrag entsteht, wird entschieden, wie die
+Wurzel ein Gerät aufnimmt und beendet: als Profil in der Interpretationsschicht, wie `01 §8` es für
+die Rotation vorsieht, oder im Core. Dazu die Lage, dass eine Gerätekette schon vor ihrer Aufnahme
+Claims trägt, und das Ende „bis einschliesslich `claim_id`“ aus D529 Befund 6.
+
+**Geändert.** `07-decisions.md`.

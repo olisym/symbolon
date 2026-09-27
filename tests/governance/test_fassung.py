@@ -1,5 +1,6 @@
 """Fassung und Kette mit Sachanträgen; INV-04.9 bis INV-04.11
-(04 §4.1, 04 §4.4, 04 §4.5, 04 §4.6, 04-golden-anchors.md §8 und §10, D567 bis D571).
+(04 §4.1, 04 §4.4, 04 §4.5, 04 §4.6, 04-golden-anchors.md §8, 04-golden-anchors.md §10,
+D567 bis D572).
 
 Welt und Objekte aus ``tests/governance/test_sachantraege.py``.
 """
@@ -12,7 +13,7 @@ from symbolon.atom import claim_id
 from symbolon.governance import resolve_epoch, verify_ratification
 from symbolon.governance.chain import resolve_fassung
 from symbolon.governance.findings import Finding, GovernanceFinding as GF
-from symbolon.governance.objects import apply_motions, preconditions
+from symbolon.governance.objects import Proposal, apply_motions, preconditions
 from symbolon.governance.tally import TallyState
 from symbolon.policy import constitution_hash
 
@@ -31,7 +32,9 @@ from .test_sachantraege import (
     M6,
     M7,
     M_RULE,
+    E1,
     _decide,
+    _motion,
     _Welt,
 )
 
@@ -213,3 +216,20 @@ def test_INV_04_11_fassung_waechst() -> None:
 def test_mengen_decken_die_faelle() -> None:
     """Golden Number: 7 Sachanträge, M1 und M2 unverträglich, M5 und M7 verträglich."""
     assert sum(1 for _ in _mengen()) == 96
+
+
+# --- Fremder scope (04 §4.5, D572) --------------------------------------------------
+
+def test_objekt_mit_fremdem_scope_wird_uebergangen() -> None:
+    fremd_m = _motion({"beitrag": [[], ["30 EUR"]]}, scope=bytes(32))
+    fremd_g = Proposal(bytes(32), E1, constitution_hash(C2S))
+    w = _Welt()
+    for h in (fremd_m.motion_hash, fremd_g.proposal_hash):
+        ja = [w.ja(who, h) for who in (w.alice, w.bob, w.carol)]
+        w.ratify(w.alice, h, ja)
+    known = {**KNOWN, fremd_m.motion_hash: fremd_m, fremd_g.proposal_hash: fremd_g}
+    store = w.store()
+    kette = _kette(store, known)
+    assert kette.epoch == EPOCH_1 and kette.findings == ()
+    fassung = _fassung(store, known)
+    assert fassung.applied == () and fassung.findings == ()

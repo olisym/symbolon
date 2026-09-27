@@ -1,5 +1,5 @@
 """Epochenkette aus aufeinanderfolgenden Übergängen und Fassung einer Epoche
-(04-governance.md §4.5, §4.6, D174, D571)."""
+(04-governance.md §4.5, 04-governance.md §4.6, D174, D571)."""
 
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ def _ratified_motions(
         motion = resolve_object(known_proposals, claim.J[1])
         if not isinstance(motion, Motion) or not isinstance(motion.obj, dict):
             continue
-        if motion.predecessor != epoch.epoch_id:
+        if motion.scope != epoch.scope or motion.predecessor != epoch.epoch_id:
             continue
         by_motion.setdefault(motion.motion_hash, (motion, []))[1].append(claim)
 
@@ -187,7 +187,7 @@ def resolve_epoch(
                         )
                     )
                 continue
-            if proposal.predecessor != epoch.epoch_id:
+            if proposal.scope != scope or proposal.predecessor != epoch.epoch_id:
                 continue
             group = by_proposal.get(proposal.proposal_hash)
             if group is None:

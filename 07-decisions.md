@@ -24467,3 +24467,26 @@ Bürgen wählen, „0,5“ Tage, „Bürgen …“: die Meldung erscheint, die P
 gültige Werte, die Frage abbrechen: „Nichts unterschrieben.“, die Person bleibt gewählt.
 
 **Geändert.** `07-decisions.md` (auf dem Branch, D544).
+
+### D563 — Olis Durchlauf zu `p32`; Stufe 3 erledigt, die Lücken aus D555 geschlossen
+
+**Anlass.** Nachtrag `3959a05` auf `p32-aufraeumen`, Basis `5eecb0e` (D562).
+
+**Geprüft.** Der Diff des Nachtrags ganz aus dem Spiegel: nur `app.js`, `meldungZeigen` nach
+`meldungKnoten`, der Zweig `"melden"` in `handeln` ruft es, die vier Vorprüfungen aus D562
+Beschluss 1 ebenso; „Schlüssel anlegen“ zeichnet nach dem Anlegen weiter neu. Der Umbau von „Namen
+eintragen“ endet jeden Weg für sich; die Meldungstexte sind unverändert. Das Element `#meldung`
+steht in beiden Zeichenwegen, auch ohne Schlüssel. 1219 Tests laut Bericht, der Selbsttest 222.
+
+**Beschluss 1 — Olis Durchlauf.** Im Ein-Knoten-Verein mit frischem Bestand, als ANNA im Tab
+„Vertrauen“: eine Person gewählt, „0,5“ Tage, „Bürgen …“: „Punkte und Tage gehen nur in ganzen
+Zahlen.“, die Person bleibt gewählt; gültige Werte, die Frage abgebrochen: „Nichts
+unterschrieben.“, die Person bleibt gewählt, „Bürgen …“ bedienbar. Oli: „genau wie erwartet!“.
+D502 ist damit erledigt.
+
+**Beschluss 2 — gemergt.** Stufe 3 ist erledigt, und mit ihr die Reihe aus D555 Beschluss 1:
+Stufe 1 (D555), Stufe 2a (D556, D557), Stufe 2b (D559, D560), Stufe 3 (D561 bis D563). Die Posten,
+die D555 ausdrücklich nicht in die Reihe nahm, bleiben, wo sie sind. Als Nächstes O96 (D558).
+
+**Geändert.** `symbolon/node/static/` und `tests/node/test_selbsttest.py` (über den Merge);
+`07-decisions.md`.

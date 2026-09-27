@@ -27,6 +27,7 @@ import {
   betrag,
   centAus,
   fassungSatz,
+  feststellungPunkte,
   folgeZeilen,
   frageInhalt,
   ganzeZahl,
@@ -41,6 +42,7 @@ import {
   personImSatz,
   regieReihenfolge,
   standZeile,
+  stimmenPunkte,
   tabTitel,
   tageAusKern,
   vertrauenSatz,
@@ -876,6 +878,81 @@ function feinschliffFaelle() {
     widerspruchSatz("DORA", [stimme(1), stimme(2)], offen, leereNamen),
     { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
   );
+
+  // Eine Feststellung, die sich auf eine Stimme einer Gabelung stützt, und Stimmen in einer
+  // Gabelung, die keine Doppelstimme ist (D559 Beschluss 2 bis 4).
+  const annaI = "0d".repeat(32);
+  const chrisI = "0e".repeat(32);
+  const mitNamen = new Map([[annaI, "ANNA"], [chrisI, "CHRIS"]]);
+  const gabel = ["a1".repeat(32), "a2".repeat(32)];
+  const feststellung = (I, zeugen) => ({ p: "nuc:aabb/ratify@1", I, J: [3, antrag], value: { "0": zeugen } });
+  const annaTraegt = "ANNAs Feststellung stützt sich auf diese Stimme und trägt deshalb nicht.";
+  gleich(
+    "feststellungPunkte: zitiert eine Stimme der Gabelung",
+    feststellungPunkte(gabel, [feststellung(annaI, ["b1".repeat(32), gabel[1], "b2".repeat(32)])], mitNamen),
+    [annaTraegt],
+  );
+  gleich(
+    "feststellungPunkte: zitiert keine Stimme der Gabelung",
+    feststellungPunkte(gabel, [feststellung(annaI, ["b1".repeat(32), "b2".repeat(32)])], mitNamen),
+    [],
+  );
+  gleich(
+    "feststellungPunkte: zwei Feststellungen, eine zitiert",
+    feststellungPunkte(
+      gabel,
+      [feststellung(chrisI, ["b1".repeat(32)]), feststellung(annaI, [gabel[0]])],
+      mitNamen,
+    ),
+    [annaTraegt],
+  );
+  gleich(
+    "feststellungPunkte: zwei Feststellungen, beide zitieren",
+    feststellungPunkte(gabel, [feststellung(annaI, [gabel[0]]), feststellung(chrisI, [gabel[1]])], mitNamen),
+    [annaTraegt, "CHRISs Feststellung stützt sich auf diese Stimme und trägt deshalb nicht."],
+  );
+  gleich(
+    "feststellungPunkte: Zeugenliste ist keine Liste",
+    feststellungPunkte(gabel, [{ ...feststellung(annaI, []), value: { "0": gabel[0] } }], mitNamen),
+    [],
+  );
+  gleich(
+    "feststellungPunkte: Wert fehlt",
+    feststellungPunkte(gabel, [{ ...feststellung(annaI, []), value: null }], mitNamen),
+    [],
+  );
+  const zuBuergschaft = [stimme(1), buergschaft(50)];
+  gleich("stimmenPunkte: Doppelstimme", stimmenPunkte(doppelt, offen, leereNamen), []);
+  gleich(
+    "stimmenPunkte: Stimme neben Bürgschaft",
+    stimmenPunkte(zuBuergschaft, offen, leereNamen),
+    ["Die Stimme zum Antrag „beitrag festlegen“ zählt nicht."],
+  );
+  gleich(
+    "stimmenPunkte: Stimme neben Bürgschaft, Antrag unbekannt",
+    stimmenPunkte(zuBuergschaft, [], leereNamen),
+    ["Die Stimme zu einem Antrag zählt nicht."],
+  );
+  gleich(
+    "stimmenPunkte: Stimmen zu zwei Anträgen",
+    stimmenPunkte(zweiAntraege, offen, leereNamen),
+    ["Die Stimme zum Antrag „beitrag festlegen“ zählt nicht.", "Die Stimme zu einem Antrag zählt nicht."],
+  );
+  gleich(
+    "stimmenPunkte: zwei Stimmen zum selben Antrag neben Bürgschaft",
+    stimmenPunkte([stimme(1), stimme(0), buergschaft(50)], offen, leereNamen),
+    ["Die Stimmen zum Antrag „beitrag festlegen“ zählen nicht."],
+  );
+  gleich("stimmenPunkte: zwei Bürgschaften", stimmenPunkte([buergschaft(50), buergschaft(60)], offen, leereNamen), []);
+
+  // Ein Antrag ohne Stand, nur mit Titel, wie aus GET /antragstitel (D559 Beschluss 5).
+  const nurTitel = [{ proposal: antrag, changes: beitrag }];
+  gleich(
+    "widerspruchSatz: Antrag nur mit Titel",
+    widerspruchSatz("BRUNO", doppelt, nurTitel, leereNamen),
+    { satz: "BRUNO hat zum Antrag „beitrag festlegen“ Ja und Nein zugleich unterschrieben.", zaehltNicht: true },
+  );
+  gleich("widerspruchOben: Antrag nur mit Titel", widerspruchOben(doppelt, nurTitel), false);
 
   // Stimmen einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6, D543, D551 Beschluss 4 und 5).
   const eintraege = (paare, marke) =>

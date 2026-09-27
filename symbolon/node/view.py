@@ -526,6 +526,22 @@ def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:
     return tuple(groups)
 
 
+def _vorgaenger(
+    scope: bytes, index: int, constitutions: dict[bytes, dict], proposal: Proposal
+) -> dict | None:
+    """Die Vorgängerverfassung: die bekannte, deren Epoche 0 bis ``index`` einschließlich die
+    Vorgängerepoche des Antrags ist (D559 Beschluss 5, 04 §1.1, 04 §2.4)."""
+    return next(
+        (
+            constitution
+            for epoche in range(index + 1)
+            for key, constitution in constitutions.items()
+            if epoch_id(scope, epoche, key) == proposal.predecessor
+        ),
+        None,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class GeraeteStimmen:
     """Stimmen einer Wurzel zu einem Antrag von mehreren Schlüsseln (D542 Beschluss 5, D543).
@@ -592,17 +608,7 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
         proposal = proposals.get(digest)
         if proposal is None:
             continue
-        # Die Vorgängerverfassung: die bekannte, deren Epoche 0 bis zur geltenden die
-        # Vorgängerepoche des Antrags ist (04 §1.1, 04 §2.4).
-        vorgaenger = next(
-            (
-                constitution
-                for index in range(view.state.epoch.index + 1)
-                for key, constitution in constitutions.items()
-                if epoch_id(scope, index, key) == proposal.predecessor
-            ),
-            None,
-        )
+        vorgaenger = _vorgaenger(scope, view.state.epoch.index, constitutions, proposal)
         if vorgaenger is None:
             continue
         participants = vorgaenger.get("participants")
@@ -618,3 +624,33 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
             )
         )
     return tuple(sorted(result, key=lambda item: (item.root, item.proposal)))
+
+
+@dataclass(frozen=True, slots=True)
+class AntragsTitel:
+    """Ein Antrag des Bestands mit seinen Änderungen, ohne Stand (D559 Beschluss 5)."""
+
+    proposal: bytes
+    changes: ProposalChanges
+
+
+def antragstitel(store: SqliteStore, scope: bytes, now: int) -> tuple[AntragsTitel, ...]:
+    """Jeder Antrag des Bestands, dessen Vorgängerverfassung für die Epochen 0 bis zur geltenden
+    auflösbar ist, mit ``changes`` wie in ``geraetestimmen``, sortiert nach ``proposal``
+    (D559 Beschluss 5, 04 §1.1, 04 §2.4). Keine Prüfung des Scopes: ``epoch_id`` bindet ihn
+    (D559 Befund 2).
+    """
+    view = scope_view(store, scope, now)
+    constitutions = store.all_constitutions()
+    result: list[AntragsTitel] = []
+    for digest, proposal in sorted(store.all_proposals().items()):
+        vorgaenger = _vorgaenger(scope, view.state.epoch.index, constitutions, proposal)
+        if vorgaenger is None:
+            continue
+        result.append(
+            AntragsTitel(
+                proposal=digest,
+                changes=_changes(vorgaenger, constitutions.get(proposal.constitution_hash)),
+            )
+        )
+    return tuple(result)

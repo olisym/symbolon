@@ -251,6 +251,39 @@ export function widerspruchSatz(name, claims, antraege, namen) {
   return { satz: `${name} hat ${worum} ${was} unterschrieben.`, zaehltNicht: true };
 }
 
+// Die Punkte zu Feststellungen, die nicht tragen, weil sie sich auf eine Stimme der Gabelung
+// stützen: je Feststellung, deren Zeugenliste unter value["0"] eine der ids nennt, ein Punkt mit
+// dem Namen ihres I, in der Reihenfolge der Feststellungen; feststellungen wie aus GET /claims
+// (D559 Beschluss 1 und 2).
+export function feststellungPunkte(ids, feststellungen, namen) {
+  const punkte = [];
+  for (const claim of feststellungen) {
+    const zeugen = claim.value?.["0"];
+    if (!Array.isArray(zeugen)) continue;
+    if (!zeugen.some((zeuge) => typeof zeuge === "string" && ids.includes(zeuge))) continue;
+    punkte.push(`${nameVon(namen, claim.I)}s Feststellung stützt sich auf diese Stimme und trägt deshalb nicht.`);
+  }
+  return punkte;
+}
+
+// Die Punkte zu Stimmen in einer Gabelung, die keine Doppelstimme ist: je Antrag ihrer vote@1-Claims
+// mit J[0] == 3 ein Punkt, in der Reihenfolge des ersten Auftretens, Einzahl oder Mehrzahl, ohne
+// bekannten Antrag „zu einem Antrag“; für eine Doppelstimme keiner (D559 Beschluss 3, 04 §3.1
+// Bedingung 6).
+export function stimmenPunkte(claims, antraege, namen) {
+  if (doppelstimme(claims)) return [];
+  const zahl = new Map();
+  for (const claim of claims) {
+    if (!claim.p.endsWith("/vote@1") || claim.J[0] !== 3) continue;
+    zahl.set(claim.J[1], (zahl.get(claim.J[1]) ?? 0) + 1);
+  }
+  return [...zahl].map(([kennung, anzahl]) => {
+    const antrag = antraege.find((eintrag) => eintrag.proposal === kennung);
+    const worum = antrag ? `zum Antrag „${antragTitel(antrag.changes, namen)}“` : "zu einem Antrag";
+    return anzahl === 1 ? `Die Stimme ${worum} zählt nicht.` : `Die Stimmen ${worum} zählen nicht.`;
+  });
+}
+
 // Der Satz zu Stimmen einer Wurzel von mehreren Schlüsseln, gruppe wie aus GET /geraetestimmen:
 // wählen die zählenden Stimmen verschieden, eine Karte mit ihren Punkten, dazu, solange sie oben
 // steht, dass eine neue Stimme sie ersetzt; wählen erst zählende und ersetzte zusammen

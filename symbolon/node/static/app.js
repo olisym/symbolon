@@ -26,6 +26,7 @@ import {
   centAus,
   erfolgSatz,
   fassungSatz,
+  feststellungPunkte,
   frageInhalt,
   ganzeZahl,
   geraeteOben,
@@ -39,6 +40,7 @@ import {
   personImSatz,
   regieReihenfolge,
   standZeile,
+  stimmenPunkte,
   tabTitel,
   tageAusKern,
   tilgungInWorten,
@@ -833,10 +835,16 @@ async function widerspruchKarten(forks, kontext) {
     const werte = claims.map((claim) => wertInWorten(claim.p, claim.value));
     const karte = element("section", "karte widerspruch");
     karte.append(marke("Widerspruch"));
-    const { satz, zaehltNicht } = widerspruchSatz(name, claims, kontext.antraege, kontext.namen);
+    // Die Anträge der Seite gefolgt von den Titeln des Bestands; nach „Keine der beiden Stimmen
+    // zählt.“ die Punkte zu Feststellungen, dann zu Stimmen, zuletzt die Bürgschaften
+    // (D559 Beschluss 2 bis 5).
+    const bekannt = [...kontext.antraege, ...kontext.antragstitel];
+    const { satz, zaehltNicht } = widerspruchSatz(name, claims, bekannt, kontext.namen);
     karte.append(element("div", "satz", satz));
     const punkte = [];
     if (zaehltNicht) punkte.push("Keine der beiden Stimmen zählt.");
+    punkte.push(...feststellungPunkte(gruppe.claims.map(([cid]) => cid), kontext.feststellungen, kontext.namen));
+    punkte.push(...stimmenPunkte(claims, bekannt, kontext.namen));
     punkte.push(
       `${name}s Bürgschaften zählen ab jetzt nicht mehr. Wer nur über ${name} verbürgt war, ist es nicht mehr.`,
     );
@@ -1292,6 +1300,19 @@ async function zeichnenInhalt() {
   const obligationen = res === null ? [] : await holen(`/obligations/${res}`);
   const forks = await holen("/forks");
   const geraetestimmen = gov === null ? [] : await holen(`/geraetestimmen/${gov}`);
+  // Die Titel der Anträge des Bestands, auch nach dem Beschluss, und die Feststellungen, die
+  // epoch_findings als nicht tragend vermerkt, je Subjekt einmal geholt (D559 Beschluss 2 und 5).
+  const antragstitel = gov === null ? [] : await holen(`/antragstitel/${gov}`);
+  const nichtTragend = new Set(
+    (govView?.state?.epoch_findings ?? [])
+      .filter((vermerk) => vermerk.kind === "UNSUPPORTED_RATIFICATION")
+      .map((vermerk) => vermerk.subject),
+  );
+  const feststellungen = [];
+  for (const cid of nichtTragend) {
+    const claim = await holen(`/claims/${cid}`);
+    if (claim.p.endsWith("/ratify@1")) feststellungen.push(claim);
+  }
 
   const eigeneMitgliedschaft = govView?.verein?.membership.find(([subject]) => subject === ich);
   const schritte = geschichte({
@@ -1326,7 +1347,18 @@ async function zeichnenInhalt() {
   const identitaet = handelnAls === "geraet" ? ich : handelnAls;
   const tasks = await holen(`/tasks/${identitaet}`);
 
-  const kontext = { namen, sichten, antraege, obligationen, geraetestimmen, identitaet, jetzt, felder: null };
+  const kontext = {
+    namen,
+    sichten,
+    antraege,
+    antragstitel,
+    feststellungen,
+    obligationen,
+    geraetestimmen,
+    identitaet,
+    jetzt,
+    felder: null,
+  };
   const handeln = handelnFabrik(record, kontext);
 
   const frage = element("section", "karte frage");

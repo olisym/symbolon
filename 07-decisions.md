@@ -24317,3 +24317,41 @@ Rücknahmeproben fährt das Werkzeug ohne Bytecode-Cache. Danach die Abnahme und
 mit `--versehen` in einem frischen Verzeichnis.
 
 **Geändert.** `07-decisions.md`.
+
+### D560 — Abnahme `p31-gabelsaetze`; Olis Durchlauf; K6 war meine Probe
+
+**Anlass.** Bericht des Werkzeugs, Commit `55c30ea` auf `p31-gabelsaetze`, Basis `f119127` (D559).
+
+**Geprüft.** Der vollständige Diff aus dem Spiegel, gegen D559. Der Block im Selbsttest und
+`tests/node/test_antragstitel.py` sind byteweise die Fassung des Auftrags. Im Supervisor-Klon auf
+`55c30ea`: 1219 Tests grün, darin der Selbsttest mit 215 Fällen, `ruff check` sauber, `node
+--check` auf `app.js`. `widerspruchOben` bekommt weiter nur die Anträge der Seite;
+`geraetestimmen` ruft `_vorgaenger` mit dem Index der geltenden Epoche.
+
+**Befund 1 — K6 war falsch gebaut, nicht der Auftrag falsch gefahren.** Das Werkzeug meldet einen
+roten Fall statt der drei aus D559. Meine Probe im Prototyp hatte den Schlüssel der Zählung
+verändert; damit fiel auch die Suche nach dem Titel aus, und zwei Fälle wurden an dieser
+Nachbarwirkung rot. Die enge Rücknahme, ein Punkt je Stimme bei unveränderter Suche, habe ich auf
+`55c30ea` nachgefahren: rot wird genau „zwei Stimmen zum selben Antrag neben Bürgschaft“. Die Probe
+ist erfüllt; die Zahl in D559 ist berichtigt, D559 bleibt stehen. Es ist nach D557 das zweite Mal,
+dass eine Probe von mir an einer benachbarten Wirkung rot wurde.
+
+**Befund 2 — D507 Befund 2, gemessen an Bild a.** `--personen` über die Schnittstelle, nach dem
+Beschluss: BRUNOs Karte hiess „zu einem Antrag“, jetzt „zum Antrag „beitrag festlegen““, und sie
+steht unten. Der Befund ist erledigt.
+
+**Beschluss 1 — Olis Durchlauf.** `--versehen` in `netz-v3`, Brunos und Doras Gerät angesehen.
+Beide Karten oben. DORAs Karte: „Keine der beiden Stimmen zählt.“, „ANNAs Feststellung stützt sich
+auf diese Stimme und trägt deshalb nicht.“, der Punkt zu den Bürgschaften; BRUNOs Karte ohne Punkt
+zur Feststellung; unter den Tabs „2 Ja, 0 Nein, 3 von 4 nötig“. Oli: „sieht gut aus!“ Die Karte
+erklärt jetzt, warum der Beschluss fiel und wessen Stimme es war.
+
+**Beschluss 2 — gemergt.** Stufe 2b ist erledigt: der Satz zur Feststellung, die Stimme neben einem
+anderen Claim und der Titel nach dem Beschluss.
+
+**Befund 3 — ohne Auftrag.** Nach dem Fall tragen die Bestätigungen der gefallenen Fassung den
+Vermerk `CONSTITUTION_VERSION_MISMATCH`; „Im Verein“ sagt weiter „Alle haben die geltende Satzung
+bestätigt.“, weil der Satz den Stand `MEMBER` zählt. Ob der Satz dann stimmt, habe ich nicht
+geprüft. Kandidat für Stufe 3.
+
+**Geändert.** `symbolon/` und `tests/` (über den Merge); `07-decisions.md`.

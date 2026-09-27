@@ -25206,3 +25206,23 @@ nicht: sie bricht jeden Vorschlag ohne Feld 3 und lässt den neuen Knotentest gr
 `null` zufällig richtig gelesen wird. Mit dem Prototyp laufen 1283 Tests grün.
 
 **Geändert.** `07-decisions.md`; der Nachtrag liegt in `~/auftraege/p34b-null.md`.
+
+### D579 — O96: Abnahme `p34b-null`, Merge von `p34-knoten`
+
+**Anlass.** Bericht zu `p34b-null`, Commit `42318cf` auf `56b16a1`. Diff im Spiegel ganz gelesen.
+
+**Beschluss 1 — abgenommen ohne Befund.** Die Marke `ABSENT` steht an den drei Stellen aus D578
+Beschluss 1, der Speicher liest Feld 3 mit ihr als Vorgabe, beide Tests sind wörtlich die des
+Auftrags, die Rücknahmeprobe an `proposal_hash` macht beide rot. Das Werkzeug hat vorher gesucht,
+ob irgendwo `None` im Sinn von „fehlt“ übergeben wird; nirgends.
+
+**Beschluss 2 — Merge.** `p34-knoten` geht als Vorspulen nach `main` (D577, D578). Stand: 1283
+Tests, `make check` mit Status 0.
+
+**Beschluss 3 — der nächste Schritt in O96 ist die Seite.** Der Knoten kann Sachanträge anlegen,
+auszählen, feststellen und den Stand zeigen; ein Satzungsantrag baut auf dem Stand und nennt die
+festgestellten Sachanträge. Die Seite zeigt Sachanträge mit den Wörtern aus D575, den Stand statt
+der Verfassung der Epoche, wo sie Sachfelder zeigt, und die Warnung `CONFLICTING_APPROVAL` für
+Regel 2 und 3. Sachanträge erscheinen in `tasks_view` (D578 Beschluss 2).
+
+**Geändert.** `07-decisions.md`.

@@ -24656,3 +24656,23 @@ trägt“ in `§4.1`, die Fassung als neuer `§4.6`, die Vermerke; dazu der Satz
 Lieferung, Datei ganz, mit Hash-Abgleich. Danach die Golden Anchors, dann Code.
 
 **Geändert.** `07-decisions.md`.
+
+### D566 — Schluss der Sitzung 00cr
+
+**Anlass.** Nach D565 Olis Zuruf, den Normtext zu O96 in einer frischen Sitzung zu schreiben.
+
+**Beschluss 1 — Stand.** Die Lücken aus D555 sind geschlossen (D555 bis D563). O96 hat Modell,
+Beweisskizze und die Entscheidungen zu Regelfeldern, Klasse, Bestätigung und Objekten (D564,
+D565). 1219 Tests, der Selbsttest 222 Fälle, Register D1–D566.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Befund wird dort im Code gesucht, wo sein Bild entsteht (D562); eine Aussage über
+Nebenläufigkeit wird an zwei Beobachtern mit verschiedener Reihenfolge geprüft (D564 Befund 3). Der
+Kandidat aus D557, eine Rücknahmeprobe nehme die benannte Wirkung zurück und nicht eine benachbarte,
+ist mit D560 zum zweiten Mal verletzt und zur Übernahme vorgeschlagen.
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cs.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt für `00cs`, den Normtext zu O96 in `04` und `03 §4`; `sitzungsstart-00cq.md` geht
+nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cs.md`, `archiv/sitzungsstart-00cq.md`.

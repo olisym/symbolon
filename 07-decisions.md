@@ -24490,3 +24490,107 @@ die D555 ausdrücklich nicht in die Reihe nahm, bleiben, wo sie sind. Als Nächs
 
 **Geändert.** `symbolon/node/static/` und `tests/node/test_selbsttest.py` (über den Merge);
 `07-decisions.md`.
+
+### D564 — O96: Sachanträge mit Vorbedingung neben der Regelfassung; Aufnahmen exklusiv
+
+**Anlass.** O96, D558 Beschluss 2 und Skizze. Gelesen: `04 §1`, `§2.4`, `§3.5`, `§4.1` bis `§4.5`,
+`§8`, `03 §4`, D96, D102. Nachgeschlagen auf Olis Wunsch: Polkadot OpenGov, die Dokumentation von
+`pallet_referenda` und die Übersicht der Polkadot-Hilfe, gelesen 2026-09-27.
+
+**Befund 1 — OpenGov ordnet, MaR kollidiert.** Dort laufen Referenden nebeneinander, je Art in
+einem eigenen Track mit eigenen Schwellen und einer Obergrenze gleichzeitig entschiedener
+Referenden. Die Beteiligung wird gegen alle Stimmen gemessen, die im Moment der Auswertung
+abgegeben werden könnten. Beides trägt, weil die Kette jeden Schritt in eine Reihenfolge bringt:
+es gibt stets einen geltenden Nenner und einen festen Platz jeder Umsetzung. MaR hat diese
+Reihenfolge nicht (`08 §2.2`). Übernommen wird der Gedanke der Tracks: Klassen von Anträgen mit
+eigenen Regeln. Nicht übernehmbar ist der mitlaufende Nenner.
+
+**Befund 2 — ein wachsender Nenner bricht den Beweis aus `§4.4`.** Zehn Mitglieder, Schwelle mehr
+als die Hälfte: Antrag X auf „beitrag: nichts → 30 Euro“ bekommt sechs Ja. Nebenher werden elf
+Personen aufgenommen; Antrag Y auf „beitrag: nichts → 50 Euro“ bekommt unter 21 Mitgliedern elf
+Ja, alle von Neuen. Beide Ja-Mengen sind disjunkt, beide kommen durch. Der Beweis lebt davon, dass
+beide Mehrheiten aus derselben Menge stammen. Ein Ausschluss wäre schlimmer: Ausgeschlossene
+zählten bei älteren Anträgen weiter.
+
+**Beschluss 1 — Aufnahmen exklusiv (Olis Wahl).** Vorgelegt waren (a) eine Aufnahme schliesst die
+Regelfassung ab, und offene Sachanträge beginnen neu, und (b) Sachanträge behalten die Liste ihrer
+Basis, und bei gleicher Vorbedingung aus verschiedenen Basen gilt die ältere. Oli wählte (a). (b)
+hätte einen festgestellten Beschluss ohne Fehlverhalten nachträglich fallen lassen, wenn ein
+älterer später eintrifft; bisher fällt ein Beschluss nur mit dem Beweis einer Lüge (`§8`).
+
+**Befund 3 — meine Aussage zu (a) war falsch.** Ich hatte gesagt, mehrere Aufnahmen könnten unter
+(a) untereinander nebeneinander laufen. Das trägt nicht: sieht ein Beobachter zuerst Aufnahme A1
+festgestellt, entsteht eine Regelfassung, auf die Sachanträge gebaut und festgestellt werden;
+trifft danach A2 mit derselben Basis ein und gälten beide, gäbe es diese Regelfassung nicht mehr,
+und die darauf festgestellten Beschlüsse fielen ohne Fehlverhalten, also der Fall aus (b). Unter
+einer Regelfassung kommt deshalb höchstens eine Regeländerung durch, wie heute; Aufnahmen laufen
+nacheinander. Oli ist darüber unterrichtet.
+
+**Beschluss 2 — zwei Klassen, nach dem Gedanken der Tracks.**
+
+- Eine **Regeländerung** G ändert Felder, die eine Auszählung oder die Zurechnung liest:
+  Mitgliederliste, Schwellen, geschützte Prädikate, Schiedsleute; welche Felder genau, legt der
+  nächste Schritt aus dem Code fest (Befund 4). G ist der heutige Vorschlag nach `§2.4` und
+  schliesst die Regelfassung ab. G nennt zusätzlich die Menge S der Sachanträge seiner
+  Regelfassung, auf denen es aufbaut, wie ein Zusammenführen in Git.
+- Ein **Sachantrag** C ändert übrige Felder. Er nennt seine Regelfassung und je Feld den alten und
+  den neuen Wert; der alte Wert ist seine Vorbedingung. Zusammengehöriges bündelt die
+  Antragstellerin in einem Sachantrag (Einheit der Materie, D558 Beschluss 1).
+- Die **Fassung der Satzung** ist die Regelfassung mit der Menge ihrer festgestellten Sachanträge,
+  angewandt, soweit ihre Vorbedingungen erfüllt sind. Eine Reihenfolge hat sie nicht.
+
+**Beschluss 3 — die Regeln für ein Ja.** Je Mitglied und Regelfassung g:
+
+1. höchstens ein Ja auf eine Regeländerung von g, wie `§4.4` heute;
+2. höchstens ein Ja je Vorbedingung, also je Paar aus Feld und altem Wert, unter den Sachanträgen
+   von g;
+3. kein Ja zugleich auf eine Regeländerung G von g und auf einen Sachantrag von g, der nicht in S
+   von G steht.
+
+Ein Verstoss nimmt jede beteiligte Stimme aus der Zählung, wie `CONFLICTING_APPROVAL` heute. Die
+Stichfrage des doppelten Ja je Feld kommt nicht in diese Fassung; sie bräuchte einen eigenen Beweis.
+
+**Beschluss 4 — der Beweis, in fünf Teilen.** Er kommt vollständig in `04`, bevor Code entsteht.
+
+- **B1.** Unter g kommt höchstens eine Regeländerung durch: `§4.4` unverändert, Regel 1.
+- **B2.** Eine durchgekommene Regeländerung G und ein durchgekommener Sachantrag C von g mit C
+  nicht in S gibt es nicht zugleich: beide Ja-Mengen haben mehr als `num/den` von `P_g`,
+  schneiden sich also nach der Rechnung aus `§4.4`, und Regel 3 nimmt den Schnitt aus beiden.
+- **B3.** Zwei Sachanträge von g mit gemeinsamer Vorbedingung kommen nicht beide durch: dieselbe
+  Rechnung, Regel 2.
+- **B4.** Die Fassung hängt nur von der Menge ab: zwei zugleich anwendbare Sachanträge berühren
+  verschiedene Felder, denn ein gemeinsames Feld hiesse eine gemeinsame Vorbedingung, und nach B3
+  ist höchstens einer festgestellt. Anwendbare vertauschen also; jeder wird höchstens einmal
+  angewandt, das Verfahren endet; nach Newmans Lemma ist das Ergebnis eindeutig.
+- **B5.** Eine Regeländerung trägt nur, wenn jeder Sachantrag in S trägt; fällt einer mit dem
+  Beweis einer Lüge, fällt G mit, abwärts wie in `§8`.
+
+Alle Nenner sind `P_g`; eine Mitgliederliste ändert sich nur mit einer Regeländerung, und die
+beendet g. Das ist der Grund für Beschluss 1.
+
+**Befund 4 — was vor dem Text gelesen werden muss.**
+
+- Welche Felder der Verfassung Auszählung, Zurechnung, Policy und Vertrauensparameter lesen; nur
+  die übrigen dürfen Sachfelder sein. Eine Liste aus dem Code, nicht aus der Erinnerung.
+- `accept-rules` bindet heute an den Hash der ganzen Verfassung (`03 §4`). Nach jedem Beschluss
+  müssten alle neu bestätigen. Position: die Bestätigung bindet an die Regelfassung, denn wer sie
+  annimmt, nimmt das Verfahren an, mit dem Sachfelder sich ändern. Das ändert `03 §4` und braucht
+  einen eigenen Beschluss.
+- Wie Stimme und Feststellung einen Sachantrag nennen, und wie ein Mengenfeld wie `participants`
+  behandelt wird. Die Mitgliederliste ist Regelfeld; die Frage stellt sich für Sachfelder mit
+  Mengen.
+- Was die Seite vor einem Ja auf eine Regeländerung sagt, die einen Sachantrag auslässt, dem man
+  zugestimmt hat. Das ist die Warnung aus D556 in neuer Gestalt.
+
+**Verworfen.**
+
+- **(b)**, siehe Beschluss 1.
+- **Ein mitlaufender Nenner wie in OpenGov.** Ohne Reihenfolge gibt es keinen Moment der Auswertung.
+- **Mehrere Regeländerungen je Regelfassung.** Siehe Befund 3.
+- **Eine Kette über Zwischenstände der Sachanträge.** Je nach Reihenfolge der Feststellungen
+  entstünden verschiedene Zwischenkennungen, und zwei Beobachter sähen zeitweise eine Gabel.
+
+**Beschluss 5 — der nächste Schritt.** Befund 4 lesen und entscheiden, dann der Text in `04` mit
+dem ganzen Beweis und den Vermerken, dann die Golden Anchors, dann Code. O96 bleibt offen.
+
+**Geändert.** `07-decisions.md`.

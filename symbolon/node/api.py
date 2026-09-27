@@ -18,7 +18,15 @@ from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
 from symbolon.governance.objects import Proposal
-from symbolon.governance.tally import TallyResult, TallyState, reached, vote_root
+from symbolon.governance.tally import (
+    TallyResult,
+    TallyState,
+    _is_yes_choice,
+    _reattributed,
+    reached,
+    read_v,
+    vote_root,
+)
 from symbolon.index import classify_all
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
@@ -36,9 +44,10 @@ from symbolon.policy import constitution_hash
 from symbolon.predicates import is_core_predicate, is_nuc_name
 from symbolon.profiles.credit import SettlementState
 from symbolon.profiles.membership import MembershipState, membership
-from symbolon.trust.attribution import attribution
+from symbolon.trust.attribution import AttributionStatus, attribution
 from symbolon.trust.groups import build_groups
 from symbolon.trust.params import resolve_trust_params
+from symbolon.verifier import State
 
 _LIMIT = 1048576
 _HOST = "127.0.0.1"
@@ -418,6 +427,11 @@ def _intent_body(
     """Ableitung einer Absicht auf den Rumpf von _prepare und ihre Folge
 
     (D479 Beschluss 2, D490 Beschluss 2, D548 Beschluss 1 und 2, 04 §2.1, 04 §2.2, 04 §2.3).
+
+    Bei einer Stimme warnt sie vor einem gesperrten Gerät (``DEVICE_ENDED``) und vor einem Ja
+    neben einem anderen Ja derselben Wurzel in derselben Epoche (``CONFLICTING_APPROVAL``); die
+    Folge nennt dann ``ended``, ``conflict`` und ``falls`` (D556 Beschluss 2 und 3, 04 §4.4,
+    04 §3.1, 02 §2.1).
     """
     author = _hex(_require(body, "I"), 32)
     art = _text(_require(body, "art"), "art")
@@ -454,7 +468,8 @@ def _intent_body(
             raise ValueError("choice is not yes or no")
         # Frühere Stimmen derselben Wurzel, auch solche, die nicht zählen; die neue Stimme nennt
         # sie in v Key 1 und ersetzt sie (D548 Beschluss 1, D542 Beschluss 4, 04 §3.1, 02 §2.1).
-        attr = attribution(store, classify_all(store, now, view.state.policy), proposal.scope)
+        classified = classify_all(store, now, view.state.policy)
+        attr = attribution(store, classified, proposal.scope)
         root = attr.device_root(author) or author
         earlier = sorted(
             claim_id(claim)
@@ -474,10 +489,85 @@ def _intent_body(
         )
         voted = bool(earlier)
         effect = _vote_effect(store, digest, proposal, root, choice, voted, now)
+        # Ein wirksam aufgenommenes Gerät mit einem Ende, dessen Endpunkt im Bestand liegt: die
+        # neue Stimme wäre bestritten (D556 Beschluss 3, 02 §2.1, 04 §3.1).
+        device = attr.devices.get(author)
+        ended = device is not None and any(store.get(end) is not None for end in device.ends)
+        # Andere Anträge derselben Epoche, denen die Wurzel schon mit einem Ja zustimmt, auch
+        # einem ersetzten; die Filter der Schleife um CONFLICTING_APPROVAL in decide
+        # (D556 Beschluss 2, 04 §4.4, D533, D547 Beschluss 4).
+        conflict: set[bytes] = set()
+        if choice == "yes" and not ended:
+            known = store.all_proposals()
+            for claim in store.all_claims():
+                if not is_nuc_name(claim, "vote") or claim.N != proposal.scope:
+                    continue
+                if claim.J[0] != 3 or claim.J[1] == digest or claim.t_exp is not None:
+                    continue
+                cid = claim_id(claim)
+                if classified[cid].state is not State.ACTIVE:
+                    continue
+                if vote_root(attr, claim) != root:
+                    continue
+                if attr.status(claim) is AttributionStatus.DISPUTED and not _reattributed(
+                    store,
+                    classified,
+                    vote_cid=cid,
+                    scope=proposal.scope,
+                    constitution_obj=view.state.constitution_obj,
+                ):
+                    continue
+                obj, kind = read_v(claim.v)
+                if obj is None or kind is not None or not _is_yes_choice(obj.get(0)):
+                    continue
+                other = known.get(claim.J[1])
+                if other is None or other.predecessor != proposal.predecessor:
+                    continue
+                conflict.add(claim.J[1])
         # Zählt die Wurzel schon mit dieser Wahl, SAME_VOTE; sonst ersetzt die Stimme
-        # (D548 Beschluss 2, D543 Beschluss 4).
-        if voted:
+        # (D548 Beschluss 2, D543 Beschluss 4); beim gesperrten Gerät DEVICE_ENDED statt beider
+        # (D556 Beschluss 3).
+        if ended:
+            warnings.append("DEVICE_ENDED")
+        elif voted:
             warnings.append("SAME_VOTE" if effect is not None and effect["same"] else "CHANGE_VOTE")
+        if conflict:
+            warnings.append("CONFLICTING_APPROVAL")
+        # Die Folge nennt immer ended, conflict und falls. Zählt die Stimme nicht, sind counts,
+        # same und replaces falsch; Ja und Nein aus der Zeile dieses Antrags, bei einem anderen
+        # Ja ohne die Wurzel; falls nennt die anderen angenommenen Anträge, unter deren Ja die
+        # Wurzel steht und die mit einem Ja weniger die Schwelle verfehlen (D556 Beschluss 2
+        # und 3).
+        if effect is not None:
+            effect.update(ended=ended, conflict=[item.hex() for item in sorted(conflict)], falls=[])
+        if effect is not None and (ended or conflict):
+            rows = {item.proposal: item for item in proposals_view(store, proposal.scope, now)}
+            row = rows[digest]
+            yes, no = len(row.yes), len(row.no)
+            if not ended:
+                yes -= root in row.yes
+                no -= root in row.no
+            falls: list[str] = []
+            for other in sorted(conflict):
+                other_row = rows.get(other)
+                other_tally = _tally_of(view, other)
+                if other_row is None or other_tally is None or other_tally.threshold is None:
+                    continue
+                if other_row.state is not TallyState.PASSED or root not in other_row.yes:
+                    continue
+                num, den = other_tally.threshold
+                if not reached(len(other_row.yes) - 1, other_row.n, num, den):
+                    falls.append(other.hex())
+            num, den = _tally_of(view, digest).threshold
+            effect.update(
+                yes=yes,
+                no=no,
+                passes=reached(yes, row.n, num, den),
+                counts=False,
+                same=False,
+                replaces=False,
+                falls=falls,
+            )
     elif art == "ratify":
         digest, proposal = _proposal_of(store, _require(body, "proposal"))
         view, epoch = _require_current(store, proposal, now)

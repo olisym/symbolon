@@ -7,7 +7,8 @@
 // Demonstration (D494 Beschluss 3, D496 Beschluss 1, D509 Beschluss 1), Zeit relativ zur Uhr
 // des S-Node (D496 Beschluss 2), die Beschriftung eines Tabs (D506 Beschluss 2 und 4), ob ein
 // Widerspruch oben steht und was seine Karte sagt (D525 Beschluss 1 bis 3, D507 Beschluss 1), und
-// was die Seite über Stimmen einer Wurzel von mehreren Schlüsseln sagt (D542 Beschluss 6, D543).
+// was die Seite über Stimmen einer Wurzel von mehreren Schlüsseln sagt (D542 Beschluss 6, D543),
+// und über Stimmen, die still nicht zählen: ein zweites Ja, ein gesperrtes Gerät (D556).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -18,6 +19,14 @@ export function standZeile(antrag) {
     return `${ja} Ja, ${nein} Nein`;
   }
   return `${ja} Ja, ${nein} Nein, ${antrag.needed} von ${antrag.n} nötig`;
+}
+
+// Namen als Aufzählung: „niemand“, einer, sonst mit Kommas und „und“ vor dem letzten; aus
+// app.js hierher gezogen (D556 Beschluss 6).
+export function aufzaehlung(namen) {
+  if (namen.length === 0) return "niemand";
+  if (namen.length === 1) return namen[0];
+  return `${namen.slice(0, -1).join(", ")} und ${namen[namen.length - 1]}`;
 }
 
 // Name zu einem Schlüssel, sonst gekürzt (D479 Beschluss 5, D486 Beschluss 2).
@@ -132,13 +141,41 @@ export function tilgungInWorten(zustand) {
 const WARNUNGEN = new Map([
   ["BUDGET_FULL", "Dein Budget ist voll. Verkleinere zuerst eine Bürgschaft."],
   ["CHANGE_VOTE", "Du hast schon anders abgestimmt. Diese Stimme ersetzt die frühere."],
+  ["DEVICE_ENDED", "Dieses Gerät ist gesperrt. Die Stimme zählt nicht."],
   ["SAME_VOTE", "Du hast schon so abgestimmt. Die Stimme zählt einmal."],
 ]);
 
 // Eine Warnung in Worten, aus den Sätzen in szenario-verein §3 und §5.1, CHANGE_VOTE aus
-// D548 Beschluss 2; eine unbekannte erscheint mit ihrem Namen (D486 Beschluss 3).
+// D548 Beschluss 2, DEVICE_ENDED aus D556 Beschluss 3; eine unbekannte erscheint mit ihrem Namen
+// (D486 Beschluss 3).
 export function warnungInWorten(name) {
   return wortAus(WARNUNGEN, name);
+}
+
+// Die Warnung vor einem zweiten Ja: die anderen Anträge aus effect.conflict, mit Titeln aus
+// felder.titelVon, wenn alle bekannt sind; je Antrag aus effect.falls ein Satz, dass er nicht mehr
+// angenommen wäre (D556 Beschluss 2, 04 §4.4).
+export function konfliktWarnung(effect, felder) {
+  const andere = effect?.conflict ?? [];
+  const titelVon = felder?.titelVon ?? {};
+  const titel = (kennung) => (Object.hasOwn(titelVon, kennung) ? titelVon[kennung] : null);
+  const bekannt = andere.length > 0 && andere.every((kennung) => typeof titel(kennung) === "string");
+  let wem = andere.length === 1 ? "einem anderen Antrag" : "anderen Anträgen";
+  if (bekannt) wem = aufzaehlung(andere.map((kennung) => `„${titel(kennung)}“`));
+  const keine = andere.length === 1 ? "keine deiner beiden Zustimmungen" : "keine deiner Zustimmungen";
+  const saetze = [
+    `Du hast unter dieser Fassung der Satzung schon ${wem} zugestimmt.`,
+    `Stimmst du hier Ja, zählt ${keine}, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt.`,
+  ];
+  for (const kennung of effect?.falls ?? []) {
+    const name = titel(kennung);
+    saetze.push(
+      typeof name === "string"
+        ? `„${name}“ wäre dann nicht mehr angenommen.`
+        : "Ein anderer Antrag wäre dann nicht mehr angenommen.",
+    );
+  }
+  return saetze.join(" ");
 }
 
 const ABWEISUNGEN = new Map([
@@ -220,13 +257,19 @@ export function widerspruchSatz(name, claims, antraege, namen) {
 // verschieden, der Satz der Auflösung ohne Karte; sonst der Satz der gleichen Wahl. Die Zahl der
 // Geräte ist die Zahl verschiedener Schlüssel über zählende und ersetzte Stimmen, zwei bis vier
 // ausgeschrieben; „Keine der beiden“ nur bei genau zwei Stimmen (D542 Beschluss 6, D543 Beschluss
-// 1 und 2, D551 Beschluss 4 und 5, D552 Beschluss 2).
+// 1 und 2, D551 Beschluss 4 und 5, D552 Beschluss 2). Steht die Wurzel beim Antrag der Gruppe
+// unter conflicting und wählen die zählenden Stimmen nicht verschieden, kein Satz: sie zählen
+// nicht (D556 Beschluss 4).
 export function geraeteSatz(name, gruppe, namen, antraege) {
   const titel = antragTitel(gruppe.changes, namen);
   const alle = [...gruppe.stimmen, ...gruppe.ersetzt];
   const geraete = new Set(alle.map(([, schluessel]) => schluessel)).size;
   const zahl = { 2: "zwei", 3: "drei", 4: "vier" }[geraete] ?? String(geraete);
   const werte = new Set(gruppe.stimmen.map(([, , wahl]) => wahl));
+  const antrag = (antraege ?? []).find((eintrag) => eintrag.proposal === gruppe.proposal);
+  if (werte.size <= 1 && (antrag?.conflicting ?? []).includes(gruppe.root)) {
+    return { karte: false, satz: null, punkte: [] };
+  }
   if (werte.size > 1) {
     const punkte = [
       gruppe.stimmen.length === 2 ? "Keine der beiden Stimmen zählt." : "Keine dieser Stimmen zählt.",
@@ -258,6 +301,29 @@ export function geraeteSatz(name, gruppe, namen, antraege) {
     satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten ${wahl} gestimmt. Das zählt einmal.`,
     punkte: [],
   };
+}
+
+// Die Karte einer Wurzel, die mehreren Anträgen derselben Fassung zugestimmt hat, titel die Titel
+// der Anträge der Seite, die sie unter conflicting nennen; einer allein, wenn das andere Ja ersetzt
+// ist (D556 Beschluss 4, 04 §4.4).
+export function zustimmungSatz(name, titel) {
+  const weiter = `${name}s Bürgschaften zählen weiter.`;
+  if (titel.length === 1) {
+    return {
+      satz: `${name} hat „${titel[0]}“ und einem weiteren Antrag zugestimmt.`,
+      punkte: [`Die Zustimmung zu „${titel[0]}“ zählt nicht.`, weiter],
+    };
+  }
+  const zahl = { 2: "zwei", 3: "drei", 4: "vier" }[titel.length] ?? String(titel.length);
+  return {
+    satz: `${name} hat ${zahl} Anträgen zugestimmt: ${aufzaehlung(titel.map((eintrag) => `„${eintrag}“`))}.`,
+    punkte: [titel.length === 2 ? "Keine der beiden Zustimmungen zählt." : "Keine dieser Zustimmungen zählt.", weiter],
+  };
+}
+
+// Der Satz zu einer Stimme unter DISPUTED_VOTE: ein gesperrtes Gerät (D556 Beschluss 5, 04 §3.1).
+export function gesperrtSatz(name, titel) {
+  return `Eine Stimme von ${name} zum Antrag „${titel}“ zählt nicht: das Gerät ist gesperrt.`;
 }
 
 // Ob die Karte einer Gruppe aus GET /geraetestimmen oben steht: genau dann, wenn ihr Antrag unter
@@ -442,7 +508,8 @@ export function absichtSatz(art, felder) {
 // (D492 Beschluss 2, D490 Beschluss 2). Bei einer Stimme gleiche Wahl aus effect.same, die
 // Teilnahme der Wurzel aus effect.participant, nur wo das fehlt aus felder (D544 Beschluss 1);
 // bei counts falsch zuerst die Teilnahme, dann gleiche Wahl (D545 Beschluss 1); ersetzt die
-// Stimme eine frühere, sagt eine Zeile das (D548 Beschluss 2).
+// Stimme eine frühere, sagt eine Zeile das (D548 Beschluss 2). Nach der Teilnahme das gesperrte
+// Gerät aus effect.ended, dann ein anderes Ja aus effect.conflict (D556 Beschluss 6).
 export function folgeZeilen(art, effect, felder) {
   if (!effect) return [];
   const zeilen = [];
@@ -466,6 +533,10 @@ export function folgeZeilen(art, effect, felder) {
     if (effect.counts === false) {
       if (teilnehmer === false) {
         zeilen.push("Deine Stimme zählt nicht: Du stehst nicht auf der Mitgliederliste.");
+      } else if (effect.ended === true) {
+        zeilen.push("Deine Stimme zählt nicht: Dieses Gerät ist gesperrt.");
+      } else if ((effect.conflict ?? []).length > 0) {
+        zeilen.push("Deine Stimme zählt nicht: Du hast schon einem anderen Antrag zugestimmt.");
       } else if (effect.same === true) {
         zeilen.push("Deine Stimme zählt einmal: Du hast schon so abgestimmt.");
       } else {
@@ -506,10 +577,13 @@ export const VORHERSAGE =
 export const KEIN_SATZ = "Die Seite kann nicht lesen, was du unterschreiben würdest.";
 
 // Was die Frage vor dem Unterschreiben zeigt und ob sie Unterschreiben anbietet: ohne Satz
-// keine Unterschrift (D492 Beschluss 1 und 5).
+// keine Unterschrift (D492 Beschluss 1 und 5). CONFLICTING_APPROVAL mit konfliktWarnung
+// (D556 Beschluss 2).
 export function frageInhalt(art, felder, prepared) {
   const satz = absichtSatz(art, felder);
-  const warnungen = (prepared.warnings ?? []).map(warnungInWorten);
+  const warnungen = (prepared.warnings ?? []).map((name) =>
+    name === "CONFLICTING_APPROVAL" ? konfliktWarnung(prepared.effect, felder) : warnungInWorten(name),
+  );
   if (satz === null) {
     return { satz: KEIN_SATZ, folge: [], warnungen, unterschreiben: false };
   }

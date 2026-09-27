@@ -218,7 +218,9 @@ class ProposalChanges:
 class ProposalView:
     """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt
 
-    (D482 Befund 2, D484 Beschluss 2, D487 Beschluss 3).
+    (D482 Befund 2, D484 Beschluss 2, D487 Beschluss 3). ``conflicting`` nennt die Wurzeln der
+    Stimmen unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel der Stimmen unter
+    ``DISPUTED_VOTE`` (D556 Beschluss 4 und 5, 04 §4.4, 04 §3.1).
     """
 
     proposal: bytes
@@ -230,6 +232,8 @@ class ProposalView:
     n: int | None
     needed: int | None
     changes: ProposalChanges
+    conflicting: tuple[bytes, ...]
+    disputed: tuple[bytes, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -295,7 +299,9 @@ def _changes(current: dict, target: dict | None) -> ProposalChanges:
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
     """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3).
 
-    ``yes``, ``no`` und ``ambiguous`` nennen die Wurzeln der Stimmen (D542 Beschluss 4, 04 §3.1).
+    ``yes``, ``no`` und ``ambiguous`` nennen die Wurzeln der Stimmen (D542 Beschluss 4, 04 §3.1),
+    ``conflicting`` die Wurzeln unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel unter
+    ``DISPUTED_VOTE``; ein Subjekt, das nicht im Bestand liegt, fällt weg (D556 Beschluss 4 und 5).
     """
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
@@ -325,6 +331,26 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 }
             )
         )
+        conflicting = tuple(
+            sorted(
+                {
+                    vote_root(attr, store.get(finding.subject))
+                    for finding in tally.findings
+                    if finding.kind is GovernanceFinding.CONFLICTING_APPROVAL
+                    and store.get(finding.subject) is not None
+                }
+            )
+        )
+        disputed = tuple(
+            sorted(
+                {
+                    store.get(finding.subject).I
+                    for finding in tally.findings
+                    if finding.kind is GovernanceFinding.DISPUTED_VOTE
+                    and store.get(finding.subject) is not None
+                }
+            )
+        )
         proposal_obj = proposals.get(digest)
         target = constitutions.get(proposal_obj.constitution_hash) if proposal_obj else None
         result.append(
@@ -338,6 +364,8 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 n=tally.n,
                 needed=_needed(tally.threshold, tally.n),
                 changes=_changes(current, target),
+                conflicting=conflicting,
+                disputed=disputed,
             )
         )
     return tuple(sorted(result, key=lambda item: item.proposal))

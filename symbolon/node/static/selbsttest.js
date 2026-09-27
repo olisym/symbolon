@@ -23,6 +23,7 @@ import {
   abweisungInWorten,
   aenderungen,
   antragTitel,
+  aufzaehlung,
   betrag,
   centAus,
   fassungSatz,
@@ -31,9 +32,11 @@ import {
   ganzeZahl,
   geraeteOben,
   geraeteSatz,
+  gesperrtSatz,
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
+  konfliktWarnung,
   mitgliedschaftInWorten,
   personImSatz,
   regieReihenfolge,
@@ -46,6 +49,7 @@ import {
   widerspruchOben,
   widerspruchSatz,
   zeitpunktInWorten,
+  zustimmungSatz,
 } from "./anzeige.js";
 
 function bytesFromHex(text) {
@@ -979,6 +983,86 @@ function feinschliffFaelle() {
     "warnungInWorten: gleiche Wahl",
     warnungInWorten("SAME_VOTE"),
     "Du hast schon so abgestimmt. Die Stimme zählt einmal.",
+  );
+
+  // Stimmen, die still nicht zählen: ein zweites Ja, ein gesperrtes Gerät (D556 Beschluss 2 bis 5).
+  const zweiter = "cd".repeat(32);
+  const titelVon = { [antrag]: "beitrag festlegen", [zweiter]: "ort festlegen" };
+  gleich("aufzaehlung: niemand", aufzaehlung([]), "niemand");
+  gleich("aufzaehlung: drei", aufzaehlung(["A", "B", "C"]), "A, B und C");
+  gleich(
+    "konfliktWarnung: ein anderer Antrag, der fiele",
+    konfliktWarnung({ conflict: [antrag], falls: [antrag] }, { titelVon }),
+    "Du hast unter dieser Fassung der Satzung schon „beitrag festlegen“ zugestimmt. Stimmst du hier Ja, zählt keine deiner beiden Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt. „beitrag festlegen“ wäre dann nicht mehr angenommen.",
+  );
+  gleich(
+    "konfliktWarnung: ein anderer Antrag, der hält",
+    konfliktWarnung({ conflict: [antrag], falls: [] }, { titelVon }),
+    "Du hast unter dieser Fassung der Satzung schon „beitrag festlegen“ zugestimmt. Stimmst du hier Ja, zählt keine deiner beiden Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt.",
+  );
+  gleich(
+    "konfliktWarnung: zwei andere Anträge",
+    konfliktWarnung({ conflict: [antrag, zweiter], falls: [] }, { titelVon }),
+    "Du hast unter dieser Fassung der Satzung schon „beitrag festlegen“ und „ort festlegen“ zugestimmt. Stimmst du hier Ja, zählt keine deiner Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt.",
+  );
+  gleich(
+    "konfliktWarnung: ohne Titel",
+    konfliktWarnung({ conflict: ["ef".repeat(32)], falls: ["ef".repeat(32)] }, { titelVon }),
+    "Du hast unter dieser Fassung der Satzung schon einem anderen Antrag zugestimmt. Stimmst du hier Ja, zählt keine deiner beiden Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt. Ein anderer Antrag wäre dann nicht mehr angenommen.",
+  );
+  gleich(
+    "frageInhalt: die Warnung vor einem zweiten Ja",
+    frageInhalt(
+      "vote",
+      { titel: "ort festlegen", titelVon, zitate: [], name: "CHRIS", ohneName: false, wahl: "yes", teilnehmer: true },
+      {
+        warnings: ["CONFLICTING_APPROVAL"],
+        effect: { yes: 0, no: 0, n: 4, needed: 3, passes: false, counts: false, conflict: [antrag], falls: [] },
+      },
+    ).warnungen,
+    [
+      "Du hast unter dieser Fassung der Satzung schon „beitrag festlegen“ zugestimmt. Stimmst du hier Ja, zählt keine deiner beiden Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese Fassung gilt.",
+    ],
+  );
+  gleich("warnungInWorten: gesperrtes Gerät", warnungInWorten("DEVICE_ENDED"), "Dieses Gerät ist gesperrt. Die Stimme zählt nicht.");
+  const vorschau = { yes: 0, no: 0, n: 4, needed: 3, passes: false, counts: false, same: false, participant: true };
+  gleich(
+    "folgeZeilen: gesperrtes Gerät",
+    folgeZeilen("vote", { ...vorschau, ended: true, conflict: [] }, { teilnehmer: true }),
+    ["Danach: 0 von 3 nötigen Ja-Stimmen", "Es fehlen noch 3.", "Deine Stimme zählt nicht: Dieses Gerät ist gesperrt."],
+  );
+  gleich(
+    "folgeZeilen: zweites Ja",
+    folgeZeilen("vote", { ...vorschau, ended: false, conflict: [antrag] }, { teilnehmer: true }),
+    ["Danach: 0 von 3 nötigen Ja-Stimmen", "Es fehlen noch 3.", "Deine Stimme zählt nicht: Du hast schon einem anderen Antrag zugestimmt."],
+  );
+  gleich("zustimmungSatz: zwei Anträge", zustimmungSatz("DORA", ["beitrag festlegen", "ort festlegen"]), {
+    satz: "DORA hat zwei Anträgen zugestimmt: „beitrag festlegen“ und „ort festlegen“.",
+    punkte: ["Keine der beiden Zustimmungen zählt.", "DORAs Bürgschaften zählen weiter."],
+  });
+  gleich("zustimmungSatz: drei Anträge", zustimmungSatz("DORA", ["a", "b", "c"]), {
+    satz: "DORA hat drei Anträgen zugestimmt: „a“, „b“ und „c“.",
+    punkte: ["Keine dieser Zustimmungen zählt.", "DORAs Bürgschaften zählen weiter."],
+  });
+  gleich("zustimmungSatz: ein Antrag", zustimmungSatz("DORA", ["ort festlegen"]), {
+    satz: "DORA hat „ort festlegen“ und einem weiteren Antrag zugestimmt.",
+    punkte: ["Die Zustimmung zu „ort festlegen“ zählt nicht.", "DORAs Bürgschaften zählen weiter."],
+  });
+  gleich(
+    "gesperrtSatz",
+    gesperrtSatz("DORA (Zweitgerät)", "beitrag festlegen"),
+    "Eine Stimme von DORA (Zweitgerät) zum Antrag „beitrag festlegen“ zählt nicht: das Gerät ist gesperrt.",
+  );
+  const konfliktAntraege = [{ proposal: antrag, state: "PENDING", changes: beitrag, conflicting: ["01".repeat(32)] }];
+  gleich(
+    "geraeteSatz: zweites Ja statt „zählt einmal“",
+    geraeteSatz("DORA", gruppe([["0a", 1], ["0b", 1]]), leereNamen, konfliktAntraege),
+    { karte: false, satz: null, punkte: [] },
+  );
+  gleich(
+    "geraeteSatz: zweites Ja einer anderen Wurzel",
+    geraeteSatz("DORA", gruppe([["0a", 1], ["0b", 1]]), leereNamen, [{ ...konfliktAntraege[0], conflicting: ["02".repeat(32)] }]),
+    { karte: false, satz: "DORA hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja gestimmt. Das zählt einmal.", punkte: [] },
   );
 
   return results;

@@ -20,6 +20,7 @@ import {
   aenderungen,
   antragTitel,
   antragZitate,
+  aufzaehlung,
   auszaehlungInWorten,
   betrag,
   centAus,
@@ -29,6 +30,7 @@ import {
   ganzeZahl,
   geraeteOben,
   geraeteSatz,
+  gesperrtSatz,
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
@@ -46,6 +48,7 @@ import {
   widerspruchOben,
   widerspruchSatz,
   zeitpunktInWorten,
+  zustimmungSatz,
 } from "./anzeige.js";
 
 
@@ -119,12 +122,6 @@ function liste(texte) {
   const ul = element("ul");
   for (const text of texte) ul.append(element("li", null, text));
   return ul;
-}
-
-function aufzaehlung(namen) {
-  if (namen.length === 0) return "niemand";
-  if (namen.length === 1) return namen[0];
-  return `${namen.slice(0, -1).join(", ")} und ${namen[namen.length - 1]}`;
 }
 
 async function antwortLesen(antwort) {
@@ -290,8 +287,14 @@ async function felderAus(art, kern, kontext) {
     const wahl = wahlWert === 1n ? "yes" : wahlWert === 0n ? "no" : null;
     const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
     const einbringend = antrag ? personImSatz(kontext.namen, antrag.proposers[0]) : null;
+    // Die Titel der Anträge der Seite nach Kennung, für die Warnung vor einem zweiten Ja
+    // (D556 Beschluss 2).
+    const titelVon = Object.fromEntries(
+      kontext.antraege.map((eintrag) => [eintrag.proposal, antragTitel(eintrag.changes, kontext.namen)]),
+    );
     return {
       titel,
+      titelVon,
       zitate,
       name: einbringend ? einbringend.name : null,
       ohneName: einbringend ? einbringend.ohneName : false,
@@ -884,6 +887,26 @@ function geraeteKarten(kontext) {
   return karten;
 }
 
+// Eine Widerspruchskarte je Wurzel, die unter conflicting eines Antrags der Seite steht, mit den
+// Titeln dieser Anträge in ihrer Reihenfolge; sie steht oben (D556 Beschluss 4, 04 §4.4).
+function zustimmungKarten(kontext) {
+  const titelJeWurzel = new Map();
+  for (const antrag of kontext.antraege) {
+    for (const wurzel of antrag.conflicting ?? []) {
+      if (!titelJeWurzel.has(wurzel)) titelJeWurzel.set(wurzel, []);
+      titelJeWurzel.get(wurzel).push(antragTitel(antrag.changes, kontext.namen));
+    }
+  }
+  const karten = [];
+  for (const [wurzel, titel] of titelJeWurzel) {
+    const { satz, punkte } = zustimmungSatz(nameVon(kontext.namen, wurzel), titel);
+    const karte = element("section", "karte widerspruch");
+    karte.append(marke("Widerspruch"), element("div", "satz", satz), liste(punkte));
+    karten.push({ karte, oben: true });
+  }
+  return karten;
+}
+
 // Der Verein in Sätzen, ohne eigene Marke: der Tab nennt den Bereich (D507 Beschluss 2,
 // D492 Beschluss 5, D487 Beschluss 2).
 function vereinGerade(view, kontext) {
@@ -917,10 +940,17 @@ function vereinGerade(view, kontext) {
     saetze.push(`„${antragTitel(antrag.changes, namen)}“ ist angenommen, aber noch nicht festgestellt.`);
   }
   // Stimmen einer Wurzel von mehreren Schlüsseln mit gleicher Wahl und der Satz einer Auflösung
-  // (D542 Beschluss 6, D551 Beschluss 5).
+  // (D542 Beschluss 6, D551 Beschluss 5); ohne Satz, wenn die Wurzel unter conflicting steht
+  // (D556 Beschluss 4).
   for (const gruppe of kontext.geraetestimmen) {
     const { karte, satz } = geraeteSatz(nameVon(namen, gruppe.root), gruppe, namen, antraege);
-    if (!karte) saetze.push(satz);
+    if (!karte && satz !== null) saetze.push(satz);
+  }
+  // Je Stimme eines gesperrten Geräts ein Satz (D556 Beschluss 5).
+  for (const antrag of antraege) {
+    for (const schluessel of antrag.disputed ?? []) {
+      saetze.push(gesperrtSatz(nameVon(namen, schluessel), antragTitel(antrag.changes, namen)));
+    }
   }
   const offeneBeitraege = obligationen.filter((schuld) => schuld.state === "OPEN").length;
   if (offeneBeitraege > 0) {
@@ -1305,8 +1335,13 @@ async function zeichnenInhalt() {
 
   // Ein Widerspruch steht oben, solange über den Antrag abgestimmt wird, sonst im Tab „Im
   // Verein“ unter den Sätzen (D525 Beschluss 2, D507 Beschluss 1); ebenso die Karten der Stimmen
-  // einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6).
-  const widersprueche = [...(await widerspruchKarten(forks, kontext)), ...geraeteKarten(kontext)];
+  // einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6) und die Karten eines zweiten Ja, die
+  // immer oben stehen (D556 Beschluss 4).
+  const widersprueche = [
+    ...(await widerspruchKarten(forks, kontext)),
+    ...geraeteKarten(kontext),
+    ...zustimmungKarten(kontext),
+  ];
   const oben = widersprueche.filter((eintrag) => eintrag.oben).map((eintrag) => eintrag.karte);
   const unten = widersprueche.filter((eintrag) => !eintrag.oben).map((eintrag) => eintrag.karte);
 

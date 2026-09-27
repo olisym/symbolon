@@ -25226,3 +25226,65 @@ der Verfassung der Epoche, wo sie Sachfelder zeigt, und die Warnung `CONFLICTING
 Regel 2 und 3. Sachanträge erscheinen in `tasks_view` (D578 Beschluss 2).
 
 **Geändert.** `07-decisions.md`.
+
+### D580 — O96: Auftrag `p35-seite`, Sachanträge auf der Seite
+
+**Anlass.** D579 Beschluss 3. Gelesen: `symbolon/node/static/anzeige.js` ganz, `app.js` bis auf
+das Zeichnen, der Aufbau von `selbsttest.js`, `symbolon/node/view.py` ab `proposals_view`.
+Prototyp im Supervisor-Klon auf `868d6d8`, danach verworfen.
+
+**Befund 1 — die Seite konnte keinen Sachantrag unterschreiben.** Vor der Unterschrift las
+`neuerAntrag` das Objekt, auf das der Kern zeigt, und erwartete in Feld 2 den Hash einer
+Verfassung. Ein Sachantrag trägt dort eine Map; ohne Titel gab es keinen Satz und nach D492
+Beschluss 1 keine Unterschrift. Ein Satzungsantrag mit `S` wäre gegen die Verfassung der Epoche
+verglichen worden und hätte die Sachfelder als eigene Änderung gezeigt.
+
+**Befund 2 — ein festgestellter Sachantrag blieb ein offener Antrag.** Gefunden beim Fahren des
+Ablaufs über die Schnittstelle, nicht in einem Test (Kandidat aus D518). Ein festgestellter
+Vorschlag verlässt die Liste, weil die Epoche wechselt; ein Sachantrag wechselt sie nicht. Er
+stand danach weiter als „angenommen, aber noch nicht festgestellt“ in `proposals_view`, und
+`tasks_view` bot allen weiter „feststellen“ an. `p35` lässt jeden Sachantrag aus
+`stand.ratified` in beiden weg; er zeigt sich im Stand.
+
+**Beschluss 1 — Olis Wörter.** Bestätigt wie vorgeschlagen, gelesen gegen die Sätze der Seite und
+D575:
+
+- über jeder Antragskarte die Marke „Satzungsantrag“ oder „Sachantrag“; der Satz darunter bleibt
+  „ANNA beantragt: ort festlegen“;
+- im Formular neben Feld und Text die Knöpfe „Als Satzungsantrag …“ und „Als Sachantrag …“ und
+  die Zeile „Ein Sachantrag ändert ein Feld, ohne neue Fassung der Satzung. Niemand muss neu
+  bestätigen.“;
+- im Tab „Im Verein“ „Es gilt die 2. Fassung der Satzung.“, mit angewandten Sachbeschlüssen
+  „Dazu gilt 1 Sachbeschluss.“ oder „Dazu gelten 2 Sachbeschlüsse.“, dann je Textfeld des Stands
+  „Es gilt zu ort: „Halle““;
+- vor der Unterschrift „Du stellst einen Satzungsantrag: X.“ oder „Du stellst einen Sachantrag:
+  X.“;
+- nach dem Feststellen eines Sachantrags „Danach: Der Beschluss gilt. Die Satzung bleibt in der
+  2. Fassung; niemand muss neu bestätigen.“;
+- die Warnung vor einem zweiten Ja bleibt, wie sie ist, auch für Regel 2 und 3.
+
+**Beschluss 2 — der Titel eines neuen Antrags kommt vom Knoten.** `neuerAntrag` liest den Eintrag
+unter dem Hash, auf den der Kern zeigt, aus `GET /antragstitel`; fehlt er, gibt es keinen Satz.
+Das ändert D492 Beschluss 1 und 3, die Objekte über `/objects` zu lesen. Grund: die Änderungen
+eines Satzungsantrags stehen gegen den Stand aus `S`, und den rechnet `apply_motions` an einer
+Stelle in Python; die Seite rechnete ihn sonst ein zweites Mal. Das Vertrauen ändert sich nicht:
+auch `/objects` liefert der eigene Knoten, und die Seite prüfte dort keinen Hash. Was die Seite
+bindet, bleibt der Hash im unterschriebenen Kern.
+
+**Beschluss 3 — eine Stelle für die Änderungen eines Antrags.** `_antrag_aenderungen` in
+`view.py` gibt Art, `S` und Änderungen; `proposals_view`, `antragstitel` und `geraetestimmen`
+lesen sie dort. `antragstitel` und `geraetestimmen` nehmen Sachanträge auf, `AntragsTitel`
+bekommt `kind`. Damit erledigt sich der Posten aus D577 „Weiter ohne Auftrag“.
+
+**Beschluss 4 — Rücknahmeproben, gegen die Testfassung des Auftrags gefahren.** Alle acht rot, jede
+am benannten Fall: Titel nur aus Vorschlägen, Änderungen ohne `S` (auch
+`test_satzungsantrag_baut_auf_dem_stand`), Gerätestimmen nur zu Vorschlägen, festgestellter
+Sachantrag in der Liste, festgestellter Sachantrag als Aufgabe, Satz ohne Art, Folge ohne Art,
+Sachbeschlüsse aus `ratified` statt `applied`. Mit dem Prototyp laufen 1286 Tests grün, der
+Selbsttest mit 231 Fällen.
+
+**Weiter ohne Auftrag.** `verfassungsAenderungen` in `anzeige.js` hat danach keinen Aufrufer mehr in
+`app.js`; seine Fälle im Selbsttest bleiben. Die Abnahme der Seite braucht einen Durchlauf mit
+Oli (D490).
+
+**Geändert.** `07-decisions.md`; der Auftrag liegt in `~/auftraege/p35-seite.md`.

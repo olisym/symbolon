@@ -260,7 +260,7 @@ def _unevaluable(
     )
 
 
-def _resolve(known_proposals: Mapping[bytes, object], h: bytes) -> Proposal | Motion | None:
+def resolve_object(known_proposals: Mapping[bytes, object], h: bytes) -> Proposal | Motion | None:
     """Das Objekt unter ``h``, wenn es unter seinem Domänentrenner auf ``h`` hasht, sonst
     ``None`` (04 §2.5, 04 §4.5)."""
     obj = known_proposals.get(h)
@@ -367,7 +367,7 @@ def decide(
                 epoch=epoch,
                 object_hash=object_hash,
             )
-        s_objects = {h: _resolve(known_proposals, h) for h in s_hashes}
+        s_objects = {h: resolve_object(known_proposals, h) for h in s_hashes}
         unknown = [h for h, obj in s_objects.items() if obj is None]
         if unknown:
             return _unevaluable(
@@ -579,7 +579,7 @@ def decide(
                 continue
             if other.J == (3, object_hash):
                 continue
-            other_obj = _resolve(known_proposals, other.J[1]) if other.J[0] == 3 else None
+            other_obj = resolve_object(known_proposals, other.J[1]) if other.J[0] == 3 else None
             if other_obj is not None:
                 # Die drei Regeln aus 04 §4.4. Ein formwidriger Sachantrag ist mit jedem
                 # vereinbar, ein formwidriges Feld 3 gilt als leeres S.

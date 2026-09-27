@@ -10,7 +10,7 @@ from symbolon.governance.findings import (
     GovernanceFinding,
     dedupe_sort,
 )
-from symbolon.governance.objects import Epoch, Motion, Proposal, motion_list
+from symbolon.governance.objects import Epoch, Motion, Proposal, motion_list, motion_wellformed
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
@@ -83,13 +83,17 @@ def verify_ratification(
     Bei einem Sachantrag entfallen die Bedingungen 6 und 7, und ein tragender Claim stellt ihn
     fest; bei einem Vorschlag verlangt Bedingung 7 jeden Eintrag in ``S`` in
     ``ratified_motions`` (04 §4.1, D567, D569).
+
+    Bei einem formwidrigen Sachantrag liest der Abgleich ``scope`` nicht; der Claim endet über
+    Bedingung 0 mit ``TALLY_UNEVALUABLE`` (04 §4.1, D570 Beschluss 2).
     """
     is_motion = isinstance(proposal, Motion)
     if is_motion and target_constitution_obj is not None:
         raise ValueError("a motion has no target constitution")
     object_hash = proposal.motion_hash if is_motion else proposal.proposal_hash
+    formless = is_motion and not motion_wellformed(proposal)
     if (
-        proposal.scope != epoch.scope
+        (not formless and proposal.scope != epoch.scope)
         or tally.epoch_id != epoch.epoch_id
         or tally.proposal_hash != object_hash
     ):

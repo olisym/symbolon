@@ -25072,3 +25072,25 @@ Registereinträge bleiben, wie sie sind; „Fassung“ in D564 bis D574 meint de
 benutzt, damit der Knoten nur den neuen Namen kennt.
 
 **Geändert.** `04-governance.md`, `04-golden-anchors.md`, `03-profiles.md`, `07-decisions.md`.
+
+### D576 — Schluss der Sitzung 00cs
+
+**Anlass.** Nach D575 steht als Nächstes der Knoten für Sachanträge, mit rund 2000 Zeilen Code zum
+Lesen. Das gehört in eine frische Sitzung.
+
+**Beschluss 1 — Stand.** O96 hat Norm, Golden Anchors und den Code der Governance-Schicht (D567 bis
+D573), die Wörter der Seite sind entschieden (D575). Es fehlen der Knoten und die Seite. 1264 Tests,
+der Selbsttest 222 Fälle, Register D1–D576.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Vektor für eine Ausnahme braucht einen Fall, den die Regel ohne sie träfe (D569);
+der Prototyp fährt `make check` ganz (D572); ein neuer Begriff der Norm wird vorher im ganzen
+Repositorium gesucht (D575). Zur Übernahme vorgeschlagen: grün ist ein Exit-Status (D573); wer einen
+Begriff ausmustert, sucht jede Datei, die ihn trägt (D574). Der Kandidat aus D474 und D526 ist mit
+D572 zum dritten Mal verletzt.
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00ct.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt für `00ct`, den Knoten für Sachanträge mit der Umbenennung aus D575 Beschluss 3;
+`sitzungsstart-00cs.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00ct.md`, `archiv/sitzungsstart-00cs.md`.

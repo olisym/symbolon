@@ -6,15 +6,17 @@ Vektoren ``GV-59`` bis ``GV-89`` aus ``04-golden-anchors.md §10``.
 
 from __future__ import annotations
 
+import hashlib
 import itertools
 
 import pytest
 
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id
+from symbolon.domains import DOM_NUC_PROPOSAL
 from symbolon.governance import decide, verify_ratification
 from symbolon.governance.findings import Finding, GovernanceFinding as GF
-from symbolon.governance.objects import Epoch, Motion, Proposal, apply_motions
+from symbolon.governance.objects import Epoch, Motion, Proposal, apply_motions, motion_list
 from symbolon.governance.tally import TallyState
 from symbolon.policy import constitution_hash
 from tests.helpers import Identity, store_with
@@ -325,3 +327,12 @@ def test_gv87_bis_gv89_stand_in_jeder_reihenfolge(vektor, motions, felder, appli
         stand, done = apply_motions(C1, list(order))
         assert {k: v for k, v in stand.items() if k not in C1} == felder, vektor
         assert list(done) == [m.motion_hash for m in applied], vektor
+
+
+def test_feld_3_null_ist_ein_wert() -> None:
+    """Feld 3 ``null`` fehlt nicht: eigener Hash über die Bytes, formwidrig (04 §2.4, D578)."""
+    null = Proposal(N_D, E1, constitution_hash(C2S), None)
+    data = cbor_canon.encode({0: N_D, 1: E1, 2: constitution_hash(C2S), 3: None})
+    assert null.proposal_hash == hashlib.sha256(DOM_NUC_PROPOSAL + data).digest()
+    assert null.proposal_hash != G0.proposal_hash
+    assert motion_list(null) is None and motion_list(G0) == ()

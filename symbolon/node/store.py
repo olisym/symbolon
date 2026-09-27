@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
-from symbolon.governance.objects import Motion, Proposal
+from symbolon.governance.objects import ABSENT, Motion, Proposal
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_core_predicate
 from symbolon.resolve import resolve_state
@@ -162,7 +162,7 @@ class SqliteStore:
                 scope=fields[0],
                 predecessor=fields[1],
                 constitution_hash=fields[2],
-                motions=obj.get(3),
+                motions=obj.get(3, ABSENT),
             ).proposal_hash
         elif kind is ObjectKind.MOTION:
             digest = Motion(obj).motion_hash
@@ -202,7 +202,7 @@ class SqliteStore:
         for digest, data in self._rows(ObjectKind.PROPOSAL):
             obj = cbor_canon.decode(data)
             found[digest] = Proposal(
-                scope=obj[0], predecessor=obj[1], constitution_hash=obj[2], motions=obj.get(3)
+                scope=obj[0], predecessor=obj[1], constitution_hash=obj[2], motions=obj.get(3, ABSENT)
             )
         return found
 

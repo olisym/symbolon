@@ -6,10 +6,13 @@ Welt aus ``tests/node/test_geraete.py``: Epoche 2, vier Teilnehmer, drei Ja komm
 
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 
 from symbolon import cbor_canon
 from symbolon.atom import signed_bytes
+from symbolon.domains import DOM_NUC_PROPOSAL
 from symbolon.governance.findings import GovernanceFinding
 from symbolon.governance.objects import Motion
 from symbolon.node.api import _Named, _intent_body, _tally_of
@@ -248,3 +251,18 @@ def test_fremder_scope_bricht_die_sicht_nicht(tmp_path) -> None:
     )
     decisions = dict(_sicht(store, world).verein.decisions)
     assert p not in decisions and m not in decisions
+
+
+def test_feld_3_null_wird_unter_seinen_bytes_gespeichert(tmp_path) -> None:
+    """``3: null`` ist ein formwidriges Feld 3, kein fehlendes; der Hash ist der seiner Bytes
+    (04 §2.4, D578)."""
+    world, _geraete, store = _welt(tmp_path)
+    epoche = _sicht(store, world).state.epoch.epoch_id
+    data = cbor_canon.encode(
+        {0: world.ex.N_gov, 1: epoche, 2: world.constitution_hash_3, 3: None}
+    )
+    digest = store.submit_object(ObjectKind.PROPOSAL, data)
+    assert digest == hashlib.sha256(DOM_NUC_PROPOSAL + data).digest()
+    assert store.object_at(digest) == (ObjectKind.PROPOSAL.value, data)
+    assert store.all_proposals()[digest].motions is None
+    assert GovernanceFinding.MALFORMED_PROPOSAL in _vermerke(store, world, digest)

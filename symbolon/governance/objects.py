@@ -28,13 +28,27 @@ def epoch_id(scope: bytes, index: int, constitution_hash: bytes) -> bytes:
     ).digest()
 
 
+class _Absent:
+    """Marke für ein fehlendes Feld 3 eines Vorschlags; ``None`` ist der Wert ``null``
+    (04 §2.4, D578 Beschluss 1)."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "ABSENT"
+
+
+ABSENT = _Absent()
+
+
 def proposal_hash(
-    scope: bytes, predecessor: bytes, constitution_hash: bytes, motions: object = None
+    scope: bytes, predecessor: bytes, constitution_hash: bytes, motions: object = ABSENT
 ) -> bytes:
     """SHA-256(DOM_NUC_PROPOSAL || cbor({0: scope, 1: predecessor, 2: constitution_hash}));
-    Key 3 nur, wenn ``motions`` nicht ``None`` ist (04 §2.4)."""
+    Key 3 genau dann, wenn ``motions`` nicht ``ABSENT`` ist, auch mit ``None`` als ``null``
+    (04 §2.4, D578 Beschluss 1)."""
     obj: dict = {0: scope, 1: predecessor, 2: constitution_hash}
-    if motions is not None:
+    if motions is not ABSENT:
         obj[3] = motions
     return hashlib.sha256(DOM_NUC_PROPOSAL + cbor_canon.encode(obj)).digest()
 
@@ -56,13 +70,14 @@ class Epoch:
 class Proposal:
     """Content-adressiertes Vorschlagsobjekt (04-governance.md §2.4).
 
-    ``motions`` ist Feld 3, wie es kam; ``None`` heisst, das Feld fehlt (D569 Beschluss 2).
+    ``motions`` ist Feld 3, wie es kam; ``ABSENT`` heisst, das Feld fehlt, ``None`` ist der Wert
+    ``null`` (D569 Beschluss 2, D578 Beschluss 1).
     """
 
     scope: bytes
     predecessor: bytes
     constitution_hash: bytes
-    motions: object = None
+    motions: object = ABSENT
 
     @property
     def proposal_hash(self) -> bytes:
@@ -70,10 +85,10 @@ class Proposal:
 
 
 def motion_list(proposal: Proposal) -> tuple[bytes, ...] | None:
-    """Die Liste ``S`` aus Feld 3: ``()`` ohne Feld 3, ``None`` wenn es formwidrig ist
-    (04 §2.4)."""
+    """Die Liste ``S`` aus Feld 3: ``()`` ohne Feld 3, ``None`` wenn es formwidrig ist, auch
+    bei ``null`` (04 §2.4, D578 Beschluss 1)."""
     motions = proposal.motions
-    if motions is None:
+    if motions is ABSENT:
         return ()
     if not isinstance(motions, (list, tuple)) or not motions:
         return None

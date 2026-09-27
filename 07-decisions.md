@@ -25430,3 +25430,65 @@ Knoten über RNS abgleicht, ohne dass ein Dritter die Runde fährt, und das Hind
 oder benennt. Der Zuschnitt in Läufe folgt dem Prototyp.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O97).
+
+### D584 — O97 L1: ein Bote je Knoten holt über Reticulum; der Knoten bleibt ohne Transport
+
+**Anlass.** D583 Beschluss 5: ein Prototyp für L1, zwei Knoten gleichen sich über RNS ab, ohne dass
+ein Dritter die Runde fährt. Gelesen: `symbolon/node/__main__.py`, `serve` und die Routen in
+`symbolon/node/api.py`, `/sim/intent`, `tools/abgleich.py`, `pyproject.toml`, `Makefile`.
+
+**Der Prototyp.** Ein eigener Prozess je Knoten, der Bote, im Klon auf `78e4af9`, mit `rns 1.5.4`.
+Er hält eine RNS-Destination mit drei Request-Handlern, `bestand`, `claim` und `object`; jeder
+reicht die Anfrage an `GET /peer/...` seines Knotens weiter. Alle zwei Sekunden fragt er den
+Nachbarn über einen Link nach dessen Bestand, holt, was seinem Knoten fehlt, Objekte vor Claims, und
+liefert es über `POST /peer/objects` und `POST /peer/claims` an seinen Knoten. Er holt nur, er
+schiebt nie. Der Knoten ist unverändert.
+
+**Gemessen.** Zwei Knoten aus `tools.verein_node` mit `--uhr-ab 1000`, zwei Boten mit je eigener
+RNS-Instanz über TCP auf `127.0.0.1`, Fingerabdruck über `GET /stand`:
+
+- Eine Bürgschaft über `/sim/intent` an A: nach sechs Sekunden trägt B denselben Stand.
+- B getrennt (`POST /getrennt`), eine Bürgschaft an A: A und B weichen ab; B wieder verbunden: nach
+  sechs Sekunden gleicher Stand. Der Schalter aus D516 Beschluss 3 wirkt unverändert, weil der Bote
+  nur über `/peer/` geht: der getrennte Knoten gibt nichts und holt nichts.
+- Je eine Bürgschaft an A und an B zugleich: nach sieben Sekunden gleicher Stand, beide Boten melden
+  je einen geholten Claim, kein Traceback.
+
+**Beschluss 1 — der Bote ist ein eigener Prozess.** Das Hindernis aus D516 ist damit umgangen, nicht
+gelöst: der Knoten fragt nie, er antwortet nur, und wer auf einen Nachbarn wartet, ist der Bote, dem
+kein Server gehört. Verworfen:
+
+- **Ein Faden im Knoten mit einer Sperre um den Bestand.** Braucht eine zweite SQLite-Verbindung und
+  Sperren in jeder Route; die Callbacks von RNS kämen dazu.
+- **Ein Faden, dem der Bestand gehört, mit einer Warteschlange.** Baut `serve` um, ohne dass eine
+  Norm es verlangt.
+
+Der Knoten bleibt ohne Transport, wie das Atom nach A1 (`01 §1`). Das ändert Stufe 2 aus D583
+Beschluss 2: nicht der Knoten gleicht selbst ab, sondern sein Bote; L1 ist damit entschieden.
+
+**Beschluss 2 — holen, nicht schieben.** Ein Bestand ändert sich durch das Netz nur über den eigenen
+Boten. Ein Nachbar kann nichts einliefern; was er anbietet, holt der Bote oder nicht. Das schliesst
+L8 nicht, verschiebt es aber dorthin, wo der Knoten entscheidet. Zwei Knoten gleichen sich nur ab,
+wenn beide Boten laufen.
+
+**Beschluss 3 — über Reticulum gehen Bytes, kein JSON.** Der Prototyp reichte JSON mit Hex durch;
+das verdoppelt jeden Claim. Die Anfragen und Antworten über RNS sind CBOR (`01`): der Bestand eine
+Liste der `claim_id` und eine der Objekt-Hashes, je Byte-String zu 32 Byte; ein Claim seine
+signierten Bytes; ein Objekt Art und Bytes. Ein getrennter oder fehlender Eintrag antwortet mit
+einem eigenen Wert, den der Auftrag festlegt. Grund: L4.
+
+**Beschluss 4 — der Zuschnitt.** Ein Paket `symbolon/bote/`, Start mit `python -m symbolon.bote`.
+Der Kern holt transportfrei zwischen „mein Knoten“ und „ein Nachbar“; die Bindung an RNS steht in
+einem eigenen Modul. `rns` kommt als eigener Zusatz in `pyproject.toml` und in `dev`, damit
+`make check` die Bindung einmal über TCP auf `127.0.0.1` fährt. Vorbild ist der Selbsttest, der
+Node verlangt (D555); ein übersprungener Test wäre ein stilles Grün. Zwei Läufe:
+
+- `p36-bote`: das Paket, der Kern gegen einen Nachbarn im Speicher und gegen zwei Knoten über HTTP,
+  die Bindung an RNS mit einem Test über zwei Instanzen.
+- `p37-lab`: ein Befehl startet mehrere Knoten mit Boten, dazu das Schaltpult. Was die Seite dabei
+  zeigt, entscheidet Oli vorher.
+
+Die Nachbarn nennt der Bote in `p36` als Adressen beim Start; die Entdeckung über Announces (L2)
+bleibt offen.
+
+**Geändert.** `07-decisions.md`.

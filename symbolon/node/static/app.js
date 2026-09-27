@@ -183,6 +183,14 @@ function meldungKnoten() {
   return node;
 }
 
+// Die Meldung an der Stelle der bisherigen, ohne neu zu zeichnen; nur ohne eine solche Stelle wird
+// neu gezeichnet (D562 Beschluss 1).
+async function meldungZeigen() {
+  const bisher = document.querySelector("#meldung");
+  if (bisher) bisher.replaceWith(meldungKnoten());
+  else await zeichnen();
+}
+
 // Jeder Knopf, jede Auswahl und jedes Feld der Seite außer denen der offenen Frage
 // (D487 Beschluss 1).
 function interaktiveElemente() {
@@ -543,9 +551,7 @@ function handelnFabrik(record, kontext) {
     if (danach === "zeichnen") {
       await zeichnen();
     } else if (danach === "melden") {
-      const bisher = document.querySelector("#meldung");
-      if (bisher) bisher.replaceWith(meldungKnoten());
-      else await zeichnen();
+      await meldungZeigen();
     }
   };
 }
@@ -656,7 +662,7 @@ function anlegenFormular() {
           const gewaehlt = field.value.trim();
           if (!gewaehlt) {
             meldung("Ein Name fehlt.");
-            await zeichnen();
+            await meldungZeigen();
             return;
           }
           const pub = await schluesselAnlegen(crypto.subtle);
@@ -743,14 +749,17 @@ function namenAufgabe(identitaet) {
           const gewaehlt = field.value.trim();
           if (!gewaehlt) {
             meldung("Ein Name fehlt.");
-          } else {
-            try {
-              await senden("/names", { I: identitaet, name: gewaehlt });
-              meldung(`Dein Name ${gewaehlt} ist eingetragen.`, true);
-            } catch (error) {
-              meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
-            }
+            await meldungZeigen();
+            return;
           }
+          try {
+            await senden("/names", { I: identitaet, name: gewaehlt });
+          } catch (error) {
+            meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+            await meldungZeigen();
+            return;
+          }
+          meldung(`Dein Name ${gewaehlt} ist eingetragen.`, true);
           await zeichnen();
         },
         "haupt",
@@ -1164,7 +1173,7 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
         const dauer = ganzeZahl(tage.value);
         if (punkte === null || dauer === null) {
           meldung("Punkte und Tage gehen nur in ganzen Zahlen.");
-          await zeichnen();
+          await meldungZeigen();
           return;
         }
         await handeln("vouch", {
@@ -1213,7 +1222,7 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
         const cent = centAus(euro.value);
         if (cent === null) {
           meldung("Der Betrag geht nur in Euro mit höchstens zwei Stellen nach dem Komma.");
-          await zeichnen();
+          await meldungZeigen();
           return;
         }
         await handeln("obligation", {

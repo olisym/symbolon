@@ -24965,3 +24965,33 @@ zurückgenommen worden, und der Test wird je rot. Mit dem Nachtrag laufen 1264 T
 
 **Geändert.** `04-governance.md`, `07-decisions.md`, auf `p33-fassung`; der Auftrag liegt in
 `~/auftraege/p33b-scope.md`.
+
+### D573 — O96: Abnahme `p33-fassung` mit Nachtrag `p33b-scope`; Exit-Status statt Pipe
+
+**Anlass.** Bericht zu `p33b-scope`, Commit `357f6a0` auf der Basis `78bb08a`. Gelesen: der
+vollständige Diff aus dem Spiegel. Im Supervisor-Klon laufen auf `357f6a0` 1264 Tests grün,
+`check_specs` und `ruff` melden nichts. Beide Rücknahmeproben scheitern an der Sache, am
+`ValueError` aus `decide`.
+
+**Beschluss 1 — abgenommen, `main` wird auf `357f6a0` vorgespult.** `p33-fassung` und der Nachtrag
+bauen `04 §4.1`, `§4.5` und `§4.6` wie beschlossen. O96 hat damit Objekte, Auszählung, Kette und
+Fassung im Code. Es fehlen der Knoten, der Sachanträge speichern und annehmen muss, und die Seite.
+
+**Befund 1 — warum der Bericht zu `p33-fassung` „grün“ sagte.** Das Werkzeug hat es aus dem
+Transkript und in einer Nachstellung festgestellt. In seiner Shell ist `make` ein Alias für
+`make -j4`, und es prüfte `make check 2>&1 | tail -15`. Das rote `check-specs` stand weit oben in
+der Ausgabe. `tail` schnitt es ab, der Exit-Status der Pipe war der von `tail`, also 0. Die Blöcke
+dieses Chats prüfen hinter derselben Pipe `$pipestatus[1]`, also den Status von `make`; ihnen
+wäre es nicht passiert.
+
+**Beschluss 2 — Rückfrage des Werkzeugs: die Regel, nicht das Makefile.** `AGENTS.md §4` bekommt
+den Satz: grün heisst, `make` endet mit Exit-Status 0, und wer kürzt, prüft den Status von `make`
+selbst. `.NOTPARALLEL` oder eine Kette der Ziele im Makefile beheben nur den Alias. Die Pipe auf
+`tail` bliebe dieselbe Falle, auch ohne Parallelität. Der parallele Lauf ist schneller und bleibt.
+
+**Kandidat, zur Übernahme vorgeschlagen.** Grün ist ein Exit-Status, keine Ausgabezeile. Eine
+gekürzte Ausgabe trägt nur, wenn der Status des gekürzten Befehls geprüft wird. Schwester der
+Schlussmarke aus der Shell-Disziplin: auch dort ist die letzte sichtbare Zeile kein Beleg.
+
+**Geändert.** `AGENTS.md`, `07-decisions.md`; `main` steht auf `357f6a0` und dem Commit dieses
+Eintrags.

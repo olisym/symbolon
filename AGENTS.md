@@ -38,6 +38,10 @@ trägt Verfahren, keine Norm und keinen Auftrag.
 
 - Vor dem Commit läuft `make check` und ist grün. Tests laufen als `python -m pytest -q` im
   Projekt-Interpreter, nie als bares `pytest`.
+- **Grün heisst: `make` endet mit Exit-Status 0.** Eine Pipe auf `tail` meldet den Status von
+  `tail`. Wer die Ausgabe kürzt, prüft den Status von `make` selbst (`set -o pipefail` oder
+  `${PIPESTATUS[0]}`). `make` kann ein Alias mit `-j` sein; dann laufen die übrigen Ziele nach
+  einem roten weiter, und dessen Meldung steht weit oben in der Ausgabe (D573).
 - `git add` mit expliziten Pfaden, nie `-A`. Neue Dateien werden vor `make check` hinzugefügt.
 - In Markdown-Dateien: Prosa bricht bei 100 Zeichen, Umlaute ausgeschrieben, keine Escapes, Bytes
   als `h'ff'`.

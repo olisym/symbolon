@@ -25172,3 +25172,37 @@ alle 1281 Tests grün, 1264 bisherige und 17 neue; `make check` endet mit Status
 einen Sachantrag erscheint dort nicht. Die Seite entscheidet, ob sie das braucht.
 
 **Geändert.** `07-decisions.md`; der Auftrag liegt in `~/auftraege/p34-knoten.md`.
+
+### D578 — O96: Abnahme `p34-knoten`, Nachtrag zu Feld 3 mit `null`
+
+**Anlass.** Bericht zu `p34-knoten`, Commit `ed1da01` auf `81d6a8b`. Diff im Spiegel ganz
+gelesen; die Testdatei ist wörtlich die des Auftrags, die Umbenennung in `tests/governance` ist
+rein.
+
+**Befund 1 — Feld 3 mit `null` fehlte nicht, es war ein Wert.** Aus der Rückfrage des Werkzeugs.
+`Proposal.motions = None` hiess nach D569 Beschluss 2 „Feld 3 fehlt“. Ein Vorschlag
+`{0, 1, 2, 3: null}` ist kanonisch und hat erlaubte Schlüssel. Der Speicher las `obj.get(3)`,
+also `None`, und legte das Objekt unter dem Hash des Vorschlags ohne Feld 3 ab, nicht unter dem
+Hash seiner Bytes. Nach `04 §2.4` ist `null` keine Liste und Feld 3 formwidrig; der Knoten machte
+daraus einen wohlgeformten Vorschlag und aus dem richtigen Hash ein unbekanntes Objekt, genau die
+Verwechslung, die D577 Beschluss 2 ausschliessen wollte. Der Fehler liegt in `objects.py` seit
+D569, sichtbar wurde er erst, als der Speicher Feld 3 annahm. Mein Auftrag schrieb „wie es kam“
+und prüfte nicht, ob die Marke für „fehlt“ selbst ein Wert des Formats ist. Kandidat: wer eine
+Lücke mit einem Wert kodiert, prüft, ob dieser Wert im Format vorkommen kann.
+
+**Beschluss 1 — eine eigene Marke für „fehlt“.** `symbolon/governance/objects.py` bekommt
+`ABSENT`; `Proposal.motions` und `proposal_hash` haben sie als Vorgabe, `None` ist der Wert
+`null`. `motion_list` gibt für `ABSENT` die leere Liste und für `None`, wie für jeden Wert, der
+keine Liste ist, die Formwidrigkeit. Der Speicher liest `obj.get(3, ABSENT)`. Kein bisheriger
+Hash ändert sich; die Golden Anchors bleiben.
+
+**Beschluss 2 — die übrigen Meldungen.** Ohne Stand weist `_motion` mit `INVALID_CHANGE` ab wie
+`_change` (Meldung 2), angenommen. Sachanträge erscheinen in `tasks_view` als `VOTE` und `RATIFY`
+(Meldung 4); das ist gewollt, die Seite muss es bei der Beschriftung wissen.
+
+**Beschluss 3 — Rücknahmeprobe an der Quelle.** `proposal_hash` behandelt `None` wieder wie
+`ABSENT`: beide neuen Tests werden rot. Die Probe am Speicher (`obj.get(3)` ohne Vorgabe) taugt
+nicht: sie bricht jeden Vorschlag ohne Feld 3 und lässt den neuen Knotentest grün, weil dann
+`null` zufällig richtig gelesen wird. Mit dem Prototyp laufen 1283 Tests grün.
+
+**Geändert.** `07-decisions.md`; der Nachtrag liegt in `~/auftraege/p34b-null.md`.

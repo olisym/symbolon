@@ -17,7 +17,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
-from symbolon.governance.objects import Proposal
+from symbolon.governance.objects import RULE_FIELDS, Proposal
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
@@ -186,19 +186,9 @@ def _submit(store: SqliteStore, core: bytes, sigma: bytes) -> bytes:
     return claim_id(claim)
 
 
-# Schlüssel der Verfassungstabellen, die set abweist (D479 Beschluss 3).
-# irrevocable_predicates, thresholds, arbitration, enforcement_policy, nucleus_keys: 00 §5.
-# participants, thresholds: 04 §1.1.
-_RESERVED = frozenset(
-    {
-        "irrevocable_predicates",
-        "thresholds",
-        "arbitration",
-        "enforcement_policy",
-        "nucleus_keys",
-        "participants",
-    }
-)
+# Schlüssel der Verfassungstabellen, die set abweist: die Regelfelder (D479 Beschluss 3,
+# 04 §1.1, D569 Beschluss 2).
+_RESERVED = RULE_FIELDS
 
 _ARTS = frozenset(
     {

@@ -15,7 +15,15 @@ from symbolon.governance.findings import (
     GovernanceFinding,
     dedupe_sort,
 )
-from symbolon.governance.objects import Epoch, Proposal
+from symbolon.governance.objects import (
+    Epoch,
+    Motion,
+    Proposal,
+    apply_motions,
+    motion_list,
+    motion_wellformed,
+    preconditions,
+)
 from symbolon.index import classify_all
 from symbolon.policy import NucleusPolicy, constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
@@ -236,10 +244,9 @@ def _is_ratio(value: object) -> bool:
 
 def _unevaluable(
     kind: GovernanceFinding,
-    subject: bytes,
-    *,
+    *subjects: bytes,
     epoch: Epoch,
-    proposal: Proposal,
+    object_hash: bytes,
 ) -> TallyResult:
     return TallyResult(
         state=TallyState.UNEVALUABLE,
@@ -247,10 +254,21 @@ def _unevaluable(
         no=(),
         participants=None,
         threshold=None,
-        findings=dedupe_sort([Finding(kind=kind, subject=subject)]),
+        findings=dedupe_sort([Finding(kind=kind, subject=subject) for subject in subjects]),
         epoch_id=epoch.epoch_id,
-        proposal_hash=proposal.proposal_hash,
+        proposal_hash=object_hash,
     )
+
+
+def _resolve(known_proposals: Mapping[bytes, object], h: bytes) -> Proposal | Motion | None:
+    """Das Objekt unter ``h``, wenn es unter seinem Domänentrenner auf ``h`` hasht, sonst
+    ``None`` (04 §2.5, 04 §4.5)."""
+    obj = known_proposals.get(h)
+    if isinstance(obj, Proposal) and obj.proposal_hash == h:
+        return obj
+    if isinstance(obj, Motion) and obj.motion_hash == h:
+        return obj
+    return None
 
 
 def constitution_governable(obj: dict) -> GovernanceFinding | None:
@@ -271,21 +289,40 @@ def decide(
     store: ClaimStore,
     *,
     epoch: Epoch,
-    proposal: Proposal,
+    proposal: Proposal | Motion,
     genesis_obj: dict,
     constitution_obj: dict | None,
     target_constitution_obj: dict | None,
-    known_proposals: Mapping[bytes, Proposal],
+    known_proposals: Mapping[bytes, Proposal | Motion],
     now: int,
     policy: NucleusPolicy | None = None,
 ) -> TallyResult:
-    """Zählt Stimmen einer Epoche gegen einen Vorschlag (04-governance.md §3, D112, D145, D274, D275, D276).
+    """Zählt Stimmen einer Epoche gegen einen Vorschlag oder Sachantrag (04-governance.md §3,
+    D112, D145, D274, D275, D276, D567).
 
     Mitgliedsprüfung, Zusammenfassung, ``CONFLICTING_APPROVAL`` und Zählung laufen je Wurzel
     nach 02 §2.1; eine bestrittene Stimme fällt vor der Zusammenfassung heraus (04 §3.1, 04 §4.4).
     Vor der Zusammenfassung fällt je Wurzel jede Stimme heraus, die eine andere nennt; ein
     formwidriger Key 1 zählt, als fehlte er (04 §3.1, D547, D548 Beschluss 3 und 4).
+
+    Ein Sachantrag hat kein Zielobjekt, seine Form steht vor dem Scope, seine Klasse ist
+    ``ordinary`` in der Verfassung der Epoche; die Klasse eines Vorschlags misst die Fassung aus
+    der Verfassung der Epoche und ``S`` (04 §3.4, 04 §3.5).
     """
+    is_motion = isinstance(proposal, Motion)
+    if is_motion:
+        if target_constitution_obj is not None:
+            raise ValueError("a motion has no target constitution")
+        object_hash = proposal.motion_hash
+        if not motion_wellformed(proposal):
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_MOTION,
+                object_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+    else:
+        object_hash = proposal.proposal_hash
     if proposal.scope != epoch.scope:
         raise ValueError("proposal scope does not match epoch scope")
     if (
@@ -296,34 +333,93 @@ def decide(
     if proposal.predecessor != epoch.epoch_id:
         return _unevaluable(
             GovernanceFinding.STALE_EPOCH_VOTE,
-            proposal.proposal_hash,
+            object_hash,
             epoch=epoch,
-            proposal=proposal,
+            object_hash=object_hash,
         )
+    s_hashes: tuple[bytes, ...] = ()
+    if not is_motion:
+        listed = motion_list(proposal)
+        if listed is None:
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_PROPOSAL,
+                object_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        s_hashes = listed
     if constitution_obj is None or constitution_hash(constitution_obj) != epoch.constitution_hash:
         return _unevaluable(
             GovernanceFinding.CONSTITUTION_UNAVAILABLE,
             epoch.constitution_hash,
             epoch=epoch,
-            proposal=proposal,
+            object_hash=object_hash,
         )
-    if (
-        target_constitution_obj is None
-        or constitution_hash(target_constitution_obj) != proposal.constitution_hash
-    ):
-        return _unevaluable(
-            GovernanceFinding.PROPOSAL_CONSTITUTION_UNAVAILABLE,
-            proposal.constitution_hash,
-            epoch=epoch,
-            proposal=proposal,
-        )
+    s_motions: list[Motion] = []
+    if not is_motion:
+        if (
+            target_constitution_obj is None
+            or constitution_hash(target_constitution_obj) != proposal.constitution_hash
+        ):
+            return _unevaluable(
+                GovernanceFinding.PROPOSAL_CONSTITUTION_UNAVAILABLE,
+                proposal.constitution_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        s_objects = {h: _resolve(known_proposals, h) for h in s_hashes}
+        unknown = [h for h, obj in s_objects.items() if obj is None]
+        if unknown:
+            return _unevaluable(
+                GovernanceFinding.MOTION_UNAVAILABLE,
+                *unknown,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        if any(isinstance(obj, Proposal) for obj in s_objects.values()):
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_PROPOSAL,
+                object_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        s_motions = list(s_objects.values())
+        malformed = [m.motion_hash for m in s_motions if not motion_wellformed(m)]
+        if malformed:
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_MOTION,
+                *malformed,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        if any(
+            m.scope != proposal.scope or m.predecessor != proposal.predecessor
+            for m in s_motions
+        ):
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_PROPOSAL,
+                object_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        seen: set[tuple[str, bytes]] = set()
+        for m in s_motions:
+            pre = preconditions(m)
+            if pre & seen:
+                return _unevaluable(
+                    GovernanceFinding.MALFORMED_PROPOSAL,
+                    object_hash,
+                    epoch=epoch,
+                    object_hash=object_hash,
+                )
+            seen |= pre
     kind = constitution_governable(constitution_obj)
     if kind is not None:
         return _unevaluable(
             kind,
             epoch.constitution_hash,
             epoch=epoch,
-            proposal=proposal,
+            object_hash=object_hash,
         )
     weight_mode = genesis_obj.get(6)
     if type(weight_mode) is not int or weight_mode != 0:
@@ -331,7 +427,7 @@ def decide(
             GovernanceFinding.UNSUPPORTED_WEIGHT_MODE,
             epoch.scope,
             epoch=epoch,
-            proposal=proposal,
+            object_hash=object_hash,
         )
     idx = genesis_obj.get(5)
     if type(idx) is not int or idx not in _CLASS_BY_INDEX:
@@ -339,29 +435,37 @@ def decide(
             GovernanceFinding.MALFORMED_THRESHOLD,
             epoch.scope,
             epoch=epoch,
-            proposal=proposal,
+            object_hash=object_hash,
         )
-    klass = threshold_class(constitution_obj, target_constitution_obj, genesis_obj)
-    for obj, obj_hash in (
-        (constitution_obj, epoch.constitution_hash),
-        (target_constitution_obj, proposal.constitution_hash),
-    ):
+    if is_motion:
+        klass = "ordinary"
+        checked = ((constitution_obj, epoch.constitution_hash),)
+        target_obj = constitution_obj
+    else:
+        fassung, _applied = apply_motions(constitution_obj, s_motions)
+        klass = threshold_class(fassung, target_constitution_obj, genesis_obj)
+        checked = (
+            (constitution_obj, epoch.constitution_hash),
+            (target_constitution_obj, proposal.constitution_hash),
+        )
+        target_obj = target_constitution_obj
+    for obj, obj_hash in checked:
         thresholds = obj.get("thresholds")
         if not isinstance(thresholds, dict) or klass not in thresholds:
             return _unevaluable(
                 GovernanceFinding.MALFORMED_THRESHOLD,
                 obj_hash,
                 epoch=epoch,
-                proposal=proposal,
+                object_hash=object_hash,
             )
         if not _is_ratio(thresholds[klass]):
             return _unevaluable(
                 GovernanceFinding.MALFORMED_THRESHOLD,
                 obj_hash,
                 epoch=epoch,
-                proposal=proposal,
+                object_hash=object_hash,
             )
-    threshold = applied_threshold(constitution_obj, target_constitution_obj, klass)
+    threshold = applied_threshold(constitution_obj, target_obj, klass)
     participants = frozenset(constitution_obj["participants"])
     by_cid = classify_all(store, now, policy)
     attr = attribution(store, by_cid, epoch.scope)
@@ -393,7 +497,7 @@ def decide(
     candidates: list[Claim] = []
     for vote in votes:
         cid = claim_id(vote)
-        on_this = vote.J == (3, proposal.proposal_hash)
+        on_this = vote.J == (3, object_hash)
         if not on_this:
             continue
         if vote.N != epoch.scope:
@@ -442,6 +546,7 @@ def decide(
         else:
             counting.extend(group)
 
+    own_preconditions = preconditions(proposal) if is_motion else frozenset()
     excluded: set[bytes] = set()
     for vote in counting:
         if not _is_yes_choice(_choice(vote)):
@@ -472,26 +577,40 @@ def decide(
                 continue
             if not _is_yes_choice(None if obj is None else obj.get(0)):
                 continue
-            if other.J == (3, proposal.proposal_hash):
+            if other.J == (3, object_hash):
                 continue
-            if other.J[0] == 3 and other.J[1] in known_proposals:
-                other_prop = known_proposals[other.J[1]]
-                if other_prop.proposal_hash == other.J[1]:
-                    if other_prop.predecessor == epoch.epoch_id:
-                        findings.append(
-                            Finding(
-                                kind=GovernanceFinding.CONFLICTING_APPROVAL,
-                                subject=claim_id(vote),
-                            )
-                        )
-                        findings.append(
-                            Finding(
-                                kind=GovernanceFinding.CONFLICTING_APPROVAL,
-                                subject=other_cid,
-                            )
-                        )
-                        excluded.add(author)
+            other_obj = _resolve(known_proposals, other.J[1]) if other.J[0] == 3 else None
+            if other_obj is not None:
+                # Die drei Regeln aus 04 §4.4. Ein formwidriger Sachantrag ist mit jedem
+                # vereinbar, ein formwidriges Feld 3 gilt als leeres S.
+                if isinstance(other_obj, Motion) and not motion_wellformed(other_obj):
                     continue
+                if other_obj.predecessor != epoch.epoch_id:
+                    continue
+                if isinstance(other_obj, Proposal):
+                    if is_motion:
+                        conflict = object_hash not in (motion_list(other_obj) or ())
+                    else:
+                        conflict = True
+                elif is_motion:
+                    conflict = bool(own_preconditions & preconditions(other_obj))
+                else:
+                    conflict = other_obj.motion_hash not in s_hashes
+                if conflict:
+                    findings.append(
+                        Finding(
+                            kind=GovernanceFinding.CONFLICTING_APPROVAL,
+                            subject=claim_id(vote),
+                        )
+                    )
+                    findings.append(
+                        Finding(
+                            kind=GovernanceFinding.CONFLICTING_APPROVAL,
+                            subject=other_cid,
+                        )
+                    )
+                    excluded.add(author)
+                continue
             findings.append(
                 Finding(kind=GovernanceFinding.UNKNOWN_PROPOSAL, subject=other_cid)
             )
@@ -529,5 +648,5 @@ def decide(
         threshold=threshold,
         findings=dedupe_sort(findings),
         epoch_id=epoch.epoch_id,
-        proposal_hash=proposal.proposal_hash,
+        proposal_hash=object_hash,
     )

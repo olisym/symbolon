@@ -10,7 +10,7 @@ from symbolon.governance.findings import (
     GovernanceFinding,
     dedupe_sort,
 )
-from symbolon.governance.objects import Epoch, Proposal
+from symbolon.governance.objects import Epoch, Motion, Proposal, motion_list
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
@@ -32,6 +32,7 @@ class RatificationResult:
 
     next_epoch: Epoch | None
     findings: tuple[Finding, ...]
+    ratified_motion: bytes | None = None
 
 
 def _cited(ratify: Claim) -> tuple[list[object] | None, GovernanceFinding | None]:
@@ -69,20 +70,28 @@ def verify_ratification(
     *,
     ratify: Claim,
     epoch: Epoch,
-    proposal: Proposal,
+    proposal: Proposal | Motion,
     tally: TallyResult,
     target_constitution_obj: dict | None,
     now: int,
     policy: NucleusPolicy | None = None,
+    ratified_motions: frozenset[bytes] = frozenset(),
 ) -> RatificationResult:
     """Prüft ein ``ratify@1`` gegen eine Auszählung (04 §4.1, D106, D109, D112, D200, D203, D275, D276, D432).
 
     Feststeller und Zeugen je Wurzel nach 02 §2.1 (04 §4.1 Bedingungen 1, 4 und 5).
+    Bei einem Sachantrag entfallen die Bedingungen 6 und 7, und ein tragender Claim stellt ihn
+    fest; bei einem Vorschlag verlangt Bedingung 7 jeden Eintrag in ``S`` in
+    ``ratified_motions`` (04 §4.1, D567, D569).
     """
+    is_motion = isinstance(proposal, Motion)
+    if is_motion and target_constitution_obj is not None:
+        raise ValueError("a motion has no target constitution")
+    object_hash = proposal.motion_hash if is_motion else proposal.proposal_hash
     if (
         proposal.scope != epoch.scope
         or tally.epoch_id != epoch.epoch_id
-        or tally.proposal_hash != proposal.proposal_hash
+        or tally.proposal_hash != object_hash
     ):
         raise ValueError("tally does not match epoch and proposal")
     if tally.state is TallyState.UNEVALUABLE:
@@ -111,13 +120,13 @@ def verify_ratification(
                 ]
             ),
         )
-    if (
+    if not is_motion and (
         target_constitution_obj is None
         or constitution_hash(target_constitution_obj) != proposal.constitution_hash
     ):
         raise ValueError("target_constitution_obj does not match proposal")
     participants = tally.participants
-    if ratify.N != epoch.scope or ratify.J != (3, proposal.proposal_hash):
+    if ratify.N != epoch.scope or ratify.J != (3, object_hash):
         return _unsupported(ratify, tally)
     if not is_nuc_name(ratify, "ratify"):
         return _unsupported(ratify, tally)
@@ -183,6 +192,8 @@ def verify_ratification(
     num, den = tally.threshold
     if not reached(len(set(roots)), tally.n, num, den):
         return _unsupported(ratify, tally)
+    if is_motion:
+        return RatificationResult(next_epoch=None, findings=(), ratified_motion=object_hash)
     kind = constitution_governable(target_constitution_obj)
     if kind is not None:
         return RatificationResult(
@@ -190,6 +201,20 @@ def verify_ratification(
             findings=dedupe_sort(
                 [
                     Finding(kind=kind, subject=proposal.constitution_hash),
+                    *tally.findings,
+                ]
+            ),
+        )
+    unratified = [h for h in motion_list(proposal) or () if h not in ratified_motions]
+    if unratified:
+        return RatificationResult(
+            next_epoch=None,
+            findings=dedupe_sort(
+                [
+                    *(
+                        Finding(kind=GovernanceFinding.MOTION_UNRATIFIED, subject=h)
+                        for h in unratified
+                    ),
                     *tally.findings,
                 ]
             ),

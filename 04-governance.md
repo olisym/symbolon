@@ -93,11 +93,11 @@ keinen Widerspruch.
 Für die Dauer einer Epoche stehen fest: `P`, alle Schwellen, `irrevocable_predicates`, die
 Arbitratorenliste, also alle Regelfelder. Eine Auszählung in Epoche `i` rechnet ausschließlich gegen
 die Verfassung, mit der `i` beginnt; weil ein Sachantrag kein Regelfeld ändert, ist das dieselbe
-Rechnung wie gegen jede Fassung von `i`. Sachfelder ändern sich innerhalb der Epoche durch
+Rechnung wie gegen jeden Stand von `i`. Sachfelder ändern sich innerhalb der Epoche durch
 festgestellte Sachanträge, ohne eine neue Epoche zu etablieren (`§4.6`, D565).
 
 **Getragene Grenze.** Wer nach der Ratifizierung einer Epoche aufgenommen wird, stimmt erst in der
-folgenden Epoche mit. Die Epochenverfassung ist ein Stand, kein Livewert.
+folgenden Epoche mit. Die Epochenverfassung ist fest, kein Livewert.
 
 ---
 
@@ -225,10 +225,10 @@ motion_hash = SHA-256( DOM_NUC_MOTION || cbor_deterministic(motion) )
 Ein Sachantrag ändert Sachfelder der Epoche, in der er gestellt wird, ohne eine neue Epoche zu
 etablieren. `alt` und `neu` sind je `[]` für „das Feld fehlt“ oder `[w]` für den Wert `w`; so bleibt
 ein fehlendes Feld von einem Feld mit dem Wert `null` unterscheidbar. `alt` ist die
-**Vorbedingung**: ein Sachantrag wirkt nur auf einen Stand, in dem jedes seiner Felder diesen Wert
-hat (`§4.6`). Eine **Vorbedingung** im Sinn von `§4.4` ist ein Paar aus Feldname und `alt`; ein
-Sachantrag mit drei Feldern führt drei. Zusammengehöriges bündelt die Antragstellerin in einem
-Sachantrag; er wirkt ganz oder gar nicht (D558).
+**Vorbedingung**: ein Sachantrag wirkt nur dort, wo jedes seiner Felder diesen Wert hat (`§4.6`).
+Eine **Vorbedingung** im Sinn von `§4.4` ist ein Paar aus Feldname und `alt`; ein Sachantrag mit
+drei Feldern führt drei. Zusammengehöriges bündelt die Antragstellerin in einem Sachantrag; er wirkt
+ganz oder gar nicht (D558).
 
 **Gleichheit von Werten.** Zwei Werte sind gleich, wenn ihre deterministische Kodierung byte-gleich
 ist. Die Gleichheit einer Programmiersprache gilt nicht: `1`, `1.0` und `true` sind drei
@@ -421,12 +421,12 @@ abgeleitet, nicht vom Vorschlagenden gewählt:
 | ein Vorschlag, Unterschied ausschließlich in `participants` | `membership` |
 | ein Vorschlag, alles andere | `amendment` (Index aus `genesis[5]`) |
 
-**Die alte Verfassung eines Vorschlags ist die Fassung aus der Verfassung der Epoche und `S`**
+**Die alte Verfassung eines Vorschlags ist der Stand aus der Verfassung der Epoche und `S`**
 (D567): die Verfassung, mit der die Epoche beginnt, nach Anwendung der Sachanträge in `S` wie in
 `§4.6`. Gemessen an der Verfassung, mit der die Epoche beginnt, wäre jede Aufnahme nach einem
 Sachbeschluss eine Änderung der Klasse `amendment`, denn die neue Verfassung trüge den Sachbeschluss
-und die alte nicht. Trägt der Vorschlag, ist diese Fassung die, mit der die Epoche endet (`§4.4`,
-B5); vorher ist sie die, die er voraussetzt. Ohne `S` ist sie die Verfassung der Epoche, wie bisher.
+und die alte nicht. Trägt der Vorschlag, ist dieser Stand der, mit dem die Epoche endet (`§4.4`,
+B5); vorher ist er der, den der Vorschlag voraussetzt. Ohne `S` ist er die Verfassung der Epoche.
 
 `ordinary` ist die Klasse der Sachanträge (D565). Die Protokollschicht kennt keine weitere
 nicht-verfassungsbezogene Entscheidung.
@@ -511,7 +511,7 @@ liefe eine Auszählung über ein unpassendes Paar **ohne** Stimmen glatt durch u
 | neues Verfassungsobjekt fehlt oder sein Hash passt nicht zu `proposal.constitution_hash` | `PROPOSAL_CONSTITUTION_UNAVAILABLE` |
 | ein Eintrag in `S` ist lokal unbekannt | `MOTION_UNAVAILABLE`, Subjekt der Eintrag |
 
-**Dann die Sachanträge in `S`**, vor dem Inhalt, weil die Klasse die Fassung aus `S` braucht
+**Dann die Sachanträge in `S`**, vor dem Inhalt, weil die Klasse den Stand aus `S` braucht
 (`§3.4`):
 
 | Lage | Vermerk |
@@ -521,7 +521,7 @@ liefe eine Auszählung über ein unpassendes Paar **ohne** Stimmen glatt durch u
 | ein Sachantrag in `S` hat anderen `scope` oder `predecessor` als der Vorschlag | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
 | zwei Sachanträge in `S` teilen eine Vorbedingung | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
 
-Die letzte Zeile, weil die Fassung aus `S` dann nicht eindeutig ist (`§4.4`, B4) und der Vorschlag
+Die letzte Zeile, weil der Stand aus `S` dann nicht eindeutig ist (`§4.4`, B4) und der Vorschlag
 nie tragen könnte: nach B3 kommen die beiden nicht zugleich durch, nach B5 braucht er beide. Der
 formwidrige Sachantrag in `S` wird nach D198 selbst benannt; er ist das Objekt, das die Prüfung
 zurückweist.
@@ -601,7 +601,7 @@ typgenau: ein `false` ist nicht der uint `0` (D456).
 ### 4.1 Prüfung eines `ratify@1`
 
 Ein `ratify@1` auf einen Vorschlag etabliert die Folgeepoche; einer auf einen Sachantrag **stellt
-ihn fest** und nimmt ihn damit in die Fassung der Epoche auf (`§4.6`). Beides genau dann, wenn:
+ihn fest** und nimmt ihn damit in den Stand der Epoche auf (`§4.6`). Beides genau dann, wenn:
 
 0. `proposal.scope == epoch.scope`, sonst **`ValueError`** (D112). Die Auszählung gehört zu
    **dieser** Epoche und **diesem** Vorschlag. Weicht `tally.epoch_id`
@@ -691,7 +691,7 @@ ist aus demselben Grund normativ wie die in `§3.5`.
 |---|---|
 | ein Sachantrag in `S` ist nicht festgestellt | `MOTION_UNRATIFIED`, Subjekt sein `motion_hash` |
 
-Die Klasse des Vorschlags ist gegen die Fassung aus `S` bestimmt (`§3.4`). Trüge er, ohne dass `S`
+Die Klasse des Vorschlags ist gegen den Stand aus `S` bestimmt (`§3.4`). Trüge er, ohne dass `S`
 festgestellt ist, setzte er eine Sachänderung mit der Schwelle seiner Klasse in Kraft, über die als
 Sachantrag nie entschieden wurde. Das Subjekt ist der Sachantrag: die Auskunft an den Beobachter
 ist, welche Feststellung er holen muss. Die Bedingung steht nach 6, weil sie wie 6 nicht am Claim
@@ -748,9 +748,9 @@ Mit der Etablierung von `i+1` sind alle Stimmen, Vorschläge und Sachanträge, d
 `i` zeigt, gegenstandslos. Ein Antrag, der in `i` nicht durchkam, muss in `i+1` neu eingebracht
 werden und behauptet sich dort gegen den geänderten Status quo.
 
-Die Fassung von `i` endet mit ihr. Weiter gilt, was die Verfassung von `i+1` enthält: die
+Der Stand von `i` endet mit ihr. Weiter gilt, was die Verfassung von `i+1` enthält: die
 festgestellten Sachanträge sind dann genau die in `S` (`§4.4`, B5), und wieweit die neue Verfassung
-sie übernimmt, sagt ihr Unterschied zur Fassung aus `S`, der ihre Klasse bestimmt (`§3.4`).
+sie übernimmt, sagt ihr Unterschied zum Stand aus `S`, der ihre Klasse bestimmt (`§3.4`).
 
 ### 4.4 Ja-Stimmen, die einander ausschließen
 
@@ -790,7 +790,7 @@ Nein-Stimmen sind unbeschränkt. Gegen mehrere Anträge gleichzeitig zu sein ist
 verschiedene Dokumente gleichzeitig als das geltende zu benennen ist es nicht.
 
 **Diese Regeln sind sicherheitstragend, nicht ordnungspolitisch.** Aus ihnen folgt, dass zwei
-rivalisierende Nachfolger derselben Epoche arithmetisch unmöglich sind und dass die Fassung einer
+rivalisierende Nachfolger derselben Epoche arithmetisch unmöglich sind und dass der Stand einer
 Epoche nicht von einer Reihenfolge abhängt. Alle Beweise laufen über dieselbe Schranke wie in
 `§3.5`, `2 * num >= den`, und über eine gemeinsame Rechnung.
 
@@ -808,20 +808,20 @@ dass die beiden Anträge nicht beide durchgekommen sein können.
   nicht beide durch.** Die Rechnung mit Regel 3.
 - **B3. Zwei Sachanträge von `g` mit einer gemeinsamen Vorbedingung kommen nicht beide durch.** Die
   Rechnung mit Regel 2.
-- **B4. Die Fassung hängt nur von der Menge der festgestellten Sachanträge ab** (`§4.6`).
-  Festgestellt heißt durchgekommen (`§4.1`, Bedingung 5). Sind in einem Stand zwei noch nicht
-  angewandte festgestellte Sachanträge zugleich anwendbar, berühren sie verschiedene Felder: ein
-  gemeinsames Feld hätte in diesem Stand einen Wert, beide führten ihn als Vorbedingung, und nach B3
+- **B4. Der Stand hängt nur von der Menge der festgestellten Sachanträge ab** (`§4.6`). Festgestellt
+  heißt durchgekommen (`§4.1`, Bedingung 5). Sind in einem Zwischenstand zwei noch nicht angewandte
+  festgestellte Sachanträge zugleich anwendbar, berühren sie verschiedene Felder: ein gemeinsames
+  Feld hätte in diesem Zwischenstand einen Wert, beide führten ihn als Vorbedingung, und nach B3
   wäre nur einer durchgekommen. Zwei Sachanträge auf verschiedenen Feldern vertauschen, und jeder
   bleibt anwendbar, wenn der andere angewandt ist. Jeder wird höchstens einmal angewandt, das
-  Verfahren endet also. Ein endendes Verfahren, dessen Schritte von jedem Stand aus wieder
+  Verfahren endet also. Ein endendes Verfahren, dessen Schritte von jedem Zwischenstand aus wieder
   zusammenlaufen, hat genau ein Ergebnis (Newmans Lemma); die Wahl der Reihenfolge ist gleichgültig.
 - **B5. Ein Vorschlag trägt nur, wenn jeder Sachantrag in `S` festgestellt ist** (`§4.1`, Bedingung
   7). Fällt eine solche Feststellung, weil eine ihrer Stimmen nach `INV-04.7` wegfällt, fällt der
   Vorschlag mit, abwärts wie in `§8`. Mit B2 folgt: trägt `G`, sind die festgestellten Sachanträge
   von `g` genau die in `S`. Jeder festgestellte ist durchgekommen und steht nach B2 in `S`; jeder in
-  `S` ist nach B5 festgestellt. Die Fassung, gegen die `§3.4` die Klasse von `G` bestimmt, ist damit
-  die Fassung, mit der `g` endet.
+  `S` ist nach B5 festgestellt. Der Stand, gegen den `§3.4` die Klasse von `G` bestimmt, ist damit
+  der Stand, mit dem `g` endet.
 
 Alle Beweise sprechen über einen Bestand. Zwei Beobachter, von denen jeder nur eine von zwei
 unvereinbaren Stimmen kennt, können verschiedene Anträge `PASSED` sehen; treffen ihre Bestände
@@ -878,10 +878,10 @@ und MUSS werfen, nicht vermerken — dieselbe Asymmetrie wie in `§3.5`.
 **Schritt.** Zu einer Epoche `i` sucht die Kette alle aktiven `ratify@1`, deren Objekt ein Vorschlag
 von `i` ist, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1` erreicht und der Schritt
 wiederholt sich. Trägt keine, endet die Kette bei `i`. Feststellungen von Sachanträgen führen zu
-keiner Epoche; sie bilden die Fassung (`§4.6`) und gehen in die Kette nur über Bedingung 7 ein. Der
+keiner Epoche; sie bilden den Stand (`§4.6`) und gehen in die Kette nur über Bedingung 7 ein. Der
 Schritt prüft deshalb vor den Vorschlägen die Feststellungen aller Sachanträge von `i` nach `§4.1`;
 die festgestellten sind die Menge, gegen die Bedingung 7 prüft. Deren Vermerke gehören nicht zum
-Ergebnis der Kette, sondern zu `resolve_fassung` (`§4.6`, D570).
+Ergebnis der Kette, sondern zu `resolve_stand` (`§4.6`, D570).
 
 **Welche Objekte zu `i` gehören** (D571, D572). Ein Vorschlag oder Sachantrag gehört zu `i`, wenn
 sein `scope` der Scope der Kette und sein `predecessor` der `epoch_id` von `i` ist. Ein Sachantrag,
@@ -946,19 +946,19 @@ Ausgang ist gleichwohl zu definieren: kein Kopf ab `i`, Ergebnis ist `i`, Vermer
 wählt — anhalten und Beweis erzeugen statt wählen — und sie hat wie dort **keinen erreichbaren
 Produktivfall**. Ein Test darauf ist ausdrücklich nicht zu bauen; er prüfte eine unmögliche Lage.
 
-### 4.6 Die Fassung einer Epoche
+### 4.6 Der Stand einer Epoche
 
-Die **Fassung** einer Epoche `g` ist die Verfassung, mit der `g` beginnt, nach Anwendung ihrer
+Der **Stand** einer Epoche `g` ist die Verfassung, mit der `g` beginnt, nach Anwendung ihrer
 festgestellten Sachanträge (D564 Beschluss 2). Festgestellt ist ein Sachantrag von `g`, wenn ein
 `ratify@1` auf ihn nach `§4.1` trägt.
 
-**Anwenden.** Ein Stand ist eine Verfassung; der Wert eines Felds ist `[]`, wenn es fehlt, sonst
-`[w]`. Ein Sachantrag ist in einem Stand anwendbar, wenn er noch nicht angewandt ist und jedes
-seiner Felder dort den Wert `alt` hat (Gleichheit nach `§2.5`). Angewandt setzt er jedes seiner
-Felder auf `neu`: `[w]` setzt den Wert `w`, `[]` entfernt das Feld. Solange ein festgestellter
-Sachantrag anwendbar ist, wird einer angewandt, gleich welcher, jeder höchstens einmal. Das Ergebnis
-ist die Fassung. Nach B4 (`§4.4`) hängt sie nicht von der Wahl ab. Eine Reihenfolge hat die Fassung
-nicht, und keine Rechnung darf eine voraussetzen.
+**Anwenden.** Ein Zwischenstand ist eine Verfassung; der Wert eines Felds ist `[]`, wenn es fehlt,
+sonst `[w]`. Ein Sachantrag ist in einem Zwischenstand anwendbar, wenn er noch nicht angewandt ist
+und jedes seiner Felder dort den Wert `alt` hat (Gleichheit nach `§2.5`). Angewandt setzt er jedes
+seiner Felder auf `neu`: `[w]` setzt den Wert `w`, `[]` entfernt das Feld. Solange ein
+festgestellter Sachantrag anwendbar ist, wird einer angewandt, gleich welcher, jeder höchstens
+einmal. Das Ergebnis ist der Stand. Nach B4 (`§4.4`) hängt er nicht von der Wahl ab. Eine
+Reihenfolge hat der Stand nicht, und keine Rechnung darf eine voraussetzen.
 
 **Ein festgestellter Sachantrag, dessen Vorbedingung nicht eintritt,** bleibt ohne Wirkung und
 bleibt festgestellt. Er ist kein Fehler und trägt keinen Vermerk: ein später festgestellter
@@ -966,12 +966,12 @@ Sachantrag kann seine Vorbedingung herstellen, und dann wird er angewandt. Dass 
 lässt sich innerhalb der Epoche nicht feststellen; mit ihrem Ende wird er gegenstandslos (`§4.3`).
 Welche festgestellten Sachanträge angewandt sind, gehört deshalb zum Ergebnis.
 
-**Die Fassung wächst.** Kommt ein festgestellter Sachantrag hinzu, bleibt jeder bisher angewandte
+**Der Stand wächst.** Kommt ein festgestellter Sachantrag hinzu, bleibt jeder bisher angewandte
 angewandt: die bisherige Folge von Anwendungen ist weiter zulässig, und nach B4 ist das Ergebnis
-jeder zulässigen Folge dasselbe. Die Fassung schrumpft nur, wenn eine Feststellung fällt, und das
+jeder zulässigen Folge dasselbe. Der Stand schrumpft nur, wenn eine Feststellung fällt, und das
 nur aus den Gründen, aus denen nach `INV-04.8` eine Epoche fällt.
 
-**Die Fassung ist keine Epoche** (D565 Beschluss 3). Sie hat keinen `epoch_id`, und eine Annahme
+**Der Stand ist keine Epoche** (D565 Beschluss 3). Er hat keinen `epoch_id`, und eine Annahme
 nach `03 §4` bindet weiter an die Verfassung, mit der die Epoche beginnt: wer sie annimmt, nimmt das
 Verfahren an, mit dem ihre Sachfelder sich ändern. Ein festgestellter Sachantrag verlangt keine neue
 Annahme. Eine Kette über Zwischenstände der Sachanträge ist verworfen: je nach Reihenfolge der
@@ -981,12 +981,12 @@ Feststellungen entstünden verschiedene Kennungen, und zwei Beobachter sähen ze
 **Die Schnittstelle.**
 
 ```
-resolve_fassung(store, epoch, genesis_obj, constitution_obj, known_proposals, now)
-    ->  (fassung_obj, applied, findings)
+resolve_stand(store, epoch, genesis_obj, constitution_obj, known_proposals, now)
+    ->  (stand_obj, applied, findings)
 ```
 
 `epoch` und `constitution_obj` sind das Ergebnis von `resolve_epoch` (`§4.5`); `genesis_obj` braucht
-die Auszählung (`§3.5`, D570). Ist `constitution_obj` leer, ist auch `fassung_obj` leer. `applied`
+die Auszählung (`§3.5`, D570). Ist `constitution_obj` leer, ist auch `stand_obj` leer. `applied`
 ist die aufsteigend sortierte Liste der `motion_hash` der angewandten Sachanträge. `findings` sind
 die Vermerke der Prüfungen nach `§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht
 tragen, in der Form aus `§4.5`: ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen
@@ -1079,7 +1079,7 @@ blockierte dauerhaft. Wer eine Änderung ablehnt, behält so die Mittel, sie rü
 
 ### 6.4 Aufnahme als Verfassungsänderung
 
-Eine Aufnahme ist damit ein Vorschlag, dessen neue Verfassung sich von der Fassung aus der
+Eine Aufnahme ist damit ein Vorschlag, dessen neue Verfassung sich vom Stand aus der
 Verfassung der Epoche und `S` ausschließlich in `participants` unterscheidet — Klasse `membership`
 nach `§3.4`. Es gibt in v1 kein eigenes Aufnahmeverfahren. Aufnahmen laufen deshalb nacheinander:
 unter einer Epoche kommt höchstens ein Vorschlag durch (`§4.4`, B1; D564 Beschluss 1).
@@ -1131,7 +1131,7 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   ändern auch Sachanträge, nebeneinander und je ganz oder gar nicht. Das Mischen, vor dem D101
   warnt, macht die Vorbedingung sicher: zwei Änderungen desselben Felds aus demselben Wert schließen
   einander aus (`§4.4`, Regel 2), ein Vorschlag nennt in `S`, worauf er aufbaut (Regel 3), und die
-  Fassung hängt von keiner Reihenfolge ab (`§4.6`). Eine Teilannahme gibt es nicht; wer zwei Felder
+  Stand hängt von keiner Reihenfolge ab (`§4.6`). Eine Teilannahme gibt es nicht; wer zwei Felder
   zusammen ändern will, bündelt sie (D564).
 
 - **Regeländerungen laufen nacheinander, Aufnahmen eingeschlossen.** Unter einer Epoche kommt
@@ -1145,8 +1145,8 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   unvereinbare Stimme. Wer einen Vorschlag unterstützt, stimmt neuen Sachanträgen erst in der
   Folgeepoche zu.
 
-- **Zwischen zwei Sachanträgen auf dasselbe Feld gibt es keine Stichfrage.** Wer zwischen zwei
-  Werten aus demselben Stand wählen will, stimmt einem zu; ein zweites Ja nimmt beiden die Wirkung
+- **Zwischen zwei Sachanträgen auf dasselbe Feld gibt es keine Stichfrage.** Wer zwischen zwei neuen
+  Werten für dasselbe Feld wählen will, stimmt einem zu; ein zweites Ja nimmt beiden die Wirkung
   (`§4.4`, Regel 2). Kommt keiner durch, bleibt der Wert. Eine Stichfrage bräuchte einen eigenen
   Beweis (D564 Beschluss 3).
 

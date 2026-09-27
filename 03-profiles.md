@@ -625,7 +625,7 @@ auf einen anderen Hash zählt für die abgefragte Version **gar nicht**. Vermerk
 `CONSTITUTION_VERSION_MISMATCH`.
 
 **Welche Version eine Annahme nennt** (D565 Beschluss 3). Im Epochenpfad ist es die Verfassung, mit
-der die Epoche beginnt, nicht ihre Fassung nach `04 §4.6`. Ein festgestellter Sachantrag ändert
+der die Epoche beginnt, nicht ihr Stand nach `04 §4.6`. Ein festgestellter Sachantrag ändert
 Sachfelder innerhalb der Epoche und keinen Hash, auf den eine Annahme zeigt; er verlangt keine neue
 Annahme. Wer die Verfassung einer Epoche annimmt, nimmt das Verfahren an, mit dem ihre Sachfelder
 sich ändern.

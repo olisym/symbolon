@@ -25033,3 +25033,42 @@ trägt, mit `grep` über das ganze Repositorium, nicht über die Dateien, an die
 des Kandidaten aus D537, dort für aufgezählte Mengen.
 
 **Geändert.** `08-scope.md`, `06-services.md`, `07-decisions.md`.
+
+### D575 — O96: die Wörter der Seite; die Norm sagt „Stand“ statt „Fassung“
+
+**Anlass.** D567 Befund 2: die Seite nennt eine Epoche „Fassung der Satzung“, die Norm nannte seit
+D564 die Epoche mit ihren Sachbeschlüssen „Fassung“. Oli entscheidet, was er sieht.
+
+**Befund 1 — die Norm war der Ausreisser, nicht die Seite.** Im Repositorium heisst „Fassung“
+durchgehend eine Version der Verfassung: `00 §5` („Welche Fassung gilt, entscheidet ein
+`ratify@1`“), `szenario-verein.md`, die Seite mit „Es gilt die 3. Fassung der Satzung.“ So steht
+es auch im gewohnten Gebrauch: eine Satzung „in der Fassung vom …“ ist eine Version. Das Wort, das
+D564 für den Stand einer Epoche prägte, war schon belegt. „Beschluss“ ist auf der Seite ebenfalls
+belegt: ein festgestellter Antrag, gleich welcher Art. Kandidat: ein neuer Begriff der Norm wird
+vorher im ganzen Repositorium und auf der Seite gesucht, nicht nur im Register.
+
+**Beschluss 1 — Olis Wahl der Wörter.**
+
+| Sache | auf der Seite | in der Norm |
+|---|---|---|
+| Epoche | „die 3. Fassung der Satzung“, wie bisher | Epoche |
+| Vorschlag | Satzungsantrag | Vorschlag |
+| Sachantrag | Sachantrag | Sachantrag |
+| festgestellt | Beschluss, wie bisher | festgestellt |
+| Satzung und geltende Sachbeschlüsse | Stand | Stand |
+
+Die beiden Anträge unterscheiden sich im ersten Wortteil, wo man es zuerst liest. „Stand“ sagt,
+was jetzt gilt.
+
+**Beschluss 2 — die Norm heisst um.** `04` und `03 §4` sagen „Stand“, wo sie „Fassung“ im Sinn von
+D564 sagten; die Schnittstelle heisst `resolve_stand` mit dem Feld `stand_obj` (`04 §4.6`).
+Die Zwischenergebnisse der Anwendung, die `04 §4.6` und B4 bisher auch „Stand“ nannten, heissen
+jetzt „Zwischenstand“. Zwei allgemeine Verwendungen von „Stand“ in `04 §1.2` und `04 §2.5` sind
+umformuliert, damit das Wort nur eine Bedeutung hat. Die Golden Anchors folgen. Frühere
+Registereinträge bleiben, wie sie sind; „Fassung“ in D564 bis D574 meint den Stand.
+
+**Beschluss 3 — der Code folgt im nächsten Auftrag.** `resolve_fassung`, `FassungResolution` und
+`fassung_obj` heissen bis dahin noch so. Der Auftrag für den Knoten benennt sie um, bevor er sie
+benutzt, damit der Knoten nur den neuen Namen kennt.
+
+**Geändert.** `04-governance.md`, `04-golden-anchors.md`, `03-profiles.md`, `07-decisions.md`.

@@ -369,8 +369,8 @@ Policy (D91).
 | `INV-04.8` | Eine einmal etablierte Epoche bleibt etabliert: kein zusätzlicher Claim im Store nimmt einem gültigen `ratify@1` seine Wirkung. **Vorbehalt:** derselbe; eine etablierte Epoche fällt nur durch einen Zwilling, eine weitere Stimme eines ihrer Zeugen oder einen Claim seiner Wurzel aus `INV-04.7` (D117, D433, D434, D539). |
 | `INV-04.6` | Bei `num/den > 1/2` gibt es zu einer Epoche höchstens einen Vorschlag im Zustand `PASSED`. |
 | `INV-04.9` | In einem Bestand sind zu einer Epoche nie zugleich `PASSED`: ein Vorschlag `G` und ein Sachantrag ausserhalb seines `S`; zwei Sachanträge mit gemeinsamer Vorbedingung (`04 §4.4`, B2 und B3). |
-| `INV-04.10` | Die Fassung hängt nur von der Menge der festgestellten Sachanträge ab, nie von der Reihenfolge ihrer Anwendung (`04 §4.6`, B4). |
-| `INV-04.11` | Die Fassung wächst: eine zusätzliche Feststellung nimmt keinem angewandten Sachantrag die Anwendung. **Vorbehalt:** fällt eine Feststellung, dann aus einem Grund nach `INV-04.7`. |
+| `INV-04.10` | Der Stand hängt nur von der Menge der festgestellten Sachanträge ab, nie von der Reihenfolge ihrer Anwendung (`04 §4.6`, B4). |
+| `INV-04.11` | Der Stand wächst: eine zusätzliche Feststellung nimmt keinem angewandten Sachantrag die Anwendung. **Vorbehalt:** fällt eine Feststellung, dann aus einem Grund nach `INV-04.7`. |
 
 `INV-04.2` und `INV-04.6` sind als Eigenschaftstests über einem Bereich zu prüfen, nicht an
 Einzelvektoren: `n` von 1 bis 12, `[num,den]` über allen gekürzten Brüchen mit `den <= 8` und
@@ -465,7 +465,7 @@ cbor(M1) =
 Python gilt `1 == True`.
 
 ```
-C1S = C1, dazu beitrag: "30 EUR"          (die Fassung aus C1 und M1)
+C1S = C1, dazu beitrag: "30 EUR"          (der Stand aus C1 und M1)
 C2S = C1S, aber participants = P2          (die Aufnahme von EVE darauf)
 
 constitution_hash(C2S) = 0eebc02acb5619f5769e9a18f28bfdd2f7691408bbcfe1826f0dc5d952e40b49
@@ -491,7 +491,7 @@ Beschluss 4).
 | `GV-61` | `G1`, BOB ALICE DAVE, `M1` bekannt | `membership`, `3*3 = 9` gegen `2*4 = 8` | `PASSED` |
 | `GV-62` | `G0`, dieselben drei Ja | `amendment`, `3*4 = 12` gegen `3*4 = 12` | `PENDING` |
 
-`G1` und `G0` haben dasselbe Ziel. `G1` wird gegen die Fassung aus `C1` und `M1` gemessen und
+`G1` und `G0` haben dasselbe Ziel. `G1` wird gegen den Stand aus `C1` und `M1` gemessen und
 unterscheidet sich nur in `participants`; `G0` wird gegen `C1` gemessen und unterscheidet sich auch
 in `beitrag` (`04 §3.4`). Ein Lauf, der `G1` gegen `C1` misst, liefert für `GV-61` das Ergebnis von
 `GV-62`.
@@ -543,7 +543,7 @@ Erwartung durchgehend `UNEVALUABLE`, **nie** ein Ergebnis.
 Die Vorschläge in `GV-78` bis `GV-84` haben das Ziel `C2S` wie `G1`; ihre Hashes rechnet der Test
 aus den Objekten.
 
-### 10.5 Feststellung und Fassung
+### 10.5 Feststellung und Stand
 
 | Vektor | Lage | Ergebnis |
 |---|---|---|
@@ -555,6 +555,6 @@ aus den Objekten.
 | `GV-90` | zwei `ratify@1` auf `M1`, eines tragend, eines mit zwei Zeugen | `M1` angewandt, keine Vermerke |
 | `GV-91` | nur das `ratify@1` mit zwei Zeugen | `M1` nicht festgestellt, `UNSUPPORTED_RATIFICATION` |
 
-`applied` ist nach `motion_hash` sortiert, nicht nach Name. Die Fassung in `GV-87` und `GV-89` ist
-in jeder der möglichen Reihenfolgen gerechnet und dieselbe; mit der Gleichheit der
+`applied` ist nach `motion_hash` sortiert, nicht nach Name. Der Stand in `GV-87` und `GV-89` ist
+in jeder der möglichen Reihenfolgen gerechnet und derselbe; mit der Gleichheit der
 Programmiersprache ergäbe `GV-89` je nach Reihenfolge `x = 2` oder `x = 3`.

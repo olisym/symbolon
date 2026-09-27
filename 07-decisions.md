@@ -24426,3 +24426,44 @@ Bürgen wählen, die Frage abbrechen, danach „Nichts unterschrieben.“ und di
 Auftrag. Danach die Abnahme und Olis Durchlauf; dann O96.
 
 **Geändert.** `07-decisions.md`, `szenario-verein.md`.
+
+### D562 — Abnahme `p32-aufraeumen` mit Nachtrag: D502s eigenes Bild läuft nicht über `handeln`
+
+**Anlass.** Bericht des Werkzeugs, Commit `812ce6d` auf `p32-aufraeumen`, Basis `3ce64a9` (D561).
+
+**Geprüft.** Der Diff von `anzeige.js` und `app.js` ganz aus dem Spiegel, gegen D561. `nachHandlung`
+und der Satz in `folgeZeilen` folgen D561 Wort für Wort; `alsGeraet` und `alsSimulierte` geben den
+Ausgang, `handeln` fragt `nachHandlung`; `sperren` und `entsperren` werden nur in `handeln`
+gerufen, beide Stellen sind umgestellt. Die drei Stellen, an denen das Werkzeug über den Wortlaut
+hinausging (zwei Kommentare, ein eigener Zweig für die verneinte Frage), sind im Sinn des Auftrags.
+Abgenommen, mit einem Nachtrag vor dem Merge.
+
+**Befund 1 — D561 hat D502s eigenes Bild verfehlt.** Das Werkzeug meldet es: D502 beschreibt die
+Eingabe „0,5 Tage“, und diese Meldung kommt aus der Vorprüfung in „Bürgen …“, die `meldung` und
+`zeichnen` direkt ruft und nie `handeln` erreicht. Dasselbe gilt für die Vorprüfung in „Beitrag
+zusagen …“ und für „Ein Name fehlt.“. Behoben war nur, was über den S-Node läuft. Die Ursache liegt
+bei mir: D502 nennt sein Bild im Titel und im Durchlauf, und ich habe die Stelle nicht im Code
+gesucht, sondern den Weg über `handeln` angenommen. Das schärft den Kandidaten aus D514: ein Befund
+wird dort im Code gesucht, wo sein Bild entsteht, bevor eine Reparatur entworfen wird.
+
+**Beschluss 1 — Nachtrag auf `p32-aufraeumen`.** Eine Funktion `meldungZeigen()` in `app.js`
+ersetzt das Element mit der Kennung `meldung` durch `meldungKnoten()` und zeichnet nur neu, wenn es
+keines gibt; der Zweig `"melden"` in `handeln` ruft sie. Wo sich am Bestand und am Gerät nichts
+geändert hat, ruft die Seite nach einer Meldung `meldungZeigen()` statt `zeichnen()`:
+
+- in „Bürgen …“, wenn Punkte oder Tage keine ganzen Zahlen sind;
+- in „Beitrag zusagen …“, wenn der Betrag nicht in Cent aufgeht;
+- in „Schlüssel anlegen“, wenn der Name fehlt;
+- in „Namen eintragen“, wenn der Name fehlt oder das Eintragen scheitert.
+
+Nach einem gescheiterten Eintragen des Namens in „Schlüssel anlegen“ bleibt `zeichnen()`, weil der
+Schlüssel dann schon angelegt ist; nach einem gelungenen Eintragen ebenso.
+
+**Golden Numbers.** Unverändert: 1219 Tests, der Selbsttest 222 Fälle. Die Änderung liegt ganz in
+`app.js`, das kein Test sieht.
+
+**Schwächste Stelle.** Ohne Test; Olis Durchlauf im Ein-Knoten-Verein zeigt es: eine Person zum
+Bürgen wählen, „0,5“ Tage, „Bürgen …“: die Meldung erscheint, die Person bleibt gewählt; dann
+gültige Werte, die Frage abbrechen: „Nichts unterschrieben.“, die Person bleibt gewählt.
+
+**Geändert.** `07-decisions.md` (auf dem Branch, D544).

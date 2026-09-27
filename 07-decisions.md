@@ -23945,3 +23945,24 @@ und `tools.netz` fängt einen gescheiterten Takt ab. Ein Vermerk, keine Lücke.
 **Offen.** Olis Durchlauf mit `--aufloesen` (D490); danach O95.
 
 **Geändert.** `07-decisions.md`.
+
+### D554 — Olis Durchlauf mit `--aufloesen`; O95 erledigt
+
+**Anlass.** D553, offen: Olis Durchlauf (D490). Gestartet mit `python -m tools.netz
+~/mar-daten/netz-a1 --aufloesen`.
+
+**Befund 1 — der Satz nach dem Lauf.** Gefragt, was er über Bruno sagen kann, gibt Oli den Satz aus
+„Im Verein“ wörtlich wieder: BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten verschieden
+gestimmt und das mit einer neuen Stimme ersetzt; sie zählt Ja. Das ist der Satz aus D551
+Beschluss 5, und er trägt, was D551 Befund 4 vermisst hatte: dass es einen Widerspruch gab, dass
+Bruno ihn selbst aufgelöst hat und wie er jetzt zählt.
+
+**Befund 2 — die Karte hat Oli nicht beschrieben.** Das Fenster, in dem Brunos Karte mit dem dritten
+Punkt oben steht, dauert einen Takt. Dass sie dort steht und was sie sagt, prüfen der Selbsttest und
+`test_bild_aufloesen` über die Gruppen; mit eigenen Augen gesehen ist es nicht. Wer den Durchlauf
+langsamer braucht, bekommt einen Takt zum Anhalten, keinen längeren Lauf; ein eigener Anlass, kein
+Posten.
+
+**Beschluss 1 — O95 erledigt.** Das Folgebild steht unter `--aufloesen` (D551 bis D554).
+
+**Geändert.** `07-decisions.md`, `offen.md` (O95).

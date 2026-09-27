@@ -24154,3 +24154,64 @@ Wortlaut ist dort besser als keine. Keine Änderung.
 **Offen.** Olis Durchlauf im Ein-Knoten-Verein (D490); das gesperrte Gerät zeigt er nicht.
 
 **Geändert.** `07-decisions.md`.
+
+### D558 — Olis Durchlauf zum zweiten Ja; O96, mehrere Anträge nebeneinander; Schluss von 00cq
+
+**Anlass.** D557, offen: Olis Durchlauf im Ein-Knoten-Verein. Danach Olis Frage, ob man über ein
+Thema erst abstimmen muss, bevor das nächste geht, und seine Wahl für den Weg.
+
+**Befund 1 — der Durchlauf.** Oli gibt die Karte wörtlich wieder: DORA hat zwei Anträgen
+zugestimmt, keine der beiden Zustimmungen zählt, ihre Bürgschaften zählen weiter. Aus der Karte
+kommt seine nächste Frage; sie hat gewirkt. Zur Warnung vor dem Unterschreiben hat er nichts gesagt.
+Das gesperrte Gerät zeigt der Ein-Knoten-Verein nicht (D556).
+
+**Befund 2 — ein Antrag je Fassung.** Nach `04 §4.4` kommt unter einer Fassung höchstens ein
+Antrag durch, und nach `04 §4.3` wird jeder übrige mit der Feststellung gegenstandslos. Ein Antrag
+ist eine ganze neue Satzung, nicht eine Änderung; zwei angenommene wären zwei Nachfolger. Anträge
+laufen deshalb nacheinander, jeder mit einer eigenen Abstimmungsrunde. Eine Versammlung arbeitet
+ihre Tagesordnung an einem Abend ab; verteilt und ohne feste Zeit dauern fünf Punkte Wochen, und wer
+wie Dora zwei Anträgen zustimmen will, darf nicht.
+
+**Beschluss 1 — der Sammelantrag ist verworfen (Olis Wahl).** Ein Antrag mit mehreren Änderungen
+lässt nur zusammen entscheiden, was nicht zusammengehört, und öffnet damit Manipulation. Das ist die
+Einheit der Materie des schweizerischen Rechts: verschiedene Sachfragen gehören nicht in eine
+Vorlage, weil die Stimmenden ihre Präferenzen sonst nicht klar äussern können.
+
+**Beschluss 2 — O96: unabhängige Änderungen nebeneinander (Olis Wahl).** Das Protokoll soll
+Reibung nehmen, nicht erzeugen. Es geht um Anträge, die unter einer Fassung nebeneinander
+angenommen und in beliebiger Reihenfolge festgestellt werden können, soweit sie einander nicht
+berühren. Literatur, gelesen für diese Wahl:
+
+- **Das Verbot des doppelten Ja**, abgeschafft 1987 in der Schweiz. Es liess bei Initiative und
+  Gegenentwurf nur eine Zustimmung zu und wurde kritisiert, weil es den Status quo begünstigt.
+  Seither gilt doppeltes Ja mit Stichfrage. `04 §4.4` ist heute dieses Verbot.
+- **Patch-Theorie** (Darcs): Änderungen an verschiedenen Teilen sind unabhängig, und das Ergebnis
+  hängt nur von der Menge der angewandten Änderungen ab, nicht von ihrer Reihenfolge.
+- **Das Paradox der multiplen Wahlen** (Brams, Kilgour, Zwicker 1998): getrennt abgestimmte Fragen
+  können eine Kombination ergeben, die kaum jemand wollte, wenn Präferenzen nicht trennbar sind.
+  Gegen das Paradox steht die Einheit der Materie: was sachlich zusammengehört, darf zusammen.
+
+**Skizze, nicht entschieden.** Ein Antrag nennt die Felder, die er gegenüber seiner Fassung
+schreibt. Anträge auf verschiedene Felder sind unabhängig; die neue Fassung ist die alte mit allen
+festgestellten Änderungen. Felder, die die Abstimmung selbst liest (Mitgliederliste, Schwellen,
+Schiedsleute), bleiben exklusiv, wie heute. Zwei Anträge auf dasselbe Feld: doppeltes Ja mit
+Stichfrage. Zusammengehöriges verbindet der Antragsteller ausdrücklich. Ein Antrag überlebt eine
+Feststellung, die seine Felder nicht berührt. Dafür müssen `04 §4.4` und sein Beweis neu, und
+Stimme und Feststellung beziehen sich auf Änderungen statt auf ganze Satzungen. Beweis vor Code.
+
+**Beschluss 3 — die Reihenfolge.** Zuerst der Rest der Lücken aus D555, Stufe 2b (die Gabelsätze
+aus D525) und Stufe 3 (Aufräumen); dann O96 als nächster grosser Strang; dann Phase 5, Reticulum.
+Oli: „Ordnung muss sein.“
+
+**Beschluss 4 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Wortlaut, den Oli bestätigen soll, wird vorher gegen die Wortregeln der Seite
+gelesen (D556 Beschluss 2, „Fassung“ statt „Epoche“); eine Meldung, die ein Bild nur einmal
+auslöst, braucht einen eigenen Test (D552 Befund 3); eine Zählung als Golden Number schützt vor
+einer verschwundenen Gruppe von Fällen (D555 Beschluss 2); eine Rücknahmeprobe nimmt die benannte
+Wirkung zurück, nicht eine benachbarte (D557 Befund 2).
+
+**Beschluss 5 — Sitzungsschluss.** `sitzungsstart-00cq.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt für `00cr`; `sitzungsstart-00cp.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `offen.md` (O96), `sitzungsstart-00cq.md`,
+`archiv/sitzungsstart-00cp.md`.

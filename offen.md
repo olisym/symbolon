@@ -438,3 +438,11 @@ bis D546).
 ### O95 Das Folgebild: Bruno löst seinen Widerspruch auf — erledigt (D554)
 
 Bild unter `--aufloesen`: Anna wartet, Bruno ersetzt beide Stimmen, die Seite sagt es (D551–D554).
+
+### O96 Mehrere Anträge nebeneinander: unabhängige Änderungen unter einer Fassung
+
+Unter einer Fassung kommt höchstens ein Antrag durch (`04 §4.4`), jeder übrige wird mit der
+Feststellung gegenstandslos (`04 §4.3`). Oli will Anträge, die einander nicht berühren,
+nebeneinander annehmen können, wie an einem Vereinsabend; den Sammelantrag hat er verworfen.
+Literatur und Skizze in D558. Braucht einen neuen Beweis für `04 §4.4`. Öffnet nach Stufe 2b und 3
+aus D555, vor Phase 5.

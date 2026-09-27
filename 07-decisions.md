@@ -25316,3 +25316,26 @@ Demonstration sagt weiter „ANNA beantragt einen Satzungstext“, der Knopf hei
 Satzungsantrag …“; der Durchlauf hat daran nicht gestört.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D582 — Schluss der Sitzung 00ct
+
+**Anlass.** Nach D581 ist O96 erledigt und kein Strang läuft. Der nächste ist Phase 5, Reticulum,
+ein neuer Strang ohne Spec; er gehört an den Anfang einer Sitzung.
+
+**Beschluss 1 — Stand.** Sachanträge stehen in Norm, Governance-Code, Knoten und Seite (D564 bis
+D581). 1286 Tests, der Selbsttest 231 Fälle, Register D1–D582, `offen.md` 96 Posten, davon 14
+offen, alle Wartestände mit Bedingung.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: wer eine Lücke mit einem Wert kodiert, prüft, ob der Wert im Format vorkommen kann
+(D578). Zur Übernahme vorgeschlagen, je zum dritten Mal belegt: einen Ablauf vor dem Durchlauf
+selbst über die Schnittstelle fahren (D518, D580 Befund 2); wer eine Menge der Kette an einer
+zweiten Stelle rechnet, sucht jede solche Stelle (D547, D548, D577 Befund 1); einen Hash im Block
+nie aus einem Kurzhash ergänzen (D527, D570, und in dieser Sitzung beim Merge-Block zu D581,
+vor der Ausführung bemerkt).
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cu.md` trägt Stand, Arbeitsweise und den
+nächsten Schritt für `00cu`, die Eröffnung von Phase 5; `sitzungsstart-00ct.md` geht nach
+`archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cu.md`, `archiv/sitzungsstart-00ct.md`.

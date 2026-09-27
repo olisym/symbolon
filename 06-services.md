@@ -60,7 +60,8 @@ VISION §5), nicht Protokoll-Vokabular.
 | `t_exp`| optional — befristetes Angebot (lokale Gültigkeitsdecke, Atom-Spec §6) |
 
 - **Deskriptor** (externes Objekt, per Hash referenziert — Muster aus Atom-Spec §7.2): trägt
-  `type` (`validation`/`time`/…), Bedingungen, optional `bond_ref` (§7). Das Atom parst ihn nie.
+  `type` (`validation`/`time`/…), Bedingungen, optional `bond_ref` (§7, unter Vorbehalt nach
+  D467 und D574). Das Atom parst ihn nie.
 - **Lebenszyklus:** Dienst einstellen = `core/revoke@1` auf den Announce (selbst-bezüglich,
   verstanden). Angebot ändern = `core/supersede@1` auf neuen Deskriptor.
 

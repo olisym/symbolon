@@ -24995,3 +24995,41 @@ Schlussmarke aus der Shell-Disziplin: auch dort ist die letzte sichtbare Zeile k
 
 **Geändert.** `AGENTS.md`, `07-decisions.md`; `main` steht auf `357f6a0` und dem Commit dieses
 Eintrags.
+
+### D574 — Nachtrag zu D467: `08` trug den Bond ohne Vorbehalt
+
+**Anlass.** Eine Prüfung in einem anderen Gespräch fand, dass D467 Beschluss 5 `08-scope.md`
+übersehen hat. Nachgeprüft im Spiegel: D467 nennt `02`, `03`, `05`, `06` und `VISION`; in seiner
+Liste der geänderten Dateien fehlt `08`, und kein späterer Eintrag nennt es.
+
+**Befund 1 — drei normative Stellen in `08` ohne Vorbehalt.** `08 §3` führt „Slashing, soweit
+downside-only“ als „Protokoll, eng“. `08 §6` Punkt 3 sagt, dafür seien Bonds da. `08 §7` erklärt,
+ein Bond sei eine Zusage, kein Treuhandkonto. Das Dokument, das über Aufnahme ins Protokoll
+entscheidet, führte einen ausgemusterten Mechanismus als Protokollbestandteil. Das ist die stille
+Drift, gegen die das Register da ist.
+
+**Befund 2 — die vollständige Suche.** Diesmal über alle Dateien nach „Bond“ und `bond_ref`, nicht
+nur über die erinnerten:
+
+- `01`, Tabelle der `v`-Keys einer Bürgschaft: Key `2` ist als `bond_ref` reserviert, typfest als
+  32-Byte-Hash. Er verweist auf `02 §6.1`, und dort steht der Vorbehalt. Die Reservierung schadet
+  nicht; ob Key `2` frei wird, entscheidet ein Szenario, nicht dieser Eintrag.
+- `01`, Interpretation der Bürgschaft: „Bond & Slashing leben in der ökonomischen Schicht“. Nicht
+  normativ; bleibt.
+- `06 §2.1`: der Deskriptor führt ein optionales `bond_ref` mit Verweis auf `06 §7`, der Vorbehalt
+  stand nur dort.
+- `02-golden-anchors.md`: die Kodierung von Key `2` steht unter den offenen Punkten; bleibt.
+- `02a-maxflow-prompt.md`: weist Bond und `bond_ref` Layer 05 zu, wo der Vorbehalt steht; bleibt.
+- `ROADMAP.md`: nennt die Ausmusterung selbst.
+
+**Beschluss 1 — dieselbe Behandlung wie in D467 Beschluss 5.** `08` bekommt den Vorbehalt an der
+Zeile in `§3`, nach `§6` Punkt 3 und am Satz in `§7`. Umgeschrieben wird, wenn ein Szenario die
+Stellen anfasst. Die Rangfolge der Abwehr in `08 §6` bleibt gültig; offen ist nur, womit
+Durchsetzung den Rest deckt. `06 §2.1` verweist auf den Vorbehalt. Die übrigen Stellen aus
+Befund 2 bleiben, wie oben begründet.
+
+**Kandidat, zur Übernahme vorgeschlagen.** Wer einen Begriff ausmustert, sucht jede Datei, die ihn
+trägt, mit `grep` über das ganze Repositorium, nicht über die Dateien, an die er denkt. Schwester
+des Kandidaten aus D537, dort für aufgezählte Mengen.
+
+**Geändert.** `08-scope.md`, `06-services.md`, `07-decisions.md`.

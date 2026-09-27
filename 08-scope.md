@@ -98,7 +98,7 @@ Anwendung auf den Bestand:
 | Trust-Flow, Budget, Kapazitätsschranken | begrenzt Torwächterschaft | Protokoll |
 | Mitgliedschafts-, Tilgungs- und Verdikt-Zustände | machen Zustände feststellbar | Protokoll |
 | Epochenkette und Änderungsverfahren | ersetzen eine Autorität für Regeländerungen | Protokoll |
-| Slashing, soweit downside-only | macht Ausfall teuer, ohne Aufbau zu erlauben | Protokoll, eng |
+| Slashing, soweit downside-only | macht Ausfall teuer, ohne Aufbau zu erlauben | Protokoll, eng; unter Vorbehalt (D467, D574) |
 | Gewichtete Auszählung | verteilt Macht | Policy, in v1 nicht vorhanden |
 | Losverfahren, Amtszeiten, Appeal-Pfade | verteilen Macht | Policy |
 | Schwellenwerte, Arbitratorenlisten, Ressourcengrenzen | verteilen Macht | Policy |
@@ -188,6 +188,12 @@ Daraus folgt die Rangfolge der Abwehr:
 3. **Durchsetzung** deckt allein den Rest — den Schaden, der entstanden ist, bevor der Rückzug
    greifen konnte. Dafür sind Bonds da, und nur dafür sind sie downside-only (D40).
 
+**Unter Vorbehalt (D467, D574).** Das Wort „Bond“ ist ausgemustert: darunter lagen fünf
+verschiedene Probleme, die je ihr Szenario beantwortet, und kein Mechanismus baut auf einer Stelle
+auf, die fremden Wert verwahrt oder einzieht. Die Rangfolge der Abwehr gilt weiter; womit
+Durchsetzung den Rest deckt, sagt das Szenario, nicht dieses Dokument. Punkt 3 und die Zeile
+„Slashing“ in `§3` bleiben, bis ein Szenario sie anfasst.
+
 Es ist ausdrücklich **nicht** behauptet, dass Defektion für den einzelnen Defektor irrational
 sei. Ihr Gewinn ist konzentriert, ihr Schaden verteilt; das ist der Grund, aus dem es sie gibt.
 Behauptet wird, dass sie nicht verallgemeinerbar ist und dass ihr Vorteil mit der Sichtbarkeit
@@ -206,7 +212,8 @@ Was dieses Protokoll ausdrücklich nicht liefert:
   Quittung" (`03 §3.3.2`) und deckt drei Lagen: nicht gezahlt, nicht quittiert, nicht zugestellt.
   Wer daraus auf Unwilligkeit schließt, verwechselt Partition mit Absicht (D423).
 - **Keine Deckung.** Ein Bond ist eine Zusage, kein Treuhandkonto. Ausfall wird sichtbar und
-  teuer; unmöglich wird er nicht.
+  teuer; unmöglich wird er nicht. Den Bond gibt es nicht mehr (D467, D574); der Satz gilt für
+  jede Zusage.
 - **Keine Wiedergutmachung ohne Beteiligte.** Alles, was das Protokoll tut, setzt voraus, dass
   jemand hinschaut und daraufhin handelt.
 

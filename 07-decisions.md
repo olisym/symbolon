@@ -24215,3 +24215,105 @@ nächsten Schritt für `00cr`; `sitzungsstart-00cp.md` geht nach `archiv/` (D314
 
 **Geändert.** `07-decisions.md`, `offen.md` (O96), `sitzungsstart-00cq.md`,
 `archiv/sitzungsstart-00cp.md`.
+
+### D559 — Die Gabelsätze aus D525: Feststellung, Stimme neben Claim, Titel; Auftrag `p31`
+
+**Anlass.** D555 Beschluss 1, Stufe 2b; der nächste Schritt aus `sitzungsstart-00cq.md`. Gelesen:
+`04 §3.1`, `04 §4.1`, `04 §8`, in `static/anzeige.js` `widerspruchSatz`, `widerspruchOben` und
+`geraeteSatz`, in `static/app.js` `widerspruchKarten` und das Laden der Seite, in
+`symbolon/node/view.py` `fork_evidence` und `geraetestimmen`, in `symbolon/governance/epoch.py`
+die Prüfung eines `ratify@1`; D507, D523, D525, D526. Prototyp im Supervisor-Klon auf `67f98c5`,
+die Tests in der Fassung des Auftrags, gemessen, verworfen.
+
+**Befund 1 — Bild b, gemessen.** `--versehen` mit frischem Verzeichnis, nach Takt 7 auf jedem
+Gerät: der Antrag steht wieder auf `PENDING`, 2 Ja, 3 nötig, Epoche 2. `state.epoch_findings`
+trägt `UNSUPPORTED_RATIFICATION` mit ANNAs `ratify@1` als Subjekt. Die Feststellung zitiert drei
+Stimmen; eine davon steht in DORAs Gabel, keine in BRUNOs. Brunos Lüge hat den Beschluss nicht
+gekostet, Doras Versehen schon. Die Seite sagt davon nichts: `epoch_findings` liest sie nicht, und
+`ratify` kennt sie nur als eigene Handlung.
+
+**Befund 2 — der Titel nach dem Beschluss (D507 Befund 2).** `proposals_view` führt nur die
+Anträge der geltenden Epoche. Die Auflösung der Vorgängerverfassung über alle Epochen steht schon
+in `geraetestimmen`. Eine Prüfung des Scopes braucht sie nicht: `epoch_id` bindet den Scope, ein
+Antrag eines anderen Scopes findet keine Vorgängerepoche.
+
+**Beschluss 1 — Olis Wortlaut.** Auf der Gabelkarte, deren Claims eine Stimme enthalten, auf die
+sich eine nicht tragende Feststellung stützt, steht nach „Keine der beiden Stimmen zählt.“ der
+Punkt „ANNAs Feststellung stützt sich auf diese Stimme und trägt deshalb nicht.“ Vorgelegt war
+daneben „Darum trägt ANNAs Feststellung nicht mehr.“; Oli wählte die Fassung ohne Geschichte. Sie
+ist für jeden Beobachter wahr, auch für einen, der beide Zwillinge zugleich bekam und die
+Feststellung nie tragen sah.
+
+**Beschluss 2 — woran die Seite es erkennt.** Die Seite nimmt die Subjekte der Vermerke
+`UNSUPPORTED_RATIFICATION` aus `epoch_findings` der Sicht des Vereins, holt je Subjekt einmal
+`/claims/{cid}` und behält die `ratify@1`-Claims. Eine neue reine Funktion in `anzeige.js`,
+`feststellungPunkte(ids, feststellungen, namen)`, gibt je Feststellung, deren Zeugenliste unter
+`value["0"]` eine der `ids` der Gabelung nennt, den Punkt aus Beschluss 1 mit dem Namen ihres `I`,
+in der Reihenfolge der Feststellungen. Ist `value["0"]` keine Liste, nennt die Feststellung nichts;
+ein Eintrag, der keine Zeichenkette ist, trifft nichts. Eine Serveränderung braucht das nicht.
+
+**Beschluss 3 — eine Stimme neben einem anderen Claim.** Eine zweite reine Funktion,
+`stimmenPunkte(claims, antraege, namen)`, gibt für eine Gabelung, die keine Doppelstimme ist, je
+Antrag ihrer `vote@1`-Claims mit `J[0] == 3` einen Punkt, in der Reihenfolge des ersten
+Auftretens: „Die Stimme zum Antrag „{Titel}“ zählt nicht.“, bei mehreren Stimmen zu diesem Antrag
+„Die Stimmen zum Antrag „{Titel}“ zählen nicht.“, ohne bekannten Antrag „zu einem Antrag“. Für eine
+Doppelstimme gibt sie nichts; dort trägt `widerspruchSatz` den Punkt. Grund: `04 §3.1` Bedingung 6
+nimmt jede Stimme einer Gabelung aus, gleich was neben ihr steht (D525, Verworfen).
+
+**Beschluss 4 — die Reihenfolge der Punkte.** „Keine der beiden Stimmen zählt.“, falls
+`zaehltNicht`; dann die Punkte aus `feststellungPunkte`; dann die aus `stimmenPunkte`; zuletzt der
+Punkt zu den Bürgschaften, wie bisher. Die Regel für oben bleibt, wie D525 Beschluss 2 sie setzt.
+
+**Beschluss 5 — der Titel nach dem Beschluss.** Die Auflösung der Vorgängerverfassung zieht aus
+`geraetestimmen` in eine Hilfsfunktion `_vorgaenger(scope, index, constitutions, proposal)` in
+`view.py`; `geraetestimmen` ruft sie mit dem Index der geltenden Epoche, sein Verhalten bleibt.
+Neu `antragstitel(store, scope, now)`: jeder Antrag des Bestands, dessen Vorgängerverfassung für
+die Epochen 0 bis zur geltenden auflösbar ist, als `AntragsTitel(proposal, changes)`, `changes`
+wie in `geraetestimmen`, sortiert nach `proposal`; dazu `GET /antragstitel/{scope}`, ein
+unbekannter Scope ist 404 wie bei `/proposals/`. Die Seite lädt die Liste und gibt
+`widerspruchSatz` und `stimmenPunkte` die Anträge der Seite gefolgt von dieser Liste. Ein Eintrag
+dieser Liste trägt keinen Stand; `widerspruchOben` bekommt weiter nur die Anträge der Seite.
+
+**Verworfen.**
+
+- **„Darum trägt ANNAs Feststellung nicht mehr.“** Siehe Beschluss 1.
+- **Ein eigener Satz in „Im Verein“.** Die Ursache steht auf der Karte; die Folge gehört daneben.
+- **Die Regel für oben auf jede Gabelung mit einer Stimme zu einem offenen Antrag erweitern.** Kein
+  Bild erzeugt eine Stimme neben einem anderen Claim; eine Änderung dessen, was Oli sieht, hätte
+  keinen Durchlauf.
+- **`proposals_view` um frühere Anträge erweitern.** Die Tabs zählen daraus; die Zählungen würden
+  sich ändern.
+- **Der Titel in `/forks`.** `/forks` geht über alle Scopes; der Titel gehört zu einem.
+
+**Golden Numbers, am Prototyp.** 1219 Tests grün (1217, dazu zwei in `test_antragstitel.py`), der
+Selbsttest 215 von 215 (201, dazu 14), `ruff check` sauber, `test_stil.py` grün. Über die
+Schnittstelle an Bild b, mit dem verdrahteten Pfad aus Beschluss 2 und 5: BRUNOs Karte ohne neuen
+Punkt, DORAs Karte mit „ANNAs Feststellung stützt sich auf diese Stimme und trägt deshalb nicht.“,
+`/antragstitel` mit drei Einträgen. Rücknahmeproben, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| K1 | jede Feststellung ein Punkt, ohne Schnitt | zitiert keine; zwei, eine zitiert |
+| K2 | nur der erste Zeuge | zitiert eine Stimme der Gabelung |
+| K3 | eine Zeugenliste, die keine Liste ist, gilt als Liste eines Eintrags | keine Liste |
+| K4 | der Name aus `J[1]` statt `I` | drei Fälle mit Namen |
+| K5 | Punkte auch bei einer Doppelstimme | Doppelstimme |
+| K6 | ein Punkt je Stimme statt je Antrag | drei Fälle |
+| K7 | kein Punkt ohne bekannten Antrag | Antrag unbekannt; zwei Anträge |
+| K8 | immer die Einzahl | zwei Stimmen zum selben Antrag |
+| K9 | oben, wenn der Stand nicht `PASSED` ist | `widerspruchOben`: Antrag nur mit Titel |
+| P1 | Epochen 0 bis vor der geltenden | Titel auch nach dem Beschluss |
+| P2 | nur Anträge aus `proposals_view` | Titel auch nach dem Beschluss |
+| P3 | kein Endpunkt | über die Schnittstelle |
+| P4 | `geraetestimmen` ruft `_vorgaenger` mit einem Index weniger | fünf Tests der Geräte |
+
+**Schwächste Stelle.** Was `app.js` aus den Punkten macht, sieht der Selbsttest nicht; das zeigt
+Olis Durchlauf. Die Seite sieht nur Feststellungen, die `epoch_findings` der geltenden Kette als
+nicht tragend vermerkt. Eine Feststellung, die selbst in einer Gabel steht, bekommt keinen Satz.
+Die Karte sagt weiter „beide“, auch bei drei Claims (D525).
+
+**Beschluss 6 — Auftrag `p31-gabelsaetze`.** Die Tests stehen wörtlich im Auftrag, die
+Rücknahmeproben fährt das Werkzeug ohne Bytecode-Cache. Danach die Abnahme und Olis Durchlauf
+mit `--versehen` in einem frischen Verzeichnis.
+
+**Geändert.** `07-decisions.md`.

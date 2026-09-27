@@ -24124,3 +24124,33 @@ Rücknahmeproben fährt das Werkzeug ohne Bytecode-Cache. Danach die Abnahme und
 Ein-Knoten-Verein.
 
 **Geändert.** `07-decisions.md`.
+
+### D557 — Abnahme `p30-zustimmung`
+
+**Anlass.** Bericht des Werkzeugs, Commit `2794356` auf `p30-zustimmung`, Basis `1aa5ff1` (D556).
+
+**Geprüft.** Der vollständige Diff aus dem Spiegel, gegen D556. Die Tests und der Block im
+Selbsttest sind byteweise die Fassung des Auftrags. Im Supervisor-Klon auf `2794356`: 1217 Tests
+grün, darin der Selbsttest mit 201 Fällen, `ruff check` sauber. Der Ablauf aus D556 Befund 3 über
+die Schnittstelle auf dem Branch: die Warnung nennt den ersten Antrag in `falls`, danach stehen
+beide auf `PENDING`, der erste mit 2 Ja, und beide nennen DORA unter `conflicting`.
+
+**Befund 1 — die Suche steht im Zweig, nicht in einer Hilfsfunktion.** Wie im Auftrag, der keine
+nennt. Sie wiederholt die Filter von `decide` wörtlich; die Prüfung, dass der Vorschlag unter seinem
+eigenen Hash liegt, entfällt, weil der Bestand ihn unter diesem Hash führt.
+
+**Befund 2 — Z5 in anderer Form.** Die erste Probe des Werkzeugs nahm die Sperre zurück statt der
+Wirkung des zweiten Ja und wurde nur beim gesperrten Gerät rot; die richtige Probe wird im Test des
+zweiten Ja rot. Der Code ist nicht betroffen.
+
+**Beschluss 1 — abgenommen, ohne Nachtrag.**
+
+**Beschluss 2 — die Rückfrage.** Liefert `_vote_effect` keine Folge, weil der Antrag keine Zeile in
+`proposals_view` hat, bleibt die Warnung `CONFLICTING_APPROVAL`, und `konfliktWarnung` sagt
+allgemein „anderen Anträgen“. Die Seite stimmt nur über Anträge aus `proposals_view` ab, sie
+erreicht diesen Fall nicht; nur ein Aufruf der Schnittstelle von Hand. Eine Warnung mit allgemeinem
+Wortlaut ist dort besser als keine. Keine Änderung.
+
+**Offen.** Olis Durchlauf im Ein-Knoten-Verein (D490); das gesperrte Gerät zeigt er nicht.
+
+**Geändert.** `07-decisions.md`.

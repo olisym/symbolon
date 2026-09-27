@@ -24016,3 +24016,111 @@ bestehenden Code. Er kommt als Lieferung, der Block fährt den vollen `make chec
 **Golden Numbers.** 1210 Tests (1209 und dieser), der Selbsttest 185 Fälle.
 
 **Geändert.** `07-decisions.md`, `tests/node/test_selbsttest.py`.
+
+### D556 — Stimmen, die still nicht zählen: zweites Ja und gesperrtes Gerät; Auftrag `p30`
+
+**Anlass.** D555 Beschluss 1, Stufe 2. Gelesen: `04 §3.1` zur bestrittenen Stimme, `04 §4.4`,
+`decide` in `symbolon/governance/tally.py` von der Mitgliedsprüfung bis zur Zählung, `Attribution`
+in `symbolon/trust/attribution.py`, `_vote_effect` und `_intent_body` in `symbolon/node/api.py`,
+`proposals_view`, in `static/anzeige.js` `folgeZeilen`, `frageInhalt`, `WARNUNGEN`, `geraeteSatz`,
+in `static/app.js` `felderAus`, `geraeteKarten`, `vereinGerade`; D494, D525, D532, D533, D542,
+D543, D547. Prototyp im Supervisor-Klon auf `c45752f`, die Tests in der Fassung des Auftrags,
+gemessen, verworfen.
+
+**Befund 1 — ein zweites Ja kippt einen Beschluss ohne ein Wort.** Dora stimmt „beitrag
+festlegen“ zu, der Antrag ist mit drei Ja angenommen; dann stimmt sie einem zweiten Antrag derselben
+Epoche zu. Die Vorschau sagt „zählt“ und 1 Ja, ohne Warnung. Danach zählt nach `04 §4.4` keine der
+beiden Zustimmungen: „beitrag festlegen“ fällt auf `PENDING`, Doras Name steht bei keinem Antrag,
+die Seite sagt nichts, und die Gruppe ihrer zwei Geräte sagt „Das zählt einmal.“ Zurücknehmen kann
+sie es in dieser Epoche nicht: auch ein ersetztes Ja zählt für die Regel (D547 Beschluss 4).
+`ProposalView` kennt weder `CONFLICTING_APPROVAL` noch `DISPUTED_VOTE`.
+
+**Befund 2 — ein gesperrtes Gerät.** Die Absicht rechnet die Stimme eines beendeten Geräts wie die
+seiner Wurzel (D543, schwächste Stelle): die Vorschau sagt „zählt“ und 1 Ja; danach zählt sie als
+`DISPUTED_VOTE` nicht, und die Seite schweigt.
+
+**Beschluss 1 — Warnung, keine Abweisung.** Beide Stimmen erlaubt das Protokoll. Die Seite sagt
+vorher, was sie bewirken, wie bei `CHANGE_VOTE`, und zeigt danach, warum sie nicht zählen.
+
+**Beschluss 2 — die Warnung vor einem zweiten Ja, Olis Wortlaut.** Die Absicht einer Ja-Stimme
+sucht die Anträge derselben Epoche, denen die Wurzel schon mit einer aktiven, nicht bestrittenen,
+lesbaren Ja-Stimme zustimmt, auch einer ersetzten, mit den Filtern der Auszählung und der Zurechnung
+durch ein Verdikt (`04 §4.4`, D533). Gibt es welche, heisst die Warnung `CONFLICTING_APPROVAL`; die
+Folge zählt nicht, nimmt die Wurzel aus Ja und Nein dieses Antrags und nennt in `conflict` die
+anderen Anträge, in `falls` die angenommenen unter ihnen, die ohne ihr Ja die Schwelle verfehlen.
+Der Satz:
+
+> Du hast unter dieser Fassung der Satzung schon „beitrag festlegen“ zugestimmt. Stimmst du hier
+> Ja, zählt keine deiner beiden Zustimmungen, und das lässt sich nicht zurücknehmen, solange diese
+> Fassung gilt. „beitrag festlegen“ wäre dann nicht mehr angenommen.
+
+Oli hat den Wortlaut mit „Epoche“ bestätigt. Die Seite sagt seit D494 Beschluss 5 „Fassung der
+Satzung“ statt Epoche; der Satz folgt dem, sonst unverändert. Bei mehreren anderen Anträgen „keine
+deiner Zustimmungen“; ohne Titel „einem anderen Antrag“.
+
+**Beschluss 3 — ein gesperrtes Gerät.** Ist der Schlüssel der Absicht ein aufgenommenes Gerät mit
+einem Ende, dessen Endpunkt im Bestand liegt, wäre die neue Stimme bestritten (`02 §2.1`): Warnung
+`DEVICE_ENDED`, „Dieses Gerät ist gesperrt. Die Stimme zählt nicht.“, die Folge lässt Ja und Nein,
+wie sie sind. Ein Verdikt kann eine neue Stimme nicht schon zurechnen, weil es sie nennen müsste.
+Die Suche nach anderen Zustimmungen entfällt dann.
+
+**Beschluss 4 — danach eine Widerspruchskarte.** `ProposalView` bekommt `conflicting`, die Wurzeln
+der Stimmen unter `CONFLICTING_APPROVAL`. Die Seite baut je Wurzel eine Karte aus den Titeln der
+Anträge, die sie nennen: „DORA hat zwei Anträgen zugestimmt: „beitrag festlegen“ und „ort
+festlegen“.“, Punkte „Keine der beiden Zustimmungen zählt.“ und „DORAs Bürgschaften zählen weiter.“
+Nennt sie nur einer der Anträge, weil das andere Ja ersetzt ist: „DORA hat „ort festlegen“ und einem
+weiteren Antrag zugestimmt.“ Die Karte steht oben, weil ihre Anträge auf der Seite stehen; einen
+Punkt zum Ersetzen gibt es nicht. Steht die Wurzel am Antrag einer Gerätegruppe unter `conflicting`,
+gibt `geraeteSatz` keinen Satz statt „Das zählt einmal.“
+
+**Beschluss 5 — ein Satz zur gesperrten Stimme.** `ProposalView` bekommt `disputed`, die Schlüssel
+der Stimmen unter `DISPUTED_VOTE`. In „Im Verein“ je Schlüssel: „Eine Stimme von DORA (Zweitgerät)
+zum Antrag „beitrag festlegen“ zählt nicht: das Gerät ist gesperrt.“ Den Titel nenne ich zusätzlich
+zu dem, was ich Oli vorgelegt hatte; ohne ihn bliebe offen, welcher Antrag.
+
+**Beschluss 6 — Kleinigkeiten.** `aufzaehlung` zieht von `app.js` nach `anzeige.js`, weil die neuen
+Sätze sie brauchen. `folgeZeilen` bekommt je eine Zeile für `ended` und `conflict` vor dem Zweig,
+den D548 Befund 4 unerreichbar nannte; der bleibt für Stufe 3. Der Selbsttest wächst von 185 auf
+201.
+
+**Befund 3 — gemessen am Ein-Knoten-Verein.** Über `/intent` und `/sim/intent` auf einem frischen
+Bestand: zwei Anträge, ANNA, BRUNO und DORA stimmen dem ersten zu, er ist angenommen; Doras Absicht
+auf den zweiten warnt und nennt den ersten in `conflict` und `falls`; danach stehen beide auf
+`PENDING`, der erste mit 2 Ja, und beide nennen DORA unter `conflicting`. Das gesperrte Gerät gibt
+es im Ein-Knoten-Verein nicht; das prüfen nur die Tests.
+
+**Golden Numbers, am Prototyp.** 1217 Tests grün (1210, dazu sieben in `test_zustimmung.py`), der
+Selbsttest 201 von 201, `ruff check` sauber. Rücknahmeproben, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| Z1 | keine Warnung vor dem zweiten Ja | vier Tests der Zustimmung |
+| Z2 | nur Ja, die noch zählen | ersetztes Ja |
+| Z3 | `falls` ohne Schwelle | zweites Ja ohne Folge |
+| Z4 | `falls` immer leer | zweites Ja kippt, über ein Gerät |
+| Z5 | die Stimme zählt trotz zweitem Ja | zweites Ja kippt, gesperrtes Gerät |
+| Z6 | ein gesperrtes Ja zählt für die Regel | gesperrtes Ja |
+| Z7 | keine Warnung beim gesperrten Gerät | gesperrtes Gerät |
+| Z8 | auch die Wurzel gilt als gesperrt | gesperrtes Gerät, gesperrtes Ja |
+| Z9 | `conflicting` leer | zweites Ja kippt, ersetztes Ja |
+| Z10 | `disputed` leer | gesperrtes Gerät |
+| K1 | immer „beiden“ | Selbsttest: zwei andere Anträge |
+| K2 | kein Satz zum Fallen | Selbsttest |
+| K3 | die Warnung nur als Name | Selbsttest: frageInhalt |
+| K4 | keine Folgezeile zum zweiten Ja | Selbsttest |
+| K5 | „zählt einmal“ trotz zweitem Ja | Selbsttest |
+| K6 | Unterdrückung ohne Prüfung der Wurzel | Selbsttest: andere Wurzel |
+| K7 | ohne die Einzahl der Karte | Selbsttest |
+| K8 | keine Folgezeile zum gesperrten Gerät | Selbsttest |
+
+**Schwächste Stelle.** Die Suche nach anderen Zustimmungen wiederholt die Filter der Auszählung,
+statt sie aufzurufen; die Tests binden beide an dieselben Fälle, die Zurechnung durch ein Verdikt
+aber prüft keiner, weil der Beispielverein `verdict@1` nicht im Boden führt (D539). Und ob `app.js`
+die Karte und den Satz baut, sieht der Selbsttest nicht; das zeigt Olis Durchlauf, für das gesperrte
+Gerät keiner.
+
+**Beschluss 7 — Auftrag `p30-zustimmung`.** Die Tests stehen wörtlich im Auftrag, die
+Rücknahmeproben fährt das Werkzeug ohne Bytecode-Cache. Danach die Abnahme und Olis Durchlauf im
+Ein-Knoten-Verein.
+
+**Geändert.** `07-decisions.md`.

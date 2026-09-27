@@ -25094,3 +25094,81 @@ nächsten Schritt für `00ct`, den Knoten für Sachanträge mit der Umbenennung 
 `sitzungsstart-00cs.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00ct.md`, `archiv/sitzungsstart-00cs.md`.
+
+### D577 — O96: Auftrag `p34-knoten`, Sachanträge im Knoten
+
+**Anlass.** Sitzungsstart `00ct`, nächster Schritt. Gelesen: `symbolon/node/store.py`, `api.py`,
+`view.py` ganz, `symbolon/governance/objects.py`, der Stand-Teil von `chain.py`, der Kopf und die
+Regelschleife von `decide`, `04 §2.4`, `§2.5`, `§4.4` bis `§4.6`, D569, D575. Prototyp im
+Supervisor-Klon auf `ada62ba`, danach verworfen.
+
+**Beschluss 1 — ein Lauf.** `p34-knoten` benennt nach D575 Beschluss 3 um, gibt dem Stand die
+Menge der festgestellten Sachanträge, legt die drei Regeln aus `04 §4.4` an eine Stelle und baut
+Speicher, Sicht und Absichten für Sachanträge. Die Seite folgt in einem eigenen Lauf.
+
+**Beschluss 2 — der Speicher nimmt formwidrige Sachanträge an.** Ein Objekt der Art `motion` muss
+kanonisches CBOR sein, sonst hätte es keinen eindeutigen Hash; jeder kanonische Inhalt wird
+gespeichert, unter `motion_hash` (`04 §2.5`). Ebenso Feld 3 eines Vorschlags, wie es kam. Grund:
+formwidrig und unbekannt sind nach der Norm zwei Lagen mit verschiedener Folge. Ein Ja auf ein
+unbekanntes Objekt blockiert jedes andere Ja derselben Wurzel (`04 §4.4`, `UNKNOWN_PROPOSAL`), ein
+Ja auf einen formwidrigen Sachantrag ist mit jedem vereinbar. Wiese der Knoten ab, machte er aus
+der zweiten Lage die erste, und ein Mitglied verlöre seine übrigen Ja. Unverändert nach D474
+bleiben die Schlüssel 0 bis 2 eines Vorschlags; ein Schlüssel außer 0 bis 3 wird abgewiesen.
+
+**Beschluss 3 — `S` sind alle festgestellten Sachanträge, der Satzungsantrag baut auf dem
+Stand.** Nicht nur die angewandten: ein festgestellter Sachantrag außerhalb von `S` macht den
+Satzungsantrag nach B2 aussichtslos, denn die Ja der Überlappung sind nach Regel 3 unvereinbar.
+`resolve_stand` liefert deshalb zusätzlich `ratified`, die aufsteigend sortierten `motion_hash` der
+festgestellten Sachanträge (`04 §4.6`, im Lauf nachgetragen). Nach B4 ist der Stand aus der
+Verfassung der Epoche und diesem `S` der Stand der Epoche. Ohne festgestellte Sachanträge fehlt
+Feld 3, und jeder bisherige `proposal_hash` bleibt. `04 §4.4` ändert sich nicht.
+
+**Beschluss 4 — die Regel an einer Stelle.** `approvals_conflict(own, other)` in
+`symbolon/governance/tally.py` beantwortet, ob zwei Ja derselben Wurzel nach `04 §4.4`
+unvereinbar sind; `decide` und die Vorschau des Knotens lesen sie dort. Die Vorschau prüfte bisher
+nur Regel 1 und hätte ein Ja auf einen Sachantrag neben jedem anderen Ja derselben Epoche als
+unvereinbar gemeldet. Die Rücknahmeprobe nimmt die Regel an dieser Quelle zurück (Kandidat aus
+D536). Ein Ja auf ein unbekanntes Objekt warnt in der Vorschau weiter nicht (D556, ohne Auftrag).
+
+**Beschluss 5 — Schnittstellen, gewählt, nicht Norm.**
+
+- `ObjectKind.MOTION` (`"motion"`), `SqliteStore.all_motions()`; `Proposal.motions` aus Feld 3.
+- Die Sicht gibt `resolve_state`, `decide` und `resolve_stand` Vorschläge und Sachanträge in einer
+  Abbildung. `ScopeView.stand` ist das Ergebnis von `resolve_stand`; `state.constitution_obj`
+  bleibt die Verfassung der Epoche, denn an sie bindet die Annahme (`03 §4`).
+- `ProposalView` bekommt `kind` (`proposal` oder `motion`) und `motions` (`S`). Die Änderungen
+  eines Satzungsantrags stehen gegen den Stand aus `S`, die eines Sachantrags sind seine Felder,
+  `[]` als `null`.
+- Absicht `propose` trägt genau eines von `change` und `motion`. `motion` ist eine Map vom Feldnamen
+  auf einen Text oder `null` für „entfernen“; der alte Wert kommt aus dem Stand. Abweisungen:
+  `RESERVED_FIELD` für ein Regelfeld oder ein Feld, dessen Wert im Stand kein Text ist,
+  `UNCHANGED_FIELD`, wenn alt und neu gleich wären, sonst `INVALID_CHANGE`.
+- `vote` und `ratify` nehmen einen Sachantrag wie einen Vorschlag; auf einen formwidrigen weist
+  die Absicht mit `MALFORMED_MOTION` ab. Die Folge von `ratify` auf einen Sachantrag nennt die
+  Epoche, die bleibt.
+
+**Befund 1 — ein fremder Scope brach die Sicht.** `scope_view` filterte Vorschläge nur nach
+`predecessor`. Ein Objekt mit fremdem `scope` und dem `epoch_id` der geltenden Epoche lief in
+`decide` und warf; jede Anfrage auf `/scopes/` dieses Scopes endete mit 500. Dieselbe Lage wie
+D572 in der Kette, dort repariert, hier nicht gesucht. `p34` filtert nach `scope` und
+`predecessor` wie `04 §4.5`. Die Sicht rechnet eine Menge der Kette selbst; der Kandidat aus D547
+und D548 hätte die Stelle gefunden.
+
+**Befund 2 — ohne Sachanträge in der Kette fällt die Epoche.** Die Probe, die der Kette nur die
+Vorschläge gibt, wird nicht erst an Bedingung 7 rot: das erste Ja auf einen Sachantrag ist dann
+ein Ja auf ein unbekanntes Objekt, es blockiert das Ja derselben Wurzel auf den Vorschlag, der
+die Epoche trägt, und die Sicht fällt auf Epoche 1 zurück (`04 §4.4`, die Aussetzung ist nicht
+epochenlokal). Das ist die Norm, richtig angewandt auf eine falsche Beschaffung. Bedingung 7 selbst
+bewacht `GV-85`.
+
+**Beschluss 6 — Rücknahmeproben, gegen die Testfassung des Auftrags gefahren.** Alle elf rot:
+Kette ohne Sachanträge, Regel 2 aus (auch `GV-63`, `INV-04.9`), Regel 3 aus (auch `GV-65`,
+`GV-67`, `INV-04.9`), Satzungsantrag aus der Verfassung statt aus dem Stand, ohne Feld 3, ohne
+Scope-Filter, alter Wert aus der Verfassung, Speicher weist formwidrig ab, Folge von `ratify` als
+neue Epoche, Vorschau mit dem alten Filter, Zeile gegen die Verfassung. Mit dem Prototyp laufen
+alle 1281 Tests grün, 1264 bisherige und 17 neue; `make check` endet mit Status 0.
+
+**Weiter ohne Auftrag.** `antragstitel` und `geraetestimmen` lesen nur Vorschläge; eine Stimme auf
+einen Sachantrag erscheint dort nicht. Die Seite entscheidet, ob sie das braucht.
+
+**Geändert.** `07-decisions.md`; der Auftrag liegt in `~/auftraege/p34-knoten.md`.

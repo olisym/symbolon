@@ -442,3 +442,9 @@ Bild unter `--aufloesen`: Anna wartet, Bruno ersetzt beide Stimmen, die Seite sa
 ### O96 Mehrere Anträge nebeneinander: unabhängige Änderungen unter einer Fassung — erledigt (D581)
 
 Sachanträge neben Satzungsanträgen, drei Regeln, Stand; Norm, Knoten und Seite (D564–D581).
+
+### O97 Phase 5: S-Nodes gleichen sich über Reticulum ab
+
+Die Knoten gleichen sich heute nicht selbst ab; ein Werkzeug fährt die Runde (D516). Phase 5 lässt
+sie über Reticulum abgleichen, zuerst in einem Lab auf einer Maschine, dann mit Verlust nach Art von
+LoRa, dann über Funk (`ROADMAP §7`). Stufen und Lücken L1 bis L10 in D583. O90 gehört dazu.

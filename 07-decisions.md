@@ -25339,3 +25339,94 @@ nächsten Schritt für `00cu`, die Eröffnung von Phase 5; `sitzungsstart-00ct.m
 `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cu.md`, `archiv/sitzungsstart-00ct.md`.
+
+### D583 — Phase 5 eröffnet: O97, ein Lab ohne Docker, Bestandsaufnahme für mehrere Knoten
+
+**Anlass.** D582 Beschluss 3: der nächste Schritt ist Phase 5 (`ROADMAP §7`). Olis Frage: wie weit
+trägt die bisherige Spec, sobald es mehrere S-Nodes gibt, die erreichbar sind oder nicht; „scheint
+trivial, ist es aber vielleicht nicht“. Er fragte, ob es dafür ein Testlab in Docker braucht.
+Gelesen: `tools/abgleich.py`, der Kopf von `tools/netz.py`, die Routen unter `/peer/` in
+`symbolon/node/api.py`, `SqliteStore.submit_claim`, `01 §1` (A1), `01 §6`, `02 §7`, D123, D336 bis
+D342, D514, D516, D518, D528, D542.
+
+**Gemessen, im Supervisor-Klon auf `596b556`, mit `rns 1.5.4` und `lxmf 1.1.1`.**
+
+- Zwei RNS-Instanzen auf einer Maschine, je eigener Prozess und eigenes Konfigurationsverzeichnis,
+  `share_instance = No`, verbunden über `TCPServerInterface` und `TCPClientInterface` auf
+  `127.0.0.1`: Pfad gefunden, Link aktiv, Pakete zu 295, 368 und 431 Byte kommen an und werden
+  beantwortet. Kein root, kein Container. RNS ist je Prozess eine Instanz; ein Knoten ist ein
+  Prozess.
+- Über TCP handelt der Link eine MDU von 16303 Byte aus; `RNS.Link.MDU` ist 431. Ein Lab über TCP
+  verdeckt damit die Grösse, die über LoRa gilt. Ob sich die Link-MDU deckeln lässt, ist nicht
+  geprüft.
+- LXMF: `ENCRYPTED_PACKET_MAX_CONTENT` 295, `LINK_PACKET_MAX_CONTENT` 319, `LXMF_OVERHEAD` 112,
+  darin eine eigene Ed25519-Signatur.
+- Der Ein-Knoten-Verein aus `tools.verein_node`: 13 Claims zu 295 bis 368 Byte, Median 300; 10
+  Objekte zu 106 bis 441 Byte, die Verfassung am grössten.
+
+**Beschluss 1 — O97.** Phase 5 geht über mehr als eine Sitzung und bekommt eine Nummer (Kandidat
+aus D412). Vorher gesucht (Kandidat aus D527) mit Reticulum, LXMF, LoRa und Funk: Register und
+`offen.md` führen Vorläufer (D336 bis D342, D514, D516, D528, D542 Beschluss 3, O90), keinen Strang.
+O90 bleibt ein eigener Posten und gehört zu O97.
+
+**Beschluss 2 — fünf Stufen.** (1) Die Bestandsaufnahme, dieser Eintrag. (2) Die Naht: der Knoten
+gleicht selbst ab, hinter einer schmalen Schnittstelle für den Transport. (3) Das Lab: ein Befehl
+startet mehrere Knoten mit je eigener RNS-Instanz über TCP auf einer Maschine, dazu ein Schaltpult,
+das Knoten trennt und verbindet. (4) Verlust, Bandbreite und Latenz nach Art von LoRa mit
+`tc netem`; erst hier Docker, weil `netem` je Knoten eine eigene Netzschnittstelle braucht, sonst
+wirkt es auf alle. (5) Funk über Olis T-Beams. Docker für den Anfang verworfen: mehrere Instanzen
+laufen ohne ihn, und ein Container prüft keine Aussage der Spec.
+
+**Beschluss 3 — was die Spec für mehrere Knoten schon trägt.**
+
+- A1 (`01 §1`) hält den Transport aus dem Atom und sieht ein Transport-Profil vor. Geschrieben ist
+  es nicht; `docs/IMPLEMENTIERUNGSPLAN.md` führt es in Schritt 6 als später.
+- Teilwissen: pending statt Reject und Idempotenz (`01 §6`); jede Reihenfolge der Einlieferung
+  ergibt denselben Bestand (D514 Beschluss 1, gemessen an 200 Teilbeständen).
+- Szenarien D bis F (D336 bis D342): Umordnung, dauerhafter Verlust und Uhrendrift degradieren ohne
+  Absturz; ein Beobachter mit Teilwissen weicht stabil ab und kommt nach der Nachlieferung zum
+  selben Ergebnis. Eine materialisierte Folgeepoche kann dabei zurückfallen, gewollt (D342).
+- Vertrauen unter Partition ist eine Untergrenze, ausser beim Budget (D118) und beim fehlenden
+  Widerruf (`02 §7`); dessen Abwehr 2, Widerrufe mit Priorität, ist Policy.
+- Fehlt das Verfassungsobjekt, gilt der Sicherheits-Default (`01 §6`).
+- Ein Gerät schreibt, ohne dass seine Wurzel erreichbar ist (D529, D531).
+
+Das Protokoll trägt also Teilwissen, Verlust und Umordnung. Was fehlt, ist das Verhalten eines
+Knotens im Netz.
+
+**Beschluss 4 — was sie offenlässt.** Kandidaten für O97, je mit der Stelle, an der es sich zeigt.
+
+- **L1, wer abgleicht.** Heute fährt ein Dritter die Runde (D516 Beschluss 1). Dass der Knoten
+  selbst fragt, hat D516 verworfen, weil `serve` einfädig ist und die SQLite-Verbindung dem
+  Serverfaden gehört. Reticulum ruft seine Callbacks auf eigenen Fäden; das Hindernis bleibt.
+- **L2, mit wem und wann.** Die Nachbarn stehen fest in `tools.netz`, ein Durchgang geht über alle
+  Paare (D518 Beschluss 2). Entdeckung über Announces, Takt, Verhalten bei Unerreichbarkeit: keine
+  Norm.
+- **L3, Adressierung.** Eine RNS-Destination hat einen eigenen Schlüssel. Ob die Transportadresse
+  eines Knotens an eine Identität des Protokolls gebunden wird, ist offen; D123 liess die
+  Gerätesignatur nie ins Protokoll, dieselbe Frage stellt sich für die Transportidentität.
+- **L4, Grösse.** Kein Claim des Vereins passt in ein opportunistisches LXMF-Paket; jeder passt in
+  ein RNS-Link-Paket zu 431 Byte, die Verfassung nicht. Fork LXMF oder rohe RNS-Links, offen.
+  Position: rohe Links für den Abgleich, weil ein Claim sich selbst signiert und LXMF je Claim 112
+  Byte mit einer zweiten Signatur kostet; LXMF für Nachrichten zwischen Menschen.
+- **L5, Mengenabgleich.** Die volle Liste kostet 32 Byte je gehaltenem Eintrag und Runde (O90).
+- **L6, Reihenfolge einer knappen Runde.** Heute Objekte vor Claims, je nach Hex (D516 Beschluss 1).
+  `02 §7` will Widerrufe zuerst; keine Norm sagt, was eine Runde zuerst schickt, wenn sie nicht
+  alles schafft.
+- **L7, fremde Bytes zur angefragten `claim_id`** (D516, Schwächste Stelle). Nachgelesen:
+  `submit_claim` rechnet die `claim_id` selbst, falsche Bytes landen unter ihrer eigenen, der
+  Bestand wird nicht verfälscht. Die Folge ist eine der Lebendigkeit: der fehlende Claim bleibt
+  fehlend, jede Runde fragt ihn wieder, über Funk kostet das Sendezeit. Das berichtigt meine
+  Aussage im Gespräch, die Prüfung werde mit fremdem Transport aus Sicherheitsgründen Pflicht.
+- **L8, Flut.** Ein Knoten nimmt jeden strukturell gültigen Claim an, bis 1 MiB je Anfrage
+  (`_LIMIT` in `api.py`). Gesucht mit Spam, Flut, DoS und Speichergrenze in `00` bis `08` und
+  `offen.md`: keine Stelle.
+- **L9, Uhren.** Jeder Knoten beginnt bei 1000 (D518). Getrennte Prozesse haben getrennte Uhren;
+  das Lab braucht eine gemeinsame oder eine bewusst versetzte.
+- **L10, die Aufnahme eines Geräts als Handlung im Netz** (D542 Beschluss 3).
+
+**Beschluss 5 — der nächste Schritt.** Stufe 2 beginnt mit L1: ein Prototyp im Klon, der zwei
+Knoten über RNS abgleicht, ohne dass ein Dritter die Runde fährt, und das Hindernis aus D516 löst
+oder benennt. Der Zuschnitt in Läufe folgt dem Prototyp.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O97).

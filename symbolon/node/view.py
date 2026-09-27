@@ -6,8 +6,16 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from symbolon.atom import Claim, claim_id
+from symbolon.governance.chain import StandResolution, resolve_stand
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
-from symbolon.governance.objects import Proposal, epoch_id
+from symbolon.governance.objects import (
+    Motion,
+    Proposal,
+    apply_motions,
+    epoch_id,
+    motion_list,
+    motion_wellformed,
+)
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
@@ -50,9 +58,11 @@ class VereinslebenView:
 
 @dataclass(frozen=True, slots=True)
 class ScopeView:
-    """Sicht eines Scopes (D473 Beschluss 3, D474 Beschluss 2)."""
+    """Sicht eines Scopes (D473 Beschluss 3, D474 Beschluss 2). ``stand`` ist das Ergebnis von
+    ``resolve_stand`` mit Epoche und Verfassung aus ``state`` (04 §4.6, D577 Beschluss 5)."""
 
     state: NucleusState
+    stand: StandResolution
     verein: VereinView | None
     vereinsleben: VereinslebenView | None
     findings: tuple[Finding, ...]
@@ -67,18 +77,35 @@ class ForkGroup:
     claims: tuple[tuple[bytes, bytes | None], ...]
 
 
+def _known(store: SqliteStore) -> dict[bytes, Proposal | Motion]:
+    """Vorschläge und Sachanträge des Bestands in einer Abbildung (04 §4.5, D577 Beschluss 5)."""
+    return {**store.all_proposals(), **store.all_motions()}
+
+
 def scope_view(store: SqliteStore, scope: bytes, now: int) -> ScopeView:
-    """Sicht eines Scopes (D473 Beschluss 3, D474 Beschluss 2, 04 §3.5, 04 §4.5, 04 §6.2)."""
+    """Sicht eines Scopes (D473 Beschluss 3, D474 Beschluss 2, 04 §3.5, 04 §4.5, 04 §4.6, 04 §6.2).
+
+    Die Anträge der Epoche sind die Vorschläge und Sachanträge mit ``scope`` und ``predecessor``
+    der Epoche (04 §4.5, D577 Befund 1).
+    """
     genesis = store.all_genesis().get(scope)
     if genesis is None:
         raise ValueError("genesis of scope is not in the store")
     constitutions = store.all_constitutions()
-    proposals = store.all_proposals()
+    proposals = _known(store)
     state = resolve_state(
         store,
         scope=scope,
         genesis_obj=genesis,
         known_constitutions=constitutions,
+        known_proposals=proposals,
+        now=now,
+    )
+    stand = resolve_stand(
+        store,
+        epoch=state.epoch,
+        genesis_obj=genesis,
+        constitution_obj=state.constitution_obj,
         known_proposals=proposals,
         now=now,
     )
@@ -117,7 +144,7 @@ def scope_view(store: SqliteStore, scope: bytes, now: int) -> ScopeView:
             )
             listed: list[tuple[bytes, TallyResult]] = []
             for digest, proposal in proposals.items():
-                if proposal.predecessor != state.epoch.epoch_id:
+                if proposal.scope != scope or proposal.predecessor != state.epoch.epoch_id:
                     continue
                 listed.append(
                     (
@@ -168,6 +195,7 @@ def scope_view(store: SqliteStore, scope: bytes, now: int) -> ScopeView:
         )
     return ScopeView(
         state=state,
+        stand=stand,
         verein=verein,
         vereinsleben=vereinsleben,
         findings=dedupe_sort(findings),
@@ -178,18 +206,20 @@ def _decide_proposal(
     store: SqliteStore,
     state: NucleusState,
     genesis: dict,
-    proposal: Proposal,
+    proposal: Proposal | Motion,
     constitutions: dict[bytes, dict],
-    proposals: dict[bytes, Proposal],
+    proposals: dict[bytes, Proposal | Motion],
     now: int,
 ) -> TallyResult:
+    """Auszählung eines Antrags; ein Sachantrag hat kein Zielobjekt (04 §3.5, D577 Beschluss 5)."""
+    target = None if isinstance(proposal, Motion) else constitutions.get(proposal.constitution_hash)
     return decide(
         store,
         epoch=state.epoch,
         proposal=proposal,
         genesis_obj=genesis,
         constitution_obj=state.constitution_obj,
-        target_constitution_obj=constitutions.get(proposal.constitution_hash),
+        target_constitution_obj=target,
         known_proposals=proposals,
         now=now,
         policy=state.policy,
@@ -216,14 +246,17 @@ class ProposalChanges:
 
 @dataclass(frozen=True, slots=True)
 class ProposalView:
-    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt
+    """Ein Antrag: propose@1 eines Teilnehmers auf ein Vorschlagsobjekt oder einen Sachantrag
 
     (D482 Befund 2, D484 Beschluss 2, D487 Beschluss 3). ``conflicting`` nennt die Wurzeln der
     Stimmen unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel der Stimmen unter
-    ``DISPUTED_VOTE`` (D556 Beschluss 4 und 5, 04 §4.4, 04 §3.1).
+    ``DISPUTED_VOTE`` (D556 Beschluss 4 und 5, 04 §4.4, 04 §3.1). ``kind`` ist ``proposal`` oder
+    ``motion``, ``motions`` die Liste ``S`` eines Vorschlags (04 §2.4, D577 Beschluss 5).
     """
 
     proposal: bytes
+    kind: str
+    motions: tuple[bytes, ...]
     proposers: tuple[bytes, ...]
     state: TallyState
     yes: tuple[bytes, ...]
@@ -296,12 +329,30 @@ def _changes(current: dict, target: dict | None) -> ProposalChanges:
     return ProposalChanges(added=added, removed=removed, fields=fields)
 
 
+def _motion_changes(motion: Motion) -> ProposalChanges:
+    """Die Felder eines Sachantrags nach Namen, ``[]`` als ``None``, ``[w]`` als ``w``; formwidrig
+    keine (04 §2.5, D577 Beschluss 5)."""
+    if not motion_wellformed(motion):
+        return ProposalChanges(added=(), removed=(), fields=())
+    fields = tuple(
+        FieldChange(
+            field=name,
+            old=pair[0][0] if pair[0] else None,
+            new=pair[1][0] if pair[1] else None,
+        )
+        for name, pair in sorted(motion.changes.items())
+    )
+    return ProposalChanges(added=(), removed=(), fields=fields)
+
+
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
     """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3).
 
     ``yes``, ``no`` und ``ambiguous`` nennen die Wurzeln der Stimmen (D542 Beschluss 4, 04 §3.1),
     ``conflicting`` die Wurzeln unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel unter
     ``DISPUTED_VOTE``; ein Subjekt, das nicht im Bestand liegt, fällt weg (D556 Beschluss 4 und 5).
+    Die Änderungen eines Vorschlags stehen gegen den Stand aus der Verfassung der Epoche und den
+    bekannten, wohlgeformten Sachanträgen aus ``S`` (04 §4.6, D577 Beschluss 5).
     """
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
@@ -310,7 +361,7 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
         return ()
     participants = frozenset(view.state.constitution_obj["participants"])
     grouped = _antraege(store, scope, participants)
-    proposals = store.all_proposals()
+    proposals = _known(store)
     constitutions = store.all_constitutions()
     current = view.state.constitution_obj
     attr = attribution(store, classify_all(store, now, view.state.policy), scope)
@@ -352,10 +403,22 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
             )
         )
         proposal_obj = proposals.get(digest)
-        target = constitutions.get(proposal_obj.constitution_hash) if proposal_obj else None
+        if isinstance(proposal_obj, Motion):
+            kind, motions, changes = "motion", (), _motion_changes(proposal_obj)
+        else:
+            motions = motion_list(proposal_obj) or ()
+            listed = [proposals.get(h) for h in motions]
+            stand, _applied = apply_motions(
+                current,
+                [m for m in listed if isinstance(m, Motion) and motion_wellformed(m)],
+            )
+            target = constitutions.get(proposal_obj.constitution_hash)
+            kind, changes = "proposal", _changes(stand, target)
         result.append(
             ProposalView(
                 proposal=digest,
+                kind=kind,
+                motions=motions,
                 proposers=proposers,
                 state=tally.state,
                 yes=yes_authors,
@@ -363,7 +426,7 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 ambiguous=ambiguous_authors,
                 n=tally.n,
                 needed=_needed(tally.threshold, tally.n),
-                changes=_changes(current, target),
+                changes=changes,
                 conflicting=conflicting,
                 disputed=disputed,
             )

@@ -1,4 +1,4 @@
-"""Fassung und Kette mit Sachanträgen; INV-04.9 bis INV-04.11
+"""Stand und Kette mit Sachanträgen; INV-04.9 bis INV-04.11
 (04 §4.1, 04 §4.4, 04 §4.5, 04 §4.6, 04-golden-anchors.md §8, 04-golden-anchors.md §10,
 D567 bis D572).
 
@@ -11,7 +11,7 @@ import itertools
 
 from symbolon.atom import claim_id
 from symbolon.governance import resolve_epoch, verify_ratification
-from symbolon.governance.chain import resolve_fassung
+from symbolon.governance.chain import resolve_stand
 from symbolon.governance.findings import Finding, GovernanceFinding as GF
 from symbolon.governance.objects import Proposal, apply_motions, preconditions
 from symbolon.governance.tally import TallyState
@@ -46,9 +46,9 @@ def _kette(store, known=KNOWN):
                          known_proposals=known, now=NOW)
 
 
-def _fassung(store, known=KNOWN):
-    return resolve_fassung(store, epoch=EPOCH_1, genesis_obj=GENESIS_D, constitution_obj=C1,
-                           known_proposals=known, now=NOW)
+def _stand(store, known=KNOWN):
+    return resolve_stand(store, epoch=EPOCH_1, genesis_obj=GENESIS_D, constitution_obj=C1,
+                         known_proposals=known, now=NOW)
 
 
 def _g1_und_m1(w: _Welt, *, m1_feststellen: bool):
@@ -85,24 +85,24 @@ def test_kette_meldet_keine_vermerke_von_sachantraegen() -> None:
     assert r.epoch == EPOCH_1 and r.findings == ()
 
 
-# --- Fassung (04 §4.6) ------------------------------------------------------------
+# --- Stand (04 §4.6) --------------------------------------------------------------
 
 def test_gv90_zwei_feststellungen_eine_traegt() -> None:
     w = _Welt()
     m_ja = [w.ja(who, M1.motion_hash) for who in (w.alice, w.bob, w.carol)]
     w.ratify(w.bob, M1.motion_hash, m_ja)
     w.ratify(w.carol, M1.motion_hash, m_ja[:2])
-    r = _fassung(w.store())
+    r = _stand(w.store())
     assert r.applied == (M1.motion_hash,) and r.findings == ()
-    assert r.fassung_obj["beitrag"] == "30 EUR"
+    assert r.stand_obj["beitrag"] == "30 EUR"
 
 
 def test_gv91_nur_die_feststellung_mit_zwei_zeugen() -> None:
     w = _Welt()
     m_ja = [w.ja(who, M1.motion_hash) for who in (w.alice, w.bob, w.carol)]
     rc = w.ratify(w.carol, M1.motion_hash, m_ja[:2])
-    r = _fassung(w.store())
-    assert r.applied == () and "beitrag" not in r.fassung_obj
+    r = _stand(w.store())
+    assert r.applied == () and "beitrag" not in r.stand_obj
     assert r.findings == (Finding(kind=GF.UNSUPPORTED_RATIFICATION, subject=claim_id(rc)),)
 
 
@@ -113,15 +113,15 @@ def test_gv87_gv89_ueber_feststellungen() -> None:
         for m in motions:
             ja = [w.ja(who, m.motion_hash) for who in (w.alice, w.bob, w.carol)]
             w.ratify(w.alice, m.motion_hash, ja)
-        r = _fassung(w.store())
-        assert {k: v for k, v in r.fassung_obj.items() if k not in C1} == felder
-        assert r.fassung_obj is not C1 and "beitrag" not in C1
+        r = _stand(w.store())
+        assert {k: v for k, v in r.stand_obj.items() if k not in C1} == felder
+        assert r.stand_obj is not C1 and "beitrag" not in C1
 
 
-def test_fassung_ohne_verfassung_ist_leer() -> None:
-    r = resolve_fassung(_Welt().store(), epoch=EPOCH_1, genesis_obj=GENESIS_D,
-                        constitution_obj=None, known_proposals=KNOWN, now=NOW)
-    assert r.fassung_obj is None and r.applied == () and r.findings == ()
+def test_stand_ohne_verfassung_ist_leer() -> None:
+    r = resolve_stand(_Welt().store(), epoch=EPOCH_1, genesis_obj=GENESIS_D,
+                      constitution_obj=None, known_proposals=KNOWN, now=NOW)
+    assert r.stand_obj is None and r.applied == () and r.findings == ()
 
 
 # --- Formwidriger Sachantrag bei der Feststellung (04 §4.1, D570) ---------------------
@@ -140,11 +140,11 @@ def test_formwidriger_sachantrag_endet_mit_tally_unevaluable() -> None:
     assert Finding(kind=GF.MALFORMED_MOTION, subject=fremd.motion_hash) in r.findings
 
 
-def test_formwidriger_sachantrag_der_epoche_in_der_fassung() -> None:
+def test_formwidriger_sachantrag_der_epoche_im_stand() -> None:
     w = _Welt()
     ja = [w.ja(who, M_RULE.motion_hash) for who in (w.alice, w.bob, w.carol)]
     rc = w.ratify(w.alice, M_RULE.motion_hash, ja)
-    r = _fassung(w.store())
+    r = _stand(w.store())
     assert r.applied == ()
     assert set(r.findings) == {
         Finding(kind=GF.TALLY_UNEVALUABLE, subject=claim_id(rc)),
@@ -194,7 +194,7 @@ def _mengen():
                 yield menge
 
 
-def test_INV_04_10_fassung_unabhaengig_von_der_reihenfolge() -> None:
+def test_INV_04_10_stand_unabhaengig_von_der_reihenfolge() -> None:
     for menge in _mengen():
         ergebnisse = {
             (repr(sorted(apply_motions(C1, list(p))[0].items())), apply_motions(C1, list(p))[1])
@@ -203,7 +203,7 @@ def test_INV_04_10_fassung_unabhaengig_von_der_reihenfolge() -> None:
         assert len(ergebnisse) == 1, [m.obj[2] for m in menge]
 
 
-def test_INV_04_11_fassung_waechst() -> None:
+def test_INV_04_11_stand_waechst() -> None:
     for menge in _mengen():
         vorher = set(apply_motions(C1, list(menge))[1])
         for m in _ALLE:
@@ -231,5 +231,5 @@ def test_objekt_mit_fremdem_scope_wird_uebergangen() -> None:
     store = w.store()
     kette = _kette(store, known)
     assert kette.epoch == EPOCH_1 and kette.findings == ()
-    fassung = _fassung(store, known)
-    assert fassung.applied == () and fassung.findings == ()
+    stand = _stand(store, known)
+    assert stand.applied == () and stand.findings == ()

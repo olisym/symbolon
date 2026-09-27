@@ -1,4 +1,4 @@
-"""Epochenkette aus aufeinanderfolgenden Übergängen und Fassung einer Epoche
+"""Epochenkette aus aufeinanderfolgenden Übergängen und Stand einer Epoche
 (04-governance.md §4.5, 04-governance.md §4.6, D174, D571)."""
 
 from __future__ import annotations
@@ -40,10 +40,11 @@ def _known_constitution(known: Mapping[bytes, dict], h: bytes) -> dict | None:
 
 
 @dataclass(frozen=True, slots=True)
-class FassungResolution:
-    """Ergebnis von ``resolve_fassung`` (04-governance.md §4.6, D571)."""
+class StandResolution:
+    """Ergebnis von ``resolve_stand`` (04-governance.md §4.6, D571, D577 Beschluss 3)."""
 
-    fassung_obj: dict | None
+    stand_obj: dict | None
+    ratified: tuple[bytes, ...]
     applied: tuple[bytes, ...]
     findings: tuple[Finding, ...]
 
@@ -144,7 +145,7 @@ def resolve_epoch(
         by_cid = classify_all(store, now, policy)
 
         # Die festgestellten Sachanträge vor den Vorschlägen; ihre Vermerke gehören zu
-        # resolve_fassung, nicht zur Kette (04 §4.5, D570).
+        # resolve_stand, nicht zur Kette (04 §4.5, D570).
         ratified_motions, _motion_findings = _ratified_motions(
             store,
             epoch=epoch,
@@ -243,7 +244,7 @@ def resolve_epoch(
         )
 
 
-def resolve_fassung(
+def resolve_stand(
     store: ClaimStore,
     *,
     epoch: Epoch,
@@ -251,15 +252,16 @@ def resolve_fassung(
     constitution_obj: dict | None,
     known_proposals: Mapping[bytes, Proposal | Motion],
     now: int,
-) -> FassungResolution:
-    """Die Fassung der Epoche, die angewandten Sachanträge und die Vermerke der nicht tragenden
-    Feststellungen (04-governance.md §4.6, D570 Beschluss 4, D571).
+) -> StandResolution:
+    """Der Stand der Epoche, die festgestellten und die angewandten Sachanträge und die Vermerke
+    der nicht tragenden Feststellungen (04-governance.md §4.6, D570 Beschluss 4, D571, D577
+    Beschluss 3).
 
     ``epoch`` und ``constitution_obj`` sind das Ergebnis von ``resolve_epoch`` (04 §4.5). Ohne
     ``constitution_obj`` ist alles leer.
     """
     if constitution_obj is None:
-        return FassungResolution(fassung_obj=None, applied=(), findings=())
+        return StandResolution(stand_obj=None, ratified=(), applied=(), findings=())
     policy = resolve_policy(
         scope=epoch.scope,
         genesis_obj=genesis_obj,
@@ -276,9 +278,10 @@ def resolve_fassung(
         policy=policy,
     )
     motions = [resolve_object(known_proposals, h) for h in sorted(ratified)]
-    fassung_obj, applied = apply_motions(constitution_obj, motions)
-    return FassungResolution(
-        fassung_obj=fassung_obj,
+    stand_obj, applied = apply_motions(constitution_obj, motions)
+    return StandResolution(
+        stand_obj=stand_obj,
+        ratified=tuple(sorted(ratified)),
         applied=applied,
         findings=dedupe_sort(findings),
     )

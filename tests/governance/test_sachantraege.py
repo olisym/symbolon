@@ -1,4 +1,4 @@
-"""Sachanträge: Objekt, Auszählung, die drei Regeln, Klasse, Bedingung 7, Fassung
+"""Sachanträge: Objekt, Auszählung, die drei Regeln, Klasse, Bedingung 7, Stand
 (04 §2.4, 04 §2.5, 04 §3.4, 04 §3.5, 04 §4.1, 04 §4.4, 04 §4.6, D567, D568).
 
 Vektoren ``GV-59`` bis ``GV-89`` aus ``04-golden-anchors.md §10``.
@@ -158,7 +158,7 @@ def test_gv59_gv60_ordinary() -> None:
     assert r.proposal_hash == M1.motion_hash
 
 
-def test_gv61_gv62_klasse_gegen_fassung_aus_s() -> None:
+def test_gv61_gv62_klasse_gegen_stand_aus_s() -> None:
     w1 = _Welt()
     for who in (w1.bob, w1.alice, w1.dave):
         w1.ja(who, G1.proposal_hash)
@@ -286,7 +286,7 @@ def test_gv84_sachantrag_in_s_unbekannt() -> None:
     assert r.findings == (Finding(kind=GF.MOTION_UNAVAILABLE, subject=M1.motion_hash),)
 
 
-# --- 10.5 Feststellung und Fassung --------------------------------------------
+# --- 10.5 Feststellung und Stand ----------------------------------------------
 
 def test_gv85_gv86_bedingung_7() -> None:
     w = _Welt()
@@ -320,8 +320,8 @@ def test_gv85_gv86_bedingung_7() -> None:
         ("GV-89", [M5, M6, M7], {"x": 2}, [M5, M7]),
     ],
 )
-def test_gv87_bis_gv89_fassung_in_jeder_reihenfolge(vektor, motions, felder, applied) -> None:
+def test_gv87_bis_gv89_stand_in_jeder_reihenfolge(vektor, motions, felder, applied) -> None:
     for order in itertools.permutations(motions):
-        fassung, done = apply_motions(C1, list(order))
-        assert {k: v for k, v in fassung.items() if k not in C1} == felder, vektor
+        stand, done = apply_motions(C1, list(order))
+        assert {k: v for k, v in stand.items() if k not in C1} == felder, vektor
         assert list(done) == [m.motion_hash for m in applied], vektor

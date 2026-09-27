@@ -285,6 +285,28 @@ def constitution_governable(obj: dict) -> GovernanceFinding | None:
     return None
 
 
+def approvals_conflict(own: Proposal | Motion, other: Proposal | Motion) -> bool:
+    """Ob zwei Ja derselben Wurzel auf ``own`` und ``other`` unvereinbar sind: die drei Regeln aus
+    04 §4.4 (D577 Beschluss 4).
+
+    Ein formwidriger Sachantrag ist mit jedem vereinbar, ebenso ein Objekt mit anderem
+    ``predecessor``. Zwei Vorschläge sind unvereinbar, zwei Sachanträge, wenn ihre Vorbedingungen
+    sich schneiden, ein Vorschlag und ein Sachantrag, wenn der Sachantrag nicht in ``S`` steht; ein
+    formwidriges Feld 3 gilt als leeres ``S``.
+    """
+    for obj in (own, other):
+        if isinstance(obj, Motion) and not motion_wellformed(obj):
+            return False
+    if own.predecessor != other.predecessor:
+        return False
+    if isinstance(own, Proposal) and isinstance(other, Proposal):
+        return True
+    if isinstance(own, Motion) and isinstance(other, Motion):
+        return bool(preconditions(own) & preconditions(other))
+    proposal, motion = (own, other) if isinstance(own, Proposal) else (other, own)
+    return motion.motion_hash not in (motion_list(proposal) or ())
+
+
 def decide(
     store: ClaimStore,
     *,
@@ -306,7 +328,7 @@ def decide(
     formwidriger Key 1 zählt, als fehlte er (04 §3.1, D547, D548 Beschluss 3 und 4).
 
     Ein Sachantrag hat kein Zielobjekt, seine Form steht vor dem Scope, seine Klasse ist
-    ``ordinary`` in der Verfassung der Epoche; die Klasse eines Vorschlags misst die Fassung aus
+    ``ordinary`` in der Verfassung der Epoche; die Klasse eines Vorschlags misst den Stand aus
     der Verfassung der Epoche und ``S`` (04 §3.4, 04 §3.5).
     """
     is_motion = isinstance(proposal, Motion)
@@ -442,8 +464,8 @@ def decide(
         checked = ((constitution_obj, epoch.constitution_hash),)
         target_obj = constitution_obj
     else:
-        fassung, _applied = apply_motions(constitution_obj, s_motions)
-        klass = threshold_class(fassung, target_constitution_obj, genesis_obj)
+        stand, _applied = apply_motions(constitution_obj, s_motions)
+        klass = threshold_class(stand, target_constitution_obj, genesis_obj)
         checked = (
             (constitution_obj, epoch.constitution_hash),
             (target_constitution_obj, proposal.constitution_hash),
@@ -546,7 +568,6 @@ def decide(
         else:
             counting.extend(group)
 
-    own_preconditions = preconditions(proposal) if is_motion else frozenset()
     excluded: set[bytes] = set()
     for vote in counting:
         if not _is_yes_choice(_choice(vote)):
@@ -581,22 +602,8 @@ def decide(
                 continue
             other_obj = resolve_object(known_proposals, other.J[1]) if other.J[0] == 3 else None
             if other_obj is not None:
-                # Die drei Regeln aus 04 §4.4. Ein formwidriger Sachantrag ist mit jedem
-                # vereinbar, ein formwidriges Feld 3 gilt als leeres S.
-                if isinstance(other_obj, Motion) and not motion_wellformed(other_obj):
-                    continue
-                if other_obj.predecessor != epoch.epoch_id:
-                    continue
-                if isinstance(other_obj, Proposal):
-                    if is_motion:
-                        conflict = object_hash not in (motion_list(other_obj) or ())
-                    else:
-                        conflict = True
-                elif is_motion:
-                    conflict = bool(own_preconditions & preconditions(other_obj))
-                else:
-                    conflict = other_obj.motion_hash not in s_hashes
-                if conflict:
+                # Die drei Regeln aus 04 §4.4.
+                if approvals_conflict(proposal, other_obj):
                     findings.append(
                         Finding(
                             kind=GovernanceFinding.CONFLICTING_APPROVAL,

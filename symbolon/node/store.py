@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
-from symbolon.governance.objects import Proposal
+from symbolon.governance.objects import Motion, Proposal
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_core_predicate
 from symbolon.resolve import resolve_state
@@ -22,11 +22,13 @@ _J_TAG_CLAIM_REF = 2
 
 
 class ObjectKind(str, Enum):
-    """Art eines Objekts: Genesis, Verfassung oder Vorschlag (D473 Beschluss 1)."""
+    """Art eines Objekts: Genesis, Verfassung, Vorschlag oder Sachantrag (D473 Beschluss 1,
+    D577 Beschluss 5)."""
 
     GENESIS = "genesis"
     CONSTITUTION = "constitution"
     PROPOSAL = "proposal"
+    MOTION = "motion"
 
 
 class SqliteStore:
@@ -115,7 +117,11 @@ class SqliteStore:
         return claim
 
     def submit_object(self, kind: ObjectKind, data: bytes) -> bytes:
-        """Liefert ein Objekt ein und gibt seinen Hash zurück (D473 Beschluss 1, D474 Beschluss 1)."""
+        """Liefert ein Objekt ein und gibt seinen Hash zurück (D473 Beschluss 1, D474 Beschluss 1).
+
+        Ein Sachantrag und Feld 3 eines Vorschlags werden gespeichert, wie sie kamen, auch
+        formwidrig (04 §2.4, 04 §2.5, D577 Beschluss 2).
+        """
         try:
             canonical = cbor_canon.is_canonical(data)
         except Exception as exc:
@@ -144,8 +150,8 @@ class SqliteStore:
         elif kind is ObjectKind.PROPOSAL:
             if not isinstance(obj, dict) or any(type(key) is not int for key in obj):
                 raise ValueError("proposal object is not a map of uint keys")
-            if set(obj) != {0, 1, 2}:
-                raise ValueError("proposal object keys are not 0, 1, 2")
+            if set(obj) not in ({0, 1, 2}, {0, 1, 2, 3}):
+                raise ValueError("proposal object keys are not 0, 1, 2 or 0, 1, 2, 3")
             fields: list[bytes] = []
             for key in (0, 1, 2):
                 value = obj[key]
@@ -156,7 +162,10 @@ class SqliteStore:
                 scope=fields[0],
                 predecessor=fields[1],
                 constitution_hash=fields[2],
+                motions=obj.get(3),
             ).proposal_hash
+        elif kind is ObjectKind.MOTION:
+            digest = Motion(obj).motion_hash
         else:
             raise ValueError("unknown object kind")
         row = self._db.execute(
@@ -188,14 +197,20 @@ class SqliteStore:
         }
 
     def all_proposals(self) -> dict[bytes, Proposal]:
-        """Alle Vorschläge, Abbildung vom Hash auf das Proposal (D473, 04 §2.4)."""
+        """Alle Vorschläge, Abbildung vom Hash auf das Proposal (D473, 04 §2.4, D577)."""
         found: dict[bytes, Proposal] = {}
         for digest, data in self._rows(ObjectKind.PROPOSAL):
             obj = cbor_canon.decode(data)
             found[digest] = Proposal(
-                scope=obj[0], predecessor=obj[1], constitution_hash=obj[2]
+                scope=obj[0], predecessor=obj[1], constitution_hash=obj[2], motions=obj.get(3)
             )
         return found
+
+    def all_motions(self) -> dict[bytes, Motion]:
+        """Alle Sachanträge, Abbildung vom Hash auf den Sachantrag (04 §2.5, D577 Beschluss 5)."""
+        return {
+            row[0]: Motion(cbor_canon.decode(row[1])) for row in self._rows(ObjectKind.MOTION)
+        }
 
     def add_sim_key(self, seed: bytes) -> bytes:
         """Trägt einen simulierten Schlüssel ein und gibt den öffentlichen zurück (D476 Beschluss 4, D477 Beschluss 2)."""

@@ -161,29 +161,29 @@ def preconditions(motion: Motion) -> frozenset[tuple[str, bytes]]:
 def apply_motions(
     constitution_obj: dict, motions: list[Motion] | tuple[Motion, ...]
 ) -> tuple[dict, tuple[bytes, ...]]:
-    """Die Fassung aus ``constitution_obj`` und ``motions`` und die aufsteigend sortierten
+    """Der Stand aus ``constitution_obj`` und ``motions`` und die aufsteigend sortierten
     ``motion_hash`` der angewandten (04 §4.6).
 
     Wendet in der gereichten Reihenfolge den ersten anwendbaren an, bis keiner mehr anwendbar
     ist, jeden höchstens einmal (D569 Beschluss 2). ``constitution_obj`` bleibt unverändert.
     """
-    fassung = dict(constitution_obj)
+    stand = dict(constitution_obj)
     applied: list[bytes] = []
     while True:
         for motion in motions:
             if motion.motion_hash in applied:
                 continue
             if all(
-                same_value([fassung[name]] if name in fassung else [], pair[0])
+                same_value([stand[name]] if name in stand else [], pair[0])
                 for name, pair in motion.changes.items()
             ):
                 break
         else:
-            return fassung, tuple(sorted(applied))
+            return stand, tuple(sorted(applied))
         for name, pair in motion.changes.items():
             neu = pair[1]
             if len(neu) == 1:
-                fassung[name] = neu[0]
+                stand[name] = neu[0]
             else:
-                fassung.pop(name, None)
+                stand.pop(name, None)
         applied.append(motion.motion_hash)

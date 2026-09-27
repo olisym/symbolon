@@ -982,15 +982,16 @@ Feststellungen entstünden verschiedene Kennungen, und zwei Beobachter sähen ze
 
 ```
 resolve_stand(store, epoch, genesis_obj, constitution_obj, known_proposals, now)
-    ->  (stand_obj, applied, findings)
+    ->  (stand_obj, ratified, applied, findings)
 ```
 
 `epoch` und `constitution_obj` sind das Ergebnis von `resolve_epoch` (`§4.5`); `genesis_obj` braucht
-die Auszählung (`§3.5`, D570). Ist `constitution_obj` leer, ist auch `stand_obj` leer. `applied`
-ist die aufsteigend sortierte Liste der `motion_hash` der angewandten Sachanträge. `findings` sind
-die Vermerke der Prüfungen nach `§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht
-tragen, in der Form aus `§4.5`: ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen
-Feststellungen weg. Ein unbekanntes Objekt unter einer Feststellung meldet schon die Kette
+die Auszählung (`§3.5`, D570). Ist `constitution_obj` leer, ist auch `stand_obj` leer, und
+`ratified` und `applied` sind leer. `ratified` ist die aufsteigend sortierte Liste der `motion_hash`
+der festgestellten Sachanträge, `applied` die der angewandten (D577). `findings` sind die Vermerke
+der Prüfungen nach `§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht tragen, in der
+Form aus `§4.5`: ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen Feststellungen
+weg. Ein unbekanntes Objekt unter einer Feststellung meldet schon die Kette
 (`EPOCH_PROPOSAL_UNAVAILABLE`); hier erscheint es nicht ein zweites Mal.
 
 ---

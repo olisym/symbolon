@@ -17,12 +17,13 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
-from symbolon.governance.objects import RULE_FIELDS, Proposal
+from symbolon.governance.objects import RULE_FIELDS, Motion, Proposal, motion_wellformed
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
     _is_yes_choice,
     _reattributed,
+    approvals_conflict,
     reached,
     read_v,
     vote_root,
@@ -32,6 +33,7 @@ from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
     ScopeView,
     TaskView,
+    _known,
     _needed,
     antragstitel,
     fork_evidence,
@@ -236,15 +238,19 @@ def _current(store: SqliteStore, scope: bytes, now: int):
     return view, view.state.epoch, view.state.constitution_obj
 
 
-def _proposal_of(store: SqliteStore, raw: object) -> tuple[bytes, Proposal]:
+def _proposal_of(store: SqliteStore, raw: object) -> tuple[bytes, Proposal | Motion]:
+    """Vorschlag oder Sachantrag unter dem Hash; formwidrig ``MALFORMED_MOTION`` (04 §2.5,
+    D577 Beschluss 5)."""
     digest = _hex(raw, 32)
-    found = store.all_proposals().get(digest)
+    found = _known(store).get(digest)
     if found is None:
         raise _Named("UNKNOWN_PROPOSAL")
+    if isinstance(found, Motion) and not motion_wellformed(found):
+        raise _Named("MALFORMED_MOTION")
     return digest, found
 
 
-def _require_current(store: SqliteStore, proposal: Proposal, now: int):
+def _require_current(store: SqliteStore, proposal: Proposal | Motion, now: int):
     view, epoch, _constitution = _current(store, proposal.scope, now)
     if proposal.predecessor != epoch.epoch_id:
         raise _Named("NOT_CURRENT")
@@ -273,10 +279,15 @@ def _budget_of(store: SqliteStore, scope: bytes, author: bytes, now: int) -> tup
 
 
 def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes:
-    """Neue Verfassung und Vorschlag aus der geltenden Epoche (D479 Beschluss 3, 04 §1.1, 04 §2.4, 04 §3.5)."""
+    """Neue Verfassung und Vorschlag aus dem Stand der geltenden Epoche (D479 Beschluss 3, 04 §1.1,
+    04 §2.4, 04 §3.5, 04 §4.6).
+
+    Feld 3 nennt die festgestellten Sachanträge der Epoche und fehlt ohne sie (D577 Beschluss 3).
+    """
     if not isinstance(change, dict) or len(change) != 1 or not set(change) <= {"add", "remove", "set"}:
         raise _Named("INVALID_CHANGE")
-    _view, epoch, constitution = _current(store, scope, now)
+    view, epoch, _constitution = _current(store, scope, now)
+    constitution = view.stand.stand_obj
     if not isinstance(constitution, dict) or not isinstance(constitution.get("participants"), list):
         raise _Named("INVALID_CHANGE")
     updated = dict(constitution)
@@ -307,14 +318,39 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
         updated[field] = text
     digest = constitution_hash(updated)
     store.submit_object(ObjectKind.CONSTITUTION, cbor_canon.encode(updated))
-    proposal = Proposal(scope=scope, predecessor=epoch.epoch_id, constitution_hash=digest)
-    store.submit_object(
-        ObjectKind.PROPOSAL,
-        cbor_canon.encode(
-            {0: proposal.scope, 1: proposal.predecessor, 2: proposal.constitution_hash}
-        ),
-    )
-    return proposal.proposal_hash
+    obj: dict[int, Any] = {0: scope, 1: epoch.epoch_id, 2: digest}
+    if view.stand.ratified:
+        obj[3] = list(view.stand.ratified)
+    return store.submit_object(ObjectKind.PROPOSAL, cbor_canon.encode(obj))
+
+
+def _motion(store: SqliteStore, scope: bytes, spec: object, now: int) -> bytes:
+    """Sachantrag aus dem Stand der geltenden Epoche (04 §2.5, 04 §4.6, D577 Beschluss 5).
+
+    ``spec`` bildet den Feldnamen auf einen Text oder ``None`` für „entfernen“ ab; der alte Wert
+    kommt aus dem Stand.
+    """
+    if not isinstance(spec, dict) or not spec:
+        raise _Named("INVALID_CHANGE")
+    if not all(isinstance(value, str) or value is None for value in spec.values()):
+        raise _Named("INVALID_CHANGE")
+    view, epoch, _constitution = _current(store, scope, now)
+    stand = view.stand.stand_obj
+    if not isinstance(stand, dict):
+        raise _Named("INVALID_CHANGE")
+    changes: dict[str, list[list[str]]] = {}
+    for field, text in spec.items():
+        if field in _RESERVED:
+            raise _Named("RESERVED_FIELD")
+        if field in stand and not isinstance(stand[field], str):
+            raise _Named("RESERVED_FIELD")
+        alt = [stand[field]] if field in stand else []
+        neu = [text] if text is not None else []
+        if alt == neu:
+            raise _Named("UNCHANGED_FIELD")
+        changes[field] = [alt, neu]
+    obj = {0: scope, 1: epoch.epoch_id, 2: changes}
+    return store.submit_object(ObjectKind.MOTION, cbor_canon.encode(obj))
 
 
 def _tally_of(view: ScopeView, digest: bytes) -> TallyResult | None:
@@ -329,7 +365,7 @@ def _tally_of(view: ScopeView, digest: bytes) -> TallyResult | None:
 def _vote_effect(
     store: SqliteStore,
     digest: bytes,
-    proposal: Proposal,
+    proposal: Proposal | Motion,
     author: bytes,
     choice: str,
     voted: bool,
@@ -443,7 +479,13 @@ def _intent_body(
         effect = _membership_effect(store, scope, constitution, author, now)
     elif art == "propose":
         scope = _scope_of(store, _require(body, "scope"))
-        proposal = _change(store, scope, _require(body, "change"), now)
+        # Genau eines von change und motion (D577 Beschluss 5).
+        if ("change" in body) == ("motion" in body):
+            raise _Named("INVALID_CHANGE")
+        if "change" in body:
+            proposal = _change(store, scope, body["change"], now)
+        else:
+            proposal = _motion(store, scope, body["motion"], now)
         fields.update(p=f"nuc:{scope.hex()}/propose@1", J=[3, proposal.hex()], N=scope.hex())
         tally = _tally_of(scope_view(store, scope, now), proposal)
         effect = (
@@ -484,12 +526,13 @@ def _intent_body(
         # neue Stimme wäre bestritten (D556 Beschluss 3, 02 §2.1, 04 §3.1).
         device = attr.devices.get(author)
         ended = device is not None and any(store.get(end) is not None for end in device.ends)
-        # Andere Anträge derselben Epoche, denen die Wurzel schon mit einem Ja zustimmt, auch
-        # einem ersetzten; die Filter der Schleife um CONFLICTING_APPROVAL in decide
-        # (D556 Beschluss 2, 04 §4.4, D533, D547 Beschluss 4).
+        # Andere Anträge, denen die Wurzel schon mit einem Ja zustimmt, auch einem ersetzten,
+        # soweit es nach approvals_conflict unvereinbar ist; die Filter der Schleife um
+        # CONFLICTING_APPROVAL in decide (D556 Beschluss 2, 04 §4.4, D533, D547 Beschluss 4,
+        # D577 Beschluss 4).
         conflict: set[bytes] = set()
         if choice == "yes" and not ended:
-            known = store.all_proposals()
+            known = _known(store)
             for claim in store.all_claims():
                 if not is_nuc_name(claim, "vote") or claim.N != proposal.scope:
                     continue
@@ -512,7 +555,7 @@ def _intent_body(
                 if obj is None or kind is not None or not _is_yes_choice(obj.get(0)):
                     continue
                 other = known.get(claim.J[1])
-                if other is None or other.predecessor != proposal.predecessor:
+                if other is None or not approvals_conflict(proposal, other):
                     continue
                 conflict.add(claim.J[1])
         # Zählt die Wurzel schon mit dieser Wahl, SAME_VOTE; sonst ersetzt die Stimme
@@ -571,7 +614,8 @@ def _intent_body(
             v=cbor_canon.encode({0: list(tally.yes)}).hex(),
             N=proposal.scope.hex(),
         )
-        effect = {"epoch": epoch.index + 1}
+        # Ein Sachantrag ändert den Stand, nicht die Epoche (04 §4.6, D577 Beschluss 5).
+        effect = {"epoch": epoch.index if isinstance(proposal, Motion) else epoch.index + 1}
     elif art == "vouch":
         scope = _scope_of(store, _require(body, "scope"))
         subject = _hex(_require(body, "subject"), 32)

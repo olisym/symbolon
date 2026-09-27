@@ -23917,3 +23917,31 @@ Rücknahmeproben R1 bis R12 fährt das Werkzeug ohne Bytecode-Cache. Danach die 
 Durchlauf mit `--aufloesen` (D490).
 
 **Geändert.** `07-decisions.md`.
+
+### D553 — Abnahme `p29-aufloesen`
+
+**Anlass.** Bericht des Werkzeugs, Commit `d37135a` auf `p29-aufloesen`, Basis `46b0c3b` (D552).
+
+**Geprüft.** Der vollständige Diff aus dem Spiegel, gegen D551 und D552. Die Tests und der Block im
+Selbsttest sind byteweise die Fassung des Auftrags. Im Supervisor-Klon auf `d37135a`: 1209 Tests
+grün, `ruff check` sauber, der Selbsttest 185 von 185. Über den Startbefehl mit `--aufloesen`: die
+Takte und Durchgänge aus D551 (15, 15, 20, 4, 4, 16, 16); am Ende auf allen sechs Geräten Epoche 3,
+keine Gabel, `/geraetestimmen` BRUNO mit Ja zählend und Ja und Nein ersetzt, DORA mit zweimal Ja.
+Die Rücknahmeproben im Bericht decken sich mit der Tabelle in D552.
+
+**Beschluss 1 — abgenommen, ohne Nachtrag.**
+
+**Beschluss 2 — die Rückfragen.** Die Konstanten `_AUFLOESER_GERAET` und `_AUFLOESER` bleiben. Sie
+folgen dem Muster von `_ZWEITGERAET` und `_FESTSTELLER` und sind eine Regel der Personen, keine
+Abkürzung. Die Dateiköpfe von `anzeige.js`, `selbsttest.js` und `netz.py` bleiben, wie sie sind:
+die Funktionen, die D551 tragen, nennen es in ihren Kommentaren und Docstrings, und ein Kopf zählt
+keine Beschlüsse auf. Die Auslegung von R9, `aufloesung` über die Wurzel BRUNO mit dem Schlüssel des
+Zweitgeräts eingeliefert, trifft den verworfenen Weg aus D551.
+
+**Befund 1 — ohne Auftrag.** Annas Zeile schlägt die Namen der Wurzeln ohne Rückfall nach; eine
+Wurzel ohne Namen hebt den Takt mit `KeyError` auf. In den Bildern trägt jede Wurzel einen Namen,
+und `tools.netz` fängt einen gescheiterten Takt ab. Ein Vermerk, keine Lücke.
+
+**Offen.** Olis Durchlauf mit `--aufloesen` (D490); danach O95.
+
+**Geändert.** `07-decisions.md`.

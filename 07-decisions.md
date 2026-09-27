@@ -24355,3 +24355,74 @@ bestätigt.“, weil der Satz den Stand `MEMBER` zählt. Ob der Satz dann stimmt
 geprüft. Kandidat für Stufe 3.
 
 **Geändert.** `symbolon/` und `tests/` (über den Merge); `07-decisions.md`.
+
+### D561 — Stufe 3: Szenario, ein toter Zweig, die Eingabe bleibt; Auftrag `p32-aufraeumen`
+
+**Anlass.** D555 Beschluss 1, Stufe 3. Gelesen: `szenario-verein.md`, `01 §7.3`, `01 §8`,
+`02 §2.1`, `03 §4`, in `symbolon/node/api.py` `_vote_effect` und `_intent_body`, in
+`symbolon/profiles/membership.py` die Prüfung des `accept-rules`, in `static/anzeige.js`
+`folgeZeilen`, in `static/app.js` `meldung`, `meldungKnoten`, `sperren`, `entsperren`,
+`handelnFabrik` und `vereinGerade`, in `static/geraet.js` `ablauf`; D502, D548, D560. Prototyp im
+Supervisor-Klon auf `b0ff422`, die Fälle in der Fassung des Auftrags, gemessen, verworfen.
+
+**Befund 1 — der Satz zu zwei Geräten steht in `§7`, nicht in `§9`.** D548 Befund 5 nannte `§9`.
+Der Punkt „Eine Kette je Identität“ unter „Was der S-Node leisten muss“ sagt, eine Identität, die
+von zwei Geräten unterschreibe, gable sich selbst. Seit D529 gilt das nur für einen geteilten
+Schlüssel; `01 §8` sagt es schon so. Keine andere Stelle ausserhalb des Registers sagt es.
+
+**Beschluss 1 — das Szenario.** Der Punkt heisst „Eine Kette je Schlüssel“ und folgt `01 §8`: mit
+demselben Schlüssel auf zwei Geräten gabelt sich die Identität; ein zweites Gerät bekommt einen
+eigenen Schlüssel, den die Identität als Wurzel aufnimmt (`01 §7.3`, D529), und seine Claims werden
+ihr zugerechnet (`02 §2.1`). Als Lieferung ohne Werkzeug, weil nur Text sich ändert.
+
+**Beschluss 2 — der tote Zweig in `folgeZeilen` (D548 Befund 4).** `_vote_effect` setzt `counts`
+nur falsch, wenn die Wurzel nicht teilnimmt oder schon so abgestimmt hat; `_intent_body` setzt es
+dazu bei `ended` und `conflict`. Jeder dieser Fälle hat vor dem letzten Zweig seine Zeile. Der Satz
+des letzten Zweigs, „Auch deine erste Stimme zählt dann nicht mehr.“, ist seit D547 falsch: eine
+zweite Stimme ersetzt die erste. Der Zweig sagt künftig „Deine Stimme zählt nicht.“, was in jedem
+Fall wahr ist, in dem er je erreicht würde. Die beiden Fälle des Selbsttests, die ihn prüfen,
+heissen „ohne Grund“ und erwarten diesen Satz.
+
+Verworfen: **den Zweig streichen.** Eine Folge mit `counts` falsch hätte dann keine Zeile; das ist
+die Stummheit aus D95.
+
+**Beschluss 3 — die Eingabe bleibt nach einer Meldung (D502).** Eine Handlung, die nichts
+unterschrieben oder nichts eingeliefert hat, ändert am Bestand nichts; die Seite muss dann nicht
+neu gezeichnet werden. Eine neue reine Funktion `nachHandlung(ausgang)` in `anzeige.js` nimmt den
+Ausgang, wie ihn `ablauf` gibt, oder `{ fehler: true }`, und gibt `"halten"`, solange das Gerät auf
+eine bestätigte Spitze wartet, `"zeichnen"` bei `ok`, `schwebend` und `fehlt`, sonst `"melden"`.
+Bei `"melden"` erscheint die Meldung an der Stelle der bisherigen, und die Seite bleibt mit ihren
+Auswahlen und Feldern stehen. `sperren` merkt sich, was es sperrt, und `entsperren` gibt nur das
+frei; sonst würde ein Knopf, der auf eine Auswahl wartet, nach einer Meldung ohne Auswahl
+freigegeben.
+
+Verworfen: **nach dem Neuzeichnen die Werte wiederherstellen.** Zugeordnet über die Lage im Baum
+trägt das nicht, sobald zwischen den Zeichnungen Neues angekommen ist; eine falsch vorbelegte
+Person bei einer Bürgschaft wäre schlimmer als eine leere Auswahl.
+
+**Befund 2 — D560 Befund 3 ist kein Fehler.** Den Stand `MEMBER` gibt `membership` nur mit einem
+`accept-rules` auf den Hash der geltenden Verfassung; ein `accept-rules` auf einen anderen Hash
+fällt mit `CONSTITUTION_VERSION_MISMATCH` heraus (`03 §4`). „Alle haben die geltende Satzung
+bestätigt.“ stimmt damit auch nach dem Fall einer Feststellung. Kein Auftrag.
+
+**Befund 3 — D507 Befund 2** ist mit D560 erledigt. Stufe 3 ist mit diesem Auftrag vollständig.
+
+**Golden Numbers, am Prototyp.** Der Selbsttest 222 von 222 (215, dazu sieben Fälle zu
+`nachHandlung`); die Zahl der Tests bleibt 1219. Rücknahmeproben, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| N1 | nach jedem Ausgang ausser `halt` neu zeichnen | abgewiesen, abgebrochen, Fehler |
+| N2 | `schwebend` nicht gezeichnet | schwebend |
+| N3 | `fehlt` nicht gezeichnet | kein Schlüssel |
+| N4 | ohne die Prüfung auf `halt` | wartet auf eine Spitze |
+| F1 | der alte Satz im letzten Zweig | beide Fälle „ohne Grund“ |
+
+**Schwächste Stelle.** Ob `app.js` nach `"melden"` stehen bleibt und `entsperren` nur freigibt, was
+`sperren` sperrte, sieht kein Test; das zeigt Olis Durchlauf im Ein-Knoten-Verein: eine Person zum
+Bürgen wählen, die Frage abbrechen, danach „Nichts unterschrieben.“ und die Person noch gewählt.
+
+**Beschluss 4 — Auftrag `p32-aufraeumen`.** Beschluss 2 und 3. Die Fälle stehen wörtlich im
+Auftrag. Danach die Abnahme und Olis Durchlauf; dann O96.
+
+**Geändert.** `07-decisions.md`, `szenario-verein.md`.

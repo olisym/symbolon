@@ -289,9 +289,11 @@ den Rechner stellt, der die Claims hält.
   Obligationen.
 - **Warnen, bevor unterschrieben wird.** Budget voll (`§3`), zweite Stimme (`§5.1`), Betrag in der
   Quittung (`§6`).
-- **Eine Kette je Identität.** Jede Identität hat genau eine Kette über alle Scopes. Unterschreibt
-  sie von zwei Geräten, gabelt sie sich selbst (`01 §8`). KASSE lebt deshalb auf genau einem Gerät,
-  dem von Chris.
+- **Eine Kette je Schlüssel.** Jeder Schlüssel hat genau eine Kette über alle Scopes. Unterschreibt
+  eine Identität mit demselben Schlüssel von zwei Geräten, gabelt sie sich selbst (`01 §8`). Ein
+  zweites Gerät bekommt deshalb einen eigenen Schlüssel, den die Identität als Wurzel aufnimmt
+  (`01 §7.3`, D529); seine Claims werden ihr zugerechnet (`02 §2.1`). KASSE lebt auf genau einem
+  Gerät, dem von Chris.
 
 ---
 

@@ -89,7 +89,7 @@ genesis_D = {
   1 root_keys         : [ALICE]
   2 key_mode          : 0
   3 anchor_set        : [ALICE]
-  4 constitution_hash : 5e288ec9…
+  4 constitution_hash : 8e7762ef…
   5 amendment_rule    : 2
   6 weight_mode       : 0            ; Kopfzahl (D98)
   7 vote_mode         : 0            ; Epochenpfad
@@ -139,7 +139,7 @@ epoch_id_3      = c052fd3b7c81d4d0a65adb892476a830666ae3ffebb928b355806c882fc958
 ```
 
 **Vektor `GV-1`.** Zwei `ratify@1`-Claims für `proposal_hash_1`, von verschiedenen Autoren, mit
-verschiedenen Zeugenmengen. Beide liefern `epoch_id_2 = 380779c1…`. Kein Widerspruch, keine
+verschiedenen Zeugenmengen. Beide liefern `epoch_id_2 = 50a33bef…`. Kein Widerspruch, keine
 zweite Epoche. Das ist D99 in einer Zahl.
 
 **Vektor `GV-2`.** Ein `ratify@1` mit `v[0]` als Zeugenmenge, die einen zusätzlichen Claim
@@ -273,8 +273,8 @@ ratifizierte Verfassung aus einem leeren Store.
 **`[1,2]` ist zulässig** und muss es bleiben. Bei `n = 5` verlangt es drei Ja; zwei disjunkte
 Dreiermengen passen nicht in fünf Mitglieder. Ein Vektor, der `[1,2]` zurückweist, ist rot.
 
-Die Prüfung betrifft nur die **angewandte** Klasse. Die Verfassung aus `00 §3.1` führt
-`ordinary: [1,2]` — zulässig, und in v1 ohnehin unbenutzt.
+Die Prüfung betrifft nur die **angewandte** Klasse. Die Verfassung aus `00 §3.1` führt `ordinary:
+[1,2]` — zulässig; `ordinary` ist die Klasse der Sachanträge (`04 §3.4`, `§10`).
 
 ---
 
@@ -365,13 +365,22 @@ Policy (D91).
 | `INV-04.3` | Kein Teilwissen führt zu `PASSED`. Fehlt ein Objekt, ist der Zustand `UNEVALUABLE`. |
 | `INV-04.4` | Zwei `ratify@1` für denselben Vorschlag liefern denselben `epoch_id`. |
 | `INV-04.5` | Die Auszählung liest keine Uhr. `t` wird nie ausgewertet; `t_exp` einer Stimme nur auf Anwesenheit, nie auf seinen Wert. |
-| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`), eine Stimme, die sie ersetzt (`v` Key `1`, `04 §3.1`, D547) oder ein Ja auf einen anderen Vorschlag derselben Epoche (`CONFLICTING_APPROVAL`, `04 §4.4`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). Mit Geräten ist Autor die Wurzel (`02 §2.1`); sie entwertet eine Stimme ihres Geräts auch durch eine Sperre (`device-end@1`, D532) oder durch eine Aufnahme mit Gegenzeichnung, die zwei Stimmen verschiedener Wahl zusammenführt (D539). |
+| `INV-04.7` | Die Menge der zählenden Stimmen wächst monoton: kein zusätzlicher Claim im Store entfernt je eine bereits zählende Stimme. **Vorbehalt:** eine zählende Stimme entwertet nur ihr eigener Autor, durch einen Zwilling (Equivocation, D117), eine zweite Stimme auf denselben Vorschlag (`AMBIGUOUS_VOTE`, `04 §3.1`), eine Stimme, die sie ersetzt (`v` Key `1`, `04 §3.1`, D547) oder ein Ja, das nach `04 §4.4` mit ihr unvereinbar ist (`CONFLICTING_APPROVAL`); ein Widerruf, ein Supersede oder ein fremder Claim nie (D433, D434). Mit Geräten ist Autor die Wurzel (`02 §2.1`); sie entwertet eine Stimme ihres Geräts auch durch eine Sperre (`device-end@1`, D532) oder durch eine Aufnahme mit Gegenzeichnung, die zwei Stimmen verschiedener Wahl zusammenführt (D539). |
 | `INV-04.8` | Eine einmal etablierte Epoche bleibt etabliert: kein zusätzlicher Claim im Store nimmt einem gültigen `ratify@1` seine Wirkung. **Vorbehalt:** derselbe; eine etablierte Epoche fällt nur durch einen Zwilling, eine weitere Stimme eines ihrer Zeugen oder einen Claim seiner Wurzel aus `INV-04.7` (D117, D433, D434, D539). |
 | `INV-04.6` | Bei `num/den > 1/2` gibt es zu einer Epoche höchstens einen Vorschlag im Zustand `PASSED`. |
+| `INV-04.9` | In einem Bestand sind zu einer Epoche nie zugleich `PASSED`: ein Vorschlag `G` und ein Sachantrag ausserhalb seines `S`; zwei Sachanträge mit gemeinsamer Vorbedingung (`04 §4.4`, B2 und B3). |
+| `INV-04.10` | Die Fassung hängt nur von der Menge der festgestellten Sachanträge ab, nie von der Reihenfolge ihrer Anwendung (`04 §4.6`, B4). |
+| `INV-04.11` | Die Fassung wächst: eine zusätzliche Feststellung nimmt keinem angewandten Sachantrag die Anwendung. **Vorbehalt:** fällt eine Feststellung, dann aus einem Grund nach `INV-04.7`. |
 
 `INV-04.2` und `INV-04.6` sind als Eigenschaftstests über einem Bereich zu prüfen, nicht an
 Einzelvektoren: `n` von 1 bis 12, `[num,den]` über allen gekürzten Brüchen mit `den <= 8` und
 `1/2 <= num/den < 1`, alle Belegungen von `Ja` und `Nein` mit `Ja + Nein <= n`.
+
+`INV-04.6` bleibt wörtlich wahr, denn ein Sachantrag ist kein Vorschlag. `INV-04.9` ist wie
+`INV-04.6` über einem Bereich zu prüfen: `P2`, `[num, den]` wie oben für `ordinary` und `amendment`,
+die Sachanträge aus `§10.1` und ein Vorschlag mit `S` aus einer Teilmenge davon, alle Belegungen der
+Ja-Stimmen. `INV-04.10` prüft jede Reihenfolge einer Menge festgestellter Sachanträge, in der keine
+zwei eine Vorbedingung teilen; `INV-04.11` jede Erweiterung einer solchen Menge um einen weiteren.
 
 `INV-04.5` ist negativ zu prüfen: ein Lauf mit zwei verschiedenen `now`-Werten muss byte-identische
 Ergebnisse liefern.
@@ -385,7 +394,7 @@ Beweis (D117).
 
 Equivocation ist nicht der einzige solche Ausgang, sondern einer von vieren (D433, D547). Eine
 zweite gültige Stimme desselben Autors auf denselben Vorschlag nimmt beide aus der Menge
-(`AMBIGUOUS_VOTE`), ein Ja auf einen anderen Vorschlag derselben Epoche ebenso
+(`AMBIGUOUS_VOTE`), ein Ja, das nach `04 §4.4` mit ihr unvereinbar ist, ebenso
 (`CONFLICTING_APPROVAL`), und eine Stimme, die eine andere desselben Autors in `v` Key `1` nennt,
 nimmt die genannte heraus. Allen vieren gemeinsam sind Urheber und Art: nur der Autor der
 entfallenden Stimme kann sie entwerten, durch einen Zwilling oder eine weitere eigene Stimme.
@@ -418,3 +427,130 @@ dass die Menge der zählenden `claim_id` nie kleiner wird.
   existiert seit `00a` (D160), wird von dieser Schicht aber nicht aufgerufen.
 - **Keine Föderationszahlen.** `04 §7.2` ist eine Belegung desselben Loops; ein zweites Profil auf
   Föderationsebene bringt keine neue Arithmetik.
+
+---
+
+## 10. Sachanträge (`04 §2.5` bis `04 §4.6`)
+
+Alle in Epoche 1 von Profil D: `n = 4`, `P1`, Verfassung `C1`. Epoche 1, weil dort `membership`
+`[2,3]` und `amendment` `[3,4]` verschieden viele Ja verlangen, drei und vier; in Epoche 2 verlangen
+beide vier, und der Klassenvektor sähe den Unterschied nicht. `ordinary` ist `[1,2]` und verlangt
+drei von vier.
+
+### 10.1 Die Objekte
+
+```
+DOM_NUC_MOTION = "claim-atom/v1/nucleus-motion"
+
+motion_hash    = SHA-256( DOM_NUC_MOTION || cbor({0: N_D, 1: epoch_id_1, 2: changes}) )
+```
+
+```
+M1  beitrag: [[], ["30 EUR"]]             731e27631d0580b438a572fb35d2c19f4708f5e471d2f6e1e58e95a45d5c3fd5
+M2  beitrag: [[], ["50 EUR"]]             2cdde5b476d3c1973d9c4a7804b3d2cae9abd43ae90069b295d15daaf2210a0e
+M3  beitrag: [["30 EUR"], ["40 EUR"]]     00cefced49b449a4896f8740a4d9f5ba6181183ed9d75e2e98f3d4a2958cc1f3
+M4  name:    [[], ["Gartenverein"]]       c739cea70e6de4ef21a3d2c543ed399938bd2321d55f430f1b84072382380d7b
+M5  x:       [[1], [2]]                   654f535bd3966fb420e7539345755e9c196ad7929372ae89e75bdd0e27c471c3
+M6  x:       [[true], [3]]                af39623b3367c128b2c2bda23f69e9a206725d6eff66fe23a998af401c616159
+M7  x:       [[], [1]]                    8802b10e30d5d4bfcf8910d43e7a8ce80f3fc9dd826e9fd5d93ea296169b4155
+
+cbor(M1) =
+  a3005820a15c70c4829e7a296b5af56656e0a94b9ea9391096515c9cc592e18bd2d9f7ef
+  01582056915063c07ce1e6b74e10712e8f17b9f381af359a3e12b9719e90a52483d724
+  02a1676265697472616782808166333020455552
+```
+
+`M1` und `M2` teilen die Vorbedingung `(beitrag, [])`. `M3` setzt `M1` voraus, ohne ihn zu nennen.
+`M5` und `M6` haben verschiedene Vorbedingungen: `cbor([1]) = 8101`, `cbor([true]) = 81f5`, und in
+Python gilt `1 == True`.
+
+```
+C1S = C1, dazu beitrag: "30 EUR"          (die Fassung aus C1 und M1)
+C2S = C1S, aber participants = P2          (die Aufnahme von EVE darauf)
+
+constitution_hash(C2S) = 0eebc02acb5619f5769e9a18f28bfdd2f7691408bbcfe1826f0dc5d952e40b49
+
+G1 = {0: N_D, 1: epoch_id_1, 2: constitution_hash(C2S), 3: [M1]}
+   = 6c54b07afa790d67d792dafcd53f5ffd219a565b530a09c209593b0c83cef16d
+G0 = {0: N_D, 1: epoch_id_1, 2: constitution_hash(C2S)}
+   = bd1621e5170206d5315bc7f9322f09b64b717487d217a7c2e919b6ddbb1785c1
+
+epoch_id_2S = SHA-256( DOM_NUC_EPOCH || cbor([N_D, 2, constitution_hash(C2S)]) )
+            = 9804aa920a51ac99302b6407a6622df5eeaa15751c1fcf4a35b33f5f7ee92aae
+```
+
+`proposal_hash_1` bleibt `38edfd6b…`: ohne Feld 3 ändert sich kein bisheriger Vorschlag (D565
+Beschluss 4).
+
+### 10.2 Auszählung und Klasse
+
+| Vektor | Antrag, Ja | Klasse, Rechnung | Zustand |
+|---|---|---|---|
+| `GV-59` | `M1`, ALICE BOB | `ordinary`, `2*2 = 4` gegen `1*4 = 4` | `PENDING` |
+| `GV-60` | `M1`, ALICE BOB CAROL | `ordinary`, `6` gegen `4` | `PASSED` |
+| `GV-61` | `G1`, BOB ALICE DAVE, `M1` bekannt | `membership`, `3*3 = 9` gegen `2*4 = 8` | `PASSED` |
+| `GV-62` | `G0`, dieselben drei Ja | `amendment`, `3*4 = 12` gegen `3*4 = 12` | `PENDING` |
+
+`G1` und `G0` haben dasselbe Ziel. `G1` wird gegen die Fassung aus `C1` und `M1` gemessen und
+unterscheidet sich nur in `participants`; `G0` wird gegen `C1` gemessen und unterscheidet sich auch
+in `beitrag` (`04 §3.4`). Ein Lauf, der `G1` gegen `C1` misst, liefert für `GV-61` das Ergebnis von
+`GV-62`.
+
+### 10.3 Vereinbare und unvereinbare Ja
+
+Jeweils `M1` mit Ja von ALICE, BOB und CAROL, oder `G1` mit Ja von BOB, ALICE und DAVE, und dazu
+weitere Ja von ALICE:
+
+| Vektor | ausgezählt | ALICE zusätzlich Ja auf | Ergebnis |
+|---|---|---|---|
+| `GV-63` | `M1` | `M2` (Regel 2) | `CONFLICTING_APPROVAL`, `PENDING` |
+| `GV-64` | `M1` | `M3` und `M4` | kein Vermerk, `PASSED` |
+| `GV-65` | `G1` | `M4` (Regel 3, nicht in `S`) | `CONFLICTING_APPROVAL`, `PENDING` |
+| `GV-66` | `G1` | `M1` (in `S`) | kein Vermerk, `PASSED` |
+| `GV-67` | `M1` | `proposal_hash_1` (Regel 3, `S` leer) | `CONFLICTING_APPROVAL`, `PENDING` |
+| `GV-68` | `M1` | einen formwidrigen Sachantrag der Epoche 1 (`GV-71`) | kein Vermerk, `PASSED` |
+| `GV-69` | `M1` | ein lokal unbekanntes Objekt | `UNKNOWN_PROPOSAL`, `PENDING` |
+| `GV-70` | `M5`, `M6` und `M7`, jeder mit Ja aller vier | — | kein Vermerk, alle drei `PASSED` |
+
+`GV-70` ist der Vektor gegen die Gleichheit der Programmiersprache (`04 §2.5`): wer `1 == True`
+gelten lässt, sieht in `M5` und `M6` eine gemeinsame Vorbedingung, und beide fallen auf `PENDING`.
+
+### 10.4 Formwidrigkeit
+
+Erwartung durchgehend `UNEVALUABLE`, **nie** ein Ergebnis.
+
+| Vektor | Lage | Vermerk, Subjekt |
+|---|---|---|
+| `GV-71` | Sachantrag mit `changes = {participants: [[], [P2]]}` | `MALFORMED_MOTION`, sein `motion_hash` |
+| `GV-72` | `beitrag: [["30 EUR"], ["30 EUR"]]` | `MALFORMED_MOTION` |
+| `GV-73` | `M1` mit zusätzlichem Schlüssel `3: 0` | `MALFORMED_MOTION` |
+| `GV-74` | `changes = {}` | `MALFORMED_MOTION` |
+| `GV-75` | `beitrag: [[[], []], ["30 EUR"]]`, `alt` hat zwei Einträge | `MALFORMED_MOTION` |
+| `GV-76` | Feldname ist der uint `7` | `MALFORMED_MOTION` |
+| `GV-77` | wie `GV-71`, dazu `scope` eines anderen Nukleus | `MALFORMED_MOTION`, **kein** `ValueError`: die Form steht vor dem Scope |
+| `GV-78` | `G1` mit Feld 3 `= []` | `MALFORMED_PROPOSAL`, sein `proposal_hash` |
+| `GV-79` | Feld 3 `= [M1, M3]`, nicht aufsteigend | `MALFORMED_PROPOSAL` |
+| `GV-80` | Feld 3 `= [M2, M1]`, gemeinsame Vorbedingung | `MALFORMED_PROPOSAL` |
+| `GV-81` | Feld 3 `= [proposal_hash_1]`, Objekt bekannt | `MALFORMED_PROPOSAL` |
+| `GV-82` | Feld 3 nennt einen Sachantrag mit `predecessor = epoch_id_2` | `MALFORMED_PROPOSAL` |
+| `GV-83` | Feld 3 nennt den Sachantrag aus `GV-71` | `MALFORMED_MOTION`, dessen `motion_hash` |
+| `GV-84` | `G1`, `M1` lokal unbekannt | `MOTION_UNAVAILABLE`, der Hash von `M1` |
+
+Die Vorschläge in `GV-78` bis `GV-84` haben das Ziel `C2S` wie `G1`; ihre Hashes rechnet der Test
+aus den Objekten.
+
+### 10.5 Feststellung und Fassung
+
+| Vektor | Lage | Ergebnis |
+|---|---|---|
+| `GV-85` | `ratify@1` auf `G1` mit den drei Ja aus `GV-61`, `M1` nicht festgestellt | `MOTION_UNRATIFIED`, Subjekt der Hash von `M1`; keine Epoche |
+| `GV-86` | dazu ein `ratify@1` auf `M1` mit den drei Ja aus `GV-60` | Epoche 2 mit `epoch_id_2S` |
+| `GV-87` | festgestellt `M1` und `M3` | `beitrag = "40 EUR"`, `applied = [M3, M1]` |
+| `GV-88` | festgestellt `M3` allein | kein `beitrag`, `applied = []`, kein Vermerk |
+| `GV-89` | festgestellt `M5`, `M6` und `M7` | `x = 2`, `applied = [M5, M7]`; `M6` festgestellt, nicht angewandt |
+| `GV-90` | zwei `ratify@1` auf `M1`, eines tragend, eines mit zwei Zeugen | `M1` angewandt, keine Vermerke |
+| `GV-91` | nur das `ratify@1` mit zwei Zeugen | `M1` nicht festgestellt, `UNSUPPORTED_RATIFICATION` |
+
+`applied` ist nach `motion_hash` sortiert, nicht nach Name. Die Fassung in `GV-87` und `GV-89` ist
+in jeder der möglichen Reihenfolgen gerechnet und dieselbe; mit der Gleichheit der
+Programmiersprache ergäbe `GV-89` je nach Reihenfolge `x = 2` oder `x = 3`.

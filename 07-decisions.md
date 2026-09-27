@@ -24751,3 +24751,44 @@ mit Vektoren für jede neue Zeile in `04 §3.5`, jede Regel in `04 §4.4` und di
 dann die Seite. O96 bleibt offen.
 
 **Geändert.** `04-governance.md`, `03-profiles.md`, `07-decisions.md`.
+
+### D568 — O96: Golden Anchors und Invarianten zu Sachanträgen
+
+**Anlass.** D567 Beschluss 7. Gelesen: `04-golden-anchors.md` ganz, `tests/governance/fixtures.py`,
+`tests/governance/test_anchors.py`. Gerechnet im Supervisor-Klon auf `988fed2` mit `cbor_canon`
+und den Fixtures von Profil D; der Trenner `claim-atom/v1/nucleus-motion` als Literal, denn
+`symbolon/domains.py` führt ihn noch nicht.
+
+**Beschluss 1 — die Vektoren stehen in Epoche 1.** Dort verlangen `membership` und `amendment` drei
+und vier Ja; in Epoche 2 je vier, und der Vektor zur Klasse (`GV-61` gegen `GV-62`) sähe nicht, ob
+ein Lauf den Vorschlag gegen die Fassung aus `S` oder gegen die Verfassung der Epoche misst.
+
+**Beschluss 2 — `04-golden-anchors.md §10`, `GV-59` bis `GV-91`.** Sieben Sachanträge mit vollen
+Hashes und der Kodierung von `M1`, eine Fassung `C2S`, die Vorschläge `G1` mit `S = [M1]` und `G0`
+ohne, `epoch_id_2S`. Je ein Vektor für jede Regel aus `04 §4.4` in beide Richtungen, für jede
+neue Zeile aus `04 §3.5`, für Bedingung 7 und für die Fassung. Der Abschnitt steht hinter `§9`,
+damit `§8` seine Nummer behält; drei Tests und `pruefregeln.md` zitieren sie.
+
+**Beschluss 3 — zwei Vektoren gegen die naheliegenden Fehler, vorher gemessen.** `GV-62` ist das
+Gegenbild zu `GV-61`. `GV-70` und `GV-89` treffen die Gleichheit der Programmiersprache: `M5` hat
+die Vorbedingung `[1]`, `M6` `[true]`. Mit Byte-Gleichheit ergibt die Fassung aus `M5`, `M6`, `M7`
+in allen sechs Reihenfolgen `x = 2`; mit `==` aus Python je nach Reihenfolge `x = 2` oder `x = 3`.
+
+**Beschluss 4 — Invarianten.** Der Vorbehalt von `INV-04.7` nennt jetzt jedes nach `04 §4.4`
+unvereinbare Ja. Neu sind `INV-04.9` (B2, B3), `INV-04.10` (B4) und `INV-04.11` (die Fassung
+wächst), mit Prüfbereich. `INV-04.6` bleibt wörtlich.
+
+**Befund 1 — zwei Kurzhashes in `04-golden-anchors.md` passten nicht zu ihren Langformen.**
+`genesis_D` nannte `5e288ec9…` statt `8e7762ef…`, `GV-1` `epoch_id_2 = 380779c1…` statt
+`50a33bef…`. Kein Test liest Kurzhashes aus der Prosa. Beide korrigiert. Schwester des Kandidaten
+aus D527: ein Kurzhash in einer Spec wird aus der Langform kopiert, nicht aus einer früheren
+Fassung.
+
+**Befund 2 — `04-golden-anchors.md §5.3` nannte `ordinary` „in v1 ohnehin unbenutzt“.** Korrigiert.
+
+**Beschluss 5 — der nächste Schritt.** Der Auftrag für den Code: Objekt und Trenner, Formprüfung,
+Auszählung eines Sachantrags, die drei Regeln, Klasse gegen die Fassung aus `S`, Bedingung 7,
+`resolve_fassung`, die Vektoren und Invarianten dieses Eintrags. Die Seite danach, mit Olis
+Entscheidung über das Wort „Fassung“ (D567 Befund 2).
+
+**Geändert.** `04-golden-anchors.md`, `07-decisions.md`.

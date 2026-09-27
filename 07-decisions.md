@@ -23851,3 +23851,69 @@ löste Bruno nie auf, stellte sie nie fest. Im Bild tut er es; für eine echte V
 eine Frage des Vereins, nicht des Protokolls.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O95).
+
+### D552 — Prototyp zum Auftrag `p29-aufloesen`; die Sicht trägt die ersetzten Stimmen; Auftrag
+
+**Anlass.** D551, offen für den Auftrag: die Form der Gruppe, die Fälle mit mehr als einer übrigen
+Stimme, der Wortlaut von Terminal und Zusehen-Text. Prototyp im Supervisor-Klon auf `d1d9300`, die
+Tests in der Fassung des Auftrags, gemessen, verworfen.
+
+**Beschluss 1 — die Form der Gruppe.** `GeraeteStimmen` bekommt `ersetzt`: die Stimmen der Gruppe,
+die `maximal_votes` herausnimmt, als `(claim_id, I, wahl)`, sortiert. `stimmen` bleibt, was zählt.
+Die Gruppe erscheint, wenn alle ihre Stimmen zusammen von zwei Schlüsseln stammen. Ersetzt eine
+Wurzel nur Stimmen desselben Schlüssels, entsteht keine Gruppe; das ist ein Stimmwechsel, kein
+Widerspruch zwischen Geräten.
+
+**Beschluss 2 — die Fälle auf der Seite.** `geraeteSatz` bekommt die Anträge der Seite als vierten
+Parameter und rechnet `geraeteOben` selbst; so kann der dritte Punkt nicht von der Stelle abweichen,
+an der die Karte steht. Die Zahl der Geräte zählt Schlüssel über zählende und ersetzte Stimmen: nach
+einer Auflösung auf dem Erstgerät bliebe sonst ein Gerät übrig, und der Satz sagte „auf 1 Geräten“.
+Wählen die zählenden Stimmen gleich, alle zusammen aber verschieden, sagt der Satz die Auflösung;
+bei mehr als einer übrigen Stimme `… mit neuen Stimmen ersetzt. Sie zählen einmal: Ja.` Wählen
+alle gleich, bleibt Doras Satz, auch wenn etwas ersetzt ist.
+
+**Beschluss 3 — der Wortlaut.** Terminal: `ANNA wartet mit der Feststellung, bis BRUNO den
+Widerspruch auflöst.` und `BRUNO stimmt neu Ja; die Stimme ersetzt die früheren`. Der Text zum
+Zusehen übernimmt die ersten drei Punkte aus Bild (b) und sagt in drei weiteren, dass Bruno sich
+vertut, dass Anna wartet, bis er auflöst, und dass Doras Stimme einmal zählt.
+
+**Befund 1 — eine bestehende Erwartung ändert sich.** `test_aufloesung_auf_dem_zweitgeraet` in
+`tests/node/test_ersetzen.py` erwartet nach der Auflösung keine Gruppe mehr. Das ist genau die
+Stelle aus D551 Befund 4. Der Auftrag ändert die Prüfung ausdrücklich: es bleibt eine Gruppe, in
+der nur die neue Stimme zählt. Im Selbsttest wird „geraeteOben: Antrag PASSED“ von `false` zu
+`true` (D551 Beschluss 4).
+
+**Befund 2 — die übrigen Stellen derselben Menge.** Gesucht wurde jede Stelle, die Gruppen aus
+`/geraetestimmen` liest oder selbst rechnet: `geraeteKarten` und `vereinGerade` in `app.js`, beide
+über `geraeteSatz`; `geraeteKarten` zeigt als Kennungen nur die zählenden Stimmen, und das bleibt.
+`_intent_body` und `proposals_view` rechnen über `maximal_votes` und sind nicht berührt. Das Bild
+(c) bleibt: `test_bild_c` liest nur `stimmen`.
+
+**Befund 3 — Annas einmalige Meldung sieht das Bild nicht.** Anna wartet im Bild genau einen Takt,
+also stünde ihre Zeile auch ohne `gemeldet` nur einmal im Terminal. Ein eigener Test fährt die
+Takte 0 bis 3 und dann zweimal nur Annas Gerät; erst er sieht R12.
+
+**Golden Numbers, am Prototyp.** 1209 Tests grün (1203, dazu sechs in `test_aufloesen.py`), der
+Selbsttest 185 von 185, `ruff check` sauber. Über den Startbefehl mit `--aufloesen`: die Takte aus
+D551 und der Text in sechs Punkten. Rücknahmeproben, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| R1 | zwei Schlüssel erst nach `maximal_votes` | Gruppe nach Auflösung, Bild, Auflösung auf dem Zweitgerät |
+| R2 | `ersetzt` leer | Gruppe nach Auflösung, Bild |
+| R3 | `geraeteOben` nur bei `PENDING` | Selbsttest: Karte oben bei PASSED, geraeteOben PASSED |
+| R4 | dritter Punkt auf jeder Karte | Selbsttest: drei Karten ohne Anträge |
+| R5 | kein Satz der Auflösung | Selbsttest: zwei Auflösungen |
+| R6 | Geräte nur über zählende Stimmen | Selbsttest: Auflösung, ersetzt bei gleicher Wahl |
+| R7 | Anna wartet nicht | Bild, Anna wartet einmal |
+| R8 | Anna wartet auch bei gleicher Wahl | `test_wartet`, Bild |
+| R9 | Bruno löst auf dem Zweitgerät auf | Bild |
+| R10 | Auflösung auch ohne Antrag der Seite | `test_aufloesung` |
+| R11 | Regeln auch ohne Schalter | `test_bild_c` |
+| R12 | Warten in jedem Takt gemeldet | Anna wartet einmal |
+
+**Beschluss 4 — Auftrag `p29-aufloesen`.** Die Tests stehen wörtlich im Auftrag, die
+Rücknahmeproben R1 bis R12 fährt das Werkzeug ohne Bytecode-Cache. Danach die Abnahme und Olis
+Durchlauf mit `--aufloesen` (D490).
+
+**Geändert.** `07-decisions.md`.

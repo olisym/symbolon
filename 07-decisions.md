@@ -23966,3 +23966,53 @@ Posten.
 **Beschluss 1 — O95 erledigt.** Das Folgebild steht unter `--aufloesen` (D551 bis D554).
 
 **Geändert.** `07-decisions.md`, `offen.md` (O95).
+
+### D555 — Erst die Lücken, dann Reticulum; der Selbsttest der Seite läuft in `make check`
+
+**Anlass.** Nach D554 Olis Wahl: erst die Lücken aus den Sitzungen `00cn` bis `00cq`, dann Phase 5.
+
+**Beschluss 1 — die Reihenfolge.**
+
+1. Der Selbsttest der Seite in `make check` (D549). Er schützt jede weitere Arbeit an der Seite,
+   und bis heute zählt ihn das Werkzeug mit einem Skript im Scratchpad.
+2. Was die Seite über Stimmen von Geräten falsch oder gar nicht sagt: die Gruppierung sieht
+   `CONFLICTING_APPROVAL` nicht, die Absicht behandelt ein gesperrtes Gerät wie seine Wurzel (D543,
+   schwächste Stelle), `DISPUTED_VOTE` hat keinen Satz (D542); dazu, dass eine Feststellung nicht
+   mehr trägt, und die Stimme neben einem anderen Claim an derselben Stelle (D525).
+3. Aufräumen: `szenario-verein §9` sagt noch, zwei Geräte einer Identität gabelten sich selbst (D548
+   Befund 5); der unerreichbare Zweig in `folgeZeilen` (D548 Befund 4); die verlorene Eingabe (D502)
+   und der fehlende Titel nach dem Beschluss (D507 Befund 2).
+
+Nicht in dieser Reihe, weil sie eine eigene Frage sind und keine Lücke zwischen Norm und Bau: die
+kalte Wurzel und die übrigen Profile nach `I` (D534 Beschluss 2, D542 Beschluss 2); das Lockern von
+`04 §4.4` für ein ersetztes Ja (D547 Beschluss 4, braucht einen Beweis); die Regel aus D547 in der
+Rust-Fassung (D547 Befund 6). Die Aufnahme eines Geräts als Handlung im Netz (D542 Beschluss 3) und
+die Befunde aus dem Netz (D516, D518, D519) gehören zu Phase 5.
+
+**Beschluss 2 — der Selbsttest als Test.** Ein Test `tests/node/test_selbsttest.py` lädt
+`selbsttest.js` in Node und fährt `run` über `vektoren.json` mit `globalThis.crypto.subtle`, wie die
+Seite im Browser. Er verlangt, dass jeder Fall mit `ok` gleich `true` besteht und dass es genau 185
+Fälle sind. Die Zahl ist eine Golden Number: ein Auftrag, der Fälle hinzufügt, nennt die neue Zahl,
+wie es die Aufträge seit D543 ohnehin tun. Ohne sie bliebe der Test grün, wenn eine ganze Gruppe
+aus `run` verschwindet (gemessen: ohne `feinschliffFaelle` 128 Fälle, alle grün).
+
+**Beschluss 3 — ohne Node ist `make check` rot, nicht übersprungen.** Ein übersprungener Test ist
+genau die stille Lücke, die dieser Eintrag schliesst. Node liegt auf Olis Rechner (das Werkzeug fuhr
+den Selbsttest dort) und im Image `mar-sym-box`. Eine Liste der Voraussetzungen führt das
+Repositorium nicht; eine neue entsteht dafür nicht.
+
+**Beschluss 4 — ohne Werkzeug.** Der Test ist die einzige Änderung, eine neue Datei ohne Eingriff in
+bestehenden Code. Er kommt als Lieferung, der Block fährt den vollen `make check`.
+
+**Rücknahmeproben am Prototyp**, jede rot an der Sache:
+
+| Probe | zurückgenommen | rot |
+|---|---|---|
+| S1 | ein Satz in `anzeige.js` geändert | die Fälle mit diesem Satz |
+| S2 | ein Fall mit `ok` gleich `"ja"` statt `true` | dieser Fall |
+| S3 | `feinschliffFaelle` fehlt in `run` | die Zahl, 128 statt 185 |
+| S4 | Node nicht im Pfad | „Node fehlt“ |
+
+**Golden Numbers.** 1210 Tests (1209 und dieser), der Selbsttest 185 Fälle.
+
+**Geändert.** `07-decisions.md`, `tests/node/test_selbsttest.py`.

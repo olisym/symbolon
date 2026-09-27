@@ -508,9 +508,13 @@ weitere Ja von ALICE:
 | `GV-65` | `G1` | `M4` (Regel 3, nicht in `S`) | `CONFLICTING_APPROVAL`, `PENDING` |
 | `GV-66` | `G1` | `M1` (in `S`) | kein Vermerk, `PASSED` |
 | `GV-67` | `M1` | `proposal_hash_1` (Regel 3, `S` leer) | `CONFLICTING_APPROVAL`, `PENDING` |
-| `GV-68` | `M1` | einen formwidrigen Sachantrag der Epoche 1 (`GV-71`) | kein Vermerk, `PASSED` |
+| `GV-68` | `M1` | den formwidrigen Sachantrag `beitrag: [[], []]` der Epoche 1 | kein Vermerk, `PASSED` |
 | `GV-69` | `M1` | ein lokal unbekanntes Objekt | `UNKNOWN_PROPOSAL`, `PENDING` |
 | `GV-70` | `M5`, `M6` und `M7`, jeder mit Ja aller vier | — | kein Vermerk, alle drei `PASSED` |
+
+`GV-68` braucht einen Sachantrag, der gelesen die Vorbedingung von `M1` teilte: `alt` ist `[]` wie
+bei `M1`, und formwidrig ist er nur, weil `alt` gleich `neu` ist. Mit einem Sachantrag auf ein
+anderes Feld bliebe der Vektor grün, auch wenn die Formwidrigkeit das Ja nicht freigäbe (D569).
 
 `GV-70` ist der Vektor gegen die Gleichheit der Programmiersprache (`04 §2.5`): wer `1 == True`
 gelten lässt, sieht in `M5` und `M6` eine gemeinsame Vorbedingung, und beide fallen auf `PENDING`.

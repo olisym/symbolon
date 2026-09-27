@@ -24792,3 +24792,52 @@ Auszählung eines Sachantrags, die drei Regeln, Klasse gegen die Fassung aus `S`
 Entscheidung über das Wort „Fassung“ (D567 Befund 2).
 
 **Geändert.** `04-golden-anchors.md`, `07-decisions.md`.
+
+### D569 — O96: Auftrag `p32-sachantraege`, Objekte, Auszählung und Bedingung 7
+
+**Anlass.** D568 Beschluss 5. Gelesen: `symbolon/governance/` ganz, `tests/governance/fixtures.py`,
+`tests/helpers.py`, der Objektteil von `symbolon/node/store.py`, `_RESERVED` in
+`symbolon/node/api.py`. Prototyp im Supervisor-Klon auf `33e8ffe`, danach verworfen.
+
+**Beschluss 1 — zwei Läufe.** `p32-sachantraege` baut Objekte, Formprüfung, Auszählung, die drei
+Regeln, die Klasse gegen die Fassung aus `S` und Bedingung 7, mit `GV-59` bis `GV-89`. Ein zweiter
+Lauf baut `resolve_fassung`, die Kette, `GV-90`, `GV-91` und `INV-04.9` bis `INV-04.11`. Die Kette
+braucht die Feststellungen aller Sachanträge einer Epoche vor jedem Vorschlag; das ist ein eigener
+Umbau von `resolve_epoch`.
+
+**Beschluss 2 — Schnittstellen, gewählt, nicht Norm.**
+
+- `Motion(obj)` trägt das Objekt, wie es kam. Nur so kann ein formwidriger Sachantrag als Objekt
+  bestehen und nach `04 §2.5` geprüft werden; `scope`, `predecessor` und `changes` lesen aus `obj`.
+- `Proposal` bekommt ein viertes Feld `motions`, Vorgabe `None` für „Feld 3 fehlt“; alle
+  bisherigen Aufrufe bleiben gültig, und `proposal_hash_1` bleibt.
+- Vorschläge und Sachanträge teilen die Abbildung `known_proposals` (`04 §4.5`, Beschaffung).
+- `decide` und `verify_ratification` nehmen einen `Proposal` oder einen `Motion`;
+  `TallyResult.proposal_hash` trägt bei einem Sachantrag den `motion_hash` (`04 §2.5`).
+- `verify_ratification` bekommt `ratified_motions`, die Menge der festgestellten Sachanträge der
+  Epoche, Vorgabe leer, und `RatificationResult` das Feld `ratified_motion`. Wer die Menge
+  bildet, entscheidet der zweite Lauf.
+- Die Gleichheit von Werten steht an einer Stelle, `value_key`, und Vorbedingungen wie Fassung
+  lesen sie dort. Wirkt eine Regel an zwei Stellen, nimmt die Rücknahmeprobe sie an der Quelle
+  zurück (Kandidat aus D536).
+- `apply_motions` wendet in der gereichten Reihenfolge an. Sortierte sie selbst, prüfte der Test
+  über alle Reihenfolgen nur eine.
+- Die sechs Regelfelder stehen als `RULE_FIELDS` in `symbolon/governance/objects.py`;
+  `_RESERVED` in `symbolon/node/api.py` liest sie dort, statt sie ein zweites Mal aufzuzählen
+  (Kandidat aus D537).
+
+**Befund 1 — `GV-68` sah seine Regel nicht.** Der formwidrige Sachantrag aus `GV-71` ändert
+`participants` und teilt mit `M1` ohnehin keine Vorbedingung: die Probe, die ein Ja auf einen
+formwidrigen Sachantrag wie jedes andere prüft, blieb grün. `GV-68` nennt jetzt
+`beitrag: [[], []]`, formwidrig nur durch `alt` gleich `neu` und gelesen mit der Vorbedingung von
+`M1`; die Probe wird rot. Der Kandidat aus D548 in neuer Form: ein Vektor für eine Ausnahme braucht
+einen Fall, den die Regel ohne die Ausnahme träfe.
+
+**Beschluss 3 — Rücknahmeproben, gegen die Testfassung des Auftrags gefahren.** Alle sieben rot:
+Klasse gegen die Verfassung der Epoche (`GV-61`, `GV-66`, `GV-85`), Gleichheit aus Python
+(`GV-70`, `GV-89`), Regel 3 aus (`GV-65`, `GV-67`), Regel 2 aus (`GV-63`), Bedingung 7 aus
+(`GV-85`), Scope vor Form (`GV-77`), formwidriger Sachantrag nicht freigegeben (`GV-68`). Mit dem
+Prototyp laufen alle 1249 Tests grün, 1219 bisherige und 30 neue.
+
+**Geändert.** `04-golden-anchors.md`, `07-decisions.md`; der Auftrag liegt in
+`~/auftraege/p32-sachantraege.md`.

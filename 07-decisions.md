@@ -25288,3 +25288,31 @@ Selbsttest mit 231 Fällen.
 Oli (D490).
 
 **Geändert.** `07-decisions.md`; der Auftrag liegt in `~/auftraege/p35-seite.md`.
+
+### D581 — O96: Abnahme `p35-seite` mit Durchlauf, O96 geschlossen
+
+**Anlass.** Bericht zu `p35-seite`, Commit `9fa3677` auf `855ba98`. Diff im Spiegel ganz gelesen;
+die Tests sind wörtlich die des Auftrags, die Importe im Selbsttest alphabetisch, wie verlangt.
+
+**Beschluss 1 — abgenommen, mit Durchlauf.** Den Ablauf habe ich vorher auf dem Branch über die
+Schnittstelle gefahren, wie die Seite ihn fährt (Kandidat aus D518). Oli ist ihn danach im Browser
+gegangen: Sachantrag stellen, drei Ja, feststellen, der Stand im Tab „Im Verein“, ein
+Satzungsantrag mit `S`, der nur seine eigene Änderung zeigt, und die Warnung vor einem zweiten Ja
+nach Regel 3 mit dem Titel des anderen Antrags. Jeder Schritt zeigte, was angekündigt war (D490).
+
+**Beschluss 2 — Merge.** `p35-seite` geht als Vorspulen nach `main`. Stand: 1286 Tests, der
+Selbsttest mit 231 Fällen, `make check` mit Status 0.
+
+**Beschluss 3 — O96 ist erledigt.** Norm und Beweis (D564 bis D568), Governance-Code (D569 bis
+D573), Wörter (D575), Knoten (D577 bis D579) und Seite (D580, D581). Aus dem Strang weiter ohne
+Auftrag: die Stichfrage des doppelten Ja je Feld (D564 Beschluss 3), Mengen als Sachfelder (D565
+Beschluss 4), Aufnahmen neben Sachfragen (D564 Beschluss 1), `classify_all` zweimal je Schritt der
+Kette (D572 Befund 3), Key `2` einer Bürgschaft (D574).
+
+**Weiter ohne Auftrag, aus dem Bericht.** Der Typhinweis von `_vorgaenger` nennt nur `Proposal`;
+der Docstring von `antragstitel` und der Kopfkommentar von `anzeige.js` nennen die Sachanträge
+nicht; `verfassungsAenderungen` hat in `app.js` keinen Aufrufer mehr. Die Geschichte der
+Demonstration sagt weiter „ANNA beantragt einen Satzungstext“, der Knopf heisst „Als
+Satzungsantrag …“; der Durchlauf hat daran nicht gestört.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

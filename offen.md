@@ -439,10 +439,6 @@ bis D546).
 
 Bild unter `--aufloesen`: Anna wartet, Bruno ersetzt beide Stimmen, die Seite sagt es (D551–D554).
 
-### O96 Mehrere Anträge nebeneinander: unabhängige Änderungen unter einer Fassung
+### O96 Mehrere Anträge nebeneinander: unabhängige Änderungen unter einer Fassung — erledigt (D581)
 
-Unter einer Fassung kommt höchstens ein Antrag durch (`04 §4.4`), jeder übrige wird mit der
-Feststellung gegenstandslos (`04 §4.3`). Oli will Anträge, die einander nicht berühren,
-nebeneinander annehmen können, wie an einem Vereinsabend; den Sammelantrag hat er verworfen.
-Literatur und Skizze in D558. Braucht einen neuen Beweis für `04 §4.4`. Öffnet nach Stufe 2b und 3
-aus D555, vor Phase 5.
+Sachanträge neben Satzungsanträgen, drei Regeln, Stand; Norm, Knoten und Seite (D564–D581).

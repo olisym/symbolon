@@ -623,6 +623,10 @@ ihn fest** und nimmt ihn damit in die Fassung der Epoche auf (`§4.6`). Beides g
 Bei einem Sachantrag entfallen 6 und 7: er hat keine Zielverfassung und kein `S`. Die Prüfung eines
 Sachantrags hängt an keiner anderen Feststellung, die Prüfung nach 7 endet also.
 
+Ist der Sachantrag nach `§2.5` formwidrig, ist seine Auszählung `UNEVALUABLE` (`§3.5`), und der
+Claim endet mit `TALLY_UNEVALUABLE`. `scope` und `predecessor` des Objekts werden dabei nicht
+gelesen, aus demselben Grund wie in `§3.5`: ohne die Form sind sie nicht lesbar (D570).
+
 Trifft eine Bedingung nicht zu, etabliert der Claim keine Epoche und stellt nichts fest. Er ist
 deshalb kein Angriff und kein Protokollverstoß, sondern eine Behauptung, die sich nicht bestätigt.
 
@@ -875,7 +879,9 @@ und MUSS werfen, nicht vermerken — dieselbe Asymmetrie wie in `§3.5`.
 mit `predecessor == epoch_id(i)` ist, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1`
 erreicht und der Schritt wiederholt sich. Trägt keine, endet die Kette bei `i`. Feststellungen von
 Sachanträgen führen zu keiner Epoche; sie bilden die Fassung (`§4.6`) und gehen in die Kette nur
-über Bedingung 7 ein.
+über Bedingung 7 ein. Der Schritt prüft deshalb vor den Vorschlägen die Feststellungen aller
+Sachanträge von `i` nach `§4.1`; die festgestellten sind die Menge, gegen die Bedingung 7 prüft.
+Deren Vermerke gehören nicht zum Ergebnis der Kette, sondern zu `resolve_fassung` (`§4.6`, D570).
 
 **Beschaffung.** Verfassungsobjekte kommen als Abbildung vom Hash auf das Objekt, Vorschlags- und
 Sachantragsobjekte als eine zweite. Jeder Zugriff wird gegen den Schlüssel geprüft: ein Eintrag,
@@ -969,17 +975,17 @@ Feststellungen entstünden verschiedene Kennungen, und zwei Beobachter sähen ze
 **Die Schnittstelle.**
 
 ```
-resolve_fassung(store, epoch, constitution_obj, known_proposals, now)
+resolve_fassung(store, epoch, genesis_obj, constitution_obj, known_proposals, now)
     ->  (fassung_obj, applied, findings)
 ```
 
-`epoch` und `constitution_obj` sind das Ergebnis von `resolve_epoch` (`§4.5`). Ist
-`constitution_obj` leer, ist auch `fassung_obj` leer. `applied` ist die aufsteigend sortierte Liste
-der `motion_hash` der angewandten Sachanträge. `findings` sind die Vermerke der Prüfungen nach
-`§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht tragen, in der Form aus `§4.5`:
-ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen Feststellungen weg. Ein
-unbekanntes Objekt unter einer Feststellung meldet schon die Kette (`EPOCH_PROPOSAL_UNAVAILABLE`);
-hier erscheint es nicht ein zweites Mal.
+`epoch` und `constitution_obj` sind das Ergebnis von `resolve_epoch` (`§4.5`); `genesis_obj` braucht
+die Auszählung (`§3.5`, D570). Ist `constitution_obj` leer, ist auch `fassung_obj` leer. `applied`
+ist die aufsteigend sortierte Liste der `motion_hash` der angewandten Sachanträge. `findings` sind
+die Vermerke der Prüfungen nach `§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht
+tragen, in der Form aus `§4.5`: ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen
+Feststellungen weg. Ein unbekanntes Objekt unter einer Feststellung meldet schon die Kette
+(`EPOCH_PROPOSAL_UNAVAILABLE`); hier erscheint es nicht ein zweites Mal.
 
 ---
 

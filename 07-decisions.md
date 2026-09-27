@@ -24880,3 +24880,44 @@ Sachanträge in `resolve_fassung` statt in der Kette, Beschluss 2 dieses Eintrag
 `INV-04.9` bis `INV-04.11`.
 
 **Geändert.** `07-decisions.md`; `main` steht nach dem Vorspulen auf `aebfda8`.
+
+### D571 — O96: Nachtrag zu `04 §4.1`, `§4.5`, `§4.6`; Auftrag `p33-fassung`
+
+**Anlass.** D570 Beschluss 4. Gelesen: `symbolon/governance/chain.py` und `epoch.py` auf
+`aebfda8`, `tests/property/test_inv04.py`, `tests/governance/test_tally_math.py`. Prototyp im
+Supervisor-Klon, danach verworfen.
+
+**Beschluss 1 — Nachtrag zur Norm.**
+
+- `04 §4.1`: eine Feststellung eines formwidrigen Sachantrags endet mit `TALLY_UNEVALUABLE`, ohne
+  dass `scope` oder `predecessor` gelesen werden (D570 Beschluss 2).
+- `04 §4.5`: der Schritt prüft vor den Vorschlägen die Feststellungen aller Sachanträge der Epoche;
+  deren Vermerke gehören zu `resolve_fassung`, nicht zur Kette. Sonst meldeten beide dieselbe
+  nicht tragende Feststellung.
+- `04 §4.6`: `resolve_fassung` nimmt `genesis_obj`, denn die Auszählung braucht es.
+
+**Beschluss 2 — welche Feststellungen zu einer Epoche gehören.** Die eines Sachantrags, dessen
+Objekt eine Map ist und dessen `predecessor` der `epoch_id` der Epoche ist, auch wenn er sonst
+formwidrig ist. Ein Sachantrag, dessen Objekt keine Map ist, nennt keine Epoche; seine Feststellung
+gehört zu keiner. So erscheint der formwidrige Sachantrag der Epoche als `MALFORMED_MOTION` in
+`resolve_fassung`, und keiner wird einer Epoche zugeschlagen, die er nicht nennt.
+
+**Beschluss 3 — `INV-04.9` bis `INV-04.11` erschöpfend, nicht mit Hypothesis.** `INV-04.9` läuft
+über jede Belegung der vier Mitglieder von `P1` mit je einer von vier Auswahlen, einmal für Regel 3
+(`G1`, `M4`), einmal für Regel 2 (`M1`, `M2`): je 256 Bestände. `INV-04.10` und `INV-04.11` laufen
+über jede verträgliche Teilmenge der sieben Sachanträge aus `04-golden-anchors.md §10`, das sind
+96; die Zahl ist eine Golden Number (Kandidat aus D555). Der ganze Test braucht im Klon unter vier
+Sekunden. Eine Stichprobe von zehn Fällen hätte die Proben zu Regel 2 und 3 nicht sicher gesehen.
+
+**Beschluss 4 — Rücknahmeproben, gegen die Testfassung des Auftrags gefahren.** Alle rot: die
+Kette ohne die festgestellten Sachanträge, die Kette mit deren Vermerken, jede Feststellung als
+tragend gezählt, der Scope vor der Form in `verify_ratification`, Vermerke trotz tragender
+Feststellung, Regel 3 aus, Regel 2 aus, eine Anwendung in einem Durchgang. Die Gleichheit aus
+Python macht `M5` und `M6` unverträglich. `INV-04.10` bleibt dann grün, weil die Menge mit
+beiden aus dem Bereich fällt; rot werden die Golden Number 96 und `GV-89` über die
+Feststellungen. Für `INV-04.11` gibt es keine Probe: eine Anwendung, die zurückgenommen würde,
+hat im Code keinen Ort. Der Test schützt gegen einen späteren Umbau. Mit dem Prototyp laufen 1263
+Tests grün, 1249 bisherige und 14 neue.
+
+**Geändert.** `04-governance.md`, `07-decisions.md`; der Auftrag liegt in
+`~/auftraege/p33-fassung.md`.

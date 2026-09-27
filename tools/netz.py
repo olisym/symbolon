@@ -51,7 +51,7 @@ _TAKT = 2
 ABLAUF = [
     "Auf jedem Gerät ausser Brunos Zweitgerät erledigen, was unter „Jetzt zu tun“ steht. Brunos "
     "Aufgaben erscheinen auf beiden Geräten; auf zweien erledigt, gabelten sie sich schon hier.",
-    "Annas Gerät: einen Satzungstext beantragen, etwa den Beitrag. Warten, bis jedes Gerät „Es ist "
+    "Annas Gerät: einen Satzungsantrag stellen, etwa den Beitrag. Warten, bis jedes Gerät „Es ist "
     "Neues angekommen“ zeigt.",
     "Doras Gerät und Brunos Zweitgerät: vom Netz trennen.",
     "Anna und Chris stimmen Ja, jede auf ihrem Gerät.",

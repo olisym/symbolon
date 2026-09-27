@@ -17,7 +17,14 @@ from symbolon.governance.findings import GovernanceFinding
 from symbolon.governance.objects import Motion
 from symbolon.node.api import _Named, _intent_body, _tally_of
 from symbolon.node.store import ObjectKind
-from symbolon.node.view import FieldChange, proposals_view, scope_view
+from symbolon.node.view import (
+    FieldChange,
+    antragstitel,
+    geraetestimmen,
+    proposals_view,
+    scope_view,
+    tasks_view,
+)
 from tests.node.test_geraete import _JETZT, _welt
 from tools.example_nucleus import _nuc
 
@@ -266,3 +273,60 @@ def test_feld_3_null_wird_unter_seinen_bytes_gespeichert(tmp_path) -> None:
     assert store.object_at(digest) == (ObjectKind.PROPOSAL.value, data)
     assert store.all_proposals()[digest].motions is None
     assert GovernanceFinding.MALFORMED_PROPOSAL in _vermerke(store, world, digest)
+
+
+def test_antragstitel_mit_sachantraegen(tmp_path) -> None:
+    """Ein Sachantrag mit Art und Feldern, ein Satzungsantrag mit ``S`` nur mit seiner Änderung,
+    auch nachdem er die Epoche gewechselt hat (04 §3.4, D580)."""
+    world, _geraete, store = _welt(tmp_path)
+    m = _antrag(store, world, world.bruno, {"motion": {"ort": "Halle"}})
+    _feststellen(store, world, m)
+    g = _antrag(store, world, world.bruno, {"change": {"set": {"field": "farbe", "text": "rot"}}})
+
+    def titel():
+        eintraege = {
+            e.proposal: (e.kind, e.changes.fields)
+            for e in antragstitel(store, world.ex.N_gov, _JETZT)
+        }
+        return {k: eintraege.get(k) for k in (m, g)}
+
+    erwartet = {
+        m: ("motion", (FieldChange(field="ort", old=None, new="Halle"),)),
+        g: ("proposal", (FieldChange(field="farbe", old=None, new="rot"),)),
+    }
+    assert titel() == erwartet
+    assert _zeile(store, world, g).changes.fields == erwartet[g][1]
+    _feststellen(store, world, g)
+    assert _sicht(store, world).state.epoch.index == 3
+    assert titel() == erwartet
+
+
+def test_geraetestimmen_zu_einem_sachantrag(tmp_path) -> None:
+    """Stimmen einer Wurzel von zwei Schlüsseln zu einem Sachantrag bilden eine Gruppe mit seinen
+    Feldern (D542 Beschluss 5, D580)."""
+    world, geraete, store = _welt(tmp_path)
+    gov = world.ex.N_gov
+    m = _antrag(store, world, world.bruno, {"motion": {"ort": "Halle"}})
+    for wer, wahl in ((world.bruno, 1), (geraete["BRUNO"], 0)):
+        claim = wer.claim(
+            p=_nuc(gov, "vote"), J=(3, m), t=next(_T), N=gov, v=cbor_canon.encode({0: wahl})
+        )
+        store.submit_claim(signed_bytes(claim))
+    (gruppe,) = geraetestimmen(store, gov, _JETZT)
+    assert (gruppe.root, gruppe.proposal) == (world.bruno.pub, m)
+    assert gruppe.changes.fields == (FieldChange(field="ort", old=None, new="Halle"),)
+
+
+def test_festgestellter_sachantrag_ist_kein_antrag_mehr(tmp_path) -> None:
+    """Nach der Feststellung steht ein Sachantrag weder unter den Anträgen noch als Aufgabe
+    „feststellen“; die Epoche bleibt, er gehört zum Stand (04 §4.6, D580)."""
+    world, _geraete, store = _welt(tmp_path)
+    gov = world.ex.N_gov
+    m = _antrag(store, world, world.bruno, {"motion": {"ort": "Halle"}})
+    for wer in (world.anna, world.chris, world.dora):
+        _ja(store, world, wer, m)
+    assert ("RATIFY", m) in {(t.art, t.detail) for t in tasks_view(store, world.anna.pub, _JETZT)}
+    _feststellen(store, world, m)
+    assert m not in {z.proposal for z in proposals_view(store, gov, _JETZT)}
+    assert m not in {t.detail for t in tasks_view(store, world.anna.pub, _JETZT)}
+    assert m in _sicht(store, world).stand.ratified

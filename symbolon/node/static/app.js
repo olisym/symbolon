@@ -18,6 +18,7 @@ import {
   VORHERSAGE,
   abweisungInWorten,
   aenderungen,
+  antragMarke,
   antragTitel,
   antragZitate,
   aufzaehlung,
@@ -25,7 +26,6 @@ import {
   betrag,
   centAus,
   erfolgSatz,
-  fassungSatz,
   feststellungPunkte,
   frageInhalt,
   ganzeZahl,
@@ -40,12 +40,12 @@ import {
   nameVon,
   personImSatz,
   regieReihenfolge,
+  standSaetze,
   standZeile,
   stimmenPunkte,
   tabTitel,
   tageAusKern,
   tilgungInWorten,
-  verfassungsAenderungen,
   vertrauenSatz,
   wertInWorten,
   widerspruchOben,
@@ -238,28 +238,24 @@ function artAus(p) {
   return name;
 }
 
-async function objekt(hash) {
+// Titel, Zitate und Art eines neuen Antrags aus dem Eintrag unter dem Hash, auf den der Kern
+// zeigt, in GET /antragstitel; fehlt er, gibt es keinen Satz (D580 Beschluss 2, ändert
+// D492 Beschluss 1 und 3).
+async function neuerAntrag(antragHash, scope, namen) {
   try {
-    const gefunden = await holen(`/objects/${hash}`);
-    const gelesen = dekodierenV(bytesFromHex(gefunden.data));
-    return gelesen.name === "ACCEPT" ? gelesen.wert : null;
+    const titel = await holen(`/antragstitel/${scope}`);
+    const eintrag = titel.find((item) => item.proposal === antragHash);
+    if (eintrag) {
+      return {
+        titel: antragTitel(eintrag.changes, namen),
+        zitate: antragZitate(eintrag.changes),
+        sachantrag: eintrag.kind === "motion",
+      };
+    }
   } catch {
-    return null;
+    // Ohne Antwort kein Satz (D580 Beschluss 2).
   }
-}
-
-// Titel eines neuen Antrags aus dem Vorschlagsobjekt, auf das der Kern zeigt, und den
-// Verfassungen, beide über /objects gelesen und streng dekodiert (D492 Beschluss 1 und 3).
-async function neuerAntrag(vorschlagHash, view, namen) {
-  if (!view) return { titel: null, zitate: [] };
-  const vorschlag = await objekt(vorschlagHash);
-  const ziel = vorschlag instanceof Map ? vorschlag.get(2n) : null;
-  if (!(ziel instanceof Uint8Array)) return { titel: null, zitate: [] };
-  const neu = await objekt(hex(ziel));
-  const alt = await objekt(view.state.epoch.constitution_hash);
-  const changes = verfassungsAenderungen(alt, neu);
-  if (!changes) return { titel: null, zitate: [] };
-  return { titel: antragTitel(changes, namen), zitate: antragZitate(changes) };
+  return { titel: null, zitate: [], sachantrag: null };
 }
 
 function einheitAus(bytes) {
@@ -293,12 +289,13 @@ async function felderAus(art, kern, kontext) {
   if (art === "accept-rules") {
     return { geltend: view ? ziel === view.state.epoch.constitution_hash : null };
   }
-  if (art === "propose") return neuerAntrag(ziel, view, kontext.namen);
+  if (art === "propose") return scope === null ? {} : neuerAntrag(ziel, scope, kontext.namen);
   if (art === "vote" || art === "ratify") {
     const antrag = kontext.antraege.find((eintrag) => eintrag.proposal === ziel);
     const titel = antrag ? antragTitel(antrag.changes, kontext.namen) : null;
     const zitate = antrag ? antragZitate(antrag.changes) : [];
-    if (art === "ratify") return { titel, zitate };
+    // Die Folge einer Feststellung hängt an der Art des Antrags (D580 Beschluss 1).
+    if (art === "ratify") return { titel, zitate, sachantrag: antrag ? antrag.kind === "motion" : null };
     const wahlWert = v instanceof Map ? v.get(0n) : undefined;
     const wahl = wahlWert === 1n ? "yes" : wahlWert === 0n ? "no" : null;
     const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
@@ -800,7 +797,8 @@ function jetztBereich(tasks, kontext, handeln) {
       if (!antrag) continue;
       const titel = antragTitel(antrag.changes, namen);
       const wer = aufzaehlung(antrag.proposers.map((p) => nameVon(namen, p)));
-      block.append(element("div", "satz", `${wer} beantragt: ${titel}`));
+      // Die Art über dem Satz (D580 Beschluss 1).
+      block.append(marke(antragMarke(antrag.kind)), element("div", "satz", `${wer} beantragt: ${titel}`));
       for (const zitat of antragZitate(antrag.changes)) {
         block.append(zeile("Neu in der Satzung stünde:"), element("blockquote", null, zitat));
       }
@@ -949,7 +947,8 @@ function vereinGerade(view, kontext) {
     return bereich;
   }
   const { namen, antraege, obligationen } = kontext;
-  const saetze = [fassungSatz(view.state.epoch.index)];
+  // Die Fassung und der Stand zuerst (D580 Beschluss 1).
+  const saetze = standSaetze(view.state.epoch.index, view.stand);
   const mitglieder = view.verein.membership;
   saetze.push(`Auf der Mitgliederliste: ${aufzaehlung(mitglieder.map(([s]) => nameVon(namen, s)))}.`);
   const bestaetigt = mitglieder.filter(([, ergebnis]) => ergebnis.state === "MEMBER").length;
@@ -960,9 +959,6 @@ function vereinGerade(view, kontext) {
   );
   const hinweis = hinweisSatzungGeaendert(mitglieder);
   if (hinweis) saetze.push(hinweis);
-  for (const [feld, wert] of Object.entries(view.state.constitution_obj ?? {})) {
-    if (typeof wert === "string") saetze.push(`In der Satzung steht zu ${feld}: „${wert}“`);
-  }
   const offen = antraege.filter((antrag) => antrag.state === "PENDING");
   const angenommen = antraege.filter((antrag) => antrag.state === "PASSED");
   if (offen.length === 0 && angenommen.length === 0) saetze.push("Keine offenen Anträge.");
@@ -1072,13 +1068,18 @@ function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) 
     knopfReihe(
       feldName,
       feldText,
-      knopf("Satzungstext beantragen …", () =>
+      knopf("Als Satzungsantrag …", () =>
         handeln("propose", {
           scope: gov,
           change: { set: { field: feldName.value, text: feldText.value } },
         }),
       ),
+      // Ein Sachantrag ändert ein Feld ohne neue Fassung (D580 Beschluss 1, 04 §2.5).
+      knopf("Als Sachantrag …", () =>
+        handeln("propose", { scope: gov, motion: { [feldName.value]: feldText.value } }),
+      ),
     ),
+    zeile("Ein Sachantrag ändert ein Feld, ohne neue Fassung der Satzung. Niemand muss neu bestätigen.", "leise"),
   );
   return form;
 }
@@ -1097,7 +1098,10 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, h
   for (const antrag of antraege) {
     const karte = element("div", "karte antrag");
     const wer = aufzaehlung(antrag.proposers.map((p) => nameVon(namen, p)));
-    karte.append(element("div", "satz", `${wer} beantragt: ${antragTitel(antrag.changes, namen)}`));
+    karte.append(
+      marke(antragMarke(antrag.kind)),
+      element("div", "satz", `${wer} beantragt: ${antragTitel(antrag.changes, namen)}`),
+    );
     for (const zitat of antragZitate(antrag.changes)) karte.append(element("blockquote", null, zitat));
     karte.append(zeile(`${auszaehlungInWorten(antrag.state)}: ${standZeile(antrag)}`));
     karte.append(zeile(stimmenZeile(antrag, namen)));

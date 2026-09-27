@@ -378,6 +378,12 @@ export function antragTitel(changes, namen) {
   return `${feld.field} ändern`;
 }
 
+// Die Marke über einer Antragskarte aus kind von GET /proposals oder GET /antragstitel (D580
+// Beschluss 1, D575 Beschluss 1).
+export function antragMarke(kind) {
+  return kind === "motion" ? "Sachantrag" : "Satzungsantrag";
+}
+
 // Der neue Wortlaut jedes Textfelds, als Zitat unter dem Titel (D492 Beschluss 3).
 export function antragZitate(changes) {
   return changes.fields
@@ -509,8 +515,9 @@ export function absichtSatz(art, felder) {
         ? "Du bestätigst die geltende Satzung des Vereins."
         : "Du bestätigst eine frühere Fassung der Satzung.";
     case "propose":
-      if (!vorhanden(felder, "titel")) return null;
-      return `Du beantragst: ${felder.titel}.`;
+      // Die Art des Antrags gehört zum Satz; ohne sie kein Satz (D580 Beschluss 1).
+      if (!vorhanden(felder, "titel") || typeof felder.sachantrag !== "boolean") return null;
+      return `Du stellst einen ${antragMarke(felder.sachantrag ? "motion" : "proposal")}: ${felder.titel}.`;
     case "vote": {
       if (!vorhanden(felder, "name", "titel", "wahl")) return null;
       const wahl = { yes: "Ja", no: "Nein" }[felder.wahl];
@@ -590,7 +597,12 @@ export function folgeZeilen(art, effect, felder) {
   } else if (art === "propose") {
     zeilen.push(`Angenommen ist der Antrag mit ${effect.needed} von ${effect.n} Ja-Stimmen.`);
   } else if (art === "ratify") {
-    zeilen.push(`${fassungSatz(effect.epoch)} Alle müssen die neue Satzung bestätigen.`);
+    // Ein Sachbeschluss lässt die Fassung stehen (D580 Beschluss 1, 04 §4.6).
+    if (felder.sachantrag === true) {
+      zeilen.push(`Der Beschluss gilt. Die Satzung bleibt in der ${effect.epoch}. Fassung; niemand muss neu bestätigen.`);
+    } else {
+      zeilen.push(`${fassungSatz(effect.epoch)} Alle müssen die neue Satzung bestätigen.`);
+    }
   } else if (art === "accept-rules") {
     if (felder.geltend === true && effect.membership === "MEMBER") {
       zeilen.push("Du bist Mitglied.");
@@ -665,6 +677,19 @@ export function erfolgSatz(art, felder) {
 // Die Fassung der Satzung statt der Epoche (D494 Beschluss 5).
 export function fassungSatz(index) {
   return `Es gilt die ${index}. Fassung der Satzung.`;
+}
+
+// Der Stand im Tab „Im Verein“, stand wie ScopeView.stand: die Fassung, die Zahl der angewandten
+// Sachbeschlüsse und je Textfeld des Stands ein Satz (D580 Beschluss 1, D575 Beschluss 1, 04 §4.6).
+export function standSaetze(index, stand) {
+  const saetze = [fassungSatz(index)];
+  const angewandt = stand?.applied?.length ?? 0;
+  if (angewandt === 1) saetze.push("Dazu gilt 1 Sachbeschluss.");
+  else if (angewandt > 1) saetze.push(`Dazu gelten ${angewandt} Sachbeschlüsse.`);
+  for (const [feld, wert] of Object.entries(stand?.stand_obj ?? {})) {
+    if (typeof wert === "string") saetze.push(`Es gilt zu ${feld}: „${wert}“`);
+  }
+  return saetze;
 }
 
 // Die Beschriftung eines Tabs: „ · <n> offen“ hinter dem Namen, wenn n nicht null ist; bei null

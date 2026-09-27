@@ -22,6 +22,7 @@ import {
   absichtSatz,
   abweisungInWorten,
   aenderungen,
+  antragMarke,
   antragTitel,
   aufzaehlung,
   betrag,
@@ -42,6 +43,7 @@ import {
   nachHandlung,
   personImSatz,
   regieReihenfolge,
+  standSaetze,
   standZeile,
   stimmenPunkte,
   tabTitel,
@@ -426,8 +428,8 @@ function saetzeFaelle() {
   );
   gleich(
     "absichtSatz: propose",
-    absichtSatz("propose", { titel: "beitrag festlegen" }),
-    "Du beantragst: beitrag festlegen.",
+    absichtSatz("propose", { titel: "beitrag festlegen", sachantrag: false }),
+    "Du stellst einen Satzungsantrag: beitrag festlegen.",
   );
   gleich(
     "absichtSatz: vote",
@@ -667,11 +669,15 @@ function fuehrungFaelle() {
     ["OLI", "ANNA", "CHRIS"],
   );
 
-  const mitSatz = frageInhalt("propose", { titel: "beitrag festlegen" }, { warnings: [], effect: { needed: 3, n: 4 } });
+  const mitSatz = frageInhalt(
+    "propose",
+    { titel: "beitrag festlegen", sachantrag: false },
+    { warnings: [], effect: { needed: 3, n: 4 } },
+  );
   gleich(
     "frageInhalt: mit Satz wird Unterschreiben angeboten",
     [mitSatz.satz, mitSatz.unterschreiben],
-    ["Du beantragst: beitrag festlegen.", true],
+    ["Du stellst einen Satzungsantrag: beitrag festlegen.", true],
   );
   const ohneSatz = frageInhalt("propose", {}, { warnings: [], effect: { needed: 3, n: 4 } });
   gleich(
@@ -1155,6 +1161,63 @@ function feinschliffFaelle() {
   return results;
 }
 
+// Satzungsantrag und Sachantrag, die Folge eines Sachbeschlusses und der Stand im Tab „Im Verein“
+// (D575 Beschluss 1, D580, 04 §4.6).
+function sachantragFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+
+  gleich("antragMarke: Sachantrag", antragMarke("motion"), "Sachantrag");
+  gleich("antragMarke: Satzungsantrag", antragMarke("proposal"), "Satzungsantrag");
+  gleich(
+    "absichtSatz: propose als Sachantrag",
+    absichtSatz("propose", { titel: "ort festlegen", sachantrag: true }),
+    "Du stellst einen Sachantrag: ort festlegen.",
+  );
+  gleich(
+    "absichtSatz: propose ohne Art, kein Satz",
+    absichtSatz("propose", { titel: "ort festlegen", sachantrag: null }),
+    null,
+  );
+  gleich(
+    "folgeZeilen: ratify eines Satzungsantrags",
+    folgeZeilen("ratify", { epoch: 3 }, { sachantrag: false }),
+    ["Danach: Es gilt die 3. Fassung der Satzung. Alle müssen die neue Satzung bestätigen."],
+  );
+  gleich(
+    "folgeZeilen: ratify eines Sachantrags",
+    folgeZeilen("ratify", { epoch: 2 }, { sachantrag: true }),
+    ["Danach: Der Beschluss gilt. Die Satzung bleibt in der 2. Fassung; niemand muss neu bestätigen."],
+  );
+  gleich(
+    "standSaetze: ohne Sachbeschluss",
+    standSaetze(2, { stand_obj: { participants: ["aa"], beitrag: "24 Euro" }, ratified: [], applied: [] }),
+    ["Es gilt die 2. Fassung der Satzung.", "Es gilt zu beitrag: „24 Euro“"],
+  );
+  gleich(
+    "standSaetze: ein Sachbeschluss",
+    standSaetze(2, { stand_obj: { ort: "Halle" }, ratified: ["m1"], applied: ["m1"] }),
+    ["Es gilt die 2. Fassung der Satzung.", "Dazu gilt 1 Sachbeschluss.", "Es gilt zu ort: „Halle“"],
+  );
+  gleich(
+    "standSaetze: zwei Sachbeschlüsse, einer ohne Wirkung zählt nicht",
+    standSaetze(3, {
+      stand_obj: { farbe: "rot", ort: "Halle", zahl: 5 },
+      ratified: ["m1", "m2", "m3"],
+      applied: ["m1", "m2"],
+    }),
+    [
+      "Es gilt die 3. Fassung der Satzung.",
+      "Dazu gelten 2 Sachbeschlüsse.",
+      "Es gilt zu farbe: „rot“",
+      "Es gilt zu ort: „Halle“",
+    ],
+  );
+
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1162,6 +1225,7 @@ export async function run(vectors, subtle) {
   results.push(...saetzeFaelle());
   results.push(...fuehrungFaelle());
   results.push(...feinschliffFaelle());
+  results.push(...sachantragFaelle());
   return results;
 }
 

@@ -345,6 +345,27 @@ def _motion_changes(motion: Motion) -> ProposalChanges:
     return ProposalChanges(added=(), removed=(), fields=fields)
 
 
+def _antrag_aenderungen(
+    obj: Proposal | Motion,
+    vorgaenger: dict,
+    constitutions: dict[bytes, dict],
+    known: dict[bytes, Proposal | Motion],
+) -> tuple[str, tuple[bytes, ...], ProposalChanges]:
+    """Art, ``S`` und Änderungen eines Antrags an einer Stelle (04 §3.4, 04 §4.6, D580).
+
+    Ein Sachantrag nennt seine Felder; ein Vorschlag seine Änderungen gegen den Stand aus
+    ``vorgaenger`` und den bekannten, wohlgeformten Sachanträgen aus ``S``.
+    """
+    if isinstance(obj, Motion):
+        return "motion", (), _motion_changes(obj)
+    motions = motion_list(obj) or ()
+    listed = [known.get(h) for h in motions]
+    stand = apply_motions(
+        vorgaenger, [m for m in listed if isinstance(m, Motion) and motion_wellformed(m)]
+    )[0]
+    return "proposal", motions, _changes(stand, constitutions.get(obj.constitution_hash))
+
+
 def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[ProposalView, ...]:
     """Anträge auf der geltenden Epoche, sortiert nach ``proposal`` (D484 Beschluss 2, D487 Beschluss 3).
 
@@ -352,7 +373,7 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
     ``conflicting`` die Wurzeln unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel unter
     ``DISPUTED_VOTE``; ein Subjekt, das nicht im Bestand liegt, fällt weg (D556 Beschluss 4 und 5).
     Die Änderungen eines Vorschlags stehen gegen den Stand aus der Verfassung der Epoche und den
-    bekannten, wohlgeformten Sachanträgen aus ``S`` (04 §4.6, D577 Beschluss 5).
+    bekannten, wohlgeformten Sachanträgen aus ``S`` (04 §4.6, D577 Beschluss 5, D580).
     """
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
@@ -367,6 +388,9 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
     attr = attribution(store, classify_all(store, now, view.state.policy), scope)
     result: list[ProposalView] = []
     for digest, tally in view.verein.decisions:
+        # Ein festgestellter Sachantrag gehört zum Stand, nicht zu den Anträgen (04 §4.6, D580).
+        if digest in view.stand.ratified:
+            continue
         proposers = grouped.get(digest)
         if not proposers:
             continue
@@ -402,18 +426,9 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 }
             )
         )
-        proposal_obj = proposals.get(digest)
-        if isinstance(proposal_obj, Motion):
-            kind, motions, changes = "motion", (), _motion_changes(proposal_obj)
-        else:
-            motions = motion_list(proposal_obj) or ()
-            listed = [proposals.get(h) for h in motions]
-            stand, _applied = apply_motions(
-                current,
-                [m for m in listed if isinstance(m, Motion) and motion_wellformed(m)],
-            )
-            target = constitutions.get(proposal_obj.constitution_hash)
-            kind, changes = "proposal", _changes(stand, target)
+        kind, motions, changes = _antrag_aenderungen(
+            proposals[digest], current, constitutions, proposals
+        )
         result.append(
             ProposalView(
                 proposal=digest,
@@ -469,6 +484,9 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                     )
                 grouped = _antraege(store, scope, participants)
                 for digest, tally in view.verein.decisions:
+                    # Ein festgestellter Sachantrag ist keine Aufgabe mehr (04 §4.6, D580).
+                    if digest in view.stand.ratified:
+                        continue
                     if not grouped.get(digest):
                         continue
                     if tally.state is TallyState.PENDING:
@@ -656,7 +674,7 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
         if type(wahl) is not int or wahl not in (0, 1):
             continue
         grouped[(vote_root(attr, claim), claim.J[1])].append(claim)
-    proposals = store.all_proposals()
+    proposals = _known(store)
     constitutions = store.all_constitutions()
     result: list[GeraeteStimmen] = []
     for (root, digest), claims in grouped.items():
@@ -681,7 +699,7 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
             GeraeteStimmen(
                 root=root,
                 proposal=digest,
-                changes=_changes(vorgaenger, constitutions.get(proposal.constitution_hash)),
+                changes=_antrag_aenderungen(proposal, vorgaenger, constitutions, proposals)[2],
                 stimmen=tuple(sorted(stimmen)),
                 ersetzt=tuple(sorted(ersetzt)),
             )
@@ -691,9 +709,11 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
 
 @dataclass(frozen=True, slots=True)
 class AntragsTitel:
-    """Ein Antrag des Bestands mit seinen Änderungen, ohne Stand (D559 Beschluss 5)."""
+    """Ein Antrag des Bestands mit Art und Änderungen, ohne Stand (D559 Beschluss 5, D580).
+    ``kind`` ist ``proposal`` oder ``motion``."""
 
     proposal: bytes
+    kind: str
     changes: ProposalChanges
 
 
@@ -705,15 +725,12 @@ def antragstitel(store: SqliteStore, scope: bytes, now: int) -> tuple[AntragsTit
     """
     view = scope_view(store, scope, now)
     constitutions = store.all_constitutions()
+    known = _known(store)
     result: list[AntragsTitel] = []
-    for digest, proposal in sorted(store.all_proposals().items()):
+    for digest, proposal in sorted(known.items()):
         vorgaenger = _vorgaenger(scope, view.state.epoch.index, constitutions, proposal)
         if vorgaenger is None:
             continue
-        result.append(
-            AntragsTitel(
-                proposal=digest,
-                changes=_changes(vorgaenger, constitutions.get(proposal.constitution_hash)),
-            )
-        )
+        kind, _motions, changes = _antrag_aenderungen(proposal, vorgaenger, constitutions, known)
+        result.append(AntragsTitel(proposal=digest, kind=kind, changes=changes))
     return tuple(result)

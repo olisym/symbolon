@@ -15,7 +15,7 @@ from pathlib import Path
 
 _STATIC = Path(__file__).resolve().parents[2] / "symbolon" / "node" / "static"
 
-_FAELLE = 222
+_FAELLE = 231
 
 _SKRIPT = """
 import { readFileSync } from "node:fs";

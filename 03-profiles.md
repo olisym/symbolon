@@ -57,7 +57,7 @@ C.N  →  Genesis-Objekt          →  Scope-Nachrechnung
                                 →  irrevocable_predicates   (Nukleus-Spec §5)
 ```
 
-**`constitution_hash` ist Parameter, keine Auflösung (D167).** Welche Fassung gilt, entscheidet
+**`constitution_hash` ist Parameter, keine Auflösung (D167).** Welche Verfassung gilt, entscheidet
 die Ratifizierung (`04 §4.5`); `genesis[4]` bindet die **Epoche 1** und wird
 hier nicht gelesen. Dieselbe Naht wie in `membership` (§4) und `resolve_authorized_keys`
 (Nukleus-Spec §6.4).
@@ -623,6 +623,12 @@ welche Version gilt, entscheidet die Ratifizierung über die `amendment`-Schwell
 (`04 §4`) — eine Governance-Frage. Diese Schicht vergleicht byte-weise: eine Annahme
 auf einen anderen Hash zählt für die abgefragte Version **gar nicht**. Vermerk
 `CONSTITUTION_VERSION_MISMATCH`.
+
+**Welche Version eine Annahme nennt** (D565 Beschluss 3). Im Epochenpfad ist es die Verfassung, mit
+der die Epoche beginnt, nicht ihre Fassung nach `04 §4.6`. Ein festgestellter Sachantrag ändert
+Sachfelder innerhalb der Epoche und keinen Hash, auf den eine Annahme zeigt; er verlangt keine neue
+Annahme. Wer die Verfassung einer Epoche annimmt, nimmt das Verfahren an, mit dem ihre Sachfelder
+sich ändern.
 
 Ein `grant-membership@1` von einem Schlüssel außerhalb `authorized_keys` zählt ebenfalls nicht
 und erzeugt `UNAUTHORIZED_GRANT_AUTHOR`.

@@ -3,8 +3,8 @@
 Status: Entwurf · Protokollversion: 1 · Layer: Governance (über Trust-Flow und Profile)
 
 Diese Schicht regelt, wie ein Nukleus seine eigenen Regeln ändert, ohne dass jemand befragt
-werden muss, der über ihm steht. Sie fügt kein Atom-Feld hinzu. Vorschläge und Verfassungen sind
-content-adressierte Objekte, auf die Claims zeigen; die Stimmen sind die Claims.
+werden muss, der über ihm steht. Sie fügt kein Atom-Feld hinzu. Vorschläge, Sachanträge und
+Verfassungen sind content-adressierte Objekte, auf die Claims zeigen; die Stimmen sind die Claims.
 
 Zwei Sätze tragen die ganze Schicht:
 
@@ -63,6 +63,13 @@ Die Aufnahme von `vote@1` widerspricht D58 nicht. Die Negativliste dort nennt `v
 Kriterium lautet, ob Fortbestehen die konservative Lesart ist. Eine Stimme gewährt keine
 fortdauernde Autorität; sie ist ein einmaliger Akt an einem einzelnen Objekt (D97).
 
+**Regelfelder und Sachfelder** (D565). Sechs Felder einer Verfassung sind **Regelfelder**:
+`participants` und `thresholds` aus der Tabelle oben, `irrevocable_predicates`, `arbitration`,
+`enforcement_policy` und `nucleus_keys` aus `00 §5`. Jedes andere Feld ist ein **Sachfeld**. Die
+Liste ist Protokoll, nicht Verfassungsinhalt: ein Feld, das eine Auswertung liest, steht auf ihr,
+und es aufzunehmen ändert dieses Dokument. Regelfelder ändert nur ein Vorschlag (`§2.4`), Sachfelder
+auch ein Sachantrag (`§2.5`).
+
 **Epoche (abgeleitet).** Kein Objekt, sondern eine Identität:
 
 ```
@@ -84,8 +91,10 @@ keinen Widerspruch.
 ### 1.2 Was eine Epoche festlegt
 
 Für die Dauer einer Epoche stehen fest: `P`, alle Schwellen, `irrevocable_predicates`, die
-Arbitratorenliste — der gesamte Verfassungsinhalt. Eine Auszählung in Epoche `i` rechnet
-ausschließlich gegen die Verfassung von `i`.
+Arbitratorenliste, also alle Regelfelder. Eine Auszählung in Epoche `i` rechnet ausschließlich gegen
+die Verfassung, mit der `i` beginnt; weil ein Sachantrag kein Regelfeld ändert, ist das dieselbe
+Rechnung wie gegen jede Fassung von `i`. Sachfelder ändern sich innerhalb der Epoche durch
+festgestellte Sachanträge, ohne eine neue Epoche zu etablieren (`§4.6`, D565).
 
 **Getragene Grenze.** Wer nach der Ratifizierung einer Epoche aufgenommen wird, stimmt erst in der
 folgenden Epoche mit. Die Epochenverfassung ist ein Stand, kein Livewert.
@@ -177,17 +186,79 @@ proposal = {
   0 scope             : N
   1 predecessor       : epoch_id der Vorepoche
   2 constitution_hash : SHA-256(cbor_deterministic(constitution_neu))
+  3 motions           : [motion_hash, ...]            optional
 }
 
 proposal_hash = SHA-256( DOM_NUC_PROPOSAL || cbor_deterministic(proposal) )
 ```
 
-Ein Vorschlag ist damit eine **vollständige Verfassungsversion**, nicht eine einzelne
-Regeländerung. Das Verfassungsobjekt selbst reist neben dem Vorschlag; wer es nicht hat, kann den
-Vorschlag nicht bewerten (`§3.5`).
+Ein Vorschlag ist damit eine **vollständige Verfassungsversion**, nicht eine einzelne Änderung. Er
+darf Regelfelder und Sachfelder ändern. Das Verfassungsobjekt selbst reist neben dem Vorschlag; wer
+es nicht hat, kann den Vorschlag nicht bewerten (`§3.5`).
 
-Der eigene Domänen-Separator verhindert, dass ein `proposal_hash` je mit einem
-`constitution_hash`, einer `claim_id` oder einem `epoch_id` kollidiert.
+**Feld 3** ist die Liste `S` der Sachanträge dieser Epoche, auf denen der Vorschlag aufbaut (D564,
+D565): Bytestrings der Länge 32, aufsteigend sortiert, duplikatfrei, nicht leer. Fehlt das Feld, ist
+`S` leer; alle Vorschläge ohne Feld 3 behalten damit ihren `proposal_hash`. Eine leere Liste ist
+formwidrig, weil sie dasselbe sagte wie das fehlende Feld, unter einem anderen Hash. Formwidrig ist
+das Feld auch, wenn es keine Liste ist oder ein Eintrag die Form verfehlt. Wie `S` in die Auszählung
+eingeht, sagen `§3.4`, `§3.5` und `§4.4`; wann ein Vorschlag mit `S` trägt, sagt `§4.1`.
+
+Der eigene Domänen-Separator verhindert, dass ein `proposal_hash` je mit einem `constitution_hash`,
+einer `claim_id`, einem `epoch_id` oder einem `motion_hash` kollidiert.
+
+### 2.5 Das Sachantragsobjekt
+
+Content-adressiert, kein Claim (D565):
+
+```
+DOM_NUC_MOTION = "claim-atom/v1/nucleus-motion"
+
+motion = {
+  0 scope       : N
+  1 predecessor : epoch_id der Epoche, in der er gilt
+  2 changes     : { feldname : [alt, neu], ... }
+}
+
+motion_hash = SHA-256( DOM_NUC_MOTION || cbor_deterministic(motion) )
+```
+
+Ein Sachantrag ändert Sachfelder der Epoche, in der er gestellt wird, ohne eine neue Epoche zu
+etablieren. `alt` und `neu` sind je `[]` für „das Feld fehlt“ oder `[w]` für den Wert `w`; so bleibt
+ein fehlendes Feld von einem Feld mit dem Wert `null` unterscheidbar. `alt` ist die
+**Vorbedingung**: ein Sachantrag wirkt nur auf einen Stand, in dem jedes seiner Felder diesen Wert
+hat (`§4.6`). Eine **Vorbedingung** im Sinn von `§4.4` ist ein Paar aus Feldname und `alt`; ein
+Sachantrag mit drei Feldern führt drei. Zusammengehöriges bündelt die Antragstellerin in einem
+Sachantrag; er wirkt ganz oder gar nicht (D558).
+
+**Gleichheit von Werten.** Zwei Werte sind gleich, wenn ihre deterministische Kodierung byte-gleich
+ist. Die Gleichheit einer Programmiersprache gilt nicht: `1`, `1.0` und `true` sind drei
+verschiedene Werte.
+
+**Formwidrig** ist ein Sachantrag, wenn er Schlüssel außer `0`, `1` und `2` führt, `scope` oder
+`predecessor` kein Bytestring der Länge 32 ist, `changes` keine Map oder leer ist, ein Feldname kein
+Text oder ein Regelfeld ist (`§1.1`), ein Wert keine Liste aus genau zwei Einträgen ist, `alt` oder
+`neu` keine Liste der Länge 0 oder 1 ist, oder `alt` und `neu` gleich sind.
+
+- Ein unbekannter Schlüssel ist formwidrig und wird nicht ignoriert: ein späterer Durchgang, der
+  dort eine Bedingung einführt, würde sonst von älteren Knoten mit anderer Bedeutung ausgezählt.
+- `alt` gleich `neu` ist formwidrig, weil ein Feld, das sich nicht ändert, eine Bedingung ohne
+  Änderung wäre und trotzdem jede andere Änderung desselben Felds sperrte (`§4.4`, Regel 2). Ob
+  solche Bedingungen gebraucht werden, zeigt der Gebrauch; zulassen lässt sich später, was heute
+  formwidrig ist, umgekehrt nicht.
+
+Ein formwidriger Sachantrag ist nicht auszählbar (`§3.5`) und kommt nie durch. Die Form hängt am
+Objekt allein, alle Beobachter sehen also dasselbe.
+
+**Welches Objekt ein Claim nennt.** `propose@1`, `vote@1` und `ratify@1` nennen einen Sachantrag wie
+einen Vorschlag, mit `J == (3, h)`. Ob `h` einen Vorschlag oder einen Sachantrag nennt, entscheidet
+das Objekt: es ist ein Vorschlag, wenn es unter `DOM_NUC_PROPOSAL` auf `h` hasht, ein Sachantrag,
+wenn unter `DOM_NUC_MOTION`, sonst unbekannt (`§4.5`, Beschaffung). Die Unterscheidung liegt im
+Objekt, nicht im Prädikat; zwei Prädikate wären zwei Stellen, an denen der Schutz aus `§1.1` gelten
+muss (D565).
+
+Wo `§3` und `§4` einen Vorschlag auszählen oder feststellen, gilt dasselbe für einen Sachantrag, mit
+`motion_hash` an der Stelle von `proposal_hash`. Die Abweichungen stehen in `§3.4`, `§3.5`, `§4.1`
+und `§4.4`. Das Register nennt einen Vorschlag auch Regeländerung (D564).
 
 ---
 
@@ -317,8 +388,8 @@ gegenüber den Erschienenen.
 Beide Mengen wachsen nur (D97), beide Bedingungen sind einmal wahr für immer wahr, und sie
 schließen einander aus. Die Ausnahmen sind benannt und getragen, alle mit sichtbarem Anlass: der
 Zwilling einer gegabelten Stimme (D117, `§8`), eine weitere Stimme derselben Wurzel auf denselben
-Vorschlag (`§3.1`, `§8`), eine Stimme, die eine andere ersetzt (`§3.1`, D547), ein Ja auf einen
-anderen Vorschlag derselben Epoche (`§4.4`), die Sperre eines Geräts, die eine Stimme bestreitet
+Vorschlag (`§3.1`, `§8`), eine Stimme, die eine andere ersetzt (`§3.1`, D547), ein Ja derselben
+Wurzel, das nach `§4.4` mit ihr unvereinbar ist, die Sperre eines Geräts, die eine Stimme bestreitet
 (D532), und das Verdikt, das sie wieder zurechnet (D533). Ein Vorschlag scheitert daran, dass
 genug Berechtigte ihn ausdrücklich ablehnen — nicht daran, dass eine Frist abgelaufen ist.
 
@@ -331,7 +402,7 @@ genug Berechtigte ihn ausdrücklich ablehnen — nicht daran, dass eine Frist ab
 | `PENDING` | weder noch |
 | `UNEVALUABLE` | die Auszählung kann nicht laufen (`§3.5`) |
 
-`PASSED` und `FAILED` sind absorbierend, bis auf die drei Ausnahmen aus `§3.2`. `PENDING` ist die
+`PASSED` und `FAILED` sind absorbierend, bis auf die Ausnahmen aus `§3.2`. `PENDING` ist die
 Voreinstellung und bedeutet, dass weiteres Wissen das Ergebnis noch drehen kann.
 
 Es gibt **kein Zeitfenster und keinen Abschluss**. Eine Abstimmung wird geschlossen, indem eine
@@ -341,16 +412,24 @@ davor abgegeben wurden, und die gibt es zwischen zwei Autoren nicht (`01 §5.3`)
 
 ### 3.4 Welche Schwelle gilt
 
-Die Klasse wird aus dem **Unterschied** zwischen alter und neuer Verfassung abgeleitet, nicht vom
-Vorschlagenden gewählt:
+Die Klasse wird aus der Art des Antrags und dem **Unterschied** zwischen alter und neuer Verfassung
+abgeleitet, nicht vom Vorschlagenden gewählt:
 
-| Unterschied | Klasse |
+| Antrag | Klasse |
 |---|---|
-| ausschließlich `participants` | `membership` |
-| alles andere | `amendment` (Index aus `genesis[5]`) |
+| ein Sachantrag (`§2.5`) | `ordinary` |
+| ein Vorschlag, Unterschied ausschließlich in `participants` | `membership` |
+| ein Vorschlag, alles andere | `amendment` (Index aus `genesis[5]`) |
 
-Die Klasse `ordinary` ist in v1 unbenutzt und für nicht-verfassungsbezogene Entscheidungen
-reserviert; die Protokollschicht kennt keine.
+**Die alte Verfassung eines Vorschlags ist die Fassung aus der Verfassung der Epoche und `S`**
+(D567): die Verfassung, mit der die Epoche beginnt, nach Anwendung der Sachanträge in `S` wie in
+`§4.6`. Gemessen an der Verfassung, mit der die Epoche beginnt, wäre jede Aufnahme nach einem
+Sachbeschluss eine Änderung der Klasse `amendment`, denn die neue Verfassung trüge den Sachbeschluss
+und die alte nicht. Trägt der Vorschlag, ist diese Fassung die, mit der die Epoche endet (`§4.4`,
+B5); vorher ist sie die, die er voraussetzt. Ohne `S` ist sie die Verfassung der Epoche, wie bisher.
+
+`ordinary` ist die Klasse der Sachanträge (D565). Die Protokollschicht kennt keine weitere
+nicht-verfassungsbezogene Entscheidung.
 
 **Die Reihenfolge der Klassen ist normativ** und bindet `genesis[5]` an einen Namen in
 `thresholds`:
@@ -377,6 +456,8 @@ Anheben verlangt damit die neue, höhere Schwelle; Senken verlangt die alte, hö
 kann die Hürde nicht unter dem Niveau nehmen, das sie ohnehin überschreiten müsste. Das ist die
 h-Regel für den binären Fall.
 
+Ein Sachantrag ändert keine Schwelle; die Sperre betrifft ihn nicht.
+
 **Damit ist die Änderungsregel änderbar und trotzdem nicht kaperbar.** Der Satz aus der Vorfassung
 — die Änderungsregel sei in v1 unveränderlich, wer sie ändern wolle, forke — entfällt.
 
@@ -391,7 +472,12 @@ Aufruferfehler und keine Lage der Welt (D82, D92, D112). Dasselbe gilt in `§4.1
 
 `Proposal` behauptet mit drei Feldern eine Zugehörigkeit, und alle drei werden geprüft: `scope`
 gegen `epoch.scope`, `predecessor` gegen `epoch.epoch_id`, `constitution_hash` gegen das gereichte
-Zielobjekt.
+Zielobjekt. Ein Sachantrag behauptet sie mit zwei, `scope` und `predecessor`; ein Zielobjekt hat er
+nicht, und `PROPOSAL_CONSTITUTION_UNAVAILABLE` entfällt für ihn.
+
+**Bei einem Sachantrag steht davor seine Form** (D567). Ist er nach `§2.5` formwidrig, ist die
+Auszählung `UNEVALUABLE` mit Vermerk `MALFORMED_MOTION`, Subjekt sein `motion_hash`, noch vor der
+Scope-Prüfung: ohne die Form sind `scope` und `predecessor` nicht lesbar.
 
 **Zuerst die Bindung des Genesis an den Scope** (D145). `decide` MUSS
 `SHA-256(DOM_NUC_GEN ‖ cbor(genesis_obj)) == epoch.scope` nachrechnen, **bevor** es ein Feld des
@@ -411,12 +497,34 @@ Ein nicht zusammengehöriges Paar aus Epoche und Vorschlag ist kein Stimmenprobl
 nicht davon abhängen, ob überhaupt jemand abgestimmt hat: stünde die Prüfung in der Stimmschleife,
 liefe eine Auszählung über ein unpassendes Paar **ohne** Stimmen glatt durch und meldete `PENDING`.
 
+**Dann die Form von `S`**, bei einem Vorschlag mit Feld 3:
+
+| Lage | Vermerk |
+|---|---|
+| Feld 3 formwidrig nach `§2.4` | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
+
 **Dann die Objektidentitäten, vor jedem Zugriff auf ihren Inhalt.**
 
 | Lage | Vermerk |
 |---|---|
 | Verfassung der Epoche fehlt oder ihr Hash passt nicht zu `epoch.constitution_hash` | `CONSTITUTION_UNAVAILABLE` |
 | neues Verfassungsobjekt fehlt oder sein Hash passt nicht zu `proposal.constitution_hash` | `PROPOSAL_CONSTITUTION_UNAVAILABLE` |
+| ein Eintrag in `S` ist lokal unbekannt | `MOTION_UNAVAILABLE`, Subjekt der Eintrag |
+
+**Dann die Sachanträge in `S`**, vor dem Inhalt, weil die Klasse die Fassung aus `S` braucht
+(`§3.4`):
+
+| Lage | Vermerk |
+|---|---|
+| ein Eintrag ist ein Vorschlag, nicht ein Sachantrag | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
+| ein Sachantrag in `S` ist formwidrig nach `§2.5` | `MALFORMED_MOTION`, Subjekt sein `motion_hash` |
+| ein Sachantrag in `S` hat anderen `scope` oder `predecessor` als der Vorschlag | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
+| zwei Sachanträge in `S` teilen eine Vorbedingung | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
+
+Die letzte Zeile, weil die Fassung aus `S` dann nicht eindeutig ist (`§4.4`, B4) und der Vorschlag
+nie tragen könnte: nach B3 kommen die beiden nicht zugleich durch, nach B5 braucht er beide. Der
+formwidrige Sachantrag in `S` wird nach D198 selbst benannt; er ist das Objekt, das die Prüfung
+zurückweist.
 
 **Dann der Inhalt.**
 
@@ -451,7 +559,8 @@ Klasse, in beiden Verfassungen geprüft:
 den >= 1     0 <= num <= den     2 * num >= den
 ```
 
-Geprüft wird auf den **Rohwerten** beider Verfassungen, bevor irgendeine Umwandlung stattfindet.
+Geprüft wird auf den **Rohwerten** beider Verfassungen, bevor irgendeine Umwandlung stattfindet. Bei
+einem Sachantrag gibt es nur eine: geprüft wird `ordinary` in der Verfassung der Epoche.
 Eine Schwelle mit Textwerten muss `MALFORMED_THRESHOLD` ergeben und darf den Aufruf nicht
 abreißen (D112).
 
@@ -469,14 +578,15 @@ n * den   >=   (|A| + |B|) * den   >   2 * num * n        ->        den > 2 * nu
 Zwei disjunkte Ja-Mengen sind also genau dann unmöglich, wenn `2 * num >= den`. Die Grenze ist
 nicht strikt — `[1,2]` bleibt zulässig, `[1,3]` nicht. Ohne diese Bedingung fällt D102: zwei
 rivalisierende Nachfolger derselben Epoche könnten beide durchkommen, ohne dass jemand doppelt
-gestimmt hat.
+gestimmt hat. Auf derselben Bedingung stehen die Beweise B1 bis B3 in `§4.4`.
 
 Die übrigen Bedingungen sind nicht bloß Hygiene: bei `num < 0` vergleicht `reached(0, n, num, den)`
 den Ausdruck `0 > num * n` und ist **wahr** — ein Vorschlag wäre `PASSED`, ohne dass eine einzige
 Stimme abgegeben wurde.
 
 Geprüft wird ausschließlich die **angewandte** Klasse, nie der gesamte `thresholds`-Eintrag: eine
-Verfassung soll nicht daran scheitern, dass ein in v1 unbenutzter Eintrag unglücklich gesetzt ist.
+Verfassung soll nicht daran scheitern, dass ein Eintrag, den dieser Antrag nicht braucht,
+unglücklich gesetzt ist.
 
 `UNEVALUABLE` ist **nie** `PASSED`. Kein Teilwissen führt zu einer Ratifizierung.
 
@@ -490,7 +600,8 @@ typgenau: ein `false` ist nicht der uint `0` (D456).
 
 ### 4.1 Prüfung eines `ratify@1`
 
-Ein `ratify@1`-Claim etabliert die Folgeepoche genau dann, wenn:
+Ein `ratify@1` auf einen Vorschlag etabliert die Folgeepoche; einer auf einen Sachantrag **stellt
+ihn fest** und nimmt ihn damit in die Fassung der Epoche auf (`§4.6`). Beides genau dann, wenn:
 
 0. `proposal.scope == epoch.scope`, sonst **`ValueError`** (D112). Die Auszählung gehört zu
    **dieser** Epoche und **diesem** Vorschlag. Weicht `tally.epoch_id`
@@ -504,11 +615,16 @@ Ein `ratify@1`-Claim etabliert die Folgeepoche genau dann, wenn:
 3. jede `claim_id` in `v[0]` bezeichnet eine Stimme, die nach `§3.1` zählt, mit `choice == 1`
 4. keine zwei bezeichnen Stimmen derselben Wurzel
 5. die Anzahl der Wurzeln überschreitet die Schwelle nach `§3.2` und `§3.4`
-6. die Zielverfassung ist **regierbar**: `participants` ist deklariert und wohlgeformt nach
-   `§3.5`, und `irrevocable_predicates` führt `vote@1` und `ratify@1`
+6. bei einem Vorschlag: die Zielverfassung ist **regierbar**: `participants` ist deklariert und
+   wohlgeformt nach `§3.5`, und `irrevocable_predicates` führt `vote@1` und `ratify@1`
+7. bei einem Vorschlag: **jeder Sachantrag in `S` ist festgestellt**, ein `ratify@1` auf ihn trägt
+   nach dieser Prüfung
 
-Trifft eine Bedingung nicht zu, etabliert der Claim keine Epoche. Er ist deshalb kein Angriff und
-kein Protokollverstoß, sondern eine Behauptung, die sich nicht bestätigt.
+Bei einem Sachantrag entfallen 6 und 7: er hat keine Zielverfassung und kein `S`. Die Prüfung eines
+Sachantrags hängt an keiner anderen Feststellung, die Prüfung nach 7 endet also.
+
+Trifft eine Bedingung nicht zu, etabliert der Claim keine Epoche und stellt nichts fest. Er ist
+deshalb kein Angriff und kein Protokollverstoß, sondern eine Behauptung, die sich nicht bestätigt.
 
 Zwei Vermerke, weil die Diagnose verschieden ist (D94, D106):
 
@@ -561,9 +677,21 @@ drei Ja-Stimmen von drei Mitgliedern gegen die Schwelle `[1,2]`, also `PASSED`. 
 die `UNEVALUABLE` sagt, wo sie `PASSED` meint, ist eine falsche Adresse, und dafür gilt dieselbe
 Begründung wie in D198: einer falschen folgt der Beobachter.
 
-**Warum zuletzt.** Trägt der `ratify@1` schon nach 1 bis 5 nicht, ist der Zustand der
-Zielverfassung ohne Belang; ein Vermerk über sie verdeckte dann den Defekt am Claim. Die
-Reihenfolge ist aus demselben Grund normativ wie die in `§3.5`.
+**Warum nach 1 bis 5.** Trägt der `ratify@1` schon nach 1 bis 5 nicht, ist der Zustand der
+Zielverfassung ohne Belang; ein Vermerk über sie verdeckte dann den Defekt am Claim. Die Reihenfolge
+ist aus demselben Grund normativ wie die in `§3.5`.
+
+**Bedingung 7 — was der Vorschlag voraussetzt, muss festgestellt sein** (D564, B5 in `§4.4`).
+
+| Lage | Vermerk |
+|---|---|
+| ein Sachantrag in `S` ist nicht festgestellt | `MOTION_UNRATIFIED`, Subjekt sein `motion_hash` |
+
+Die Klasse des Vorschlags ist gegen die Fassung aus `S` bestimmt (`§3.4`). Trüge er, ohne dass `S`
+festgestellt ist, setzte er eine Sachänderung mit der Schwelle seiner Klasse in Kraft, über die als
+Sachantrag nie entschieden wurde. Das Subjekt ist der Sachantrag: die Auskunft an den Beobachter
+ist, welche Feststellung er holen muss. Die Bedingung steht nach 6, weil sie wie 6 nicht am Claim
+hängt, und 6 behält die Nummer, unter der D200 sie führt.
 
 **Das Zielobjekt gehört zur Auszählung.** Ist `tally.state` nicht `UNEVALUABLE` und trägt das
 gereichte Zielobjekt nicht den Hash `proposal.constitution_hash`, ist das ein **`ValueError`** wie
@@ -581,7 +709,8 @@ zulässiges Ziel und sperrt erst den übernächsten Übergang, und zwar nur den 
 additiv angehängt, in derselben Form wie bei `TALLY_UNEVALUABLE` (D194): der eigene Vermerk bleibt
 stehen, die Verarbeitung ändert sich nicht, `dedupe_sort` führt zusammen. Das gilt für **jeden**
 Pfad ohne Folgeepoche, also auch für `UNSUPPORTED_RATIFICATION`, `UNKNOWN_WITNESS_VOTE`,
-`RATIFY_WITH_EXPIRY` und Bedingung 6.
+`RATIFY_WITH_EXPIRY` und die Bedingungen 6 und 7, und ebenso für eine Feststellung eines
+Sachantrags, die nicht trägt.
 
 Der Grund ist die Adresse. `UNSUPPORTED_RATIFICATION` sagt, dass diese Ratifizierung nicht trägt;
 es sagt nicht, warum die Zählung zu kurz ist. Gemessen an vier Teilnehmern mit Schwelle `[2,3]`,
@@ -594,9 +723,9 @@ Beobachter nur die `claim_id` des `ratify@1` — die einzige Stelle, an der nich
 Auszählung vermerkt wurde, beantwortet nicht die Frage, die `§4.5` stellt. Diese Grenze ist die aus
 `§4.5` und wird hier nicht verschoben.
 
-Die Prüfung ist **offline und vollständig lokal**: wer den Vorschlag, das neue Verfassungsobjekt
-und die zitierten Stimmen hat, rechnet das Ergebnis nach, ohne jemanden zu fragen und ohne eine
-Uhr zu lesen.
+Die Prüfung ist **offline und vollständig lokal**: wer den Vorschlag, das neue Verfassungsobjekt,
+die zitierten Stimmen und bei `S` die Sachanträge mit ihren Feststellungen hat, rechnet das Ergebnis
+nach, ohne jemanden zu fragen und ohne eine Uhr zu lesen.
 
 ### 4.2 Die Folgeepoche
 
@@ -607,78 +736,126 @@ epoch_id_neu      = SHA-256( DOM_NUC_EPOCH || cbor_deterministic([N, i_neu, prop
 ```
 
 Zwei `ratify@1`-Claims für denselben Vorschlag ergeben denselben `epoch_id_neu`. Sie sind zwei
-Belege für dieselbe Tatsache.
+Belege für dieselbe Tatsache. Zwei für denselben Sachantrag stellen ihn einmal fest.
 
 ### 4.3 Was der Wechsel erledigt
 
-Mit der Etablierung von `i+1` sind alle Stimmen und alle Vorschläge, deren `predecessor` auf `i`
-zeigt, gegenstandslos. Ein Vorschlag, der in `i` nicht durchkam, muss in `i+1` neu eingebracht
+Mit der Etablierung von `i+1` sind alle Stimmen, Vorschläge und Sachanträge, deren `predecessor` auf
+`i` zeigt, gegenstandslos. Ein Antrag, der in `i` nicht durchkam, muss in `i+1` neu eingebracht
 werden und behauptet sich dort gegen den geänderten Status quo.
 
-### 4.4 Höchstens ein Ja je Mitglied je Epoche
+Die Fassung von `i` endet mit ihr. Weiter gilt, was die Verfassung von `i+1` enthält: die
+festgestellten Sachanträge sind dann genau die in `S` (`§4.4`, B5), und wieweit die neue Verfassung
+sie übernimmt, sagt ihr Unterschied zur Fassung aus `S`, der ihre Klasse bestimmt (`§3.4`).
 
-Ein Mitglied darf in einer Epoche höchstens einen Vorschlag mit `choice == 1` bedenken. Zwei
-aktive Ja-Stimmen derselben Wurzel (`02 §2.1`) auf **verschiedene** Vorschläge derselben Epoche
-zählen beide nicht; Vermerk `CONFLICTING_APPROVAL`, Subjekt sind alle beteiligten `claim_id`.
-Eine bestrittene Stimme zählt dabei nicht mit.
+### 4.4 Ja-Stimmen, die einander ausschließen
 
-**Eine ersetzte Ja-Stimme zählt für diese Regel weiter** (D547). Sie bleibt `ACTIVE`, und der
-Beweis unten rechnet mit allen aktiven Ja-Stimmen; ihn für ersetzte zu lockern bräuchte einen
-eigenen. Wer sein Ja auf einen anderen Vorschlag derselben Epoche verlegen will, kann das deshalb
-nicht durch Ersetzen.
+Ein Mitglied darf in einer Epoche `g` mit `choice == 1` bedenken (D564 Beschluss 3):
 
-Nein-Stimmen sind unbeschränkt. Gegen mehrere Vorschläge gleichzeitig zu sein ist kohärent; zwei
+1. höchstens **einen Vorschlag** von `g`;
+2. je **Vorbedingung** (`§2.5`) höchstens einen Sachantrag von `g`, der sie führt;
+3. **nicht zugleich** einen Vorschlag `G` von `g` und einen Sachantrag von `g`, der nicht in `S` von
+   `G` steht.
+
+Zwei aktive Ja-Stimmen derselben Wurzel (`02 §2.1`) auf verschiedene Objekte, die zusammen eine
+dieser Regeln verletzen, sind **unvereinbar** und zählen beide nicht; Vermerk
+`CONFLICTING_APPROVAL`, Subjekt sind alle beteiligten `claim_id`. Eine bestrittene Stimme zählt
+dabei nicht mit. Jedes andere Paar ist vereinbar, darunter zwei Ja auf Sachanträge mit verschiedenen
+Vorbedingungen und ein Ja auf einen Vorschlag neben einem Ja auf einen Sachantrag in seinem `S`.
+
+- Die Epoche eines Objekts ist sein `predecessor`. Objekte verschiedener Epochen sind stets
+  vereinbar.
+- Zwei Vorbedingungen sind gleich, wenn Feldname und `alt` nach `§2.5` gleich sind. `[]` ist eine
+  Vorbedingung wie jede andere: zwei Sachanträge, die dasselbe fehlende Feld anlegen, teilen sie.
+- Ein formwidriger Sachantrag (`§2.5`) kommt bei keinem Beobachter durch; ein Ja auf ihn ist mit
+  jedem vereinbar.
+- Ist Feld 3 eines Vorschlags formwidrig, gilt für Regel 3 `S` als leer. Der Vorschlag kommt ohnehin
+  nicht durch (`§3.5`), und die leere Liste ist die vorsichtige Lesart.
+
+**Ein Vermerk für alle drei Regeln** (D567). Wirkung und Urheber sind dieselben: zwei Ja derselben
+Wurzel, die nicht beide gelten können, und beide fallen. Welche Regel greift, lesen Beobachter und
+Seite aus den beiden Objekten. Ein eigener Vermerk je Regel wäre eine Aufzählung mehr, der
+`INV-04.7` und jede Anzeige folgen müssten, ohne dass ein Beobachter danach anders handelte.
+
+**Eine ersetzte Ja-Stimme zählt für diese Regeln weiter** (D547). Sie bleibt `ACTIVE`, und die
+Beweise unten rechnen mit allen aktiven Ja-Stimmen; sie für ersetzte zu lockern bräuchte einen
+eigenen. Wer sein Ja auf einen anderen Antrag derselben Epoche verlegen will, kann das deshalb nicht
+durch Ersetzen.
+
+Nein-Stimmen sind unbeschränkt. Gegen mehrere Anträge gleichzeitig zu sein ist kohärent; zwei
 verschiedene Dokumente gleichzeitig als das geltende zu benennen ist es nicht.
 
-**Diese Regel ist sicherheitstragend, nicht ordnungspolitisch.** Aus ihr folgt, dass zwei
-rivalisierende Nachfolger derselben Epoche arithmetisch unmöglich sind. Der Beweis läuft über
-dieselbe Schranke wie in `§3.5` — `2 * num >= den` — und zerfällt in zwei Fälle.
+**Diese Regeln sind sicherheitstragend, nicht ordnungspolitisch.** Aus ihnen folgt, dass zwei
+rivalisierende Nachfolger derselben Epoche arithmetisch unmöglich sind und dass die Fassung einer
+Epoche nicht von einer Reihenfolge abhängt. Alle Beweise laufen über dieselbe Schranke wie in
+`§3.5`, `2 * num >= den`, und über eine gemeinsame Rechnung.
 
-**Disjunkte Ja-Mengen** sind bereits durch `§3.5` ausgeschlossen; die Rechnung steht dort.
+**Die Rechnung.** Sei `n = |P|` der Epoche. Kommt ein Antrag mit zählender Ja-Menge `A` durch, gilt
+`|A| * den > num * n`, und mit `2 * num >= den` folgt `2 * |A| > n`: `A` enthält mehr als die Hälfte
+von `P`. Das gilt für jede Klasse, deren Schwelle `§3.5` durchlässt, und alle Anträge einer Epoche
+zählen gegen dasselbe `P`, denn `participants` ist ein Regelfeld (`§1.2`). Zwei durchgekommene
+Anträge derselben Epoche haben deshalb, gleich welcher Klasse, ein Mitglied, dessen Ja in beiden
+zählt. Verletzen diese beiden Ja eine der Regeln, zählt keines von ihnen; der Widerspruch zeigt,
+dass die beiden Anträge nicht beide durchgekommen sein können.
 
-**Überschneidende Ja-Mengen** schlägt diese Regel. Seien `A` und `B` die Ja-Mengen zweier
-Vorschläge derselben Epoche, beide durchgekommen, und sei `S` ihr Schnitt. Nach `§3.5` ist `S`
-nicht leer. Jeder Autor in `S` hat zwei aktive Ja-Stimmen auf verschiedene Vorschläge derselben
-Epoche; `CONFLICTING_APPROVAL` entfernt ihn aus **beiden** Mengen. Für den Rest von `A` gilt
-`|A| - |S| <= n - |B|`, und aus `|B| * den > num * n` folgt `n - |B| < n * (den - num) / den`.
-Damit dieser Rest die Schwelle noch erreicht, müsste `den - num > num` gelten, also
-`den > 2 * num` — ausgeschlossen. Beide Reste fallen unter die Schwelle.
+- **B1. Höchstens ein Vorschlag von `g` kommt durch.** Die Rechnung mit Regel 1. Das ist der
+  bisherige Beweis dieses Abschnitts in kürzerer Form (D102).
+- **B2. Ein Vorschlag `G` von `g` und ein Sachantrag von `g`, der nicht in `S` von `G` steht, kommen
+  nicht beide durch.** Die Rechnung mit Regel 3.
+- **B3. Zwei Sachanträge von `g` mit einer gemeinsamen Vorbedingung kommen nicht beide durch.** Die
+  Rechnung mit Regel 2.
+- **B4. Die Fassung hängt nur von der Menge der festgestellten Sachanträge ab** (`§4.6`).
+  Festgestellt heißt durchgekommen (`§4.1`, Bedingung 5). Sind in einem Stand zwei noch nicht
+  angewandte festgestellte Sachanträge zugleich anwendbar, berühren sie verschiedene Felder: ein
+  gemeinsames Feld hätte in diesem Stand einen Wert, beide führten ihn als Vorbedingung, und nach B3
+  wäre nur einer durchgekommen. Zwei Sachanträge auf verschiedenen Feldern vertauschen, und jeder
+  bleibt anwendbar, wenn der andere angewandt ist. Jeder wird höchstens einmal angewandt, das
+  Verfahren endet also. Ein endendes Verfahren, dessen Schritte von jedem Stand aus wieder
+  zusammenlaufen, hat genau ein Ergebnis (Newmans Lemma); die Wahl der Reihenfolge ist gleichgültig.
+- **B5. Ein Vorschlag trägt nur, wenn jeder Sachantrag in `S` festgestellt ist** (`§4.1`, Bedingung
+  7). Fällt eine solche Feststellung, weil eine ihrer Stimmen nach `INV-04.7` wegfällt, fällt der
+  Vorschlag mit, abwärts wie in `§8`. Mit B2 folgt: trägt `G`, sind die festgestellten Sachanträge
+  von `g` genau die in `S`. Jeder festgestellte ist durchgekommen und steht nach B2 in `S`; jeder in
+  `S` ist nach B5 festgestellt. Die Fassung, gegen die `§3.4` die Klasse von `G` bestimmt, ist damit
+  die Fassung, mit der `g` endet.
 
-Nicht „bei einer Schwelle über der Hälfte": die Schranke ist `2 * num >= den`, also **ab** der
-Hälfte. Bei `num / den = 1/2` trägt die Aussage trotzdem, weil `durchgekommen` in `§3.2` strikt
+Alle Beweise sprechen über einen Bestand. Zwei Beobachter, von denen jeder nur eine von zwei
+unvereinbaren Stimmen kennt, können verschiedene Anträge `PASSED` sehen; treffen ihre Bestände
+zusammen, fallen beide, abwärts und mit dem Namen des Autors (`§8`, `INV-04.8`). Das gilt seit D102
+für Regel 1 und hier für alle drei.
+
+Nicht „bei einer Schwelle über der Hälfte“: die Schranke ist `2 * num >= den`, also **ab** der
+Hälfte. Bei `num / den = 1/2` tragen die Aussagen trotzdem, weil `durchgekommen` in `§3.2` strikt
 vergleicht und `|Ja| * 2 > n` eine echte Mehrheit verlangt.
 
-Ohne diese Regel entstünde genau das Split Brain, das Raft bei nebenläufigen
-Konfigurationswechseln beschreibt (D102).
+Ohne Regel 1 entstünde genau das Split Brain, das Raft bei nebenläufigen Konfigurationswechseln
+beschreibt (D102).
 
-Niemand muss Nein zu A sagen, um Ja zu B sagen zu können, und ein Ja zu A wird B **nicht** als
-Nein angerechnet.
+Niemand muss Nein zu A sagen, um Ja zu B sagen zu können, und ein Ja zu A wird B **nicht** als Nein
+angerechnet.
 
-**Wenn die Epoche einer fremden Ja-Stimme nicht auflösbar ist.** Die Zugehörigkeit eines
-Vorschlags zu einer Epoche steht in `proposal[1]`; ist das Vorschlagsobjekt lokal unbekannt, kann
-sie nicht bestimmt werden. Eine aktive Ja-Stimme auf einen unbekannten Vorschlag gilt dann als
-**möglicherweise epochengleich** und blockiert die andere Ja-Stimme desselben Autors; Vermerk
-`UNKNOWN_PROPOSAL`, Subjekt die `claim_id` der unauflösbaren Stimme.
+**Wenn das Objekt einer fremden Ja-Stimme nicht auflösbar ist.** Epoche, Art und Vorbedingungen
+eines Antrags stehen in seinem Objekt; ist es lokal unbekannt, kann keine davon bestimmt werden.
+Eine aktive Ja-Stimme auf ein unbekanntes Objekt gilt dann als **möglicherweise unvereinbar** mit
+jeder anderen Ja-Stimme desselben Autors und blockiert sie; Vermerk `UNKNOWN_PROPOSAL`, Subjekt die
+`claim_id` der unauflösbaren Stimme.
 
 Die Richtung ist erzwungen, nicht gewählt: die Gegenannahme lässt bei Teilwissen zwei Nachfolger
 derselben Epoche entstehen, und das ist die Über-Ratifizierungsrichtung. Geheilt wird der Fall,
-indem jemand das Vorschlagsobjekt nachreicht — es ist content-adressiert und damit nicht
-fälschbar (D103).
+indem jemand das Objekt nachreicht — es ist content-adressiert und damit nicht fälschbar (D103).
 
-**Die Aussetzung ist nicht epochenlokal.** Eine Auszählung in `i` prüft sämtliche aktiven
-Ja-Stimmen eines Autors und kann bei einem unbekannten Vorschlag gerade nicht feststellen, zu
-welcher Epoche er gehört. Eine Stimme, die in Wahrheit zu `i+1` gehört, schlägt deshalb auf die
-Auszählung in `i` durch. Der Autor ist nicht für eine Epoche ausgesetzt, sondern für jede, die
-eine Kettenauflösung nach `§4.5` noch braucht — und das schließt bereits erreichte Epochen ein
-(D178).
+**Die Aussetzung ist nicht epochenlokal.** Eine Auszählung in `i` prüft sämtliche aktiven Ja-Stimmen
+eines Autors und kann bei einem unbekannten Objekt gerade nicht feststellen, zu welcher Epoche es
+gehört. Eine Stimme, die in Wahrheit zu `i+1` gehört, schlägt deshalb auf die Auszählung in `i`
+durch. Der Autor ist nicht für eine Epoche ausgesetzt, sondern für jede, die eine Kettenauflösung
+nach `§4.5` noch braucht — und das schließt bereits erreichte Epochen ein (D178).
 
 **Eine Stimme mit nicht-kanonischem `v` ist keine Ja-Stimme** (D274). Sie löst deshalb keinen
-Ausschluss nach dieser Regel aus, weder für sich noch für die andere Ja-Stimme ihres Autors;
-Vermerk `NON_CANONICAL_V`, Subjekt ihre `claim_id`. Der Vermerk entsteht auch dann, wenn die
-Stimme auf einen anderen Vorschlag zeigt als den ausgezählten: er hängt am Lesen von `v` und
-nicht am Vorschlag. Das ist die Gegenrichtung zu `UNKNOWN_PROPOSAL` und nur scheinbar
-inkonsistent — dort ist die Stimme eine gültige Ja-Stimme mit unbestimmter Epoche, hier ist sie
-keine Ja-Stimme.
+Ausschluss nach diesen Regeln aus, weder für sich noch für eine andere Ja-Stimme ihres Autors;
+Vermerk `NON_CANONICAL_V`, Subjekt ihre `claim_id`. Der Vermerk entsteht auch dann, wenn die Stimme
+auf ein anderes Objekt zeigt als das ausgezählte: er hängt am Lesen von `v` und nicht am Antrag. Das
+ist die Gegenrichtung zu `UNKNOWN_PROPOSAL` und nur scheinbar inkonsistent — dort ist die Stimme
+eine gültige Ja-Stimme mit unbestimmter Epoche, hier ist sie keine Ja-Stimme.
 
 ### 4.5 Die Kette
 
@@ -694,13 +871,17 @@ resolve_epoch(store, scope, genesis_obj, known_constitutions, known_proposals, n
 Der übergebene `scope` wird gegen `genesis_obj` geprüft; eine Abweichung ist ein Aufruferfehler
 und MUSS werfen, nicht vermerken — dieselbe Asymmetrie wie in `§3.5`.
 
-**Schritt.** Zu einer Epoche `i` sucht die Kette alle aktiven `ratify@1`, deren Vorschlag
-`predecessor == epoch_id(i)` trägt, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1`
-erreicht und der Schritt wiederholt sich. Trägt keine, endet die Kette bei `i`.
+**Schritt.** Zu einer Epoche `i` sucht die Kette alle aktiven `ratify@1`, deren Objekt ein Vorschlag
+mit `predecessor == epoch_id(i)` ist, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1`
+erreicht und der Schritt wiederholt sich. Trägt keine, endet die Kette bei `i`. Feststellungen von
+Sachanträgen führen zu keiner Epoche; sie bilden die Fassung (`§4.6`) und gehen in die Kette nur
+über Bedingung 7 ein.
 
-**Beschaffung.** Verfassungs- und Vorschlagsobjekte kommen als Abbildung vom Hash auf das Objekt.
-Jeder Zugriff wird gegen den Schlüssel geprüft: ein Eintrag, dessen Objekt nicht auf seinen
-Schlüssel hasht, gilt als **unbekannt**. Der Aufrufer kontrolliert den Inhalt fremder Objekte
+**Beschaffung.** Verfassungsobjekte kommen als Abbildung vom Hash auf das Objekt, Vorschlags- und
+Sachantragsobjekte als eine zweite. Jeder Zugriff wird gegen den Schlüssel geprüft: ein Eintrag,
+dessen Objekt nicht auf seinen Schlüssel hasht, gilt als **unbekannt**. In der zweiten Abbildung
+entscheidet der Domänen-Separator, unter dem ein Objekt auf seinen Schlüssel hasht, ob es ein
+Vorschlag oder ein Sachantrag ist (`§2.5`). Der Aufrufer kontrolliert den Inhalt fremder Objekte
 nicht; deshalb Vermerk und nicht Ausnahme. Dieselbe Prüfung gilt für `known_proposals` in `§3`
 (D175).
 
@@ -720,8 +901,9 @@ auswertbar und der Übergang trägt nicht. Ab Epoche 2 ist das Objekt also notwe
 wäre die Epoche nicht erreicht. Nur an Epoche 1 nennt das Genesis einen Hash, dessen Objekt fehlen
 darf (D179).
 
-**Ist das Vorschlagsobjekt einer sonst tragenden Ratifizierung unbekannt**, lautet der Vermerk
-`EPOCH_PROPOSAL_UNAVAILABLE`, Subjekt der `proposal_hash`. `UNKNOWN_PROPOSAL` aus `§4.4` trägt
+**Ist das Objekt einer sonst tragenden Ratifizierung unbekannt**, lautet der Vermerk
+`EPOCH_PROPOSAL_UNAVAILABLE`, Subjekt der Hash unter `J`. Ob das Objekt ein Vorschlag oder ein
+Sachantrag wäre, ist gerade nicht bestimmbar. `UNKNOWN_PROPOSAL` aus `§4.4` trägt
 hier nicht: dort ist das Subjekt die `claim_id` einer Stimme, hier ein Objekthash, und derselbe
 Vermerkstyp mit verschiedenem Subjekttyp ist die falsche Kollision aus D172.
 
@@ -751,6 +933,53 @@ Ausgang ist gleichwohl zu definieren: kein Kopf ab `i`, Ergebnis ist `i`, Vermer
 `epoch_id` der beiden Nachfolger (D176). Das ist die Form, die Tendermint für den erkannten Fork
 wählt — anhalten und Beweis erzeugen statt wählen — und sie hat wie dort **keinen erreichbaren
 Produktivfall**. Ein Test darauf ist ausdrücklich nicht zu bauen; er prüfte eine unmögliche Lage.
+
+### 4.6 Die Fassung einer Epoche
+
+Die **Fassung** einer Epoche `g` ist die Verfassung, mit der `g` beginnt, nach Anwendung ihrer
+festgestellten Sachanträge (D564 Beschluss 2). Festgestellt ist ein Sachantrag von `g`, wenn ein
+`ratify@1` auf ihn nach `§4.1` trägt.
+
+**Anwenden.** Ein Stand ist eine Verfassung; der Wert eines Felds ist `[]`, wenn es fehlt, sonst
+`[w]`. Ein Sachantrag ist in einem Stand anwendbar, wenn er noch nicht angewandt ist und jedes
+seiner Felder dort den Wert `alt` hat (Gleichheit nach `§2.5`). Angewandt setzt er jedes seiner
+Felder auf `neu`: `[w]` setzt den Wert `w`, `[]` entfernt das Feld. Solange ein festgestellter
+Sachantrag anwendbar ist, wird einer angewandt, gleich welcher, jeder höchstens einmal. Das Ergebnis
+ist die Fassung. Nach B4 (`§4.4`) hängt sie nicht von der Wahl ab. Eine Reihenfolge hat die Fassung
+nicht, und keine Rechnung darf eine voraussetzen.
+
+**Ein festgestellter Sachantrag, dessen Vorbedingung nicht eintritt,** bleibt ohne Wirkung und
+bleibt festgestellt. Er ist kein Fehler und trägt keinen Vermerk: ein später festgestellter
+Sachantrag kann seine Vorbedingung herstellen, und dann wird er angewandt. Dass sie nie eintritt,
+lässt sich innerhalb der Epoche nicht feststellen; mit ihrem Ende wird er gegenstandslos (`§4.3`).
+Welche festgestellten Sachanträge angewandt sind, gehört deshalb zum Ergebnis.
+
+**Die Fassung wächst.** Kommt ein festgestellter Sachantrag hinzu, bleibt jeder bisher angewandte
+angewandt: die bisherige Folge von Anwendungen ist weiter zulässig, und nach B4 ist das Ergebnis
+jeder zulässigen Folge dasselbe. Die Fassung schrumpft nur, wenn eine Feststellung fällt, und das
+nur aus den Gründen, aus denen nach `INV-04.8` eine Epoche fällt.
+
+**Die Fassung ist keine Epoche** (D565 Beschluss 3). Sie hat keinen `epoch_id`, und eine Annahme
+nach `03 §4` bindet weiter an die Verfassung, mit der die Epoche beginnt: wer sie annimmt, nimmt das
+Verfahren an, mit dem ihre Sachfelder sich ändern. Ein festgestellter Sachantrag verlangt keine neue
+Annahme. Eine Kette über Zwischenstände der Sachanträge ist verworfen: je nach Reihenfolge der
+Feststellungen entstünden verschiedene Kennungen, und zwei Beobachter sähen zeitweise eine Gabel
+(D564).
+
+**Die Schnittstelle.**
+
+```
+resolve_fassung(store, epoch, constitution_obj, known_proposals, now)
+    ->  (fassung_obj, applied, findings)
+```
+
+`epoch` und `constitution_obj` sind das Ergebnis von `resolve_epoch` (`§4.5`). Ist
+`constitution_obj` leer, ist auch `fassung_obj` leer. `applied` ist die aufsteigend sortierte Liste
+der `motion_hash` der angewandten Sachanträge. `findings` sind die Vermerke der Prüfungen nach
+`§4.1` an Feststellungen von Sachanträgen dieser Epoche, die nicht tragen, in der Form aus `§4.5`:
+ist ein Sachantrag festgestellt, fallen die Vermerke seiner übrigen Feststellungen weg. Ein
+unbekanntes Objekt unter einer Feststellung meldet schon die Kette (`EPOCH_PROPOSAL_UNAVAILABLE`);
+hier erscheint es nicht ein zweites Mal.
 
 ---
 
@@ -826,10 +1055,10 @@ die dasselbe tun, waren die Fehlerform der `03`-Abnahme (D92).
 `participants` und Mitgliedschaft beantworten **verschiedene** Fragen. Die Liste bestimmt, **wer
 entscheidet** (`§2.1`, `§3.1`); die Annahme bestimmt, **wer gebunden ist** (`§6.1`, D60).
 
-Nach einer Ratifizierung zeigen alle bestehenden `accept-rules@1` auf den **vorigen**
-`constitution_hash`, und `03 §4` zählt sie für die neue Version gar nicht. Jedes Mitglied ist
-damit `GRANT_ONLY`, bis es die neue Fassung annimmt. **Die Stimmberechtigung bleibt davon
-unberührt.**
+Nach der Ratifizierung eines Vorschlags zeigen alle bestehenden `accept-rules@1` auf den **vorigen**
+`constitution_hash`, und `03 §4` zählt sie für die neue Version gar nicht. Jedes Mitglied ist damit
+`GRANT_ONLY`, bis es die neue Verfassung annimmt. **Die Stimmberechtigung bleibt davon unberührt.**
+Ein festgestellter Sachantrag ändert keinen Hash, auf den eine Annahme zeigt (`§4.6`).
 
 Das ist beabsichtigt. Verlangte die Stimmberechtigung `MEMBER`, könnte eine Ratifizierung den
 Nukleus einfrieren: niemand dürfte abstimmen, bis alle angenommen haben, und wer nie annimmt,
@@ -838,9 +1067,10 @@ blockierte dauerhaft. Wer eine Änderung ablehnt, behält so die Mittel, sie rü
 
 ### 6.4 Aufnahme als Verfassungsänderung
 
-Eine Aufnahme ist damit ein Vorschlag, dessen neue Verfassung sich von der alten ausschließlich in
-`participants` unterscheidet — Klasse `membership` nach `§3.4`. Es gibt in v1 kein eigenes
-Aufnahmeverfahren.
+Eine Aufnahme ist damit ein Vorschlag, dessen neue Verfassung sich von der Fassung aus der
+Verfassung der Epoche und `S` ausschließlich in `participants` unterscheidet — Klasse `membership`
+nach `§3.4`. Es gibt in v1 kein eigenes Aufnahmeverfahren. Aufnahmen laufen deshalb nacheinander:
+unter einer Epoche kommt höchstens ein Vorschlag durch (`§4.4`, B1; D564 Beschluss 1).
 
 ---
 
@@ -884,11 +1114,29 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
 
 ## 8. Bewusst getragene Grenzen
 
-- **Ein Vorschlag ist ein Bündel.** Wer nur die Arbitratorenliste ändern will, reicht eine
-  vollständige Verfassungsversion ein. Der feinere Weg — Änderungen je Feld mit unabhängiger
-  Geltung — bringt Parallelität, erlaubt aber die Teilannahme eines Pakets und braucht eine
-  Zerlegung, die niemand gerechnet hat. Grob gebündelt und fein zerlegt sind beide sicher;
-  gefährlich ist das Mischen (D101).
+- **Ein Vorschlag ist ein Bündel, ein Sachantrag auch.** Wer nur die Arbitratorenliste ändern will,
+  reicht eine vollständige Verfassungsversion ein; Regelfelder ändert nur ein Vorschlag. Sachfelder
+  ändern auch Sachanträge, nebeneinander und je ganz oder gar nicht. Das Mischen, vor dem D101
+  warnt, macht die Vorbedingung sicher: zwei Änderungen desselben Felds aus demselben Wert schließen
+  einander aus (`§4.4`, Regel 2), ein Vorschlag nennt in `S`, worauf er aufbaut (Regel 3), und die
+  Fassung hängt von keiner Reihenfolge ab (`§4.6`). Eine Teilannahme gibt es nicht; wer zwei Felder
+  zusammen ändern will, bündelt sie (D564).
+
+- **Regeländerungen laufen nacheinander, Aufnahmen eingeschlossen.** Unter einer Epoche kommt
+  höchstens ein Vorschlag durch (`§4.4`, B1). Mehrere Aufnahmen nebeneinander brauchten einen
+  Nenner, der mitläuft, und der bricht die Rechnung aus `§4.4` (D564 Befund 2 und 3). Wer mehrere
+  Personen zugleich aufnehmen will, nimmt sie in einem Vorschlag auf.
+
+- **Ein Ja auf einen Vorschlag legt fest, welchen Sachanträgen man noch zustimmen kann.** Ein Ja auf
+  einen Sachantrag derselben Epoche, der nicht in `S` steht, nimmt beiden Ja die Wirkung (`§4.4`,
+  Regel 3), auch wenn es später kommt; ein erreichtes `PASSED` kann dadurch fallen wie durch jede
+  unvereinbare Stimme. Wer einen Vorschlag unterstützt, stimmt neuen Sachanträgen erst in der
+  Folgeepoche zu.
+
+- **Zwischen zwei Sachanträgen auf dasselbe Feld gibt es keine Stichfrage.** Wer zwischen zwei
+  Werten aus demselben Stand wählen will, stimmt einem zu; ein zweites Ja nimmt beiden die Wirkung
+  (`§4.4`, Regel 2). Kommt keiner durch, bleibt der Wert. Eine Stichfrage bräuchte einen eigenen
+  Beweis (D564 Beschluss 3).
 
 - **Vorschläge scheitern oder kommen durch; sie laufen nicht ab.** In einer Epoche, in der nichts
   durchgeht, hängt ein Vorschlag unbegrenzt. Eine Entscheidung bildet damit gesetzte Zustimmung ab
@@ -909,8 +1157,8 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
 - **Eine Stimme lässt sich nicht zurücknehmen, aber ersetzen.** Ohne Frist gibt es kein Fenster,
   nach dem es gleichgültig wäre; ohne Unwiderruflichkeit gibt es keine Monotonie (D97). Wer seine
   Meinung ändert und ein zweites Mal abstimmt, ohne die erste Stimme zu nennen, nimmt beiden die
-  Wirkung: auf denselben Vorschlag nach `§3.1`, als zweites Ja auf einen anderen derselben Epoche
-  nach `§4.4` (D470). Nennt die zweite Stimme die erste, ersetzt sie sie auf demselben Vorschlag
+  Wirkung: auf denselben Vorschlag nach `§3.1`, als Ja, das mit dem ersten unvereinbar ist, nach
+  `§4.4` (D470). Nennt die zweite Stimme die erste, ersetzt sie sie auf demselben Vorschlag
   (`§3.1`, D547); ein erreichtes `PASSED` kann dadurch fallen wie durch die bloße zweite Stimme,
   nicht öfter.
 
@@ -924,15 +1172,15 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   Wählerschaft noch einen Kantenschnitt noch einen Zweckkontext; all das ist mit dem Snapshot
   entfallen (D96). Wer vorschlagen darf, begrenzt die Verfassung, nicht das Protokoll.
 
-- **Ein zurückgehaltenes Vorschlagsobjekt kann ein Mitglied vorübergehend aussetzen.** Wer eine
-  Ja-Stimme auf einen Vorschlag abgibt, dessen Objekt nie verbreitet wird, zählt in dieser Epoche
+- **Ein zurückgehaltenes Objekt kann ein Mitglied vorübergehend aussetzen.** Wer eine Ja-Stimme auf
+  einen Vorschlag oder Sachantrag abgibt, dessen Objekt nie verbreitet wird, zählt in dieser Epoche
   nirgends mit (`§4.4`). Das ist die sichere Richtung und heilt, sobald jemand das Objekt
   nachreicht; verhindern kann das Mitglied es nicht.
 
-- **Eine Verfassungsänderung entzieht allen still den `MEMBER`-Status.** Bis jede und jeder die
-  neue Fassung angenommen hat, liefert `membership()` `GRANT_ONLY`; alles, was auf `MEMBER` prüft,
-  hört so lange auf zu wirken. Kein Fehler, aber eine Rechnung, die vor der ersten Änderung
-  bekannt sein muss (D116, `§6.3`).
+- **Eine Verfassungsänderung entzieht allen still den `MEMBER`-Status.** Bis jede und jeder die neue
+  Verfassung angenommen hat, liefert `membership()` `GRANT_ONLY`; alles, was auf `MEMBER` prüft,
+  hört so lange auf zu wirken. Kein Fehler, aber eine Rechnung, die vor der ersten Änderung bekannt
+  sein muss (D116, `§6.3`). Ein festgestellter Sachantrag tut das nicht (`§4.6`).
 
 - **Ein Equivocierender kann eine Epoche kippen — einmal, abwärts, und mit Beweis.** Zwei
   widersprechende Stimmen desselben Autors, an verschiedene Beobachter geschickt, lassen einen
@@ -941,7 +1189,7 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   und der Vorgang hinterlässt einen vom Urheber selbst signierten Beweis, dessen Folgen Layer 05
   regelt (D117).
 
-- **Ein Amendment kann Schutz zurücknehmen.** Lässt eine neue Fassung ein Prädikat aus
+- **Ein Amendment kann Schutz zurücknehmen.** Lässt eine neue Verfassung ein Prädikat aus
   `irrevocable_predicates` weg, wirkt ein Widerruf darauf ab ihr — auch einer, der während des
   Schutzes signiert wurde und bis dahin wirkungslos im Store lag. Erlaubt, weil über den Boden
   (`00 §5.2`) hinaus die Menge Policy ist und Policy änderbar sein muss (`08 §3`). Sichtbar ist die

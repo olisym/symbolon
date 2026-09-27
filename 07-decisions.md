@@ -24676,3 +24676,78 @@ nächsten Schritt für `00cs`, den Normtext zu O96 in `04` und `03 §4`; `sitzun
 nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cs.md`, `archiv/sitzungsstart-00cq.md`.
+
+### D567 — O96: der Normtext zu Sachanträgen in `04` und `03 §4`
+
+**Anlass.** D565 Beschluss 5. Gelesen: `04` ganz, `03 §4`, `00 §5`, `00 §10`, die Invarianten in
+`04-golden-anchors.md`, D564, D565, `_RESERVED` in `symbolon/node/api.py`, die Wortwahl der Seite
+in `anzeige.js`.
+
+**Beschluss 1 — der Text.** `04 §1.1` bekommt die Regelfelder, `04 §1.2` bindet an sie, `04 §2.4`
+das Feld 3, `04 §2.5` das Sachantragsobjekt, `04 §3.4` die Klasse `ordinary`, `04 §3.5` die
+Prüfungen, `04 §4.1` die Bedingung 7, `04 §4.4` die drei Regeln mit B1 bis B5, `04 §4.6` die
+Fassung; `04 §4.3`, `04 §4.5`, `04 §6.3`, `04 §6.4` und `04 §8` folgen; `03 §4` bekommt den Satz
+zur Annahme. Der Domänentrenner heisst `claim-atom/v1/nucleus-motion`, das Objekt `motion`.
+
+**Befund 1 — gegen welche Verfassung die Klasse eines Vorschlags gemessen wird.** D564 und D565
+sagen es nicht. Gemessen an der Verfassung, mit der die Epoche beginnt, wäre jede Aufnahme nach
+einem Sachbeschluss eine Änderung der Klasse `amendment`: die neue Verfassung trüge den
+Sachbeschluss, die alte nicht. **Beschluss:** die alte Verfassung ist die Fassung aus der
+Verfassung der Epoche und `S` (`04 §3.4`). Aus B2 und B5 folgt, dass sie die Fassung ist, mit der
+die Epoche endet, wenn der Vorschlag trägt. B5 bekommt damit einen zweiten Grund: ohne ihn setzte
+ein Vorschlag eine Sachänderung mit der Schwelle seiner Klasse in Kraft, über die als Sachantrag nie
+entschieden wurde.
+
+**Beschluss 2 — ein Vermerk für alle drei Regeln.** `CONFLICTING_APPROVAL`. Wirkung und Urheber sind
+dieselben, welche Regel greift, steht in den beiden Objekten, und ein Vermerk je Regel wäre eine
+Aufzählung mehr für `INV-04.7` und die Seite, ohne dass ein Beobachter danach anders handelte.
+
+**Beschluss 3 — Formwidrigkeiten, alle am Objekt allein entscheidbar.**
+
+- Ein Sachantrag mit `alt` gleich `neu` ist formwidrig. Er wäre eine Bedingung ohne Änderung und
+  sperrte trotzdem jede andere Änderung des Felds (Regel 2). Zulassen lässt sich später, was heute
+  formwidrig ist; umgekehrt nicht.
+- Ein Sachantrag mit einem Schlüssel ausser `0`, `1`, `2` ist formwidrig, nicht ignoriert: ein
+  späterer Durchgang mit einer Bedingung dort würde sonst von älteren Knoten anders ausgezählt.
+- Eine leere Liste in Feld 3 ist formwidrig, wie eine leere `participants`-Liste: sie sagte dasselbe
+  wie das fehlende Feld unter einem anderen Hash.
+- Ein Ja auf einen formwidrigen Sachantrag ist mit jedem vereinbar, denn er kommt bei keinem
+  Beobachter durch. Ist Feld 3 formwidrig, gilt für Regel 3 `S` als leer.
+
+**Beschluss 4 — Gleichheit von Werten ist Gleichheit der deterministischen Kodierung.** Sonst wären
+`1`, `1.0` und `true` in Python eine Vorbedingung.
+
+**Beschluss 5 — neue Vermerke.** `MALFORMED_MOTION` (Subjekt der Sachantrag), `MALFORMED_PROPOSAL`
+(Subjekt der Vorschlag, bei einem Defekt in `S`), `MOTION_UNAVAILABLE` (Subjekt der unbekannte
+Eintrag in `S`) und `MOTION_UNRATIFIED` (`04 §4.1` Bedingung 7, Subjekt der nicht festgestellte
+Sachantrag). Ein festgestellter Sachantrag, dessen Vorbedingung nicht eintritt, bekommt keinen:
+ein späterer kann sie herstellen, und „nie“ lässt sich innerhalb der Epoche nicht feststellen.
+`resolve_fassung` liefert deshalb die angewandten mit.
+
+**Beschluss 6 — der Beweis in einer Rechnung.** Jede durchgekommene Ja-Menge hat mehr als die Hälfte
+von `P`; zwei durchgekommene Anträge derselben Epoche haben ein Mitglied, dessen Ja in beiden zählt;
+verletzen die beiden Ja eine Regel, zählt keines. B1 bis B3 sind diese Rechnung mit je einer Regel.
+Die Restrechnung, mit der `04 §4.4` bisher den Fall überschneidender Mengen schloss, entfällt; sie
+bewies dasselbe länger. B4 über Newmans Lemma, B5 als Bedingung 7. Auf dem Papier durchgerechnet an
+zwei Beobachtern mit verschiedener Reihenfolge der Feststellungen (Kandidat aus D564 Befund 3):
+gleiche Menge, gleiche Fassung; ein Vorschlag, dessen `S` ein Beobachter nicht kennt, ist dort
+`UNEVALUABLE`, nicht einer anderen Klasse. Gemessen wird das mit den Golden Anchors.
+
+**Befund 2 — „Fassung“ hatte zwei Bedeutungen.** `04 §6.3`, `04 §8` und `03` nannten eine neue
+Verfassung „Fassung“; das ist jetzt „Verfassung“. Die Seite nennt eine Epoche „Fassung der Satzung“
+(D494 Beschluss 5); die Norm nennt jetzt so die Epoche mit ihren Sachanträgen. Der Wortlaut der
+Seite ist in der Seitenrunde zu entscheiden, von Oli.
+
+**Befund 3 — `04 §3.3` zählte „drei Ausnahmen“ aus `04 §3.2`; es sind sechs.** Korrigiert auf „die
+Ausnahmen“, damit die Zahl nicht wieder veraltet.
+
+**Nicht in diesem Schritt.** Die Invarianten in `04-golden-anchors.md`: der Vorbehalt von `INV-04.7`
+nennt nur das Ja auf einen anderen Vorschlag, und B2 bis B4 sowie das Wachsen der Fassung brauchen
+eigene Invarianten. `INV-04.6` bleibt wörtlich wahr, denn ein Sachantrag ist kein Vorschlag. Das
+gehört zur Runde der Golden Anchors, vor jedem Code.
+
+**Beschluss 7 — der nächste Schritt.** Golden Anchors und Invarianten zu `04 §2.5` bis `04 §4.6`,
+mit Vektoren für jede neue Zeile in `04 §3.5`, jede Regel in `04 §4.4` und die Fassung; dann Code,
+dann die Seite. O96 bleibt offen.
+
+**Geändert.** `04-governance.md`, `03-profiles.md`, `07-decisions.md`.

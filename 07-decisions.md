@@ -24841,3 +24841,42 @@ Prototyp laufen alle 1249 Tests grün, 1219 bisherige und 30 neue.
 
 **Geändert.** `04-golden-anchors.md`, `07-decisions.md`; der Auftrag liegt in
 `~/auftraege/p32-sachantraege.md`.
+
+### D570 — O96: Abnahme `p32-sachantraege`, zwei Rückfragen
+
+**Anlass.** Bericht zu `p32-sachantraege`, Commit `aebfda8` auf der Basis `2350983`. Gelesen: der
+vollständige Diff aus dem Spiegel. Der Test ist byte-gleich mit dem Auftrag (`cmp`). Im
+Supervisor-Klon laufen auf `aebfda8` 1249 Tests grün, `ruff` meldet nichts.
+
+**Beschluss 1 — abgenommen.** Die Reihenfolge in `decide` folgt `04 §3.5`: die Form des
+Sachantrags vor dem Scope, Feld 3 nach der Paarprüfung, `MOTION_UNAVAILABLE` nach
+`PROPOSAL_CONSTITUTION_UNAVAILABLE`, dann die Zeilen über `S` in der Reihenfolge der Tabelle. Die
+drei Regeln stehen an einer Stelle im Ausschluss, in beiden Richtungen von Regel 3. Die Gleichheit
+steht allein in `value_key`. `apply_motions` wendet in der gereichten Reihenfolge an. Die
+Hilfen `_resolve`, `_is_hash`, `_is_value` und `*subjects` in `_unevaluable` sind gemeldet und
+bleiben; `_resolve` ist die Beschaffung aus `04 §4.5`. Das Werkzeug fand beim ersten Anlauf von R3
+selbst, dass die Probe nur eine Richtung zurücknahm.
+
+**Befund 1 — der Auftrag verlangte einen Push, `AGENTS.md` §5 verbietet ihn.** Mein Fehler im
+Auftrag. Der Push eines Branch ist Olis Tier-1-Befehl; ein Auftrag verlangt ihn nicht.
+
+**Rückfrage 1 — `verify_ratification` bei einem formwidrigen Sachantrag.** Ein formwidriger
+Sachantrag mit fremdem `scope` wirft dort `ValueError`, weil der Abgleich von Auszählung und Objekt
+vor Bedingung 0 den `scope` liest; `decide` meldet denselben Sachantrag als `UNEVALUABLE`.
+**Beschluss 2:** wie in `04 §3.5` steht die Form vor dem Scope. Bei einem formwidrigen Sachantrag
+vergleicht der Abgleich nur `motion_hash` und Epoche, und der Claim endet mit `TALLY_UNEVALUABLE`.
+Der Satz kommt nach `04 §4.1`; gebaut wird es im zweiten Lauf, denn erst die Kette reicht
+Feststellungen formwidriger Sachanträge an `verify_ratification`.
+
+**Rückfrage 2 — `genesis[5]` ausserhalb von 0 bis 2 bei einem Sachantrag.** **Beschluss 3:**
+bleibt `MALFORMED_THRESHOLD`. Der Defekt sitzt im Genesis-Objekt und betrifft den ganzen Nukleus;
+`04 §3.5` führt die Zeile ohne Ausnahme, und eine Ausnahme für Sachanträge gäbe einem kaputten
+Nukleus einen Weg, der nur Sachfragen entscheidet.
+
+**Beschluss 4 — der nächste Schritt.** Der zweite Lauf nach D569 Beschluss 1: `resolve_fassung`
+mit `genesis_obj` in der Signatur (die Signatur in `04 §4.6` nennt es nicht, `decide` braucht
+es), die Kette mit den Feststellungen der Sachanträge vor jedem Vorschlag, die Vermerke der
+Sachanträge in `resolve_fassung` statt in der Kette, Beschluss 2 dieses Eintrags, `GV-90`, `GV-91`,
+`INV-04.9` bis `INV-04.11`.
+
+**Geändert.** `07-decisions.md`; `main` steht nach dem Vorspulen auf `aebfda8`.

@@ -24594,3 +24594,65 @@ beendet g. Das ist der Grund für Beschluss 1.
 dem ganzen Beweis und den Vermerken, dann die Golden Anchors, dann Code. O96 bleibt offen.
 
 **Geändert.** `07-decisions.md`.
+
+### D565 — O96, Befund 4 aus D564: Regelfelder, Klasse, Bestätigung, die Objekte
+
+**Anlass.** D564 Befund 4. Gelesen: jede Stelle in `symbolon/`, die ein Feld einer Verfassung
+liest, `_RESERVED` in `symbolon/node/api.py`, `00 §5`, `03 §4`, `04 §3.4`, `§3.5`, `§4.1`.
+
+**Beschluss 1 — die Regelfelder.** Regelfelder sind genau die sechs Schlüssel, die `set` schon heute
+abweist (D479 Beschluss 3): `participants` und `thresholds` (`04 §1.1`), `irrevocable_predicates`,
+`arbitration`, `enforcement_policy` und `nucleus_keys` (`00 §5`). Gelesen werden im Code
+`participants` von Auszählung und Zurechnung, `thresholds` von der Auszählung,
+`irrevocable_predicates` von der Policy, `arbitration` vom Verdikt, `nucleus_keys` von den
+autorisierten Schlüsseln; `enforcement_policy` liest noch niemand, `00 §5` normiert es. Jedes andere
+Feld ist ein Sachfeld. Die Regel dazu: ein Feld, das eine Auswertung liest, steht auf der Liste; es
+aufzunehmen ändert `04`.
+
+**Beschluss 2 — die Klasse eines Sachantrags ist `ordinary`.** `04 §3.4` hält sie für
+nicht-verfassungsbezogene Entscheidungen frei. B2 und B3 aus D564 tragen, weil `§3.5` für jede
+angewandte Klasse `2 * num >= den` verlangt: jede durchgekommene Ja-Menge hat dann mehr als die
+Hälfte von `P_g`, und zwei solche schneiden sich, gleich aus welchen Klassen. Fehlt `ordinary` in
+`thresholds`, ist ein Sachantrag nicht auszählbar, wie jeder Vorschlag mit fehlender Klasse. Der
+Beispielverein führt `ordinary` mit `[1, 2]`.
+
+**Beschluss 3 — die Regelfassung ist die Epoche von heute.** Eine Regeländerung etabliert eine
+Epoche nach `§4.2`, mit `epoch_id` wie bisher. Sachanträge ändern die Fassung innerhalb der Epoche,
+ohne eine neue zu etablieren. `accept-rules` bindet deshalb unverändert an den Hash der Verfassung,
+mit der die Epoche beginnt (`03 §4`): wer sie annimmt, nimmt das Verfahren an, mit dem Sachfelder
+sich darin ändern. Ein Sachbeschluss verlangt keine neue Bestätigung. `03 §4` bekommt dazu einen
+Satz, der Mechanismus bleibt.
+
+**Beschluss 4 — die Objekte.**
+
+- Ein **Sachantrag** ist ein neues content-adressiertes Objekt mit eigenem Domänentrenner:
+  Scope, `predecessor` wie in `§2.4`, und eine nicht leere Abbildung von Sachfeld auf das Paar aus
+  altem und neuem Wert. Ein Wert ist `[]` für „fehlt“ oder `[w]`; so bleibt ein Feld, das fehlt,
+  von einem Feld mit dem Wert `null` unterscheidbar. Ein Regelfeld darin macht den Sachantrag
+  formwidrig.
+- **Stimme und Feststellung** bleiben `vote@1` und `ratify@1` mit `J == (3, h)`; ob `h` einen
+  Vorschlag oder einen Sachantrag nennt, entscheidet das Objekt, das unter `h` liegt. Ein
+  unbekanntes Objekt blockiert wie heute (`UNKNOWN_PROPOSAL`, `§4.4`).
+- Der **Vorschlag** aus `§2.4` bekommt ein optionales Feld 3: die sortierte, duplikatfreie Liste S
+  der Sachanträge, auf denen er aufbaut. Fehlt es, ist S leer. Damit gelten alle bisherigen
+  Vorschläge und Golden Anchors unverändert: ein Vorschlag ohne S verträgt sich mit keinem Ja auf
+  einen Sachantrag seiner Epoche (D564 Beschluss 3, Regel 3).
+- Ein Vorschlag darf weiter Sachfelder ändern, wie heute. Regel 3 macht ihn mit jedem Sachantrag
+  ausserhalb von S exklusiv; die Seite baut Sachänderungen künftig als Sachantrag.
+
+**Verworfen.**
+
+- **Eine neue Epoche je Sachbeschluss.** Dann müsste jede Bestätigung nach jedem Beschluss neu
+  kommen (`03 §4`), und zwei Sachbeschlüsse in verschiedener Reihenfolge ergäben verschiedene
+  Epochen (D564, Verworfen).
+- **Vorschläge ohne Sachfelder.** Das bräche jeden bisherigen Vorschlag, der ein Sachfeld ändert,
+  und den Beispielverein; die Sicherheit gibt Regel 3 schon.
+- **Neue Prädikate für Stimme und Feststellung.** Die Unterscheidung liegt im Objekt; zwei
+  Prädikate wären zwei Stellen, an denen der Schutz aus `04 §1.1` gelten muss.
+
+**Beschluss 5 — der nächste Schritt.** Der Text in `04`: das Objekt als `§2.5`, die Klasse in
+`§3.4`, die drei Regeln und der Beweis B1 bis B5 in `§4.4`, die Bedingung „jeder Sachantrag in S
+trägt“ in `§4.1`, die Fassung als neuer `§4.6`, die Vermerke; dazu der Satz in `03 §4`. Als
+Lieferung, Datei ganz, mit Hash-Abgleich. Danach die Golden Anchors, dann Code.
+
+**Geändert.** `07-decisions.md`.

@@ -502,7 +502,8 @@ def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:
 class GeraeteStimmen:
     """Stimmen einer Wurzel zu einem Antrag von mehreren Schlüsseln (D542 Beschluss 5, D543).
 
-    ``stimmen`` sind ``(claim_id, I, wahl)``, sortiert; ``changes`` gegen die Verfassung der
+    ``stimmen`` sind die zählenden, ``ersetzt`` die übrigen Stimmen der Gruppe, beide
+    ``(claim_id, I, wahl)``, je sortiert (D551 Beschluss 6); ``changes`` gegen die Verfassung der
     Vorgängerepoche des Antrags.
     """
 
@@ -510,12 +511,14 @@ class GeraeteStimmen:
     proposal: bytes
     changes: ProposalChanges
     stimmen: tuple[tuple[bytes, bytes, int], ...]
+    ersetzt: tuple[tuple[bytes, bytes, int], ...]
 
 
 def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteStimmen, ...]:
-    """Aktive ``vote@1`` eines Scopes je Wurzel und Antrag, über alle Epochen, nur wo Stimmen von
-    mindestens zwei Schlüsseln stammen (D542 Beschluss 5, D543 Beschluss 1 und 3, 04 §3.1, 02 §2.1).
-    Gezählt wird je Gruppe nach ``maximal_votes``, also ohne ersetzte Stimmen (D548 Beschluss 3).
+    """Aktive ``vote@1`` eines Scopes je Wurzel und Antrag, über alle Epochen, nur wo die gelesenen
+    Stimmen insgesamt von mindestens zwei Schlüsseln stammen (D542 Beschluss 5, D543 Beschluss 1
+    und 3, D551 Beschluss 6, 04 §3.1, 02 §2.1). ``stimmen`` sind die Stimmen nach
+    ``maximal_votes`` (D548 Beschluss 3), ``ersetzt`` die übrigen (D551 Beschluss 6).
 
     Gelesen werden nur Stimmen mit ``J``-Tag 3, ohne ``t_exp``, ``ACTIVE``, nicht bestritten, mit
     lesbarem, kanonischem ``v`` und Wahl ``0`` oder ``1``. Eine Gruppe erscheint nur, wenn ihr
@@ -550,13 +553,14 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
     constitutions = store.all_constitutions()
     result: list[GeraeteStimmen] = []
     for (root, digest), claims in grouped.items():
-        # Nur was nicht ersetzt ist (D548 Beschluss 3, 04 §3.1).
-        stimmen = [
-            (claim_id(claim), claim.I, read_vote_v(claim.v)[0][0])
-            for claim in maximal_votes(claims)
-        ]
-        if len({key for _cid, key, _wahl in stimmen}) < 2:
+        # Zwei Schlüssel über alle gelesenen Stimmen der Gruppe (D551 Beschluss 6).
+        if len({claim.I for claim in claims}) < 2:
             continue
+        # Was zählt und was ersetzt ist, getrennt (D548 Beschluss 3, D551 Beschluss 6, 04 §3.1).
+        zaehlend = {claim_id(claim) for claim in maximal_votes(claims)}
+        alle = [(claim_id(claim), claim.I, read_vote_v(claim.v)[0][0]) for claim in claims]
+        stimmen = [eintrag for eintrag in alle if eintrag[0] in zaehlend]
+        ersetzt = [eintrag for eintrag in alle if eintrag[0] not in zaehlend]
         proposal = proposals.get(digest)
         if proposal is None:
             continue
@@ -582,6 +586,7 @@ def geraetestimmen(store: SqliteStore, scope: bytes, now: int) -> tuple[GeraeteS
                 proposal=digest,
                 changes=_changes(vorgaenger, constitutions.get(proposal.constitution_hash)),
                 stimmen=tuple(sorted(stimmen)),
+                ersetzt=tuple(sorted(ersetzt)),
             )
         )
     return tuple(sorted(result, key=lambda item: (item.root, item.proposal)))

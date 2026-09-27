@@ -90,6 +90,17 @@ ZUSEHEN_GERAETE = [
     "zählen nicht, seine Bürgschaften zählen weiter.",
 ]
 
+# Der Text zum Zusehen im Folgebild: Anna wartet, Bruno löst auf (D551 Beschluss 2, D552 Beschluss 3).
+ZUSEHEN_AUFLOESEN = [
+    *ZUSEHEN_VERSEHEN[:3],
+    "Beide Zweitgeräte haben einen eigenen Schlüssel, den ihre Person aufgenommen hat. Bruno vertut "
+    "sich: auf seinem Gerät stimmt er Ja, auf dem Zweitgerät Nein. Dora ist ehrlich: ihr Zweitgerät "
+    "ist eine Weile getrennt, und sie stimmt dort ein zweites Mal gleich ab.",
+    "Anna stellt den Beschluss erst fest, wenn Bruno seinen Widerspruch aufgelöst hat. Bruno sieht "
+    "die Karte und stimmt auf seinem Gerät neu Ja; die neue Stimme ersetzt beide.",
+    "Kommt Doras Zweitgerät zurück, zählt ihre Stimme einmal, und der Beschluss hält.",
+]
+
 
 def durchgang(urls: list[str]) -> int:
     """Ein Durchgang: runde über jedes Paar in der Ordnung von combinations (D518 Beschluss 2)."""
@@ -116,15 +127,19 @@ def main() -> None:
     Mit ``--personen`` fährt er vor jedem Durchgang einen Takt, beginnend bei 0. Mit
     ``--versehen`` ebenso, über ``GERAETE_VERSEHEN`` (D523 Beschluss 4). Mit ``--geraete``
     ebenso, über ``GERAETE_GERAETE`` und mit den Aufnahmen im Bestand (D542 Beschluss 1 und 3).
+    Mit ``--aufloesen`` wie ``--geraete``, dazu die Regeln aus ``takt`` unter ``aufloesen``
+    (D551 Beschluss 2).
     """
-    erlaubt = ([], ["--personen"], ["--versehen"], ["--geraete"])
+    erlaubt = ([], ["--personen"], ["--versehen"], ["--geraete"], ["--aufloesen"])
     if len(sys.argv) not in {2, 3} or sys.argv[2:] not in erlaubt:
         raise SystemExit(
-            "usage: python -m tools.netz <verzeichnis> [--personen | --versehen | --geraete]"
+            "usage: python -m tools.netz <verzeichnis> "
+            "[--personen | --versehen | --geraete | --aufloesen]"
         )
     schalter = sys.argv[2] if len(sys.argv) == 3 else None
     personen_an = schalter is not None
-    mit_geraeten = schalter == "--geraete"
+    aufloesen = schalter == "--aufloesen"
+    mit_geraeten = schalter == "--geraete" or aufloesen
     if mit_geraeten:
         geraete = GERAETE_GERAETE
     elif schalter == "--versehen":
@@ -167,7 +182,9 @@ def main() -> None:
         print()
         if personen_an:
             print("Zum Zusehen:")
-            if mit_geraeten:
+            if aufloesen:
+                text = ZUSEHEN_AUFLOESEN
+            elif mit_geraeten:
                 text = ZUSEHEN_GERAETE
             elif schalter == "--versehen":
                 text = ZUSEHEN_VERSEHEN
@@ -186,7 +203,7 @@ def main() -> None:
             time.sleep(_TAKT)
             if personen_an:
                 try:
-                    for zeile in takt(urls, nummer, gemeldet, geraete, gesehen):
+                    for zeile in takt(urls, nummer, gemeldet, geraete, gesehen, aufloesen):
                         print(zeile, flush=True)
                 except Exception as exc:
                     print(f"Ein Takt ist gescheitert ({exc}); es geht weiter.", flush=True)

@@ -873,16 +873,20 @@ function feinschliffFaelle() {
     { satz: "DORA hat zum Antrag „beitrag festlegen“ zweimal verschieden unterschrieben.", zaehltNicht: true },
   );
 
-  // Stimmen einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6, D543).
-  const gruppe = (paare) => ({
+  // Stimmen einer Wurzel von mehreren Schlüsseln (D542 Beschluss 6, D543, D551 Beschluss 4 und 5).
+  const eintraege = (paare, marke) =>
+    paare.map(([schluessel, wahl], index) => [(marke + String(index)).repeat(32), schluessel.repeat(32), wahl]);
+  const gruppe = (paare, ersetzt = []) => ({
     root: "01".repeat(32),
     proposal: antrag,
     changes: beitrag,
-    stimmen: paare.map(([schluessel, wahl], index) => [String(index).repeat(64), schluessel.repeat(32), wahl]),
+    stimmen: eintraege(paare, "a"),
+    ersetzt: eintraege(ersetzt, "e"),
   });
+  const angenommen = [{ proposal: antrag, state: "PASSED", changes: beitrag }];
   gleich(
     "geraeteSatz: Ja und Nein auf zwei Geräten",
-    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0]]), leereNamen),
+    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0]]), leereNamen, []),
     {
       karte: true,
       satz: "BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja und Nein unterschrieben.",
@@ -891,17 +895,17 @@ function feinschliffFaelle() {
   );
   gleich(
     "geraeteSatz: zweimal Ja auf zwei Geräten",
-    geraeteSatz("DORA", gruppe([["0a", 1], ["0b", 1]]), leereNamen),
+    geraeteSatz("DORA", gruppe([["0a", 1], ["0b", 1]]), leereNamen, []),
     { karte: false, satz: "DORA hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja gestimmt. Das zählt einmal.", punkte: [] },
   );
   gleich(
     "geraeteSatz: zweimal Nein auf zwei Geräten",
-    geraeteSatz("DORA", gruppe([["0a", 0], ["0b", 0]]), leereNamen),
+    geraeteSatz("DORA", gruppe([["0a", 0], ["0b", 0]]), leereNamen, []),
     { karte: false, satz: "DORA hat zum Antrag „beitrag festlegen“ auf zwei Geräten Nein gestimmt. Das zählt einmal.", punkte: [] },
   );
   gleich(
     "geraeteSatz: drei Geräte, verschieden",
-    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0], ["0c", 1]]), leereNamen),
+    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0], ["0c", 1]]), leereNamen, []),
     {
       karte: true,
       satz: "BRUNO hat zum Antrag „beitrag festlegen“ auf drei Geräten Ja und Nein unterschrieben.",
@@ -910,25 +914,72 @@ function feinschliffFaelle() {
   );
   gleich(
     "geraeteSatz: drei Stimmen von zwei Geräten",
-    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0], ["0a", 0]]), leereNamen),
+    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0], ["0a", 0]]), leereNamen, []),
     {
       karte: true,
       satz: "BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja und Nein unterschrieben.",
       punkte: ["Keine dieser Stimmen zählt.", "BRUNOs Bürgschaften zählen weiter."],
     },
   );
-  gleich("geraeteOben: Antrag PENDING", geraeteOben(gruppe([["0a", 1], ["0b", 0]]), offen), true);
   gleich(
-    "geraeteOben: Antrag PASSED",
-    geraeteOben(gruppe([["0a", 1], ["0b", 0]]), [{ proposal: antrag, state: "PASSED", changes: beitrag }]),
-    false,
+    "geraeteSatz: Karte oben, eine neue Stimme ersetzt beide",
+    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0]]), leereNamen, offen),
+    {
+      karte: true,
+      satz: "BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja und Nein unterschrieben.",
+      punkte: [
+        "Keine der beiden Stimmen zählt.",
+        "BRUNOs Bürgschaften zählen weiter.",
+        "Eine neue Stimme von BRUNO ersetzt beide.",
+      ],
+    },
   );
+  gleich(
+    "geraeteSatz: Karte oben bei PASSED, drei Stimmen, ersetzt alle",
+    geraeteSatz("BRUNO", gruppe([["0a", 1], ["0b", 0], ["0c", 1]]), leereNamen, angenommen),
+    {
+      karte: true,
+      satz: "BRUNO hat zum Antrag „beitrag festlegen“ auf drei Geräten Ja und Nein unterschrieben.",
+      punkte: [
+        "Keine dieser Stimmen zählt.",
+        "BRUNOs Bürgschaften zählen weiter.",
+        "Eine neue Stimme von BRUNO ersetzt alle.",
+      ],
+    },
+  );
+  gleich(
+    "geraeteSatz: aufgelöst mit einer neuen Stimme",
+    geraeteSatz("BRUNO", gruppe([["0a", 1]], [["0a", 1], ["0b", 0]]), leereNamen, offen),
+    {
+      karte: false,
+      satz:
+        "BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten verschieden gestimmt und das mit einer neuen Stimme ersetzt. Sie zählt: Ja.",
+      punkte: [],
+    },
+  );
+  gleich(
+    "geraeteSatz: aufgelöst mit zwei neuen Stimmen",
+    geraeteSatz("BRUNO", gruppe([["0a", 0], ["0b", 0]], [["0b", 1]]), leereNamen, []),
+    {
+      karte: false,
+      satz:
+        "BRUNO hat zum Antrag „beitrag festlegen“ auf zwei Geräten verschieden gestimmt und das mit neuen Stimmen ersetzt. Sie zählen einmal: Nein.",
+      punkte: [],
+    },
+  );
+  gleich(
+    "geraeteSatz: ersetzt bei gleicher Wahl",
+    geraeteSatz("DORA", gruppe([["0a", 1]], [["0a", 1], ["0b", 1]]), leereNamen, []),
+    { karte: false, satz: "DORA hat zum Antrag „beitrag festlegen“ auf zwei Geräten Ja gestimmt. Das zählt einmal.", punkte: [] },
+  );
+  gleich("geraeteOben: Antrag PENDING", geraeteOben(gruppe([["0a", 1], ["0b", 0]]), offen), true);
+  gleich("geraeteOben: Antrag PASSED", geraeteOben(gruppe([["0a", 1], ["0b", 0]]), angenommen), true);
+  gleich("geraeteOben: Antrag nicht unter den Anträgen", geraeteOben(gruppe([["0a", 1], ["0b", 0]]), []), false);
   gleich(
     "warnungInWorten: gleiche Wahl",
     warnungInWorten("SAME_VOTE"),
     "Du hast schon so abgestimmt. Die Stimme zählt einmal.",
   );
-  gleich("geraeteOben: Antrag nicht unter den Anträgen", geraeteOben(gruppe([["0a", 1], ["0b", 0]]), []), false);
 
   return results;
 }

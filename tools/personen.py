@@ -19,6 +19,9 @@ _ANTRAG_PERSON = "ANNA"
 _ZWEITGERAET = "Brunos Zweitgerät"
 _FESTSTELLER = "ANNA"
 _DORAS_ZWEITGERAET = "Doras Zweitgerät"
+# Wer unter aufloesen seinen Widerspruch auflöst, und auf welchem Gerät (D551 Beschluss 3).
+_AUFLOESER_GERAET = "Brunos Gerät"
+_AUFLOESER = "BRUNO"
 
 # Der Takt der Trennung und der Takt der Wiederverbindung (D523 Beschluss 3).
 TRENNUNG = (3, 7)
@@ -59,6 +62,30 @@ def verzoegert(jetzt: list[dict], vorher: list[dict]) -> list[dict]:
     return [rumpf for rumpf in jetzt if rumpf in vorher]
 
 
+def wartet(rumpf: dict, gruppen: list[dict]) -> bool:
+    """Ob eine Feststellung wartet: eine Gruppe zu ihrem Antrag wählt verschieden (D551 Beschluss 1)."""
+    return rumpf["art"] == "ratify" and any(
+        gruppe["proposal"] == rumpf["proposal"] and len({s[2] for s in gruppe["stimmen"]}) > 1
+        for gruppe in gruppen
+    )
+
+
+def aufloesung(I: str, gruppen: list[dict], antraege: list[dict]) -> list[dict]:
+    """Ein Ja je Gruppe der Wurzel ``I`` mit verschiedener Wahl, deren Antrag unter den Anträgen der
+    Seite steht, in der Reihenfolge der Gruppen (D551 Beschluss 3).
+
+    Die Absicht nennt die früheren Stimmen selbst (D548 Beschluss 1).
+    """
+    offen = {antrag["proposal"] for antrag in antraege}
+    return [
+        {"I": I, "art": "vote", "proposal": gruppe["proposal"], "choice": "yes"}
+        for gruppe in gruppen
+        if gruppe["root"] == I
+        and len({s[2] for s in gruppe["stimmen"]}) > 1
+        and gruppe["proposal"] in offen
+    ]
+
+
 def _handlung(rumpf: dict) -> str:
     """Was die Zeile über eine Absicht sagt (D521 Beschluss 4)."""
     art = rumpf["art"]
@@ -73,10 +100,11 @@ def _handlung(rumpf: dict) -> str:
     return "beantragt den Beitrag"
 
 
-def _einliefern(url: str, kopf: str, rumpf: dict) -> str:
+def _einliefern(url: str, kopf: str, rumpf: dict, handlung: str | None = None) -> str:
     """Eine Absicht; eine Abweisung ist eine Zeile, kein Abbruch (D521 Beschluss 2 und 4).
 
-    Abweisung ist jede Antwort 4xx, auch 409 bei mehr als einer Spitze.
+    Abweisung ist jede Antwort 4xx, auch 409 bei mehr als einer Spitze. ``handlung`` ersetzt den
+    Wortlaut aus ``_handlung`` (D551 Beschluss 7).
     """
     request = urllib.request.Request(
         url.rstrip("/") + "/sim/intent",
@@ -84,7 +112,7 @@ def _einliefern(url: str, kopf: str, rumpf: dict) -> str:
         method="POST",
         headers={"Content-Type": "application/json"},
     )
-    zeile = f"{kopf} {_handlung(rumpf)}"
+    zeile = f"{kopf} {handlung or _handlung(rumpf)}"
     try:
         with urllib.request.urlopen(request, timeout=_ZEITLIMIT) as response:
             response.read()
@@ -109,6 +137,7 @@ def takt(
     gemeldet: set[tuple[str, str]],
     geraete: list[tuple[str, str, frozenset[str]]] = GERAETE,
     gesehen: dict[tuple[str, str], list[dict]] | None = None,
+    aufloesen: bool = False,
 ) -> list[str]:
     """Ein Takt ohne den Durchgang: erst die Personen, dann der Antrag (D521 Beschluss 2 bis 4).
 
@@ -118,6 +147,13 @@ def takt(
     Enthält ``geraete`` Doras Zweitgerät, wird es in den Takten aus ``TRENNUNG`` vor den Personen
     getrennt und wieder verbunden (D523 Beschluss 3), und Dora handelt dort nur auf den Rümpfen,
     die schon im vorigen Takt unter ``gesehen`` lagen (D523 Beschluss 2).
+
+    Nur mit ``aufloesen`` (D551 Beschluss 2): ANNA stellt keinen Antrag fest, solange auf ihrem
+    Gerät eine Gruppe aus GET /geraetestimmen zu ihm verschieden wählt, und das steht je Gerät und
+    Antrag einmal im Terminal (D551 Beschluss 1 und 7). BRUNO stimmt auf Brunos Gerät nach seinen
+    übrigen Absichten neu Ja zu jedem Antrag, zu dem dort eine Gruppe seiner Wurzel verschieden
+    wählt und der unter den Anträgen der Seite steht; die Prüfung auf mehrere Spitzen gilt auch
+    dafür (D551 Beschluss 3 und 7).
     """
     namen_geraete = [name for name, _datei, _personen in geraete]
     versehen = _DORAS_ZWEITGERAET in namen_geraete
@@ -143,9 +179,34 @@ def takt(
                 vorher = gesehen.get((geraet, person), [])
                 gesehen[(geraet, person)] = rumpfe
                 rumpfe = verzoegert(rumpfe, vorher)
-            if not rumpfe:
-                continue
             kopf = f"Takt {nummer}, {geraet}: {person}"
+            neu: list[dict] = []
+            if aufloesen and person == _FESTSTELLER:
+                scope = _vereinsscope(url)
+                gruppen = _anfrage(url, "GET", f"/geraetestimmen/{scope}")[1]
+                wartend = [rumpf for rumpf in rumpfe if wartet(rumpf, gruppen)]
+                rumpfe = [rumpf for rumpf in rumpfe if rumpf not in wartend]
+                personen_von = {schluessel: name for name, schluessel in namen.items()}
+                for rumpf in wartend:
+                    if (geraet, rumpf["proposal"]) in gemeldet:
+                        continue
+                    gemeldet.add((geraet, rumpf["proposal"]))
+                    wer = sorted(
+                        personen_von[gruppe["root"]]
+                        for gruppe in gruppen
+                        if wartet(rumpf, [gruppe])
+                    )
+                    zeilen.append(
+                        f"{kopf} wartet mit der Feststellung, bis {' und '.join(wer)} den "
+                        "Widerspruch auflöst."
+                    )
+            if aufloesen and geraet == _AUFLOESER_GERAET and person == _AUFLOESER:
+                scope = _vereinsscope(url)
+                gruppen = _anfrage(url, "GET", f"/geraetestimmen/{scope}")[1]
+                antraege = _anfrage(url, "GET", f"/proposals/{scope}")[1]
+                neu = aufloesung(I, gruppen, antraege)
+            if not rumpfe and not neu:
+                continue
             if len(_anfrage(url, "GET", f"/tips/{I}")[1]) > 1:
                 if (geraet, person) not in gemeldet:
                     gemeldet.add((geraet, person))
@@ -153,6 +214,10 @@ def takt(
                 continue
             for rumpf in rumpfe:
                 zeilen.append(_einliefern(url, kopf, rumpf))
+            for rumpf in neu:
+                zeilen.append(
+                    _einliefern(url, kopf, rumpf, "stimmt neu Ja; die Stimme ersetzt die früheren")
+                )
     if nummer == ANTRAG_TAKT:
         url = urls[namen_geraete.index(_ANTRAG_GERAET)]
         rumpf = {

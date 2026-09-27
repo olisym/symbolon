@@ -51,7 +51,7 @@ def test_gleiche_wahl_nennt_auch(tmp_path) -> None:
 
 
 def test_aufloesung_auf_dem_zweitgeraet(tmp_path) -> None:
-    """Bruno löst seinen Widerspruch auf: keine Gruppe mehr, er zählt Ja (D542 Beschluss 5, D548)."""
+    """Bruno löst seinen Widerspruch auf: nur die neue Stimme zählt, er zählt Ja (D548, D551)."""
     world, geraete, store = _welt(tmp_path)
     ja = _stimme(store, world.bruno, world, 1)
     nein = _stimme(store, geraete["BRUNO"], world, 0)
@@ -70,6 +70,7 @@ def test_aufloesung_auf_dem_zweitgeraet(tmp_path) -> None:
         v=bytes.fromhex(felder["v"]),
     )
     store.submit_claim(signed_bytes(neu))
-    assert geraetestimmen(store, gov, _JETZT) == ()
+    (gruppe,) = geraetestimmen(store, gov, _JETZT)
+    assert gruppe.stimmen == ((claim_id(neu), geraete["BRUNO"].pub, 1),)
     (zeile,) = [z for z in proposals_view(store, gov, _JETZT) if z.proposal == world.proposal_3.proposal_hash]
     assert zeile.yes == (world.bruno.pub,) and zeile.ambiguous == ()

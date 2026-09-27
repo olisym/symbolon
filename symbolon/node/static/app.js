@@ -865,7 +865,12 @@ async function widerspruchKarten(forks, kontext) {
 function geraeteKarten(kontext) {
   const karten = [];
   for (const gruppe of kontext.geraetestimmen) {
-    const { karte: alsKarte, satz, punkte } = geraeteSatz(nameVon(kontext.namen, gruppe.root), gruppe, kontext.namen);
+    const { karte: alsKarte, satz, punkte } = geraeteSatz(
+      nameVon(kontext.namen, gruppe.root),
+      gruppe,
+      kontext.namen,
+      kontext.antraege,
+    );
     if (!alsKarte) continue;
     const karte = element("section", "karte widerspruch");
     karte.append(
@@ -911,9 +916,10 @@ function vereinGerade(view, kontext) {
   for (const antrag of angenommen) {
     saetze.push(`„${antragTitel(antrag.changes, namen)}“ ist angenommen, aber noch nicht festgestellt.`);
   }
-  // Stimmen einer Wurzel von mehreren Schlüsseln mit gleicher Wahl (D542 Beschluss 6).
+  // Stimmen einer Wurzel von mehreren Schlüsseln mit gleicher Wahl und der Satz einer Auflösung
+  // (D542 Beschluss 6, D551 Beschluss 5).
   for (const gruppe of kontext.geraetestimmen) {
-    const { karte, satz } = geraeteSatz(nameVon(namen, gruppe.root), gruppe, namen);
+    const { karte, satz } = geraeteSatz(nameVon(namen, gruppe.root), gruppe, namen, antraege);
     if (!karte) saetze.push(satz);
   }
   const offeneBeitraege = obligationen.filter((schuld) => schuld.state === "OPEN").length;

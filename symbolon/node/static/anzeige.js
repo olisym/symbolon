@@ -215,25 +215,44 @@ export function widerspruchSatz(name, claims, antraege, namen) {
 }
 
 // Der Satz zu Stimmen einer Wurzel von mehreren Schlüsseln, gruppe wie aus GET /geraetestimmen:
-// verschiedene Wahl eine Karte mit ihren Punkten, gleiche Wahl ein Satz ohne Karte. Die Zahl der
-// Geräte ist die Zahl verschiedener Schlüssel, zwei bis vier ausgeschrieben; „Keine der beiden“
-// nur bei genau zwei Stimmen (D542 Beschluss 6, D543 Beschluss 1 und 2).
-export function geraeteSatz(name, gruppe, namen) {
+// wählen die zählenden Stimmen verschieden, eine Karte mit ihren Punkten, dazu, solange sie oben
+// steht, dass eine neue Stimme sie ersetzt; wählen erst zählende und ersetzte zusammen
+// verschieden, der Satz der Auflösung ohne Karte; sonst der Satz der gleichen Wahl. Die Zahl der
+// Geräte ist die Zahl verschiedener Schlüssel über zählende und ersetzte Stimmen, zwei bis vier
+// ausgeschrieben; „Keine der beiden“ nur bei genau zwei Stimmen (D542 Beschluss 6, D543 Beschluss
+// 1 und 2, D551 Beschluss 4 und 5, D552 Beschluss 2).
+export function geraeteSatz(name, gruppe, namen, antraege) {
   const titel = antragTitel(gruppe.changes, namen);
-  const geraete = new Set(gruppe.stimmen.map(([, schluessel]) => schluessel)).size;
+  const alle = [...gruppe.stimmen, ...gruppe.ersetzt];
+  const geraete = new Set(alle.map(([, schluessel]) => schluessel)).size;
   const zahl = { 2: "zwei", 3: "drei", 4: "vier" }[geraete] ?? String(geraete);
   const werte = new Set(gruppe.stimmen.map(([, , wahl]) => wahl));
   if (werte.size > 1) {
+    const punkte = [
+      gruppe.stimmen.length === 2 ? "Keine der beiden Stimmen zählt." : "Keine dieser Stimmen zählt.",
+      `${name}s Bürgschaften zählen weiter.`,
+    ];
+    if (geraeteOben(gruppe, antraege)) {
+      punkte.push(`Eine neue Stimme von ${name} ersetzt ${gruppe.stimmen.length === 2 ? "beide" : "alle"}.`);
+    }
     return {
       karte: true,
       satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten Ja und Nein unterschrieben.`,
-      punkte: [
-        gruppe.stimmen.length === 2 ? "Keine der beiden Stimmen zählt." : "Keine dieser Stimmen zählt.",
-        `${name}s Bürgschaften zählen weiter.`,
-      ],
+      punkte,
     };
   }
   const wahl = werte.has(1) ? "Ja" : "Nein";
+  if (new Set(alle.map(([, , wert]) => wert)).size > 1) {
+    const ersetzt =
+      gruppe.stimmen.length === 1
+        ? `das mit einer neuen Stimme ersetzt. Sie zählt: ${wahl}.`
+        : `das mit neuen Stimmen ersetzt. Sie zählen einmal: ${wahl}.`;
+    return {
+      karte: false,
+      satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten verschieden gestimmt und ${ersetzt}`,
+      punkte: [],
+    };
+  }
   return {
     karte: false,
     satz: `${name} hat zum Antrag „${titel}“ auf ${zahl} Geräten ${wahl} gestimmt. Das zählt einmal.`,
@@ -242,10 +261,10 @@ export function geraeteSatz(name, gruppe, namen) {
 }
 
 // Ob die Karte einer Gruppe aus GET /geraetestimmen oben steht: genau dann, wenn ihr Antrag unter
-// den Anträgen der Seite im Stand PENDING steht (D542 Beschluss 6, D525 Beschluss 2).
+// den Anträgen der Seite steht, in jedem Zustand; bis zur Feststellung wirkt eine neue Stimme
+// (D551 Beschluss 4, ändert D542 Beschluss 6).
 export function geraeteOben(gruppe, antraege) {
-  const antrag = antraege.find((eintrag) => eintrag.proposal === gruppe.proposal);
-  return antrag !== undefined && antrag.state === "PENDING";
+  return antraege.some((eintrag) => eintrag.proposal === gruppe.proposal);
 }
 
 // Titel eines Antrags aus changes: genau eine Änderung benennt ihn, jede andere Zahl heißt

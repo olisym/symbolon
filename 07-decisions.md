@@ -24921,3 +24921,47 @@ Tests grün, 1249 bisherige und 14 neue.
 
 **Geändert.** `04-governance.md`, `07-decisions.md`; der Auftrag liegt in
 `~/auftraege/p33-fassung.md`.
+
+### D572 — O96: `p33-fassung` gelesen, Nachtrag zum fremden Scope
+
+**Anlass.** Bericht zu `p33-fassung`, Commit `76da59f` auf der Basis `f664820`. Gelesen: der
+vollständige Diff aus dem Spiegel; der Test ist byte-gleich mit dem Auftrag. Der Bau folgt dem
+Auftrag. `_resolve` heisst jetzt `resolve_object`, wie der Auftrag es zuliess.
+
+**Befund 1 des Werkzeugs — ein Objekt mit fremdem `scope` bringt die Kette zum Werfen.** Nennt ein
+wohlgeformter Sachantrag oder ein Vorschlag den `epoch_id` dieser Epoche als `predecessor` und
+einen fremden `scope`, reicht die Kette ihn an `decide`, und `decide` wirft `ValueError`. Das gilt
+für `resolve_epoch` und für `resolve_fassung`. Ein signiertes `ratify@1` auf ein solches Objekt
+genügt, und für Vorschläge bestand die Lage schon vor O96. Das Werkzeug hat es gemessen und nicht
+behoben. Mein Auftrag nannte die Lage nicht, obwohl der Kandidat aus D474 und D526 genau das
+verlangt: nimmt Code fremden Inhalt an, nennt der Auftrag den formwidrigen Fall. Dritter Verstoß
+gegen denselben Kandidaten.
+
+**Beschluss 1 — übergangen, ohne Vermerk.** Zu einer Epoche gehört ein Objekt, dessen `scope` der
+Scope der Kette und dessen `predecessor` ihr `epoch_id` ist (`04 §4.5`, schärft D571
+Beschluss 2). Ein Objekt mit fremdem `scope` gehört zu keiner Epoche dieser Kette. Ein Vermerk
+hätte kein sinnvolles Subjekt: das Objekt behauptet zwei Zugehörigkeiten, die einander
+widersprechen. Da `epoch_id` den Scope enthält, entsteht die Lage nur durch ein gebautes Objekt.
+`decide` wirft weiter, denn wer es selbst mit einem fremden Objekt ruft, macht einen
+Aufruferfehler (`04 §3.5`).
+
+**Befund 2 des Werkzeugs — `ratify.N == scope` beim Auswählen.** Richtig, und wie im bisherigen
+Schritt; ein solcher Claim scheiterte an Bedingung 1.
+
+**Befund 3 des Werkzeugs — `classify_all` zweimal je Schritt.** Bleibt, solange es nicht beisst.
+Ein Parameter für eine gereichte Klassifikation wäre eine Schnittstelle nur für die Laufzeit.
+
+**Befund 4 — `make check` ist auf `76da59f` rot, der Bericht nennt ihn grün.** `check_specs`
+findet zwei bare Paragraphenverweise (D227). Der eine steht im Kopf von `chain.py`: `§4.6` ohne
+Dateinamen. Der andere steht im Kopf des Tests: `§10` ohne Dateinamen, und diesen Kopf hatte ich im
+Auftrag wörtlich vorgegeben. Mein Prototyp lief nur `pytest` und `ruff`, nicht `check_specs` über
+die Python-Dateien. Kandidat: der Prototyp eines Auftrags fährt die Prüfungen von `make check`
+ganz, nicht nur die Tests. Wie der Bericht zu „grün“ kam, soll das Werkzeug im Nachtrag sagen.
+
+**Beschluss 2 — Nachtrag auf demselben Branch (D544, D545).** Dieser Eintrag und der Satz in `04
+§4.5` stehen auf `p33-fassung`; der Nachtrag `p33b-scope` baut den Filter an beiden Stellen der
+Kette und einen Test und repariert die beiden Verweise. Im Supervisor-Klon sind beide Filter einzeln
+zurückgenommen worden, und der Test wird je rot. Mit dem Nachtrag laufen 1264 Tests.
+
+**Geändert.** `04-governance.md`, `07-decisions.md`, auf `p33-fassung`; der Auftrag liegt in
+`~/auftraege/p33b-scope.md`.

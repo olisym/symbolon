@@ -876,12 +876,18 @@ Der übergebene `scope` wird gegen `genesis_obj` geprüft; eine Abweichung ist e
 und MUSS werfen, nicht vermerken — dieselbe Asymmetrie wie in `§3.5`.
 
 **Schritt.** Zu einer Epoche `i` sucht die Kette alle aktiven `ratify@1`, deren Objekt ein Vorschlag
-mit `predecessor == epoch_id(i)` ist, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1`
-erreicht und der Schritt wiederholt sich. Trägt keine, endet die Kette bei `i`. Feststellungen von
-Sachanträgen führen zu keiner Epoche; sie bilden die Fassung (`§4.6`) und gehen in die Kette nur
-über Bedingung 7 ein. Der Schritt prüft deshalb vor den Vorschlägen die Feststellungen aller
-Sachanträge von `i` nach `§4.1`; die festgestellten sind die Menge, gegen die Bedingung 7 prüft.
-Deren Vermerke gehören nicht zum Ergebnis der Kette, sondern zu `resolve_fassung` (`§4.6`, D570).
+von `i` ist, und prüft jede nach `§4.1`. Trägt genau eine, ist `i+1` erreicht und der Schritt
+wiederholt sich. Trägt keine, endet die Kette bei `i`. Feststellungen von Sachanträgen führen zu
+keiner Epoche; sie bilden die Fassung (`§4.6`) und gehen in die Kette nur über Bedingung 7 ein. Der
+Schritt prüft deshalb vor den Vorschlägen die Feststellungen aller Sachanträge von `i` nach `§4.1`;
+die festgestellten sind die Menge, gegen die Bedingung 7 prüft. Deren Vermerke gehören nicht zum
+Ergebnis der Kette, sondern zu `resolve_fassung` (`§4.6`, D570).
+
+**Welche Objekte zu `i` gehören** (D571, D572). Ein Vorschlag oder Sachantrag gehört zu `i`, wenn
+sein `scope` der Scope der Kette und sein `predecessor` der `epoch_id` von `i` ist. Ein Sachantrag,
+dessen Objekt keine Map ist, nennt keine Epoche und gehört zu keiner. Ein Objekt mit fremdem `scope`
+wird übergangen, ohne Vermerk: ausgezählt wäre es nach `§3.5` ein Aufruferfehler, und ein signiertes
+`ratify@1` auf ein solches Objekt dürfte die Kette nicht zum Werfen bringen.
 
 **Beschaffung.** Verfassungsobjekte kommen als Abbildung vom Hash auf das Objekt, Vorschlags- und
 Sachantragsobjekte als eine zweite. Jeder Zugriff wird gegen den Schlüssel geprüft: ein Eintrag,

@@ -39,6 +39,7 @@ import {
   kassenZeilen,
   konfliktWarnung,
   mitgliedschaftInWorten,
+  nachHandlung,
   personImSatz,
   regieReihenfolge,
   standZeile,
@@ -479,12 +480,12 @@ function saetzeFaelle() {
     ],
   );
   gleich(
-    "folgeZeilen: vote, counts falsch, schon abgestimmt",
+    "folgeZeilen: vote, counts falsch, ohne Grund",
     folgeZeilen("vote", { ...stimme, yes: 1, counts: false }, { teilnehmer: true }),
     [
       "Danach: 1 von 3 nötigen Ja-Stimmen",
       "Es fehlen noch 2.",
-      "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
+      "Deine Stimme zählt nicht.",
     ],
   );
   gleich(
@@ -502,12 +503,12 @@ function saetzeFaelle() {
     ["Danach: 1 von 3 nötigen Ja-Stimmen", "Es fehlen noch 2.", "Deine Stimme zählt einmal: Du hast schon so abgestimmt."],
   );
   gleich(
-    "folgeZeilen: vote, Gerät einer Teilnehmerin, verschiedene Wahl",
+    "folgeZeilen: vote, Gerät einer Teilnehmerin, verschiedene Wahl, ohne Grund",
     folgeZeilen("vote", { ...stimme, yes: 0, counts: false, same: false, participant: true }, { teilnehmer: false }),
     [
       "Danach: 0 von 3 nötigen Ja-Stimmen",
       "Es fehlen noch 3.",
-      "Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.",
+      "Deine Stimme zählt nicht.",
     ],
   );
   gleich(
@@ -795,6 +796,15 @@ function feinschliffFaelle() {
   gleich("centAus: leer", centAus(""), null);
   gleich("centAus: -5", centAus("-5"), null);
   gleich("centAus: 24.5", centAus("24.5"), 2450);
+
+  // Was nach einer Handlung geschieht (D561 Beschluss 3, D502).
+  gleich("nachHandlung: ok", nachHandlung({ ok: true }), "zeichnen");
+  gleich("nachHandlung: schwebend", nachHandlung({ schwebend: true }), "zeichnen");
+  gleich("nachHandlung: kein Schlüssel", nachHandlung({ fehlt: true }), "zeichnen");
+  gleich("nachHandlung: wartet auf eine Spitze", nachHandlung({ halt: "ab".repeat(32) }), "halten");
+  gleich("nachHandlung: abgewiesen", nachHandlung({ name: "NOT_A_TIP" }), "melden");
+  gleich("nachHandlung: abgebrochen", nachHandlung({ abbruch: true }), "melden");
+  gleich("nachHandlung: Fehler", nachHandlung({ fehler: true }), "melden");
 
   // Die Beschriftung eines Tabs (D506 Beschluss 4).
   gleich("tabTitel: Anträge, 0", tabTitel("Anträge", 0), "Anträge");

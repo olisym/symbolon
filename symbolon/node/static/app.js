@@ -36,6 +36,7 @@ import {
   hinweisSatzungGeaendert,
   kassenZeilen,
   mitgliedschaftInWorten,
+  nachHandlung,
   nameVon,
   personImSatz,
   regieReihenfolge,
@@ -192,12 +193,17 @@ function interaktiveElemente() {
   );
 }
 
+// sperren sperrt nur, was nicht schon gesperrt ist, und gibt diese Elemente zurück; entsperren
+// gibt nur sie frei, damit ein Knopf, der auf eine Auswahl wartet, gesperrt bleibt
+// (D561 Beschluss 3).
 function sperren() {
-  for (const node of interaktiveElemente()) node.disabled = true;
+  const gesperrt = interaktiveElemente().filter((node) => !node.disabled);
+  for (const node of gesperrt) node.disabled = true;
+  return gesperrt;
 }
 
-function entsperren() {
-  for (const node of interaktiveElemente()) node.disabled = false;
+function entsperren(gesperrt) {
+  for (const node of gesperrt) node.disabled = false;
 }
 
 // Die Frage steht an der Stelle von „Jetzt zu tun“, solange sie offen ist (D492 Beschluss 5).
@@ -459,7 +465,7 @@ function handelnFabrik(record, kontext) {
     else if (ergebnis.schwebend) meldung("Eingeliefert; die Antwort des S-Node fehlt noch.");
     else if (ergebnis.ok) meldung(erfolg(), true);
     else if (ergebnis.abbruch) meldung("Nichts unterschrieben.");
-    if (!ergebnis.halt) return false;
+    if (!ergebnis.halt) return ergebnis;
     frageOeffnen([
       marke("Das Gerät wartet"),
       element(
@@ -480,7 +486,7 @@ function handelnFabrik(record, kontext) {
         ),
       ),
     ]);
-    return true;
+    return ergebnis;
   }
 
   async function alsSimulierte(art, parameter) {
@@ -494,7 +500,7 @@ function handelnFabrik(record, kontext) {
       vorgaenger = await endeWaehlen(pub, kontext);
       if (vorgaenger === null) {
         meldung("Nichts unterschrieben.");
-        return false;
+        return { abbruch: true };
       }
       vorbereitet = await senden("/intent", mitVorgaenger({ I: pub, art, ...parameter }, vorgaenger));
     }
@@ -505,32 +511,42 @@ function handelnFabrik(record, kontext) {
     );
     if (geprueft.name !== "ACCEPT") {
       meldung(abweisungInWorten(geprueft.name));
-      return false;
+      return { name: geprueft.name };
     }
     if (await fragen(geprueft.kern, vorbereitet, kontext, bytesFromHex(pub))) {
       await senden("/sim/intent", mitVorgaenger({ I: pub, art, ...parameter }, vorgaenger));
       meldung(erfolg(), true);
-    } else {
-      meldung("Nichts unterschrieben.");
+      return { ok: true };
     }
-    return false;
+    meldung("Nichts unterschrieben.");
+    return { abbruch: true };
   }
 
   // Wartet das Gerät auf eine bestätigte Spitze, bleibt die Frage stehen und die Seite wird
-  // nicht neu gezeichnet.
+  // nicht neu gezeichnet. Hat die Handlung nichts unterschrieben oder nichts eingeliefert, ersetzt
+  // die Meldung die bisherige, und die Seite bleibt mit ihren Auswahlen und Feldern stehen
+  // (D561 Beschluss 3, D502).
   return async function handeln(art, parameter) {
-    sperren();
+    const gesperrt = sperren();
     kontext.felder = null;
-    let halten = false;
+    let ausgang;
     try {
-      halten = await (handelnAls === "geraet" ? alsGeraet : alsSimulierte)(art, parameter);
+      ausgang = await (handelnAls === "geraet" ? alsGeraet : alsSimulierte)(art, parameter);
     } catch (error) {
       frageSchliessen();
       meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+      ausgang = { fehler: true };
     } finally {
-      entsperren();
+      entsperren(gesperrt);
     }
-    if (!halten) await zeichnen();
+    const danach = nachHandlung(ausgang);
+    if (danach === "zeichnen") {
+      await zeichnen();
+    } else if (danach === "melden") {
+      const bisher = document.querySelector("#meldung");
+      if (bisher) bisher.replaceWith(meldungKnoten());
+      else await zeichnen();
+    }
   };
 }
 

@@ -537,12 +537,23 @@ export function absichtSatz(art, felder) {
   }
 }
 
+// Was nach einer Handlung geschieht, aus ihrem Ausgang, wie ihn ablauf gibt, oder { fehler: true }:
+// „halten“, solange das Gerät auf eine bestätigte Spitze wartet; „zeichnen“ bei ok, schwebend und
+// fehlt; sonst „melden“, und die Seite bleibt mit ihren Auswahlen und Feldern stehen
+// (D561 Beschluss 3, D502).
+export function nachHandlung(ausgang) {
+  if (ausgang.halt) return "halten";
+  if (ausgang.ok || ausgang.schwebend || ausgang.fehlt) return "zeichnen";
+  return "melden";
+}
+
 // Die Folge aus effect, „Danach:“ vor der ersten Zeile; ohne effect keine Zeile
 // (D492 Beschluss 2, D490 Beschluss 2). Bei einer Stimme gleiche Wahl aus effect.same, die
 // Teilnahme der Wurzel aus effect.participant, nur wo das fehlt aus felder (D544 Beschluss 1);
 // bei counts falsch zuerst die Teilnahme, dann gleiche Wahl (D545 Beschluss 1); ersetzt die
 // Stimme eine frühere, sagt eine Zeile das (D548 Beschluss 2). Nach der Teilnahme das gesperrte
-// Gerät aus effect.ended, dann ein anderes Ja aus effect.conflict (D556 Beschluss 6).
+// Gerät aus effect.ended, dann ein anderes Ja aus effect.conflict (D556 Beschluss 6). Bleibt kein
+// Grund, zählt die Stimme nicht, ohne einen zu nennen (D561 Beschluss 2).
 export function folgeZeilen(art, effect, felder) {
   if (!effect) return [];
   const zeilen = [];
@@ -573,7 +584,7 @@ export function folgeZeilen(art, effect, felder) {
       } else if (effect.same === true) {
         zeilen.push("Deine Stimme zählt einmal: Du hast schon so abgestimmt.");
       } else {
-        zeilen.push("Deine Stimme zählt nicht: Du hast schon abgestimmt. Auch deine erste Stimme zählt dann nicht mehr.");
+        zeilen.push("Deine Stimme zählt nicht.");
       }
     }
   } else if (art === "propose") {

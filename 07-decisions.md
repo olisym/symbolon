@@ -26059,3 +26059,25 @@ Nicht im Auftrag: die Seite (Knopf und Folge der Sperre), die Runden aus D595, e
 §8`.
 
 **Geändert.** `07-decisions.md`.
+
+### D597 — Abnahme `p40-ausweg`: angenommen
+
+**Anlass.** Bericht zu `p40-ausweg`, Commit `f1b917a`, Basis `ac9ce71`.
+
+**Geprüft.** Den Diff aus dem Spiegel habe ich ganz gelesen und gegen den Prototyp aus D596
+verglichen. Die Tests sind gleich. Der Code ist gleichwertig: `_sperren` fragt `GET /names` und den
+Scope auf dem Gerät ab, auf dem gesperrt wird, statt auf dem ersten Gerät; das Ergebnis ist
+dasselbe. `tools.netz --ausweg` selbst gefahren, über HTTP und über Reticulum: Feststellungen in
+Takt 4, Vereinigung in Takt 6, Sperren in Takt 7 und 8, keine Abweisung. Die Tests aus
+`test_ausweg`, `test_spaltung` und `test_schalter` grün, `ruff` ohne Befund.
+
+**Befund 1 — Probe 4 war breiter als verlangt.** Das Werkzeug hat den ganzen Zweig für `keep`
+übersprungen, also auch die Prüfung auf `UNKNOWN_CLAIM`. Rot wurde der Test an der erwarteten
+Stelle, am fehlenden `v`; die Probe zählt.
+
+**Beschluss 1 — angenommen.** `p40-ausweg` wird nach `main` vorgespult.
+
+**Beschluss 2 — der nächste Strang.** O98: die Runden aus D595 Beschluss 4, mit der Sperre als
+Massstab (D596 Befund 1). Zuerst kommt eine Runde am Beweis, nicht am Code.
+
+**Geändert.** `07-decisions.md`.

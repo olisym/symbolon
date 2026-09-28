@@ -25737,3 +25737,44 @@ Nicht im Auftrag: die Seite, `symbolon/bote/`, Partitionen je Verbindung, `netem
 D588 Befund 1, in dem Anna sofort feststellte.
 
 **Geändert.** `07-decisions.md`.
+
+### D590 — Abnahme `p37-lab`: angenommen; ein zweiter Wettlauf in RNS, das Hängen bleibt
+
+**Anlass.** Bericht zu `p37-lab`, Commit `6548a54`. Gelesen der vollständige Diff gegen `6255f20`;
+`tests/node/test_lab.py` stimmt Zeichen für Zeichen mit dem Auftrag. Die Auslegungen aus dem Bericht
+bleiben: `_mitlesen` als Ziel des Fadens, eine Sekunde je Anfrage in `ruhe`, die Stände als
+dekodiertes JSON, die Zeile „Start …“ nach dem Start der Boten, die erste Zeile des Modul-Docstrings
+mit 104 Zeichen.
+
+**Gemessen, im Supervisor-Klon auf `6548a54`.** `main` gefahren, weil kein Test es tut (D589 Befund
+4): `--aufloesen --reticulum` 55 Sekunden, 19 Zeilen „Takt …“, Anna wartet auf Bruno, der Verlauf
+beginnt mit der Zeile „Start …“. `--personen` ohne `--reticulum` wie bisher, mit Durchgängen und
+Verlauf.
+
+**Befund 1 — das Hängen aus D588 Befund 2 kam nicht vom Start.** Im selben Lauf dauerte das Warten
+nach einem Takt 15,4 Sekunden, die Frist aus D586. Die Vermutung aus D589 Befund 2 ist damit
+widerlegt; die Ursache bleibt offen.
+
+**Befund 2 — ein zweiter Wettlauf in `rns 1.5.4`.** Beim Start meldete ein Bote zweimal einen
+`AttributeError` in `RNS/Interfaces/LocalInterface.py`: ein Rahmen kam an, bevor das Attribut
+`owner` der Client-Schnittstelle gesetzt war. Derselbe Fehlertyp wie D586 Befund 3, diesmal an der
+gemeinsamen Instanz. Ob dabei verlorene Rahmen das Hängen aus Befund 1 erklären, ist nicht gezeigt.
+Die Meldung erscheint im Terminal und im Verlauf.
+
+**Befund 3 — Lärm beim Beenden.** Strg-C trifft jeden Prozess der Gruppe: ein Bote druckt einen
+`KeyboardInterrupt`, die übrigen melden, dass der Socket der Instanz geschlossen wurde. Das ist die
+Art von D519.
+
+**Befund 4 — aus dem Bericht.** Scheitert `boten` nach dem Start von `rnsd`, etwa an einer
+unlesbaren Identität, läuft `rnsd` weiter. Mit nur einem Gerät stünde `--nachbar` ohne Wert. Beides
+ohne Auftrag.
+
+**Beschluss 1 — angenommen.** Der Merge ist ein Vorspulen. Die Befunde 1 bis 4 sind offen und ohne
+Auftrag; Befund 1 und 2 gehören zu L2. Ob die beiden Wettläufe in RNS beim Hersteller gemeldet
+werden, entscheidet Oli.
+
+**Beschluss 2 — der Durchlauf mit Oli.** Oli startet `--aufloesen --reticulum` in einem neuen
+Verzeichnis, sieht zu und beendet mit Strg-C. Erwartet sind die Zeilen aus D589 Befund 3,
+gelegentlich ein langes Warten (Befund 1), die Meldungen aus Befund 2 und 3.
+
+**Geändert.** `07-decisions.md`.

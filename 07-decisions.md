@@ -25955,3 +25955,52 @@ grün; der Test prüft deshalb, dass Anna nach der Vereinigung ein VOTE hätte.
 Nicht im Auftrag: die Sperre als Absicht, eine Zeile in `04 §8`, Befund 3, `netem`, die Seite.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O98).
+
+### D595 — Abnahme `p39-spaltung`: angenommen; Olis Einwand, eine Uhr aus den Claims
+
+**Anlass.** Bericht zu `p39-spaltung`, Commit `d667b92`, Basis `659b12d`. Dazu Olis Einwand gegen
+D594 („Nachgesehen“): statt einer Uhr eine je Zweck, die ab einem Zeitpunkt null an dem zählt, was
+sich bewegt, den Claims.
+
+**Geprüft.** Der Diff aus dem Spiegel ganz gelesen, gegen den Prototyp aus D594 verglichen: die
+Tests gleich, der Code gleichwertig, anders nur in Namen, Docstrings und der Stelle der Umschaltung,
+die jetzt unter `if personen_an` steht; `--spaltung` schaltet die Personen immer an. `tools.netz
+--spaltung` selbst gefahren, über HTTP und über Reticulum: beide Feststellungen im Takt 4, vereint
+im Takt 6, jeder der sechs Boten meldete `gesperrt=3`, zwischen `gesperrt=3` und `gesperrt=0` kein
+Holen über die Grenze. Die Tests unter `tests/bote`, `test_spaltung` und `test_lab` grün, `ruff`
+ohne Befund.
+
+**Beschluss 1 — angenommen.** `p39-spaltung` wird nach `main` vorgespult.
+
+**Beschluss 2 — Rückfrage 1, Leerzeichen in einer Adresse: bleibt.** `bytes.fromhex` überliest sie.
+Die Liste schreibt das Lab, sie ist kein fremder Inhalt und kein Format des Protokolls; entscheidend
+ist, dass Unlesbares keinen Nachbarn freigibt, und das hält.
+
+**Beschluss 3 — Rückfrage 2, nicht atomar geschrieben: bleibt.** Liest ein Bote beim Trennen eine
+halbe Liste, holt er vielleicht noch einmal über die Grenze; das Lab wartet aber auf die Endzahl
+jedes Boten, und erst danach entstehen die Anträge. Was vorher über die Grenze geht, ist der Stand
+vor der Trennung. Beim Vereinen ist die leere Liste das Ziel.
+
+**Befund 1 — meine Aussage zu (b) in D594 war zu eng.** Ich schrieb, der Auslöser neuer Runden sei
+eine Zeitschranke. In DAG-basiertem BFT (Aleph, DAG-Rider, Tusk) rücken die Runden vor, sobald `n -
+f` Knoten der vorigen Runde vorliegen, ohne Zeitschranke; der DAG selbst dient als Uhr. Das ist Olis
+Bild: Zeit gemessen an den Claims, die sich bewegen. MaR hat das schon an einer Stelle: die Sperre
+endet an einer `claim_id`, nicht an einer Zeit (D124, D528 Befund 6).
+
+**Befund 2 — die Grenze bleibt, an anderer Stelle.** Nach FLP (Fischer, Lynch, Paterson 1985)
+braucht ein deterministisches Verfahren ohne Zeitannahme für die Lebendigkeit eine Zeitschranke oder
+Zufall; Bullshark baut deshalb Zeitschranken in den DAG ein. Eine Uhr aus Claims tickt nur, wenn
+jemand schreibt; wer schweigt, lässt sich mit ihr nicht übergehen. Unser Stillstand aus D594 Befund
+2 ist aber kein Schweigen: der Beweis liegt im Bestand. Ein Takt, den ein Konfliktbeweis selbst
+auslöst, braucht keine Uhr.
+
+**Beschluss 4 — O98 bekommt eine Spur.** Zu prüfen: Runden innerhalb einer Fassung, deren nächste
+ein Beweis `CONFLICTING_APPROVAL` eröffnet, gleich für jeden Beobachter, weil er am Inhalt hängt,
+nicht an der Ankunft. Offen dabei: ob B1 bis B4 aus `04 §4.4` über Runden tragen; dass eine Brücke
+in jeder Runde neu doppelt stimmen kann, also ob Überführte ab der nächsten Runde nicht mehr zählen
+und was dann der Nenner ist (ZLB ersetzt sie, D594); wie das zu D97 steht („Uhren informieren
+Verhalten, nie Gültigkeit“), wenn der Takt keine Uhr ist, sondern ein Claim; und zu D532 Befund 2,
+weil ein gestohlenes Gerät eine Brücke vortäuschen kann und die Sperre den Beweis bestreitet. Kein
+Auftrag; Oli wählt, ob das der nächste Strang ist.
+
+**Geändert.** `07-decisions.md`.

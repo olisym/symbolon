@@ -25868,3 +25868,90 @@ die Wahl des nächsten Strangs; `sitzungsstart-00cu.md` geht nach `archiv/` (D31
 Arbeitsweise: Oli bekommt jeden Git-Befehl vollständig, je Schritt ein Block.
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cv.md`, `archiv/sitzungsstart-00cu.md`.
+
+### D594 — Das zweite Bild: Spaltung in West und Ost; Auftrag `p39-spaltung`
+
+**Anlass.** Olis Wahl zu Beginn von `00cv`: das zweite Bild, Partitionen je Verbindung (D593
+Beschluss 1). Zum Umfang nannte Oli keine Vorliebe; gewählt ist das Bild bis zum Rückfall. Die
+Sperre als Ausweg ist ein eigener Schritt.
+
+**Die Rechnung.** Der Verein hat vier Mitglieder, Klasse `amendment`, Schwelle `[1,2]`: drei Ja.
+Zwei disjunkte Gruppen kommen nach `04 §3.5` nie beide durch (`2 * num >= den`). Stellen beide fest,
+haben mindestens `3 + 3 - 4 = 2` Personen auf beiden Seiten Ja gesagt. Bild (c) hat genau zwei
+Personen mit Zweitgerät, Bruno und Dora (D542).
+
+**Gemessen, im Supervisor-Klon auf `e887288`.** Sechs Knoten aus `GERAETE_GERAETE`, West mit Annas,
+Brunos und Doras Gerät, Ost mit Chris' Gerät und den Zweitgeräten von Bruno und Dora, abgeglichen
+nur innerhalb der Gruppen. Anna beantragt 30 Euro, Chris 20 Euro, jede Person stimmt auf jedem Gerät
+Ja, Anna und Chris stellen fest: West und Ost stehen je auf Fassung 3, mit verschiedenem Beitrag.
+Vereint stehen alle sechs auf Fassung 2, ohne Beitrag, mit den Vermerken `CONFLICTING_APPROVAL` und
+`UNSUPPORTED_RATIFICATION`. Ein dritter Antrag danach, alle vier stimmen Ja: jedes Ja trägt die
+Warnung `CONFLICTING_APPROVAL`, keines zählt.
+
+**Befund 1 — beide Feststellungen fallen, auf allen Geräten gleich.** Das ist GV-15
+(`04-golden-anchors §6`) und der Rückfall aus D342, zum ersten Mal im Lab. Auf die Frage aus D593,
+welcher Antrag gilt, wenn beide Gruppen feststellen, antwortet die Norm: keiner.
+
+**Befund 2 — danach ist die Fassung für alle vier gebunden.** Nicht nur Bruno und Dora: Anna hat Ja
+auf ihren Antrag gesagt, Chris auf seinen. Nach `04 §4.4` Regel 1 ist jedes weitere Ja der vier in
+Fassung 2 unvereinbar, und nach D547 lockert ein Ersetzen das nicht. Kein Antrag der Fassung 2 kommt
+mehr durch. Meine Erwartung vor der Messung, es blieben Anna und Chris, war falsch. Ein Ausweg
+bleibt: sperrt eine Brücke ihr Gerät auf der anderen Seite (D532), ist dessen Ja bestritten; sperren
+Bruno und Dora beide ihr Zweitgerät, zählt Annas Antrag wieder mit drei Ja. Die Schnittstelle kennt
+`device-end@1` nicht als Absicht.
+
+**Befund 3 — vereint lädt die Seite zu einem Ja ein, das nicht zählen kann.** Anna hat unter „Jetzt
+zu tun“ ein VOTE zu Chris' Antrag, Chris eines zu Annas. Die Warnung kommt erst beim Stimmen (D548
+Beschluss 2).
+
+**Nachgesehen, wie andere es lösen.** In der Forschung zu Byzantine consensus heisst die Eigenschaft
+accountable safety (Casper, Tendermint; Sheng u. a., BFT Protocol Forensics, CCS 2021): zwei
+widersprüchliche Finalisierungen lassen sich immer auf Doppelsignierer zurückführen, nie auf einen
+ehrlichen Teilnehmer. Das hält hier: die Vermerke nennen Brunos und Doras Ja, Anna und Chris sind
+keine Urheber. Drei Wege zurück sind beschrieben. (a) Die Überführten ausschliessen und neu
+entscheiden (Polygraph; ZLB, Ranchal-Pedrosa und Gramoli). (b) Runden innerhalb einer Höhe, deren
+neue Runde frühere Stimmen ablöst (Tendermint); der Auslöser ist eine Zeitschranke. (c) Eine Uhr
+baut das Stimmgewicht der Untätigen ab (Ethereum, inactivity leak); das tauscht Sicherheit gegen
+Lebendigkeit, und nach einer langen Partition bleiben zwei Netze. Nach einem Bruch der Finalität ist
+die Wiederherstellung dort sozial, ausserhalb des Protokolls. Für MaR fällt (c), es gibt keine Uhr
+(D97, D532 Befund 3). (a) stösst an Befund 2: der Ausschluss wäre selbst ein Antrag der gebundenen
+Fassung. (b) bräuchte einen Beweis wie B1 bis B4 in `04 §4.4` und einen Auslöser ohne Uhr. Es
+bleiben die Sperre durch die Brücke (D532) und der neue Kontext (`04 §8`). Offen als O98.
+
+**Beschluss 1 — das Bild.** Geschichte `--spaltung` in `tools/netz.py` über `GERAETE_GERAETE`, West
+und Ost wie oben. In Takt 2 getrennt, danach im selben Takt je ein Antrag (Anna 30 Euro, Chris 20
+Euro), in Takt 6 vereint. Bis dahin erledigt jede Person, was zu tun ist; auf einem Zweitgerät nur
+Stimmen, jede Ja; fest stellen Anna auf ihrem Gerät und Chris auf seinem. Ab der Vereinigung handelt
+niemand mehr, sonst stimmte Anna auf Chris' Antrag (Befund 3). Die Sperre als Ausweg gehört nicht
+zum Bild.
+
+**Beschluss 2 — die Trennung sitzt im Abgleich, nicht im Knoten.** Der Knoten bleibt ohne Transport
+(D584 Beschluss 1); `/getrennt` je Knoten bleibt, wie es ist. Über HTTP gleicht `durchgang` nur
+Paare innerhalb einer Gruppe ab. Über Reticulum liest jeder Bote vor jedem Nachbarn eine Sperrliste,
+`sperren/<datei>.txt` im Verzeichnis des Laufs, und fragt keinen gesperrten. Weil der Bote nur holt
+(D584 Beschluss 2), trennen zwei Listen, die einander nennen, beide Richtungen.
+
+**Beschluss 3 — die Sperrliste und der Handschlag.** Eine Zeile ist leer oder eine Adresse aus 16
+Bytes in Hex; jede andere macht die Liste formwidrig, und dann fragt der Bote keinen Nachbarn: eine
+kaputte Liste darf die Gruppen nicht still verschmelzen. Fehlt die Datei, ist niemand gesperrt.
+Ändert sich die gelesene Liste, druckt der Bote einmal `gesperrt=<Zahl>` oder `sperren formwidrig`.
+Das Lab schreibt beim Trennen und Vereinen die Listen und wartet, bis jeder Bote die erwartete Zahl
+gemeldet hat; weil der Bote vor jedem Nachbarn liest, holt danach keiner mehr über eine alte Grenze.
+Erst dann handeln die Personen. `ruhe` wartet auf gleichen Stand je Gruppe.
+
+**Gemessen mit dem Prototyp.** `--spaltung` über HTTP und über Reticulum gefahren; zwischen
+`gesperrt=3` und `gesperrt=0` holte kein Bote über die Grenze, geprüft an jeder Zeile des Verlaufs.
+`make check` Exit 0, 1369 Tests.
+
+**Beschluss 4 — der Auftrag `p39-spaltung`.** `symbolon/bote/kern.py`, `symbolon/bote/reticulum.py`,
+`symbolon/bote/__main__.py`, `tools/netz.py`, `tools/personen.py`; zwei neue Testdateien und drei
+Tests in `tests/node/test_lab.py`, wörtlich im Auftrag. Rücknahmeproben vorher gefahren, jede an
+ihrem Test rot: die Sperre übergangen; die Liste einmal je Rundgang gelesen; formwidrig wie leer;
+jedes Paar im Durchgang; `ruhe` über alle; die Personen handeln nach der Vereinigung weiter, als `>`
+und ohne Grenze; jede Person stellt fest; `--sperren` nicht an `laufen` gegeben; nicht an den Boten
+gegeben; die Meldung nicht mitgelesen; die eigene Gruppe gesperrt. Die Probe mit `>` blieb zuerst
+grün; der Test prüft deshalb, dass Anna nach der Vereinigung ein VOTE hätte.
+
+Nicht im Auftrag: die Sperre als Absicht, eine Zeile in `04 §8`, Befund 3, `netem`, die Seite.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O98).

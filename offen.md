@@ -448,3 +448,10 @@ Sachanträge neben Satzungsanträgen, drei Regeln, Stand; Norm, Knoten und Seite
 Die Knoten gleichen sich heute nicht selbst ab; ein Werkzeug fährt die Runde (D516). Phase 5 lässt
 sie über Reticulum abgleichen, zuerst in einem Lab auf einer Maschine, dann mit Verlust nach Art von
 LoRa, dann über Funk (`ROADMAP §7`). Stufen und Lücken L1 bis L10 in D583. O90 gehört dazu.
+
+### O98 Nach einer Spaltung mit Brücken ist die Fassung gebunden
+
+Stellen zwei Gruppen dank Doppelstimmen je einen Antrag fest, fallen vereint beide, und jedes
+weitere Ja der Beteiligten ist nach `04 §4.4` unvereinbar; die Fassung kommt nicht mehr weiter (D594
+Befund 2). Offen: die Sperre als Absicht (D532), eine Zeile in `04 §8`, und ob ein Weg aus der
+Forschung (Ausschluss, Runden) sich mit B1 bis B4 verträgt.

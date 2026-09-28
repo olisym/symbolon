@@ -25600,3 +25600,34 @@ Antworten des eigenen Knotens nicht, `parser.error` folgt der Zeile `adresse`. E
 Sekunden nicht aktiv wird, bleibt ohne Abbau, weiter ohne Auftrag.
 
 **Geändert.** `07-decisions.md`.
+
+### D587 — Abnahme `p36b-frist`: eine Probe, die der Test nicht sah; Nachtrag `p36c-stocken`
+
+**Anlass.** Bericht zu `p36b-frist`, Commit `e752312`. Gelesen der vollständige Diff gegen
+`2330931`: `extend` wie beschlossen; die Frist in `RnsNachbar._anfrage` richtig, der Test-Diff
+unverändert.
+
+**Befund 1 — Probe 3 hing an der Form meines Prototyps.** Das Werkzeug prüft die Frist im `elif`,
+also nur in Durchläufen ohne Fortschritt; das ist richtig. Nimmt man dort das Neusetzen der Frist
+bei Fortschritt zurück, bleibt `test_antwort_mit_fortschritt` grün: der Fortschritt steigt dort in
+jedem Durchlauf, die Prüfung kommt nie zum Zug. Der Fehler ist echt: eine Antwort, die nach
+anfänglichem Fortschritt kurz stockt, bricht sofort ab statt nach 15 Sekunden ohne Fortschritt. Die
+Rücknahmeprobe hatte ich gegen meine eigene Form gefahren, in der die Frist in jedem Durchlauf
+geprüft wird (Schwester von D557: die Probe nimmt die benannte Wirkung zurück, in jeder Form, in der
+sie gebaut werden kann).
+
+**Befund 2 — die eingeschränkte Prüfung übersteht den Wettlauf aus D586 Befund 3.** Nicht in einer
+Schleife gemessen, sondern gelesen: der Traceback des Wettlaufs entsteht im Faden von `socketserver`
+in `RNS/Interfaces/TCPInterface.py`; ein Rahmen unter `symbolon/bote/` kann darin nicht stehen. Eine
+Schleife hätte nur grün zeigen können, ob der Wettlauf auftrat, wüsste sie nicht.
+
+**Beschluss 1 — ein Test für die stockende Antwort.** `test_antwort_stockt_nach_fortschritt`: Frist
+0,5 Sekunden, Fortschritt eine Sekunde lang, dann 0,2 Sekunden keiner, dann die Antwort. Mit
+Neusetzen kommt sie an, ohne wird sie nach der ersten Sekunde getrennt. Gemessen im Supervisor-Klon
+auf `e752312`: fünfmal grün in je 1,7 Sekunden; das Neusetzen in der Form des Werkzeugs
+zurückgenommen, rot an genau diesem Test.
+
+**Beschluss 2 — Nachtrag `p36c-stocken`.** Nur der Test, auf `p36-bote`, dieser Eintrag auf dem
+Branch; danach der Merge als Vorspulen. 1329 Tests.
+
+**Geändert.** `07-decisions.md`.

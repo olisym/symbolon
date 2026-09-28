@@ -38,6 +38,7 @@ _EIGENER_RAHMEN = r'File "[^"]*[/\\](symbolon|tools)[/\\]'
         (["--aufloesen", "--reticulum"], ("--aufloesen", True)),
         (["--spaltung"], ("--spaltung", False)),
         (["--spaltung", "--reticulum"], ("--spaltung", True)),
+        (["--ausweg", "--reticulum"], ("--ausweg", True)),
     ],
 )
 def test_schalter(argv, erwartet) -> None:

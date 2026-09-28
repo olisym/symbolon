@@ -201,6 +201,7 @@ _ARTS = frozenset(
         "vouch",
         "obligation",
         "receipt",
+        "device-end",
     }
 )
 
@@ -459,6 +460,9 @@ def _intent_body(
     neben einem anderen Ja derselben Wurzel in derselben Epoche (``CONFLICTING_APPROVAL``); die
     Folge nennt dann ``ended``, ``conflict`` und ``falls`` (D556 Beschluss 2 und 3, 04 §4.4,
     04 §3.1, 02 §2.1).
+
+    Die Sperre ``device-end`` beendet ein wirksam aufgenommenes eigenes Gerät, ohne Warnung und
+    ohne Folge (D596 Beschluss 2, 01 §7.3).
     """
     author = _hex(_require(body, "I"), 32)
     art = _text(_require(body, "art"), "art")
@@ -634,6 +638,27 @@ def _intent_body(
             t_exp=expiry,
         )
         effect = {"used": total + weight, "D": limit}
+    elif art == "device-end":
+        # Nur die Wurzel sperrt, nur ein in diesem Scope wirksam aufgenommenes Gerät; keep muss ein
+        # bekannter Claim des Geräts sein, ohne keep kein v (D596 Beschluss 2, 01 §7.3, 02 §2.1).
+        scope = _scope_of(store, _require(body, "scope"))
+        device = _hex(_require(body, "device"), 32)
+        view, _epoch, _constitution = _current(store, scope, now)
+        classified = classify_all(store, now, view.state.policy)
+        if attribution(store, classified, scope).device_root(device) != author:
+            raise _Named("NOT_OWN_DEVICE")
+        fields.update(
+            p=f"nuc:{scope.hex()}/device-end@1",
+            J=[1, device.hex()],
+            N=scope.hex(),
+        )
+        if "keep" in body:
+            keep = _hex(body["keep"], 32)
+            kept = store.get(keep)
+            if kept is None or kept.I != device:
+                raise _Named("UNKNOWN_CLAIM")
+            fields["v"] = cbor_canon.encode({0: keep}).hex()
+        effect = None
     elif art == "obligation":
         scope = _scope_of(store, _require(body, "scope"))
         creditor = _hex(_require(body, "creditor"), 32)

@@ -61,10 +61,17 @@ _TAKT = 2
 _RUHE = 30.0
 _BEREIT = 10.0
 _BOTE_TAKT = "1"
-_GESCHICHTEN = ("--personen", "--versehen", "--geraete", "--aufloesen", "--spaltung")
+_GESCHICHTEN = (
+    "--personen",
+    "--versehen",
+    "--geraete",
+    "--aufloesen",
+    "--spaltung",
+    "--ausweg",
+)
 _USAGE = (
     "usage: python -m tools.netz <verzeichnis> "
-    "[--personen | --versehen | --geraete | --aufloesen | --spaltung] [--reticulum]"
+    "[--personen | --versehen | --geraete | --aufloesen | --spaltung | --ausweg] [--reticulum]"
 )
 
 # Der Ablauf, den der Startbefehl druckt (D518, „Der Ablauf, den der Startbefehl druckt“).
@@ -130,6 +137,14 @@ ZUSEHEN_SPALTUNG = [
     "Seiten Ja, und jede Seite stellt ihren Beschluss fest.",
     "Vereint zählen Brunos und Doras Ja nirgends mehr, beide Feststellungen fallen, und jedes Gerät "
     "zeigt die alte Satzung.",
+]
+
+# Der Text zum Zusehen im Ausweg nach der Spaltung (D596 Beschluss 3).
+ZUSEHEN_AUSWEG = [
+    *ZUSEHEN_SPALTUNG,
+    "Danach kommt kein Antrag mehr durch: jedes neue Ja der vier stünde neben einem alten.",
+    "Bruno sperrt sein Zweitgerät: noch immer gilt nichts. Erst als auch Dora ihres sperrt, zählen "
+    "ihre Ja im Westen wieder, und Annas Beschluss gilt auf jedem Gerät.",
 ]
 
 
@@ -403,16 +418,19 @@ def main() -> None:
     (D551 Beschluss 2). Mit ``--spaltung`` über ``GERAETE_GERAETE`` die Takte aus
     ``takt_spaltung``; in den Takten aus ``SPALTUNG`` werden West und Ost getrennt und wieder
     verbunden, über HTTP im Durchgang, über Reticulum mit den Sperrlisten, auf deren Meldung er
-    wartet (D594 Beschluss 1 bis 3). Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt
-    der Durchgänge; mit einer Geschichte wartet er nach jedem Takt auf gleichen Stand. Jede Zeile
-    steht auch in ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
+    wartet (D594 Beschluss 1 bis 3). Mit ``--ausweg`` wie ``--spaltung``, dazu nach der
+    Vereinigung die Sperren aus ``takt_spaltung`` unter ``ausweg`` (D596 Beschluss 3). Mit
+    ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt der Durchgänge; mit einer
+    Geschichte wartet er nach jedem Takt auf gleichen Stand. Jede Zeile steht auch in
+    ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
     """
     if len(sys.argv) < 2:
         raise SystemExit(_USAGE)
     geschichte, reticulum = schalter(sys.argv[2:])
     personen_an = geschichte is not None
     aufloesen = geschichte == "--aufloesen"
-    spaltung = geschichte == "--spaltung"
+    ausweg = geschichte == "--ausweg"
+    spaltung = geschichte == "--spaltung" or ausweg
     mit_geraeten = geschichte == "--geraete" or aufloesen or spaltung
     if mit_geraeten:
         geraete = GERAETE_GERAETE
@@ -462,7 +480,9 @@ def main() -> None:
         ausgeben("")
         if personen_an:
             ausgeben("Zum Zusehen:")
-            if spaltung:
+            if ausweg:
+                text = ZUSEHEN_AUSWEG
+            elif spaltung:
                 text = ZUSEHEN_SPALTUNG
             elif aufloesen:
                 text = ZUSEHEN_AUFLOESEN
@@ -500,7 +520,7 @@ def main() -> None:
                     ausgeben(f"Takt {nummer}: West und Ost {zustand}")
                 try:
                     if spaltung:
-                        zeilen = takt_spaltung(urls, nummer, geraete)
+                        zeilen = takt_spaltung(urls, nummer, geraete, ausweg)
                     else:
                         zeilen = takt(urls, nummer, gemeldet, geraete, gesehen, aufloesen)
                     for zeile in zeilen:

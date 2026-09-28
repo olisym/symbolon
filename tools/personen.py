@@ -35,6 +35,13 @@ _SPALTUNG_ANTRAEGE = (
     ("Chris' Gerät", "CHRIS", ANTRAG_OST),
 )
 
+# Der Ausweg nach der Spaltung: Takt, Gerät, Person und das Zweitgerät, das sie dort sperrt
+# (D596 Beschluss 3).
+AUSWEG = (
+    (7, "Brunos Gerät", "BRUNO", "BRUNO (Zweitgerät)"),
+    (8, "Doras Gerät", "DORA", "DORA (Zweitgerät)"),
+)
+
 
 def absichten(geraet: str, person: str, I: str, aufgaben: list[dict]) -> list[dict]:
     """Rümpfe für POST /sim/intent aus den Aufgaben, in deren Reihenfolge (D521 Beschluss 2)."""
@@ -239,19 +246,49 @@ def takt(
     return zeilen
 
 
+def _sperren(urls: list[str], nummer: int, geraete) -> list[str]:
+    """Die Sperren des Auswegs in diesem Takt, je auf dem eigenen Gerät (D596 Beschluss 3).
+
+    Ohne Eintrag aus ``AUSWEG`` für diesen Takt keine Anfrage. Die Sperre nennt kein ``keep``.
+    """
+    faellig = [eintrag for eintrag in AUSWEG if eintrag[0] == nummer]
+    if not faellig:
+        return []
+    namen_geraete = [name for name, _datei, _personen in geraete]
+    zeilen: list[str] = []
+    for _takt, geraet, person, zweitgeraet in faellig:
+        url = urls[namen_geraete.index(geraet)]
+        namen: dict[str, str] = {
+            eintrag["name"]: eintrag["I"] for eintrag in _anfrage(url, "GET", "/names")[1]
+        }
+        rumpf = {
+            "I": namen[person],
+            "art": "device-end",
+            "scope": _vereinsscope(url),
+            "device": namen[zweitgeraet],
+        }
+        kopf = f"Takt {nummer}, {geraet}: {person}"
+        zeilen.append(_einliefern(url, kopf, rumpf, "sperrt das Zweitgerät"))
+    return zeilen
+
+
 def takt_spaltung(
-    urls: list[str], nummer: int, geraete: list[tuple[str, str, frozenset[str]]]
+    urls: list[str],
+    nummer: int,
+    geraete: list[tuple[str, str, frozenset[str]]],
+    ausweg: bool = False,
 ) -> list[str]:
     """Ein Takt der Spaltung ohne den Durchgang: erst die Personen, dann die Anträge (D594 B. 1).
 
-    Ab dem Takt der Vereinigung handelt niemand mehr, ohne eine Anfrage. Sonst Geräte in der
+    Ab dem Takt der Vereinigung handelt niemand mehr, ohne eine Anfrage; nur mit ``ausweg``
+    sperren dann Bruno und Dora nach ``AUSWEG`` ihr Zweitgerät (D596 Beschluss 3). Sonst Geräte in der
     Ordnung von ``geraete``, Personen je Gerät nach Namen: jedes VOTE wird Ja, auf einem Zweitgerät
     sonst nichts; CONFIRM_RULES und RECEIPT werden erledigt, RATIFY nur von der Person, die auf
     diesem Gerät den Antrag stellt. Im Takt der Spaltung stellen Anna und Chris danach je einen
     Antrag. Keine Prüfung auf mehrere Spitzen.
     """
     if nummer >= SPALTUNG[1]:
-        return []
+        return _sperren(urls, nummer, geraete) if ausweg else []
     namen: dict[str, str] = {
         eintrag["name"]: eintrag["I"] for eintrag in _anfrage(urls[0], "GET", "/names")[1]
     }

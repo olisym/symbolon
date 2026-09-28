@@ -25691,3 +25691,49 @@ feststellte (Befund 1). Die Anfragen ohne Antwort und die Nachbarn nacheinander 
 Ob Shadow das Lab deterministisch machen könnte.
 
 **Geändert.** `07-decisions.md`.
+
+### D589 — Prototyp zum Lab; die Instanz, die sich selbst prüft; Auftrag `p37-lab`
+
+**Anlass.** D588: das Lab läuft frei, wartet nach jedem Takt auf gleichen Stand, schreibt einen
+Verlauf, die Tests prüfen Invarianten. Nach der Arbeitsweise zuerst der Prototyp in der Form des
+Auftrags, im Supervisor-Klon auf `ccf2958`, ohne Bytecode.
+
+**Befund 1 — eine Probe mit `rnstatus` wird selbst zur Instanz.** Als Zeichen der Bereitschaft von
+`rnsd` diente zuerst `rnstatus`. In zwei von sechs Starts lief `rnstatus`, bevor `rnsd` lauschte,
+und wurde selbst zur gemeinsamen Instanz; `rnsd` meldete, es hänge an einer anderen Instanz, und
+blieb nach dem Ende von `rnstatus` ohne sie. `test_boten` scheiterte daran in einem von fünf Läufen.
+Abgelesen wird die Bereitschaft jetzt ohne ein RNS-Programm: der lauschende Socket
+`@rns/<instance_name>` in `/proc/net/unix`. Das gilt nur unter Linux. Danach acht Läufe von
+`test_boten` grün, je 3,4 Sekunden.
+
+**Befund 2 — ohne das Hängen aus D588.** Mit dieser Bereitschaft je ein Lauf von `--personen` und
+`--aufloesen` mit `--reticulum`, je 55 Sekunden: gleicher Stand nach jedem Takt in höchstens 1,5
+Sekunden, keine Anfrage ohne Antwort. Ob D588 Befund 2 aus einem Start ohne Bereitschaft kam, ist
+nicht gezeigt; dort wartete der Prototyp eine feste Sekunde.
+
+**Befund 3 — schneller als der Takt.** In beiden Läufen bestätigen Chris und Dora die neue Satzung
+einen Takt früher als über HTTP: sie handeln im selben Takt nach Anna, und ihre Feststellung ist
+schon angekommen. Anna wartete unter `--aufloesen` wie über HTTP. Sonst gleiche Zeilen.
+
+**Befund 4 — die Verdrahtung in `main` prüft kein Test.** Das Warten nach jedem Takt zurückgenommen,
+bleiben alle Tests grün; `main` von `tools.netz` hatte schon vorher keinen Test. Den Lauf fährt Oli
+nach dem Merge; der Supervisor hat ihn vorher gefahren.
+
+**Beschluss 1 — die Form.** In `tools/netz.py`: `schalter` (eine Geschichte oder keine,
+`--reticulum` nur am Ende), `instanz_name` (aus dem aufgelösten Verzeichnis), `rns_konfiguration`
+(gemeinsame Instanz ohne Schnittstelle), `instanz_bereit` (Befund 1), `ruhe` (D588 Beschluss 2),
+`Ausgabe` (Schirm und `verlauf.txt`, D588 Beschluss 3) und `boten` (die Instanz, dann je Gerät ein
+Bote mit allen anderen als Nachbarn). Die Zeilen eines Boten erscheinen als „Gerät ← Nachbar: …“.
+Ohne `--reticulum` bleibt der Lauf, wie er war, nur schreibt auch er den Verlauf.
+
+**Beschluss 2 — der Auftrag `p37-lab`.** 16 Tests in `tests/node/test_lab.py`, wörtlich im Auftrag;
+1345 in `make check`, gemessen am Prototyp. Rücknahmeproben vorher gefahren, jede an ihrem Test rot:
+`--reticulum` an beliebiger Stelle; ein fester Name der Instanz; getrennte Geräte im Warten
+mitgezählt; Warten ohne Vergleich; ein Socket nur am Anfang des Namens erkannt; die Namen der
+Nachbarn nicht eingesetzt; Boten ohne Nachbarn. Ohne Probe: die Sperre in `Ausgabe` (kurze Anhänge
+gehen auch ohne sie ganz in die Datei) und Befund 4.
+
+Nicht im Auftrag: die Seite, `symbolon/bote/`, Partitionen je Verbindung, `netem`, der eine Lauf aus
+D588 Befund 1, in dem Anna sofort feststellte.
+
+**Geändert.** `07-decisions.md`.

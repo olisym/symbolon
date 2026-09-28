@@ -26156,3 +26156,55 @@ messe ich sie an einem Prototyp in `symbolon/governance` im Supervisor-Klon: die
 (e) und die Sperre, die ein Patt aufhebt. Danach der Normtext für `04 §4.4`, Vektoren, Auftrag.
 
 **Geändert.** `07-decisions.md`.
+
+### D599 — O98: Wahlgänge gemessen; ein leerer Wahlgang steht nie im Patt
+
+**Anlass.** D598 Beschluss 1, bestätigt von Oli: der neue Wahlgang gilt von selbst, sobald das Patt
+nachweisbar ist. Vor dem Normtext gemessen.
+
+**Gemessen, im Supervisor-Klon auf `d0cb208`.** Prototyp ausserhalb der Verdrahtung: `Proposal`
+bekommt Feld 4 `ballot` (fehlt bei `0`, alte Hashes bleiben), Regel 1 in `approvals_conflict` gilt
+nur im selben Wahlgang, dazu `stalemate` und `current_ballot` nach D598 über `decide`. Die Welten
+aus `tests/governance/fixtures`.
+
+- Die Spaltung mit `C1` (Schwelle `[3,4]`, vier Mitglieder): Wahlgang 0 im Patt, Wahlgang 1 gilt;
+  ein Vorschlag im Wahlgang 1 mit vier Ja kommt durch, A und B nicht.
+- Wie nach beiden Sperren (die Ja der Brücken auf B fehlen): A hat drei Ja, braucht bei `[3,4]`
+  vier, also auch hier Patt. Bei `[1,2]`, wie im Verein, käme A durch. Ob ein Patt entsteht, hängt
+  an der Schwelle, nicht am Bild.
+- Gegenbeispiel (a) aus D598: fünf Mitglieder, vier Ja auf A, eines davon auch auf B: A kommt durch,
+  kein Patt.
+- Wer schweigt: Dave stimmt nicht, sonst die Spaltung; bei `[3,4]` trotzdem Patt, weil Alices eines
+  Ja mit Daves Stimme nicht auf vier kommt.
+- Zufall: 600 Welten, vier Mitglieder, Schwelle `[1,2]`, zwei bis fünf Vorschläge in den Wahlgängen
+  0 bis 2, drei bis zwölf Ja. Je Welt geprüft, dass höchstens ein Vorschlag durchkommt, und für vier
+  Beobachter mit je einem Präfix jeder Kette, dass ein Patt beim Beobachter ein Patt im ganzen
+  Bestand ist. Kein Befund. Abgedeckt: 24 Welten mit einem Beschluss, 3 davon im Wahlgang 1 oder 2,
+  190 mit einem Patt im Wahlgang 0.
+- Rücknahmeproben gegen die Zufallsprüfung: ohne die freien Mitglieder im Patt meldet sie 15
+  Verletzungen der Monotonie in 150 Welten; ohne die Bindung an den geltenden Wahlgang meldet sie
+  in 150 Welten zwei mit zwei Beschlüssen.
+
+**Befund 1 — die Rechnung hält.** Höchstens ein Beschluss je Bestand, Patt monoton im Wissen, wie in
+D598 hergeleitet; die Ausnahme bleibt die Sperre.
+
+**Befund 2 — ohne Grenze kein Ende.** In einer ersten Probe fehlten die freien Mitglieder ganz; dann
+stand auch ein leerer Wahlgang im Patt, und die Suche nach dem geltenden hörte nicht auf. Mit ihnen
+endet sie, weil in einem leeren Wahlgang alle frei sind und `n * den > num * n` gilt, solange `num <
+den`. `§3.5` lässt aber `num == den` zu (`_is_ratio`). Eine solche Schwelle kommt nie durch, denn
+`durchgekommen` vergleicht strikt; dann stünde jeder Wahlgang im Patt.
+
+**Beschluss 1 — ein Wahlgang, in dem kein Mitglied Ja gesagt hat, steht nie im Patt.** Das beendet
+die Suche immer und ändert sonst nichts: ohne Ja gibt es nichts, das durchkommen könnte oder nicht.
+
+**Beschluss 2 — das Patt rechnet mit der kleinsten Schwelle der Verfassung der Fassung** für einen
+noch nicht gestellten Vorschlag. Die angewandte Schwelle eines Vorschlags ist nie kleiner als die
+seiner Klasse in dieser Verfassung (`§3.4`, D113), die kleinste ist also die sichere Grenze: sie
+erklärt ein Patt eher zu spät als zu früh.
+
+**Beschluss 3 — der nächste Schritt ist der Normtext.** `04 §2.4` (Feld 4), `§4.4` (Regel 1 je
+Wahlgang, das Patt, der geltende Wahlgang, B1 je Wahlgang), `§4.1` (nur ein Vorschlag des geltenden
+Wahlgangs trägt), `§8` und die Golden Anchors, mit Vektoren aus diesem Prototyp. Sachanträge bleiben
+ohne Wahlgang (D598 Offen 1); Regel 3 misst am Wahlgang des Vorschlags. Danach der Auftrag.
+
+**Geändert.** `07-decisions.md`.

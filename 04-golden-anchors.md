@@ -605,6 +605,14 @@ Wahlgang 0 im Patt, Wahlgang 1 gilt
 | `GV-99` | `GA` mit Feld 4 `= 0` | `UNEVALUABLE`, `MALFORMED_PROPOSAL`, Subjekt sein `proposal_hash` |
 | `GV-100` | `GA` mit Feld 4 als Text `"1"` | `UNEVALUABLE`, `MALFORMED_PROPOSAL` |
 | `GV-101` | eine Verfassung wie `C1` mit `[1,1]` in jeder Klasse, keine Stimme | Wahlgang 0 nicht im Patt, geltend 0 |
+| `GV-102` | nur `GB` und `GB2` bekannt, beide `[3,4]`; DAVE Ja auf beide | kein Patt (Bedingung 3): drei freie Wurzeln gegen die kleinste Schwelle `[1,2]`, `3 * 2 = 6 > 4`; geltend 0 |
+| `GV-103` | ALICE, BOB und DAVE Ja auf `GB`, CAROL auf `GA`; dazu Ja von ALICE, BOB und CAROL auf `GC` und ein `ratify@1` darauf | Patt mit der angewandten Schwelle von `GB`: `3 * 4 = 12 <= 12`; das `ratify@1` trägt, `epoch_id_2`. Wer nur `C1` kennt, rechnet `GB` mit `[1,2]`, `3 * 2 = 6 > 4`, und sieht kein Patt |
+
+`GB2` ist wie `GB` ein Vorschlag, der nur `arbitration` ändert, mit DAVE als Arbitrator.
+`GV-102` braucht einen Wahlgang ohne `GA`: mit `GA` scheiterte schon Bedingung 4 an seiner
+Schwelle `[2,3]`, und der Vektor sähe Bedingung 3 nicht. `GV-103` ist der Vektor für die
+angewandte Schwelle in Bedingung 4; mit der kleinsten allein bliebe er grün, solange keine Welt
+eine höhere Klasse im Patt braucht (D601).
 
 `GV-96` sieht Bedingung 1 nicht: dort scheitert schon Bedingung 3. Erst `GV-101` zeigt sie, denn
 mit `[1,1]` gilt `4 * 1 <= 1 * 4`, und ohne Bedingung 1 stünde jeder Wahlgang im Patt; die Suche

@@ -26270,3 +26270,55 @@ die Kette einen Vermerk trägt, dass ein Wahlgang im Patt steht. O98 bleibt offe
 
 **Geändert.** `04-governance.md` (`§2.4`, `§3.2`, `§3.3`, `§3.5`, `§4.1`, `§4.4`, `§4.7` neu, `§8`),
 `04-golden-anchors.md` (`§8`, `§11` neu), `07-decisions.md`.
+
+### D601 — Wahlgänge in der Bibliothek: Prototyp, GV-102 und GV-103; Auftrag `p41-wahlgang`
+
+**Anlass.** D600 Beschluss 3: der Bau nach dem Normtext, zuerst die Governance-Bibliothek. Knoten,
+Seite und Lab folgen in einem eigenen Auftrag.
+
+**Gemessen, im Supervisor-Klon auf `0b9fdd1`.** Prototyp in `objects.py`, `findings.py`, `tally.py`,
+`epoch.py`, `chain.py` und `node/store.py`, Tests in der Fassung des Auftrags. `make check` Exit 0;
+die Vektoren `GV-92` bis `GV-103` und die Zufallsprüfung über 300 Welten grün, Abdeckung 21 Welten
+mit einem Beschluss, 2 davon in einem Wahlgang größer 0, 221 mit einem Patt.
+
+**Befund 1 — ein bestehender Test verlangte das Gegenteil.**
+`test_formwidriges_feld_3_wird_gespeichert` prüfte, dass der Store Key 4 im Vorschlagsobjekt
+abweist. Nach `§2.4` ist Key 4 jetzt Feld 4; der Test prüft Key 5.
+
+**Befund 2 — Bedingung 4 braucht die Verfassungen der anderen Vorschläge.** `decide` bekommt heute
+nur das eigene Ziel. Neu ist der Parameter `known_constitutions`; ohne ihn kennt die Auszählung nur
+das eigene Ziel, rechnet die übrigen Vorschläge mit der kleinsten Schwelle und sieht ein Patt eher
+später. Das ist ein Beobachter mit weniger Wissen und nach `§4.7` die sichere Richtung. Die Kette
+reicht ihre Verfassungen durch; `node/view.py` tut es im Auftrag für den Knoten.
+
+**Befund 3 — drei Proben blieben zuerst grün.** Ohne die Ausnahme für formwidriges Feld 4 in
+`approvals_conflict` blieb der Test grün, weil `0 == None` ohnehin falsch ist; er prüft jetzt zwei
+formwidrige Vorschläge, `None == None`. Ohne Bedingung 3 blieb `GV-102` grün, weil in derselben Welt
+`GA` schon Bedingung 4 verletzte; der Vektor kennt nur `GB` und `GB2`. Ohne die Verfassungen in der
+Kette blieb jede Probe grün, weil keine Welt eine höhere Klasse im Patt brauchte; dafür `GV-103`.
+
+**Befund 4 — die Testreihe wird langsamer.** 231 statt 190 Sekunden. `decide` rechnet den geltenden
+Wahlgang bei jedem `PASSED`, und das Patt klassifiziert je Wahlgang und je Vorschlag den Bestand
+neu. Für die Seite zu messen; nicht in diesem Auftrag.
+
+**Beschluss 1 — die Bibliothek zuerst.** `Proposal.ballot` wie `motions` mit `ABSENT`, `ballot_of`
+liest Feld 4. `approvals_conflict` misst Regel 1 je Wahlgang; ein Vorschlag mit formwidrigem Feld 4
+ist mit jedem vereinbar. `decide` prüft Feld 4 neben Feld 3, rechnet bei `PASSED` den geltenden
+Wahlgang und trägt ihn in `TallyResult.current_ballot`; `stalemate` und `current_ballot` nach
+`§4.7`. `verify_ratification` prüft Bedingung 8 gegen `tally.current_ballot`. Der Store liest Feld
+4.
+
+**Beschluss 2 — Golden Anchors.** `GV-102` (Bedingung 3) und `GV-103` (die angewandte Schwelle in
+Bedingung 4) in `04-golden-anchors §11`.
+
+**Beschluss 3 — der Auftrag `p41-wahlgang`.** Die sechs Dateien, die neue Testdatei
+`tests/governance/test_wahlgang.py` und die Änderung in `tests/node/test_sachantrag.py`, wörtlich im
+Auftrag. Rücknahmeproben vorher gefahren, jede an ihrem Test rot: Regel 1 ohne Wahlgang;
+formwidriges Feld 4 bindet; kein Tor in `decide`; ohne Bedingung 8; ohne Bedingung 1, 2, 3;
+Bedingung 4 ohne die freien Wurzeln; `Y(X)` mit allen an `X` gebundenen; der Store ohne Feld 4; Feld
+4 nicht formwidrig; `bool` als `int`; die Kette ohne Verfassungen.
+
+Nicht im Auftrag: `node/view.py`, die Absicht `propose` mit dem geltenden Wahlgang, die Seite, das
+Lab, die Dauer aus Befund 4.
+
+**Geändert.** `04-golden-anchors.md` (`§11`), `07-decisions.md`.

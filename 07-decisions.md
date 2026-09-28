@@ -25819,3 +25819,29 @@ Laufzeit; die Fristen nach einem erneuten Senden nicht neu gesetzt. Die letzte b
 Nicht im Auftrag: die Ursache des Verlusts in RNS, die Nachbarn nacheinander (L2), `tools/netz.py`.
 
 **Geändert.** `07-decisions.md`.
+
+### D592 — Abnahme `p38-erneut`: angenommen; die Rechte des Werkzeugs
+
+**Anlass.** Bericht zu `p38-erneut`, Commit `32cd9d8`. Das Werkzeug hatte zuerst keine Shell: die
+Prüfung des Auto-Modus von Claude Code gab kein Urteil. Oli wandte den Test-Diff selbst an, ein
+neues Fenster lief durch. Danach fragte Oli, wie Claude Code für die Arbeit einzustellen ist, und ob
+ein Zugang zum Spiegel auf GitHub etwas nützt.
+
+**Gelesen.** Der vollständige Diff gegen `b9fbe17`: `reticulum.py` wie im Auftrag, die Tests Zeile
+für Zeile wie der Diff im Auftrag. Probe 1 wird auch an `test_zustellfrist_waechst_mit_rtt` rot,
+folgerichtig. Den ersten Probenlauf mit dem falschen Interpreter hat das Werkzeug verworfen und
+gemeldet.
+
+**Beschluss 1 — angenommen.** Der Merge ist ein Vorspulen.
+
+**Beschluss 2 — die Rechte des Werkzeugs.** Nach der Doku zu den Modi von Claude Code. Das Werkzeug
+läuft im Auto-Modus. Verbote gelten in jedem Modus: in `.claude/settings.local.json` des
+Repositoriums stehen Deny-Regeln für `git push`, `git merge`, `git rebase`, `git reset --hard`, das
+Löschen von Branches und `git remote`; die Datei steht in `.git/info/exclude`, nicht im
+Repositorium. `~/auftraege` ist ein zusätzliches Arbeitsverzeichnis. Gibt der Auto-Modus wieder kein
+Urteil, startet Oli mit `CLAUDE_CODE_AUTO_MODE_SERVER=0`; dann prüft Claude Code selbst statt über
+den Server. Ein Zugang zu GitHub nützt dem Werkzeug nichts: es arbeitet im lokalen Klon, Oli pusht
+nach Gitea, der Spiegel geht nur von Gitea nach GitHub, und der Supervisor liest den Spiegel ohne
+Zugang.
+
+**Geändert.** `07-decisions.md`.

@@ -16,6 +16,9 @@ ASPEKT = "bote"
 
 _LINK_FRIST = 10.0
 _ANTWORT_FRIST = 15.0
+_ZUSTELL_MIN = 1.0
+_ZUSTELL_FAKTOR = 20.0
+_VERSUCHE = 3
 _WARTEN = 0.05
 
 
@@ -54,6 +57,11 @@ def anbieten(destination, quelle: Quelle) -> None:
         )
 
 
+def _zustellfrist(link) -> float:
+    """Die Frist bis zum erneuten Senden wächst mit der Laufzeit des Links (D591 Beschluss 1)."""
+    return max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * (link.rtt or 0.0))
+
+
 class RnsNachbar:
     """Ein Nachbar über einen Link zu ``symbolon.bote`` an seiner Adresse (D584 Beschluss 1)."""
 
@@ -83,14 +91,33 @@ class RnsNachbar:
         return link
 
     def _anfrage(self, pfad: str, data: bytes | None) -> object:
-        """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2)."""
+        """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2).
+
+        Bleibt eine Anfrage über die Zustellfrist unzugestellt, geht sie auf demselben Link erneut,
+        bis zu ``_VERSUCHE`` Anfragen (D591 Beschluss 1). Eine doppelte Anfrage schadet nicht, weil
+        der Bote nur liest (D584 Beschluss 2).
+        """
         link = self._verbinden()
         receipt = link.request(pfad, data)
         if not receipt:
             raise Getrennt()
+        anfragen = 1
+        gesendet = time.monotonic()
         fortschritt = receipt.get_progress()
-        seit = time.monotonic()
+        seit = gesendet
         while not receipt.concluded():
+            if (
+                anfragen < _VERSUCHE
+                and receipt.get_status() == RNS.RequestReceipt.SENT
+                and time.monotonic() - gesendet > _zustellfrist(link)
+            ):
+                receipt = link.request(pfad, data)
+                if not receipt:
+                    raise Getrennt()
+                anfragen += 1
+                fortschritt = receipt.get_progress()
+                seit = gesendet = time.monotonic()
+                continue
             jetzt = receipt.get_progress()
             if jetzt != fortschritt:
                 fortschritt = jetzt

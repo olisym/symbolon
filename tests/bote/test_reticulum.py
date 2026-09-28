@@ -247,3 +247,88 @@ def test_antwort_stockt_nach_fortschritt(monkeypatch) -> None:
     assert nachbar.bestand() == ([], [])
     assert time.monotonic() - begun >= 1.0
     assert not link.abgebaut
+
+
+class _Folge:
+    """Ein Link, dessen Anfragen der Reihe nach die gegebenen Quittungen liefern."""
+
+    status = RNS.Link.ACTIVE
+
+    def __init__(self, quittungen: list[_Quittung], rtt: float = 0.001) -> None:
+        self.quittungen = quittungen
+        self.rtt = rtt
+        self.anfragen = 0
+        self.abgebaut = False
+
+    def request(self, _pfad, _data):
+        self.anfragen += 1
+        return self.quittungen.pop(0)
+
+    def teardown(self) -> None:
+        self.abgebaut = True
+
+
+def _verloren() -> _Quittung:
+    return _Quittung(1000.0, RNS.RequestReceipt.SENT, b"", steigt=False)
+
+
+def _gut(dauer: float = 0.05) -> _Quittung:
+    gut = cbor_canon.encode([0, [[], []]])
+    return _Quittung(dauer, RNS.RequestReceipt.READY, gut, steigt=False)
+
+
+def _nachbar(link: _Folge) -> reticulum.RnsNachbar:
+    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar._link = link
+    return nachbar
+
+
+def test_erneut_nach_verlust(monkeypatch) -> None:
+    """Bleibt eine Anfrage unzugestellt, geht sie erneut, auf demselben Link (D591)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    link = _Folge([_verloren(), _gut()])
+    begun = time.monotonic()
+    assert _nachbar(link).bestand() == ([], [])
+    assert time.monotonic() - begun < 1.0
+    assert link.anfragen == 2
+    assert not link.abgebaut
+
+
+def test_versuche_begrenzt(monkeypatch) -> None:
+    """Nach ``_VERSUCHE`` Anfragen gilt die Frist; dann getrennt, der Link abgebaut (D591).
+
+    Jede Anfrage wartet ihre eigene Zustellfrist, die letzte die Antwortfrist.
+    """
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.2)
+    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.3)
+    link = _Folge([_verloren() for _ in range(5)])
+    begun = time.monotonic()
+    with pytest.raises(Getrennt):
+        _nachbar(link).bestand()
+    assert time.monotonic() - begun >= 0.7
+    assert link.anfragen == reticulum._VERSUCHE == 3
+    assert link.abgebaut
+
+
+def test_zugestellt_nicht_erneut(monkeypatch) -> None:
+    """Eine zugestellte Anfrage ohne Fortschritt geht nicht erneut (D591)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.05)
+
+    class _Spaet(_Quittung):
+        def get_status(self) -> int:
+            return RNS.RequestReceipt.READY if self.concluded() else RNS.RequestReceipt.DELIVERED
+
+    gut = cbor_canon.encode([0, [[], []]])
+    link = _Folge([_Spaet(0.4, RNS.RequestReceipt.READY, gut, steigt=False)])
+    assert _nachbar(link).bestand() == ([], [])
+    assert link.anfragen == 1
+
+
+def test_zustellfrist_waechst_mit_rtt(monkeypatch) -> None:
+    """Die Frist bis zum erneuten Senden folgt der gemessenen Laufzeit des Links (D591)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    link = _Folge([_verloren(), _gut()], rtt=0.05)
+    begun = time.monotonic()
+    assert _nachbar(link).bestand() == ([], [])
+    assert time.monotonic() - begun >= 1.0
+    assert link.anfragen == 2

@@ -15,6 +15,7 @@ APP = "symbolon"
 ASPEKT = "bote"
 
 _LINK_FRIST = 10.0
+_ANTWORT_FRIST = 15.0
 _WARTEN = 0.05
 
 
@@ -82,10 +83,22 @@ class RnsNachbar:
         return link
 
     def _anfrage(self, pfad: str, data: bytes | None) -> object:
-        receipt = self._verbinden().request(pfad, data)
+        """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2)."""
+        link = self._verbinden()
+        receipt = link.request(pfad, data)
         if not receipt:
             raise Getrennt()
+        fortschritt = receipt.get_progress()
+        seit = time.monotonic()
         while not receipt.concluded():
+            jetzt = receipt.get_progress()
+            if jetzt != fortschritt:
+                fortschritt = jetzt
+                seit = time.monotonic()
+            elif time.monotonic() - seit > _ANTWORT_FRIST:
+                link.teardown()
+                self._link = None
+                raise Getrennt()
             time.sleep(_WARTEN)
         if receipt.get_status() != RNS.RequestReceipt.READY:
             raise Getrennt()

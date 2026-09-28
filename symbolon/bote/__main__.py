@@ -11,7 +11,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("knoten", nargs="?", help="URL des eigenen Knotens")
     parser.add_argument("--identitaet", required=True, metavar="DATEI")
     parser.add_argument("--rns", metavar="VERZEICHNIS")
-    parser.add_argument("--nachbar", nargs="+", type=bytes.fromhex, default=[], metavar="HEX")
+    parser.add_argument(
+        "--nachbar", action="extend", nargs="+", type=bytes.fromhex, default=[], metavar="HEX"
+    )
     parser.add_argument("--takt", type=float, default=2.0, metavar="SEKUNDEN")
     parser.add_argument("--nur-adresse", action="store_true")
     args = parser.parse_args(argv)

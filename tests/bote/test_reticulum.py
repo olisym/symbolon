@@ -11,9 +11,13 @@ import subprocess
 import sys
 import time
 
+import pytest
+import RNS
+
 from symbolon.atom import signed_bytes
 from symbolon.bote.draht import FORMWIDRIG, PFADE
-from symbolon.bote.kern import HttpKnoten
+from symbolon.bote import reticulum
+from symbolon.bote.kern import Getrennt, HttpKnoten
 from symbolon.bote.reticulum import adresse, anbieten, identitaet
 from symbolon import cbor_canon
 from tests.helpers import Identity, scope_id
@@ -22,6 +26,7 @@ from tests.node.test_api import _call, _start, _stop
 from tools.verein_node import anlegen
 
 _NOW = 1000
+_EIGENER_RAHMEN = r'File "[^"]*[/\\]symbolon[/\\]bote[/\\]'
 _FRIST = 40.0
 
 _KOPF = "[reticulum]\n  enable_transport = No\n  share_instance = No\n[logging]\n  loglevel = 2\n"
@@ -133,7 +138,87 @@ def test_zwei_boten(tmp_path) -> None:
         ausgaben = [bote.communicate(timeout=10)[0] for bote in boten]
         _stop(a)
         _stop(b)
-    assert "Traceback" not in ausgaben[0] + ausgaben[1]
+    assert re.search(_EIGENER_RAHMEN, ausgaben[0] + ausgaben[1]) is None
     geholt = sum(int(m) for m in re.findall(r"geholt=(\d+)", ausgaben[1]))
     assert geholt == len(soll["claims"]) + len(soll["objects"]) + 1
     assert re.findall(r"geholt=(\d+)", ausgaben[0]) == []
+
+
+def test_nachbar_mehrfach(tmp_path, monkeypatch) -> None:
+    """``--nachbar`` nimmt mehrere Werte und lässt sich wiederholen; keiner geht verloren (D586)."""
+    from symbolon.bote import __main__ as start
+    from symbolon.bote import reticulum
+
+    gerufen = []
+    monkeypatch.setattr(reticulum, "laufen", lambda *args: gerufen.append(args))
+    start.main(
+        [
+            "http://127.0.0.1:1",
+            "--identitaet", str(tmp_path / "x.id"),
+            "--rns", str(tmp_path),
+            "--nachbar", "aa", "bb",
+            "--nachbar", "cc",
+        ]
+    )
+    assert [args[3] for args in gerufen] == [[b"\xaa", b"\xbb", b"\xcc"]]
+
+
+class _Quittung:
+    """Eine Anfrage, die nach ``dauer`` Sekunden mit ``status`` endet; ``steigt`` meldet Fortschritt."""
+
+    def __init__(self, dauer: float, status: int, antwort: bytes, steigt: bool) -> None:
+        self.ende = time.monotonic() + dauer
+        self.status = status
+        self.antwort = antwort
+        self.steigt = steigt
+
+    def get_progress(self) -> float:
+        return time.monotonic() if self.steigt else 0.0
+
+    def concluded(self) -> bool:
+        return time.monotonic() >= self.ende
+
+    def get_status(self) -> int:
+        return self.status
+
+    def get_response(self) -> bytes:
+        return self.antwort
+
+
+class _Link:
+    status = RNS.Link.ACTIVE
+
+    def __init__(self, quittung: _Quittung) -> None:
+        self.quittung = quittung
+        self.abgebaut = False
+
+    def request(self, _pfad, _data):
+        return self.quittung
+
+    def teardown(self) -> None:
+        self.abgebaut = True
+
+
+def test_antwort_frist(monkeypatch) -> None:
+    """Ohne Fortschritt ist eine Anfrage nach der Frist getrennt, der Link abgebaut (D586)."""
+    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.2)
+    link = _Link(_Quittung(2.0, RNS.RequestReceipt.FAILED, b"", steigt=False))
+    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar._link = link
+    begun = time.monotonic()
+    with pytest.raises(Getrennt):
+        nachbar.bestand()
+    assert time.monotonic() - begun < 1.0
+    assert link.abgebaut
+    assert nachbar._link is None
+
+
+def test_antwort_mit_fortschritt(monkeypatch) -> None:
+    """Solange die Antwort fortschreitet, läuft die Frist neu; die Antwort kommt an (D586)."""
+    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.2)
+    gut = cbor_canon.encode([0, [[], []]])
+    link = _Link(_Quittung(0.6, RNS.RequestReceipt.READY, gut, steigt=True))
+    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar._link = link
+    assert nachbar.bestand() == ([], [])
+    assert not link.abgebaut

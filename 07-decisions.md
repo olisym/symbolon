@@ -26081,3 +26081,78 @@ Stelle, am fehlenden `v`; die Probe zählt.
 Massstab (D596 Befund 1). Zuerst kommt eine Runde am Beweis, nicht am Code.
 
 **Geändert.** `07-decisions.md`.
+
+### D598 — O98: Wahlgänge in einer Fassung, eröffnet durch ein Patt; Position, kein Auftrag
+
+**Anlass.** D597 Beschluss 2: eine Runde am Beweis aus `04 §4.4`, ob die Spur aus D595 Beschluss 4
+trägt. Gelesen: `04 §3.5`, `§4.4` mit B1 bis B5, `§4.5`, D97, D532. Die Begriffe „Wahlgang“ und
+„Patt“ kommen im Repositorium nicht vor; „Runde“ ist durch den Abgleich belegt
+(`tools.abgleich.runde`).
+
+**Die Idee.** Innerhalb einer Fassung `g` gibt es Wahlgänge `0, 1, 2, …`. Ein Vorschlag nennt seinen
+Wahlgang in seinem Objekt; ohne Angabe ist es `0`. Regel 1 aus `§4.4` gilt je Wahlgang: höchstens
+ein Ja je Mitglied auf einen Vorschlag von `g` im Wahlgang `w`. Durchkommen kann nur ein Vorschlag
+des **geltenden** Wahlgangs, und das ist der kleinste, der nicht im Patt steht. Es gibt keine Uhr
+und keinen eigenen Akt: den nächsten Wahlgang eröffnet ein Befund am Inhalt.
+
+**Das Patt.** Ein Wahlgang `w` steht im Patt, wenn kein Vorschlag von `w` mehr durchkommen kann,
+gleich welche Stimmen noch hinzukommen. Sei `F` die Menge der Mitglieder ohne aktive Ja-Stimme auf
+einen Vorschlag von `w`, und `y(X)` die zählende Ja-Menge eines Vorschlags `X`. Patt heisst, dass
+für jeden Vorschlag `X` von `w` gilt `(|y(X)| + |F|) * den <= num * n`, ebenso für einen noch nicht
+gestellten mit `|F|` allein, mit der kleinsten Schwelle, die ein Vorschlag haben kann. Eine
+Ja-Stimme auf ein unbekanntes Objekt verhindert das Patt, denn unbekannt heisst möglicherweise
+zählend (die Richtung aus `§4.4`, D103).
+
+**Gerechnet an der Spaltung.** Nach der Vereinigung: `y(A) = {Anna}`, `y(B) = {Chris}`, `F` leer,
+weil alle vier im Wahlgang 0 Ja gesagt haben. `(1 + 0) * 2 <= 1 * 4`: Patt. Wahlgang 1 gilt, und ein
+neuer Antrag braucht dort drei Ja von vier, die jetzt jeder geben kann. Keine Sperre nötig, niemand
+muss nachgeben.
+
+**Warum es sicher ist, an einem Bestand.** Kommt ein Vorschlag durch, steht sein Wahlgang nicht im
+Patt, denn `y(X)` allein überschreitet die Schwelle. Also ist er der geltende, und alle
+durchgekommenen Vorschläge von `g` liegen im selben Wahlgang. Dort trägt die Rechnung aus B1 mit
+Regel 1 je Wahlgang unverändert. Höchstens ein Nachfolger je Bestand, wie heute.
+
+**Warum Teilwissen es nicht bricht, bis auf die Sperre.** Kennt ein Beobachter von jedem Mitglied
+ein Ja in `w`, kann ein anderer mit mehr Stimmen kein zusätzliches zählendes Ja sehen: ein zweites
+Ja desselben Mitglieds auf einen anderen Vorschlag ist unvereinbar und nimmt eines weg. Das Patt ist
+deshalb monoton im Wissen, mit einer Ausnahme: eine Sperre (D532) bestreitet ein Ja, macht ein
+unvereinbares Ja wieder zählend und kann ein Patt aufheben. Dann gilt wieder der frühere Wahlgang,
+und ein Beschluss im späteren fällt. Das ist dieselbe Klasse wie der Rückfall aus D342 und die
+Wiederkehr aus D596 Befund 2: vorläufig unter Teilwissen, eindeutig je Bestand (`INV-04.8`).
+
+**Gegenbeispiele, geprüft.** (a) Eine Einzelne, die doppelt stimmt, kann kein Patt erzwingen,
+solange die übrigen durchkommen: fünf Mitglieder, vier Ja auf A, eines davon zusätzlich auf B, `y(A)
+= 3`, `3 * 2 > 5`, kein Patt. (b) Ein Vorschlag eines späteren Wahlgangs, gestellt vor dem Patt,
+kommt nicht durch und bindet im früheren nichts. (c) Einen Wahlgang überspringen geht nicht; es gilt
+der kleinste, der nicht im Patt steht. (d) Wer schweigt, verhindert das Patt, wenn `|F|` reicht: die
+Grenze aus FLP bleibt (D595 Befund 2), sie trifft nur den Fall, in dem jemand nicht handelt. (e)
+Zwei Doppelstimmer, die in jedem Wahlgang wieder doppelt stimmen, halten die Fassung fest; bei vier
+Mitgliedern gibt es dann keine Mehrheit, und das ist die richtige Antwort.
+
+**Vergleich.** Paxos zählt Ballots, Tendermint zählt Runden je Höhe. Dort rückt eine Zeitschranke
+vor, und die Sicherheit über Ballots hinweg verlangt, den Wert des höchsten angenommenen früheren
+Ballots zu übernehmen, weil ein früherer Wert gewählt sein könnte. Hier ersetzt das Patt beides: es
+rechnet am Bestand nach, dass im früheren Wahlgang nichts mehr gewählt werden kann. Deshalb braucht
+es weder eine Uhr noch eine Übernahme.
+
+**Verhältnis zu D97.** Stimmen bleiben innerhalb eines Wahlgangs unwiderruflich. Das Patt nimmt
+keine Stimme zurück, es stellt fest, dass keine mehr wirken kann. Monoton ist es wie die Auszählung
+selbst: nur die Sperre dreht es um, und die tut das nach D532 heute schon. „Uhren informieren
+Verhalten, nie Gültigkeit“ bleibt wahr: es gibt keine Uhr.
+
+**Offen.** (1) Sachanträge: Regel 2 und 3 mischen Vorschläge und Sachanträge; ob Wahlgänge nur für
+Vorschläge gelten oder auch je Vorbedingung, ist nicht durchgerechnet. Position: zuerst nur für
+Vorschläge, Regel 3 dann gegen den Wahlgang des Vorschlags. (2) Das Feld im Vorschlagsobjekt: ob
+`§2.1` ein neues Feld zulässt, ohne dass alte Knoten solche Objekte verwerfen. (3) Die kleinste
+Schwelle für einen noch nicht gestellten Vorschlag hängt von der Klasse ab, die erst `§3.4`
+bestimmt. (4) Die Seite: was ein Mensch sieht, wenn ein Wahlgang im Patt steht. (5) Ob D596 Befund 1
+damit entfällt: die Sperre bleibt der Weg, einen früheren Beschluss zurückzuholen, aber niemand muss
+mehr auf sie warten.
+
+**Beschluss 1 — Position.** Die Spur trägt. Sie schliesst den Stillstand aus D594 Befund 2 ohne Uhr,
+ohne Strafe und ohne neuen Akt, und B1 überträgt sich je Wahlgang. Bevor ein Normtext entsteht,
+messe ich sie an einem Prototyp in `symbolon/governance` im Supervisor-Klon: die Spaltung, (a) bis
+(e) und die Sperre, die ein Patt aufhebt. Danach der Normtext für `04 §4.4`, Vektoren, Auftrag.
+
+**Geändert.** `07-decisions.md`.

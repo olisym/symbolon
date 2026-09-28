@@ -25778,3 +25778,44 @@ Verzeichnis, sieht zu und beendet mit Strg-C. Erwartet sind die Zeilen aus D589 
 gelegentlich ein langes Warten (Befund 1), die Meldungen aus Befund 2 und 3.
 
 **Geändert.** `07-decisions.md`.
+
+### D591 — Das Hängen: Anfragen ohne Zustellung; ein erneuter Versuch; Auftrag `p38-erneut`
+
+**Anlass.** Olis Wahl nach dem Durchlauf zu `p37-lab`: das Hängen von 15 Sekunden aufklären (D588
+Befund 2, D590 Befund 1).
+
+**Gemessen, im Supervisor-Klon auf `6548a54`.** Der Bote so ergänzt, dass er beim Ablauf der Frist
+aus D586 Beschluss 2 Ziel, Pfad, Status der Quittung und Laufzeit des Links druckt, und der Handler,
+wenn er länger als eine halbe Sekunde braucht. In 16 Läufen von `--aufloesen --reticulum` griff die
+Frist dreimal. Jedes Mal: Status `SENT`, also nicht zugestellt, kein Fortschritt, Link aktiv,
+Laufzeit unter 20 Millisekunden; kein Handler war langsam. Mit dem Protokoll von RNS auf Stufe 6
+lagen die beiden Fälle eines Laufs auf der ersten Anfrage eines eben aufgebauten Links. Die Anfrage
+erreicht den Nachbarn nicht, und RNS schickt ein einzelnes Paket auf einem Link nicht erneut.
+
+**Befund 1 — verloren, nicht langsam.** Das Hängen ist eine Anfrage, die nie zugestellt wurde; die
+Frist wartete 15 Sekunden auf eine Antwort, die nicht kommen konnte. Der Prototyp unten schickte in
+8 Läufen dreimal erneut, zweimal auf `claim`, einmal auf `bestand`; es trifft also nicht nur die
+erste Anfrage eines Links. Warum Pakete über die gemeinsame Instanz auf derselben Maschine verloren
+gehen, ist nicht gesucht; es ist die Art von D586 Befund 3 und D590 Befund 2.
+
+**Beschluss 1 — erneut senden, wenn nicht zugestellt.** Bleibt eine Anfrage länger als
+`max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * link.rtt)` im Status `SENT`, geht sie auf demselben Link
+erneut, bis zu `_VERSUCHE` Anfragen; danach gilt die Frist aus D586 Beschluss 2 wie bisher. Werte:
+eine Sekunde, das Zwanzigfache der Laufzeit, drei Anfragen. Eine zugestellte Anfrage geht nicht
+erneut. Das ist sicher, weil jede Anfrage eines Boten nur liest (D584 Beschluss 2): eine doppelte
+Anfrage bekommt eine doppelte Antwort, sonst nichts. Über Funk ist Verlust gewöhnlich; dort wäre das
+ohnehin nötig. Die Laufzeit misst RNS beim Aufbau des Links, die Frist wächst damit über langsame
+Strecken.
+
+**Gemessen mit der Reparatur.** 16 Läufe, keine Frist gegriffen, das Warten nach jedem Takt
+höchstens 1,7 Sekunden. `make check` Exit 0, 1349 Tests.
+
+**Beschluss 2 — der Auftrag `p38-erneut`.** Nur `symbolon/bote/reticulum.py` und vier Tests in
+`tests/bote/test_reticulum.py`, wörtlich im Auftrag. Rücknahmeproben vorher gefahren, jede an ihrem
+Test rot: nie erneut; ohne Grenze der Versuche; auch zugestellte Anfragen erneut; die Frist ohne
+Laufzeit; die Fristen nach einem erneuten Senden nicht neu gesetzt. Die letzte blieb zuerst grün;
+`test_versuche_begrenzt` misst deshalb die Dauer.
+
+Nicht im Auftrag: die Ursache des Verlusts in RNS, die Nachbarn nacheinander (L2), `tools/netz.py`.
+
+**Geändert.** `07-decisions.md`.

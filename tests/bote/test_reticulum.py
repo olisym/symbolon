@@ -222,3 +222,28 @@ def test_antwort_mit_fortschritt(monkeypatch) -> None:
     nachbar._link = link
     assert nachbar.bestand() == ([], [])
     assert not link.abgebaut
+
+
+class _Stockend(_Quittung):
+    """Fortschritt bis ``stockt_ab``, danach keiner mehr."""
+
+    def __init__(self, stockt_ab: float, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.stockt_ab = stockt_ab
+
+    def get_progress(self) -> float:
+        return min(time.monotonic(), self.stockt_ab)
+
+
+def test_antwort_stockt_nach_fortschritt(monkeypatch) -> None:
+    """Stockt die Antwort nach Fortschritt kürzer als die Frist, kommt sie an (D587)."""
+    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.5)
+    gut = cbor_canon.encode([0, [[], []]])
+    begun = time.monotonic()
+    quittung = _Stockend(begun + 1.0, 1.2, RNS.RequestReceipt.READY, gut, steigt=True)
+    link = _Link(quittung)
+    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar._link = link
+    assert nachbar.bestand() == ([], [])
+    assert time.monotonic() - begun >= 1.0
+    assert not link.abgebaut

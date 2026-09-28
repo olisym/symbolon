@@ -25845,3 +25845,26 @@ nach Gitea, der Spiegel geht nur von Gitea nach GitHub, und der Supervisor liest
 Zugang.
 
 **Geändert.** `07-decisions.md`.
+
+### D593 — Schluss der Sitzung 00cu
+
+**Anlass.** Nach D592 sind Stufe 1 bis 3 von O97 gebaut und abgenommen; der nächste Strang ist Olis
+Wahl zwischen dem zweiten Bild (Partitionen je Verbindung) und Stufe 4 (`netem`). Er gehört an den
+Anfang einer Sitzung.
+
+**Beschluss 1 — Stand.** Der Bote, das Lab und die erneute Anfrage stehen auf `main` (D583 bis
+D592). 1349 Tests, der Selbsttest 231 Fälle, Register D1–D593, `offen.md` 97 Posten, davon 15 offen:
+O97 und die 14 Wartestände.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: eine Rücknahmeprobe nimmt die Wirkung in jeder Form zurück, in der man sie bauen kann
+(D587); „ohne Antwort → X“ braucht einen Test, der die fehlende Antwort herstellt (D586); eine Probe
+der Bereitschaft darf den Zustand nicht herstellen, den sie prüft (D589); ein Fehler in einer
+fremden Bibliothek wird in deren Quelltext nachgelesen (D586 Befund 3, D590 Befund 2). Zum zweiten
+Mal belegt: an zwei Läufen „nicht mehr gesehen“ ist keine Bestätigung (D390, D590 Befund 1).
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cv.md` trägt Stand, Arbeitsweise, das Lab und
+die Wahl des nächsten Strangs; `sitzungsstart-00cu.md` geht nach `archiv/` (D314). Neu in der
+Arbeitsweise: Oli bekommt jeden Git-Befehl vollständig, je Schritt ein Block.
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cv.md`, `archiv/sitzungsstart-00cu.md`.

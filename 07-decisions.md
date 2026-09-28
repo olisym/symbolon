@@ -26004,3 +26004,58 @@ weil ein gestohlenes Gerät eine Brücke vortäuschen kann und die Sperre den Be
 Auftrag; Oli wählt, ob das der nächste Strang ist.
 
 **Geändert.** `07-decisions.md`.
+
+### D596 — Der Ausweg: die Sperre als Absicht, beide Brücken sperren; Auftrag `p40-ausweg`
+
+**Anlass.** Olis Antwort auf D595: die Reihenfolge ist gleich, eins nach dem anderen. Zuerst kommt
+die Sperre, weil die Norm sie schon trägt (D532) und weil sie der Massstab ist, an dem sich die
+Runden aus D595 Beschluss 4 messen lassen müssen.
+
+**Gemessen, im Supervisor-Klon auf `42697f9`.** Die Spaltung aus D594, danach sperrt Bruno auf
+seinem Gerät sein Zweitgerät, `device-end@1` ohne `v`, also mit Ende beim `device-ack`: alle sechs
+Geräte bleiben auf Fassung 2 ohne Beitrag. Sperrt danach Dora ihr Zweitgerät, stehen alle sechs auf
+Fassung 3 mit 30 Euro, ohne neue Stimme und ohne neue Feststellung.
+
+**Befund 1 — eine Brücke allein genügt nicht.** Annas Antrag braucht drei Ja; solange Doras zwei Ja
+nebeneinander stehen, zählt ihres nicht. Es braucht so viele Sperren, bis eine Seite wieder die
+Schwelle erreicht. Dazu zwingen kann das Protokoll niemanden: die Sperre ist die Handlung der Wurzel
+(D532 Beschluss 1). Weigert sich eine Brücke, bleibt die Fassung gebunden (D594 Befund 2).
+
+**Befund 2 — die alte Feststellung trägt wieder.** Anna muss nichts wiederholen. Die Kette wird nach
+`04 §4.5` neu aufgebaut, und ihre Ratifizierung aus Takt 4 ist wieder gestützt; die von Chris bleibt
+ungestützt. Es ist der Rückfall aus D342 in der Gegenrichtung.
+
+**Befund 3 — Knoten und Norm tragen die Sperre schon, es fehlte eine Absicht.** `/sim/sign` kann
+jeden Claim unterschreiben und hätte für das Lab gereicht. Eine Absicht prüft dagegen, was eine
+Person nicht falsch machen soll, und die Seite kann sie später anbieten.
+
+**Beschluss 1 — erst die Sperre, dann die Runden.**
+
+**Beschluss 2 — die Absicht `device-end`.** Der Rumpf nennt `I`, `scope`, `device` und wahlweise
+`keep`. Ist `device` in diesem Scope kein wirksam aufgenommenes Gerät von `I`, weist sie mit
+`NOT_OWN_DEVICE` ab; das trifft auch eine andere Person, das Gerät selbst und einen Schlüssel, der
+kein Gerät ist. Ist `keep` kein bekannter Claim des Geräts, weist sie mit `UNKNOWN_CLAIM` ab. Die
+Norm lässt einen fehlenden Endpunkt zu (`01 §7.3`), die Absicht nicht, weil eine Person nur bis zu
+dem sperren soll, was sie sieht. Formwidriges Hex in `device` oder `keep` ist ein gewöhnlicher
+Fehler der Eingabe. Ohne `keep` hat der Claim kein `v`, das Ende liegt beim `device-ack`. Keine
+Warnung, keine Folge (`effect` ist `None`): was eine Sperre kippt, zeigt später die Seite. Ein
+zweites Ende desselben Geräts bleibt zulässig.
+
+**Beschluss 3 — das Bild `--ausweg`.** Die Spaltung wie in D594, dann sperrt in Takt 7 Bruno und in
+Takt 8 Dora, je auf dem eigenen Gerät im Westen und über `/sim/intent`. Danach handelt niemand. Ohne
+`--ausweg` bleibt `--spaltung`, wie es ist.
+
+**Gemessen mit dem Prototyp.** `--ausweg` über HTTP und über Reticulum gefahren, beide Sperren ohne
+Abweisung. `make check` Exit 0, 1375 Tests.
+
+**Beschluss 4 — der Auftrag `p40-ausweg`.** `symbolon/node/api.py`, `tools/personen.py`,
+`tools/netz.py`; eine neue Testdatei `tests/node/test_ausweg.py` und ein Fall in
+`tests/node/test_lab.py`, wörtlich im Auftrag. Rücknahmeproben vorher gefahren, jede an ihrem Test
+rot: ohne Prüfung der Wurzel; jedes aufgenommene Gerät statt nur eines eigenen; `keep` eines anderen
+Autors; `keep` übergangen; `J` nennt die Wurzel statt des Geräts; Dora sperrt Brunos Zweitgerät;
+Bruno sperrt Doras; die Sperren auch ohne `--ausweg`.
+
+Nicht im Auftrag: die Seite (Knopf und Folge der Sperre), die Runden aus D595, eine Zeile in `04
+§8`.
+
+**Geändert.** `07-decisions.md`.

@@ -8,7 +8,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "hypothesis>=6.0", "ruff>=0.16"]
+dev = ["pytest>=8.0", "hypothesis>=6.0", "ruff>=0.16", "rns>=1.5"]
+reticulum = ["rns>=1.5"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

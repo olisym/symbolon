@@ -25547,3 +25547,56 @@ eine Grenze für Antworten (L8; `RNS.Link.request` kennt `max_response_size`), d
 `tools/abgleich.py` und `tools/netz.py`, das zweite Strg-C (D519).
 
 **Geändert.** `07-decisions.md`.
+
+### D586 — Abnahme `p36-bote`: zwei Defekte, ein Wettlauf in RNS; Nachtrag `p36b-frist`
+
+**Anlass.** Bericht zu `p36-bote`, Commit `52649e8`. Gelesen der vollständige Diff gegen `1272031`;
+die drei Testdateien stimmen Zeichen für Zeichen mit dem Auftrag überein. Das Werkzeug meldet einen
+seltenen Fehlschlag von `test_zwei_boten` und fragt, wie damit umzugehen ist.
+
+**Befund 1 — `--nachbar` verliert Nachbarn.** Mit `nargs="+"` ohne `action="extend"` gilt bei
+wiederholtem Schalter nur der letzte: `--nachbar aa --nachbar bb` ergibt allein `bb`, still. Die
+Schreibweise `[--nachbar HEX ...]` im Auftrag liess beide Lesarten zu; der Prototyp hatte `append`.
+Der Fehler kommt aus meinem Wortlaut.
+
+**Befund 2 — eine Anfrage ohne Antwort hält den Boten für immer an.** `RnsNachbar` wartet, bis RNS
+die Anfrage abschliesst. Wirft der Handler des Nachbarn eine Ausnahme, schliesst RNS die Anfrage nie
+ab: gemessen mit einem Handler, der beim ersten Aufruf wirft, blieb die Quittung über 40 Sekunden im
+Status 1, der Bote holte nichts mehr. Der Auftrag verlangte „ohne Antwort → Getrennt“; eine eigene
+Frist fehlte. Das Werkzeug hatte es als Auslegung gemeldet. Das berichtigt D585 Befund 2: der
+Fragende zählt die Runde nicht als getrennt, er bleibt stehen. Über Funk kann eine verlorene Antwort
+dasselbe auslösen.
+
+**Befund 3 — der Wettlauf liegt in `rns 1.5.4`.** Nachgelesen: die `TCPServerInterface` nimmt schon
+in ihrem Konstruktor Verbindungen an, `ifac_size` setzt `RNS/Reticulum.py` erst danach; eine
+Verbindung in dieser Lücke wirft `AttributeError` in `TCPInterface.py`. Der Abgleich läuft danach
+richtig durch. Rot wird nur die Prüfung, dass keine Ausgabe „Traceback“ enthält.
+
+**Beschluss 1 — `--nachbar` sammelt.** `action="extend"` mit `nargs="+"`: mehrere Werte hinter einem
+Schalter und wiederholte Schalter ergeben zusammen die Liste in der Reihenfolge der Eingabe.
+
+**Beschluss 2 — eine eigene Frist, die mit dem Fortschritt neu läuft.** `RnsNachbar` gibt eine
+Anfrage auf, wenn sich `get_progress()` der Quittung 15 Sekunden lang nicht geändert hat, baut den
+Link ab und meldet `Getrennt`; die nächste Runde baut einen neuen Link. Eine feste Frist hätte über
+Funk jede grosse Antwort abgebrochen. Ob 15 Sekunden über LoRa tragen, misst Stufe 4.
+
+**Beschluss 3 — geprüft wird nur ein Traceback durch den eigenen Code.** `test_zwei_boten` sucht
+statt „Traceback“ einen Rahmen unter `symbolon/bote/`. Der Wettlauf in RNS hat keinen solchen
+Rahmen; eine Ausnahme im Handler des Boten hat ihn. Verworfen: B später starten (schliesst den
+Wettlauf nicht), `rns` festlegen (keine Fassung ohne den Fehler bekannt). Ob der Fehler beim
+Hersteller gemeldet wird, entscheidet Oli.
+
+**Gemessen, im Supervisor-Klon auf `52649e8`, ohne Bytecode.** Drei neue Tests
+(`test_nachbar_mehrfach`, `test_antwort_frist`, `test_antwort_mit_fortschritt`), 42 in
+`tests/bote/`, 1328 in `make check`. Rücknahmeproben, jede an ihrem Test rot: `extend` weg; die
+Frist weg; die Frist läuft bei Fortschritt nicht neu; der Link wird nicht abgebaut; ein Handler, der
+beim ersten Aufruf wirft, macht `test_zwei_boten` an der neuen Prüfung rot, nachdem der Abgleich
+dank der Frist durchlief.
+
+**Beschluss 4 — Nachtrag auf demselben Branch.** Der Auftrag `p36b-frist` läuft auf `p36-bote`;
+dieser Eintrag steht auf dem Branch, der Merge bleibt ein Vorspulen (D578, D579). Die übrigen
+Auslegungen aus dem Bericht bleiben: Handler binden den Pfad aus der Fabrik, `HttpKnoten` prüft die
+Antworten des eigenen Knotens nicht, `parser.error` folgt der Zeile `adresse`. Ein Link, der in zehn
+Sekunden nicht aktiv wird, bleibt ohne Abbau, weiter ohne Auftrag.
+
+**Geändert.** `07-decisions.md`.

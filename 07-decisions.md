@@ -25631,3 +25631,63 @@ zurückgenommen, rot an genau diesem Test.
 Branch; danach der Merge als Vorspulen. 1329 Tests.
 
 **Geändert.** `07-decisions.md`.
+
+### D588 — Das Lab ohne Takt: wie andere es machen; frei laufen, Verlauf, Invarianten
+
+**Anlass.** Olis Wahl für `p37-lab`: die bekannten Geschichten über Reticulum, der Schalter je
+Knoten. Der Prototyp im Supervisor-Klon (`tools.netz` mit `--reticulum`, auf `001f230`) zeigte, dass
+die Geschichten vom Takt abhängen, den es über Reticulum nicht mehr gibt. Oli bat, nachzusehen, wie
+andere das machen; sonst laufen lassen und sehen, was passiert.
+
+**Der Prototyp.** Eine gemeinsame RNS-Instanz (`python -m RNS.Utilities.rnsd`) mit eigenem
+`instance_name` im Verzeichnis des Laufs; je Gerät ein Bote als Client dieser Instanz, jeder mit
+allen anderen als Nachbarn, Takt eine Sekunde; kein Durchgang des Werkzeugs mehr. Die gemeinsame
+Instanz kennt den Wettlauf der `TCPServerInterface` aus D586 Befund 3 nicht.
+
+**Befund 1 — die Geschichten hängen am Takt.** Bisher handelten erst alle, dann glich das Werkzeug
+ab. Die Boten gleichen jede Sekunde ab, auch mitten im Takt. Gemessen, je Lauf die Zeilen „Takt …“
+gegen die Fassung über HTTP: `--personen` und `--geraete` je einmal gleich. `--versehen` ohne
+Warten: in einem von fünf Läufen stimmt Bruno auf seinem Gerät nicht, weil das Nein seines
+Zweitgeräts dort zuerst ankam; mit dem geteilten Schlüssel hatte „er“ schon gestimmt, die Lüge fand
+nicht statt. Mit Warten auf gleichen Stand nach jedem Takt: `--versehen` einmal, Dora bestätigt
+einen Takt früher; `--aufloesen` in vier von fünf Läufen gleich, in einem stellte Anna sofort fest.
+Die Ursache dieses einen Laufs ist nicht gefunden.
+
+**Befund 2 — Anfragen ohne Antwort.** In mehreren Läufen blieb eine Anfrage über die gemeinsame
+Instanz ohne Antwort; die Frist aus D586 Beschluss 2 griff nach 15 Sekunden. Weil ein Bote seine
+Nachbarn nacheinander fragt, wartet dabei jeder andere Nachbar mit. Das Warten auf gleichen Stand
+dauerte dann 13 bis 16 Sekunden statt unter zwei. Die Ursache ist nicht gesucht.
+
+**Wie andere es machen.** Zwei Klassen. Deterministische Simulation: FoundationDB, TigerBeetle mit
+dem VOPR, Shadow; jede Quelle von Nichtdeterminismus (Zeit, Netz, Zufall) wird ersetzt, ein Seed
+spielt einen Lauf genau nach. Echte Systeme in echter Zeit: Jepsen, Emulatoren wie mininet oder
+Container mit `netem`; ein Nemesis setzt Fehler wie Partitionen, der Verlauf jedes Laufs wird
+aufgezeichnet, geprüft werden Invarianten auf dem Verlauf, nicht genaue Ausgaben. Shadow führt echte
+Prozesse in einem simulierten Netz deterministisch aus; ob Python mit RNS darunter läuft, ist nicht
+geprüft.
+
+**Beschluss 1 — das Lab ist Emulation, nicht Simulation.** Symbolon hat die deterministische Klasse
+schon: die Welt der Szenarien (D336 bis D342) und `tools.netz` über HTTP im Gleichschritt. Das Lab
+über Reticulum ist die zweite Klasse und läuft frei, wie Oli es wollte. Gleichschritt durch
+Pausieren der Boten verworfen: er zeigte ein Netz, das es nicht gibt, und das deterministische Bild
+gibt es schon.
+
+**Beschluss 2 — nach jedem Takt auf gleichen Stand warten.** Mit `--reticulum` und einer Geschichte
+wartet `tools.netz` nach jedem Takt, bis jedes nicht getrennte Gerät denselben Wert von `GET /stand`
+trägt, höchstens 30 Sekunden, und druckt, wie lange es dauerte oder dass es nicht gleich wurde. Das
+hält „erst handeln, dann abgleichen“, soweit das Netz es zulässt; mitten im Takt gleicht es weiter
+ab.
+
+**Beschluss 3 — der Verlauf.** Jeder Lauf schreibt jede gedruckte Zeile auch in eine Datei im
+Verzeichnis des Laufs. Zwei Läufe derselben Geschichte lassen sich so vergleichen; welche Fassung
+passiert ist, steht darin.
+
+**Beschluss 4 — die Tests prüfen Invarianten.** Nicht die Zeilen einer Geschichte, sondern: das
+Warten erkennt gleichen Stand und lässt getrennte Geräte aus; die Boten bringen verbundene Geräte
+auf denselben Stand; ein Lauf endet ohne Traceback aus eigenem Code (D586 Beschluss 3).
+
+**Beschluss 5 — offen, ohne Auftrag.** Der eine Lauf von `--aufloesen`, in dem Anna sofort
+feststellte (Befund 1). Die Anfragen ohne Antwort und die Nachbarn nacheinander (Befund 2, zu L2).
+Ob Shadow das Lab deterministisch machen könnte.
+
+**Geändert.** `07-decisions.md`.

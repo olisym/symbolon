@@ -187,6 +187,7 @@ proposal = {
   1 predecessor       : epoch_id der Vorepoche
   2 constitution_hash : SHA-256(cbor_deterministic(constitution_neu))
   3 motions           : [motion_hash, ...]            optional
+  4 ballot            : uint, größer 0                 optional
 }
 
 proposal_hash = SHA-256( DOM_NUC_PROPOSAL || cbor_deterministic(proposal) )
@@ -202,6 +203,12 @@ D565): Bytestrings der Länge 32, aufsteigend sortiert, duplikatfrei, nicht leer
 formwidrig, weil sie dasselbe sagte wie das fehlende Feld, unter einem anderen Hash. Formwidrig ist
 das Feld auch, wenn es keine Liste ist oder ein Eintrag die Form verfehlt. Wie `S` in die Auszählung
 eingeht, sagen `§3.4`, `§3.5` und `§4.4`; wann ein Vorschlag mit `S` trägt, sagt `§4.1`.
+
+**Feld 4** ist der Wahlgang des Vorschlags in seiner Epoche (`§4.7`, D598 bis D600): ein CBOR
+unsigned integer größer 0. Fehlt das Feld, ist es Wahlgang 0; alle Vorschläge ohne Feld 4 behalten
+damit ihren `proposal_hash`. `0` ist formwidrig, weil es dasselbe sagte wie das fehlende Feld, unter
+einem anderen Hash; formwidrig ist auch jeder Wert eines anderen Typs. Ein Vorschlag mit
+formwidrigem Feld 4 kommt nie durch (`§3.5`) und gehört zu keinem Wahlgang.
 
 Der eigene Domänen-Separator verhindert, dass ein `proposal_hash` je mit einem `constitution_hash`,
 einer `claim_id`, einem `epoch_id` oder einem `motion_hash` kollidiert.
@@ -381,6 +388,10 @@ durchgekommen:   |Ja| * den        >   num * n
 gescheitert:     (n - |Nein|) * den   <=   num * n
 ```
 
+**Bei einem Vorschlag** verlangt `durchgekommen` zusätzlich, dass sein Wahlgang der geltende
+Wahlgang der Epoche ist (`§4.7`). Sonst bleibt er `PENDING`, Vermerk `BALLOT_NOT_CURRENT`, Subjekt
+sein `proposal_hash`; `gescheitert` bleibt davon unberührt.
+
 Der Nenner ist `n`, nie `|Ja| + |Nein|`. Wer nicht abstimmt, senkt den Nenner nicht;
 Nichtteilnahme wirkt wie Ablehnung. Die Schwelle gilt gegenüber den **Berechtigten**, nicht
 gegenüber den Erschienenen.
@@ -390,7 +401,8 @@ schließen einander aus. Die Ausnahmen sind benannt und getragen, alle mit sicht
 Zwilling einer gegabelten Stimme (D117, `§8`), eine weitere Stimme derselben Wurzel auf denselben
 Vorschlag (`§3.1`, `§8`), eine Stimme, die eine andere ersetzt (`§3.1`, D547), ein Ja derselben
 Wurzel, das nach `§4.4` mit ihr unvereinbar ist, die Sperre eines Geräts, die eine Stimme bestreitet
-(D532), und das Verdikt, das sie wieder zurechnet (D533). Ein Vorschlag scheitert daran, dass
+(D532), das Verdikt, das sie wieder zurechnet (D533), und eine Sperre, die einen früheren Wahlgang
+aus dem Patt holt (`§4.7`). Ein Vorschlag scheitert daran, dass
 genug Berechtigte ihn ausdrücklich ablehnen — nicht daran, dass eine Frist abgelaufen ist.
 
 ### 3.3 Zustände
@@ -408,7 +420,8 @@ Voreinstellung und bedeutet, dass weiteres Wissen das Ergebnis noch drehen kann.
 Es gibt **kein Zeitfenster und keinen Abschluss**. Eine Abstimmung wird geschlossen, indem eine
 Entscheidung materialisiert wird und damit die Epoche wechselt (`§4.3`), nicht indem ein Datum
 vergeht. Die Begründung steht in D100: ein Stichtag verlangt Einigkeit darüber, welche Stimmen
-davor abgegeben wurden, und die gibt es zwischen zwei Autoren nicht (`01 §5.3`).
+davor abgegeben wurden, und die gibt es zwischen zwei Autoren nicht (`01 §5.3`). Auch ein Wahlgang
+(`§4.7`) ist kein Zeitfenster: er endet nur durch ein Patt, das der Bestand selbst beweist.
 
 ### 3.4 Welche Schwelle gilt
 
@@ -497,11 +510,12 @@ Ein nicht zusammengehöriges Paar aus Epoche und Vorschlag ist kein Stimmenprobl
 nicht davon abhängen, ob überhaupt jemand abgestimmt hat: stünde die Prüfung in der Stimmschleife,
 liefe eine Auszählung über ein unpassendes Paar **ohne** Stimmen glatt durch und meldete `PENDING`.
 
-**Dann die Form von `S`**, bei einem Vorschlag mit Feld 3:
+**Dann die Form von `S` und des Wahlgangs**, bei einem Vorschlag mit Feld 3 oder Feld 4:
 
 | Lage | Vermerk |
 |---|---|
 | Feld 3 formwidrig nach `§2.4` | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
+| Feld 4 formwidrig nach `§2.4` | `MALFORMED_PROPOSAL`, Subjekt `proposal_hash` |
 
 **Dann die Objektidentitäten, vor jedem Zugriff auf ihren Inhalt.**
 
@@ -619,9 +633,10 @@ ihn fest** und nimmt ihn damit in den Stand der Epoche auf (`§4.6`). Beides gen
    wohlgeformt nach `§3.5`, und `irrevocable_predicates` führt `vote@1` und `ratify@1`
 7. bei einem Vorschlag: **jeder Sachantrag in `S` ist festgestellt**, ein `ratify@1` auf ihn trägt
    nach dieser Prüfung
+8. bei einem Vorschlag: **sein Wahlgang ist der geltende** Wahlgang der Epoche (`§4.7`)
 
-Bei einem Sachantrag entfallen 6 und 7: er hat keine Zielverfassung und kein `S`. Die Prüfung eines
-Sachantrags hängt an keiner anderen Feststellung, die Prüfung nach 7 endet also.
+Bei einem Sachantrag entfallen 6 bis 8: er hat keine Zielverfassung, kein `S` und keinen Wahlgang.
+Die Prüfung eines Sachantrags hängt an keiner anderen Feststellung, die Prüfung nach 7 endet also.
 
 Ist der Sachantrag nach `§2.5` formwidrig, ist seine Auszählung `UNEVALUABLE` (`§3.5`), und der
 Claim endet mit `TALLY_UNEVALUABLE`. `scope` und `predecessor` des Objekts werden dabei nicht
@@ -697,6 +712,16 @@ Sachantrag nie entschieden wurde. Das Subjekt ist der Sachantrag: die Auskunft a
 ist, welche Feststellung er holen muss. Die Bedingung steht nach 6, weil sie wie 6 nicht am Claim
 hängt, und 6 behält die Nummer, unter der D200 sie führt.
 
+**Bedingung 8 — nur der geltende Wahlgang trägt** (D600, `§4.7`).
+
+| Lage | Vermerk |
+|---|---|
+| der Wahlgang des Vorschlags ist nicht der geltende | `BALLOT_NOT_CURRENT`, Subjekt `proposal_hash` |
+
+Ohne 8 trüge ein Vorschlag eines späteren Wahlgangs, dessen Zeugen die Schwelle erreichen, solange
+der frühere noch entscheiden kann; zwei Nachfolger derselben Epoche wären dann möglich. Die
+Bedingung steht nach 7 aus demselben Grund wie 7 nach 6.
+
 **Das Zielobjekt gehört zur Auszählung.** Ist `tally.state` nicht `UNEVALUABLE` und trägt das
 gereichte Zielobjekt nicht den Hash `proposal.constitution_hash`, ist das ein **`ValueError`** wie
 in Bedingung 0: ein fehlzugeordnetes Objekt ist ein Aufruferfehler und keine Lage der Welt. Ohne
@@ -713,7 +738,7 @@ zulässiges Ziel und sperrt erst den übernächsten Übergang, und zwar nur den 
 additiv angehängt, in derselben Form wie bei `TALLY_UNEVALUABLE` (D194): der eigene Vermerk bleibt
 stehen, die Verarbeitung ändert sich nicht, `dedupe_sort` führt zusammen. Das gilt für **jeden**
 Pfad ohne Folgeepoche, also auch für `UNSUPPORTED_RATIFICATION`, `UNKNOWN_WITNESS_VOTE`,
-`RATIFY_WITH_EXPIRY` und die Bedingungen 6 und 7, und ebenso für eine Feststellung eines
+`RATIFY_WITH_EXPIRY` und die Bedingungen 6 bis 8, und ebenso für eine Feststellung eines
 Sachantrags, die nicht trägt.
 
 Der Grund ist die Adresse. `UNSUPPORTED_RATIFICATION` sagt, dass diese Ratifizierung nicht trägt;
@@ -756,7 +781,7 @@ sie übernimmt, sagt ihr Unterschied zum Stand aus `S`, der ihre Klasse bestimmt
 
 Ein Mitglied darf in einer Epoche `g` mit `choice == 1` bedenken (D564 Beschluss 3):
 
-1. höchstens **einen Vorschlag** von `g`;
+1. höchstens **einen Vorschlag** von `g` je Wahlgang (`§4.7`);
 2. je **Vorbedingung** (`§2.5`) höchstens einen Sachantrag von `g`, der sie führt;
 3. **nicht zugleich** einen Vorschlag `G` von `g` und einen Sachantrag von `g`, der nicht in `S` von
    `G` steht.
@@ -769,6 +794,10 @@ Vorbedingungen und ein Ja auf einen Vorschlag neben einem Ja auf einen Sachantra
 
 - Die Epoche eines Objekts ist sein `predecessor`. Objekte verschiedener Epochen sind stets
   vereinbar.
+- Vorschläge verschiedener Wahlgänge sind für Regel 1 vereinbar. Regel 3 kennt keinen Wahlgang:
+  Sachanträge haben keinen (`§4.7`).
+- Ein Vorschlag mit formwidrigem Feld 4 gehört zu keinem Wahlgang und kommt nicht durch
+  (`§3.5`); ein Ja auf ihn ist mit jedem vereinbar.
 - Zwei Vorbedingungen sind gleich, wenn Feldname und `alt` nach `§2.5` gleich sind. `[]` ist eine
   Vorbedingung wie jede andere: zwei Sachanträge, die dasselbe fehlende Feld anlegen, teilen sie.
 - Ein formwidriger Sachantrag (`§2.5`) kommt bei keinem Beobachter durch; ein Ja auf ihn ist mit
@@ -802,8 +831,10 @@ Anträge derselben Epoche haben deshalb, gleich welcher Klasse, ein Mitglied, de
 zählt. Verletzen diese beiden Ja eine der Regeln, zählt keines von ihnen; der Widerspruch zeigt,
 dass die beiden Anträge nicht beide durchgekommen sein können.
 
-- **B1. Höchstens ein Vorschlag von `g` kommt durch.** Die Rechnung mit Regel 1. Das ist der
-  bisherige Beweis dieses Abschnitts in kürzerer Form (D102).
+- **B1. Höchstens ein Vorschlag von `g` kommt durch.** Nach `§3.2` kommt nur ein Vorschlag des
+  geltenden Wahlgangs durch; zwei durchgekommene liegen also im selben Wahlgang, und dort gilt die
+  Rechnung mit Regel 1. Das ist der bisherige Beweis dieses Abschnitts in kürzerer Form (D102), je
+  Wahlgang (D600).
 - **B2. Ein Vorschlag `G` von `g` und ein Sachantrag von `g`, der nicht in `S` von `G` steht, kommen
   nicht beide durch.** Die Rechnung mit Regel 3.
 - **B3. Zwei Sachanträge von `g` mit einer gemeinsamen Vorbedingung kommen nicht beide durch.** Die
@@ -994,6 +1025,68 @@ Form aus `§4.5`: ist ein Sachantrag festgestellt, fallen die Vermerke seiner ü
 weg. Ein unbekanntes Objekt unter einer Feststellung meldet schon die Kette
 (`EPOCH_PROPOSAL_UNAVAILABLE`); hier erscheint es nicht ein zweites Mal.
 
+### 4.7 Wahlgänge
+
+Eine Epoche `g` stimmt über ihren Nachfolger in Wahlgängen `0, 1, 2, …` ab (D598 bis D600). Der
+Wahlgang eines Vorschlags steht in seinem Feld 4 (`§2.4`); Sachanträge haben keinen. Es gibt keine
+Uhr und keinen Akt, der einen Wahlgang eröffnet: der nächste gilt, sobald der Bestand beweist, dass
+im vorigen kein Vorschlag mehr durchkommen kann. Damit endet der Stillstand, in dem jedes weitere
+Ja nach Regel 1 unvereinbar wäre, etwa nach einer Spaltung mit Doppelstimmen (D594 Befund 2).
+
+**Gebunden und frei.** Eine Wurzel `m` aus `P` ist im Wahlgang `w` **an einen Vorschlag `X`** von
+`w` **gebunden**, wenn sie eine Ja-Stimme auf `X` hat, die die Einzelprüfungen aus `§3.1` besteht:
+`N` ist der Scope, der Claim ist `ACTIVE` und trägt kein `t_exp`, `v` ist lesbar und kanonisch mit
+`choice == 1`, und die Stimme ist nicht bestritten. Die Zusammenfassung je Wurzel und `§4.4` spielen
+dafür keine Rolle; auch eine ersetzte Ja-Stimme bindet (D547). `J(m, w)` ist die Menge der
+Vorschläge von `w`, an die `m` gebunden ist. `m` ist **frei**, wenn `J(m, w)` leer ist; `F(w)` ist
+die Menge der freien Wurzeln aus `P`. `Y(X)` ist die Menge der Wurzeln mit `J(m, w) = {X}`.
+
+**Das Patt.** Ein Wahlgang `w` steht im Patt, wenn alle vier Bedingungen gelten:
+
+1. mindestens eine Wurzel aus `P` ist in `w` gebunden;
+2. keine Wurzel aus `P` hat eine aktive Ja-Stimme auf ein lokal unbekanntes Objekt;
+3. `|F(w)| * den_min <= num_min * n`, mit `[num_min, den_min]` der kleinsten Schwelle in
+   `thresholds` der Verfassung der Epoche;
+4. für jeden Vorschlag `X` von `w`, dessen Auszählung nicht an seiner Form scheitert (Feld 3 oder
+   Feld 4, `§3.5`): `(|Y(X)| + |F(w)|) * den_X <= num_X * n`, mit `[num_X, den_X]` der angewandten
+   Schwelle von `X` nach `§3.4`, oder der kleinsten Schwelle aus 3, wenn die Auszählung von `X` sie
+   nicht bestimmen kann.
+
+Kann die Auszählung der Epoche selbst nicht laufen, weil ihre Verfassung fehlt oder nach `§3.5`
+nicht regierbar ist, steht kein Wahlgang im Patt.
+
+**Der geltende Wahlgang** ist der kleinste, der nicht im Patt steht. Es gibt ihn immer: ein
+Wahlgang, in dem keine Wurzel gebunden ist, steht nach Bedingung 1 nie im Patt, und ein Bestand
+bindet nur in endlich vielen. Durchkommen kann nur ein Vorschlag des geltenden Wahlgangs (`§3.2`),
+und nur ein solcher trägt eine Folgeepoche (`§4.1`, Bedingung 8).
+
+**Warum diese Bedingungen.** `|Y(X)| + |F(w)|` ist eine obere Schranke für die zählenden Ja, die `X`
+je erreichen kann: eine Wurzel, die an einen anderen Vorschlag von `w` gebunden ist, kann für `X`
+nach Regel 1 nicht mehr zählen, und eine Wurzel in `Y(X)` oder `F(w)` höchstens einmal. Bedingung 3
+gilt einem Vorschlag, der noch nicht gestellt ist: er könnte nur freie Wurzeln sammeln, und seine
+angewandte Schwelle ist nie kleiner als die kleinste der Verfassung der Epoche (`§3.4`, D113).
+Bedingung 2 ist die Richtung aus `§4.4`: unbekannt heißt möglicherweise zählend. Bedingung 1 sorgt
+dafür, dass die Suche nach dem geltenden Wahlgang endet, auch bei einer Schwelle `num == den`, die
+`§3.5` zulässt und die nie durchkommt (D599 Befund 2).
+
+**Sicher an einem Bestand.** Kommt ein Vorschlag `X` durch, liegen seine zählenden Ja-Wurzeln in
+`Y(X)`: ein zweites Ja im selben Wahlgang nähme ihnen nach Regel 1 die Wirkung. Dann verletzt `X`
+Bedingung 4, und sein Wahlgang steht nicht im Patt. Mit B1 folgt: höchstens ein Nachfolger je
+Bestand, wie ohne Wahlgänge.
+
+**Monoton im Wissen.** Kommt eine Stimme hinzu, wechselt eine Wurzel höchstens von `F(w)` nach
+`Y(X)` oder aus `Y(X)` heraus; `|Y(X)| + |F(w)|` wächst dabei für kein `X`. Ein nachgereichtes
+Objekt erfüllt Bedingung 2 und kann ein Patt herbeiführen, nie aufheben. Wer ein Patt sieht, sieht
+es mit mehr Wissen weiter. **Vorbehalt:** eine Sperre bestreitet eine Stimme und kann eine Wurzel
+wieder freigeben (D532); dann kann ein früherer Wahlgang wieder gelten, und ein Beschluss im
+späteren fällt, abwärts wie in `§8` und `INV-04.8`. Ein Verdikt, das eine bestrittene Stimme
+zurechnet, bindet und wirkt in die andere Richtung (D533).
+
+**Was ein Wahlgang nicht ist.** Kein Zeitfenster (`§3.3`) und keine Rücknahme: Stimmen bleiben
+unwiderruflich (D97). Ein Patt nimmt keine Stimme zurück, es stellt fest, dass keine mehr wirken
+kann. Wer in einem Wahlgang gebunden ist, stimmt im nächsten neu; eine ersetzte Stimme bindet nur in
+ihrem Wahlgang.
+
 ---
 
 ## 5. Der Nukleus-Akt
@@ -1152,8 +1245,19 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   Beweis (D564 Beschluss 3).
 
 - **Vorschläge scheitern oder kommen durch; sie laufen nicht ab.** In einer Epoche, in der nichts
-  durchgeht, hängt ein Vorschlag unbegrenzt. Eine Entscheidung bildet damit gesetzte Zustimmung ab
-  und nicht, wer an einem bestimmten Tag besser mobilisiert hat.
+  durchgeht, hängt ein Vorschlag unbegrenzt, bis sein Wahlgang im Patt steht (`§4.7`). Eine
+  Entscheidung bildet damit gesetzte Zustimmung ab und nicht, wer an einem bestimmten Tag besser
+  mobilisiert hat.
+
+- **Ein Patt eröffnet den nächsten Wahlgang von selbst, aber nur mit Beweis.** Der Bestand muss
+  zeigen, dass im Wahlgang nichts mehr durchkommen kann (`§4.7`). Wer schweigt, hält das auf:
+  solange die freien Wurzeln zusammen mit den an einen Vorschlag gebundenen dessen Schwelle
+  erreichen könnten, gilt der Wahlgang weiter. Eine Uhr, die das abkürzte, gibt es nicht (D595).
+
+- **Ein Ja auf einen Sachantrag bindet über Wahlgänge hinweg.** Regel 3 kennt keinen Wahlgang: ein
+  Ja auf einen Sachantrag, der nicht in `S` eines Vorschlags steht, nimmt einem Ja auf diesen
+  Vorschlag in jedem Wahlgang die Wirkung. Wahlgänge für Sachanträge sind nicht durchgerechnet
+  (D600).
 
 - **Eine hohe Schwelle bei lauer Beteiligung macht die Verfassung faktisch unveränderlich.** Der
   Nenner ist `|P|`, nicht die Zahl der Abstimmenden. Die Schwelle ist gegen realistische

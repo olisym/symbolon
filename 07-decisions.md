@@ -26208,3 +26208,65 @@ Wahlgangs trägt), `§8` und die Golden Anchors, mit Vektoren aus diesem Prototy
 ohne Wahlgang (D598 Offen 1); Regel 3 misst am Wahlgang des Vorschlags. Danach der Auftrag.
 
 **Geändert.** `07-decisions.md`.
+
+### D600 — O98 Normtext: Wahlgänge in `04 §4.7`, Feld 4, Bedingung 8, `INV-04.12` und `INV-04.13`
+
+**Anlass.** D599 Beschluss 3. Oli hat bestätigt, dass der nächste Wahlgang von selbst gilt (D598
+Frage). Geliefert: `04-governance.md` und `04-golden-anchors.md` ganz, gegen `f656ab6`.
+
+**Beschluss 1 — Feld 4 im Vorschlagsobjekt (`§2.4`).** Der Wahlgang, ein CBOR unsigned integer
+größer 0; fehlt es, ist es Wahlgang 0, und kein bestehender `proposal_hash` ändert sich. `0` ist
+formwidrig wie die leere Liste in Feld 3, ebenso jeder andere Typ. Formwidriges Feld 4 ist
+`MALFORMED_PROPOSAL` in `§3.5`, neben Feld 3; ein Ja auf einen solchen Vorschlag ist mit jedem
+vereinbar (`§4.4`), wie bei einem formwidrigen Sachantrag.
+
+**Beschluss 2 — `durchgekommen` verlangt bei einem Vorschlag den geltenden Wahlgang (`§3.2`).**
+Sonst bleibt er `PENDING` mit dem neuen Vermerk `BALLOT_NOT_CURRENT`, Subjekt sein `proposal_hash`.
+So zeigt die Auszählung nie `PASSED` für einen Vorschlag, der nichts tragen kann. Die Liste der
+benannten Ausnahmen von „einmal wahr für immer wahr“ bekommt die Sperre, die einen früheren Wahlgang
+aus dem Patt holt.
+
+**Beschluss 3 — Bedingung 8 in `§4.1`.** Ein `ratify@1` auf einen Vorschlag trägt nur im geltenden
+Wahlgang, Vermerk `BALLOT_NOT_CURRENT`. Die Zeugenprüfung in 3 bis 5 zählt aus der Zeugenliste,
+nicht aus dem Zustand der Auszählung; ohne 8 trüge ein späterer Wahlgang, solange der frühere noch
+entscheiden kann.
+
+**Beschluss 4 — Regel 1 je Wahlgang, Regel 3 ohne (`§4.4`).** Vorschläge verschiedener Wahlgänge
+sind für Regel 1 vereinbar. Sachanträge haben keinen Wahlgang, Regel 3 misst unverändert; damit
+bindet ein Ja auf einen Sachantrag über Wahlgänge hinweg, benannt in `§8`. B1 steht jetzt je
+Wahlgang und über `§3.2`.
+
+**Beschluss 5 — `§4.7` Wahlgänge.** Gebunden ist eine Wurzel an einen Vorschlag ihres Wahlgangs,
+wenn sie eine Ja-Stimme darauf hat, die die Einzelprüfungen aus `§3.1` besteht; Zusammenfassung und
+`§4.4` zählen dafür nicht, ersetzte Ja binden. `F(w)` die freien Wurzeln, `Y(X)` die nur an `X`
+gebundenen. Patt nach vier Bedingungen: eine Wurzel gebunden; kein Ja auf ein unbekanntes Objekt;
+`|F|` mit der kleinsten Schwelle der Verfassung der Epoche nicht über der Schwelle; für jeden
+Vorschlag, der nicht an seiner Form scheitert, `|Y(X)| + |F|` nicht über seiner angewandten
+Schwelle, oder über der kleinsten, wenn sie nicht bestimmbar ist. Der geltende Wahlgang ist der
+kleinste ohne Patt. Kann die Auszählung der Epoche selbst nicht laufen, steht kein Wahlgang im Patt.
+
+**Warum `Y(X)` statt der zählenden Ja.** D598 rechnete mit `y(X)`, den zählenden Ja nach `decide`.
+Ein Ja, das heute wegen `AMBIGUOUS_VOTE` nicht zählt, kann durch eine ersetzende Stimme wieder
+zählen; mit `y(X)` wäre das Patt dann nicht monoton im Wissen. `Y(X)` nimmt jede gebundene Wurzel
+mit, die nur an `X` hängt, und ist eine obere Schranke. Regel 3 bleibt dabei unberücksichtigt; das
+macht `Y(X)` größer und das Patt vorsichtiger. Der Prototyp aus D599 ist auf diese Form umgestellt;
+die Zufallsprüfung über 150 Welten bleibt ohne Befund.
+
+**Beschluss 6 — Golden Anchors.** `INV-04.12` (im Patt kein `PASSED`, alle `PASSED` im geltenden
+Wahlgang) und `INV-04.13` (Patt monoton im Wissen, Vorbehalt Sperre), als Zufallsprüfung mit
+gemeldeter Abdeckung. `§11` mit `GV-92` bis `GV-101` in Epoche 1 von Profil D und dem
+`proposal_hash_1` mit Feld 4 `= 1`, `f3c43bdb…`, aus dem Prototyp kopiert. `GV-101` braucht eine
+Verfassung mit `[1,1]`: nur dort zeigt sich Bedingung 1, in `GV-96` scheitert schon Bedingung 3
+(Schwester von D569).
+
+**Gesucht, wer Regel 1 sonst ausspricht.** `04 §4.4` (Regeln, B1, Split Brain), `§8`
+(„Regeländerungen laufen nacheinander“, bleibt wahr), `INV-04.6` (bleibt wörtlich wahr),
+`04-prompt.md` (historisch), `example-nucleus.md` (ein Vorschlag ohne Feld 4, Hash unverändert). Die
+Kopien der Spec unter `go/`, `hs/`, `rs/` tragen `04` nicht. Die Seite, `symbolon/node/` und
+`tools/` sagt der Auftrag.
+
+**Offen.** Wahlgänge für Sachanträge; wie die Seite ein Patt und den geltenden Wahlgang zeigt; ob
+die Kette einen Vermerk trägt, dass ein Wahlgang im Patt steht. O98 bleibt offen bis zum Bau.
+
+**Geändert.** `04-governance.md` (`§2.4`, `§3.2`, `§3.3`, `§3.5`, `§4.1`, `§4.4`, `§4.7` neu, `§8`),
+`04-golden-anchors.md` (`§8`, `§11` neu), `07-decisions.md`.

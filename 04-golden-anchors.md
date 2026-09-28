@@ -371,6 +371,8 @@ Policy (D91).
 | `INV-04.9` | In einem Bestand sind zu einer Epoche nie zugleich `PASSED`: ein Vorschlag `G` und ein Sachantrag ausserhalb seines `S`; zwei Sachanträge mit gemeinsamer Vorbedingung (`04 §4.4`, B2 und B3). |
 | `INV-04.10` | Der Stand hängt nur von der Menge der festgestellten Sachanträge ab, nie von der Reihenfolge ihrer Anwendung (`04 §4.6`, B4). |
 | `INV-04.11` | Der Stand wächst: eine zusätzliche Feststellung nimmt keinem angewandten Sachantrag die Anwendung. **Vorbehalt:** fällt eine Feststellung, dann aus einem Grund nach `INV-04.7`. |
+| `INV-04.12` | Steht ein Wahlgang im Patt, ist keiner seiner Vorschläge `PASSED`; alle Vorschläge einer Epoche im Zustand `PASSED` liegen im geltenden Wahlgang (`04 §4.7`). |
+| `INV-04.13` | Ein Patt bleibt mit mehr Wissen bestehen: sieht ein Beobachter mit einem Präfix jeder Kette ein Patt, steht der Wahlgang auch im ganzen Bestand im Patt. **Vorbehalt:** eine Sperre nach `INV-04.7`. |
 
 `INV-04.2` und `INV-04.6` sind als Eigenschaftstests über einem Bereich zu prüfen, nicht an
 Einzelvektoren: `n` von 1 bis 12, `[num,den]` über allen gekürzten Brüchen mit `den <= 8` und
@@ -381,6 +383,13 @@ Einzelvektoren: `n` von 1 bis 12, `[num,den]` über allen gekürzten Brüchen mi
 die Sachanträge aus `§10.1` und ein Vorschlag mit `S` aus einer Teilmenge davon, alle Belegungen der
 Ja-Stimmen. `INV-04.10` prüft jede Reihenfolge einer Menge festgestellter Sachanträge, in der keine
 zwei eine Vorbedingung teilen; `INV-04.11` jede Erweiterung einer solchen Menge um einen weiteren.
+
+`INV-04.12` und `INV-04.13` sind über zufällige Welten zu prüfen: `P1` und eine Verfassung mit
+`[1,2]` in jeder Klasse, zwei bis fünf Vorschläge in den Wahlgängen 0 bis 2, drei bis zwölf Ja,
+Beobachter mit je einem Präfix jeder Kette. Die Prüfung meldet die Abdeckung mit: wie viele Welten
+einen Beschluss tragen, wie viele davon in einem Wahlgang größer 0, wie viele ein Patt. Ohne die
+freien Wurzeln in Bedingung 4 aus `04 §4.7` verletzt sie `INV-04.13`, ohne die Bindung an den
+geltenden Wahlgang `INV-04.12` (D599).
 
 `INV-04.5` ist negativ zu prüfen: ein Lauf mit zwei verschiedenen `now`-Werten muss byte-identische
 Ergebnisse liefern.
@@ -558,3 +567,47 @@ aus den Objekten.
 `applied` ist nach `motion_hash` sortiert, nicht nach Name. Der Stand in `GV-87` und `GV-89` ist
 in jeder der möglichen Reihenfolgen gerechnet und derselbe; mit der Gleichheit der
 Programmiersprache ergäbe `GV-89` je nach Reihenfolge `x = 2` oder `x = 3`.
+
+---
+
+## 11. Wahlgänge (`04 §2.4`, `§3.2`, `§4.1`, `§4.7`)
+
+Alle in Epoche 1 von Profil D: `n = 4`, `P1`, Verfassung `C1`. Zwei Vorschläge im Wahlgang 0:
+`GA = proposal_hash_1` mit Ziel `C2`, Klasse `membership`, `[2,3]`, drei Ja von vier; `GB` mit
+einem Ziel, das nur `arbitration` ändert, Klasse `amendment`, `[3,4]`, vier Ja von vier. Dazu `GC`
+und `GD` wie `GA`, mit Feld 4 gleich 1 und 2.
+
+```
+proposal_hash_1 mit Feld 4 = 1:
+f3c43bdbbbb33f65babaac05fb79689b79f2f91ac6004a6af235dcfb22b9058f
+  ( cbor({0: N_D, 1: epoch_id_1, 2: constitution_hash_2, 4: 1}) )
+```
+
+Die Spaltung aus D594 in Zahlen: ALICE Ja auf `GA`, CAROL Ja auf `GB`, BOB und DAVE je Ja auf beide.
+
+```
+Y(GA) = {ALICE}       Y(GB) = {CAROL}       F = {}
+GA:  (1 + 0) * 3 =  3  <=  2 * 4 =  8
+GB:  (1 + 0) * 4 =  4  <=  3 * 4 = 12
+neu:       0 * 2 =  0  <=  1 * 4 =  4        kleinste Schwelle [1,2]
+Wahlgang 0 im Patt, Wahlgang 1 gilt
+```
+
+| Vektor | Lage | Ergebnis |
+|---|---|---|
+| `GV-92` | die Spaltung | Wahlgang 0 im Patt, geltend 1; `GA` und `GB` `PENDING` mit `CONFLICTING_APPROVAL` |
+| `GV-93` | wie `GV-92`, dazu Ja von ALICE, BOB und CAROL auf `GC` | `GC` `PASSED`, an `GC` kein `CONFLICTING_APPROVAL`; ein `ratify@1` auf `GC` mit diesen drei trägt und liefert `epoch_id_2` |
+| `GV-94` | ALICE, BOB und DAVE Ja auf `GA`, DAVE auch auf `GB` | kein Patt: `(2 + 1) * 3 = 9 > 8`, CAROL ist frei; geltend 0 |
+| `GV-95` | wie `GV-94`, dazu CAROL Ja auf `GB` | Patt: `GA` `2 * 3 = 6 <= 8`, `GB` `1 * 4 <= 12`; geltend 1 |
+| `GV-96` | keine Stimme | Wahlgang 0 nicht im Patt (Bedingung 1 und 3); geltend 0 |
+| `GV-97` | wie `GV-92`, dazu Ja von ALICE, BOB und CAROL auf `GD` | geltend 1, denn in Wahlgang 1 ist niemand gebunden; `GD` `PENDING` mit `BALLOT_NOT_CURRENT`; ein `ratify@1` auf `GD` trägt nicht, Vermerk `BALLOT_NOT_CURRENT` |
+| `GV-98` | wie `GV-92`, dazu ein Ja von ALICE auf ein lokal unbekanntes Objekt | kein Patt (Bedingung 2); geltend 0 |
+| `GV-99` | `GA` mit Feld 4 `= 0` | `UNEVALUABLE`, `MALFORMED_PROPOSAL`, Subjekt sein `proposal_hash` |
+| `GV-100` | `GA` mit Feld 4 als Text `"1"` | `UNEVALUABLE`, `MALFORMED_PROPOSAL` |
+| `GV-101` | eine Verfassung wie `C1` mit `[1,1]` in jeder Klasse, keine Stimme | Wahlgang 0 nicht im Patt, geltend 0 |
+
+`GV-96` sieht Bedingung 1 nicht: dort scheitert schon Bedingung 3. Erst `GV-101` zeigt sie, denn
+mit `[1,1]` gilt `4 * 1 <= 1 * 4`, und ohne Bedingung 1 stünde jeder Wahlgang im Patt; die Suche
+nach dem geltenden endete nicht (D599 Befund 2). `GV-94` und `GV-95` sind das Paar um eine freie
+Wurzel: dieselben Stimmen bis auf CAROL, einmal kein Patt, einmal Patt. Die Hashes von `GB`, `GD`
+und der Vorschläge in `GV-99` bis `GV-101` rechnet der Test aus den Objekten.

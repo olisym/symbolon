@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 
 from symbolon import cbor_canon
@@ -20,6 +20,7 @@ from symbolon.governance.objects import (
     Motion,
     Proposal,
     apply_motions,
+    ballot_of,
     motion_list,
     motion_wellformed,
     preconditions,
@@ -42,7 +43,11 @@ class TallyState(str, Enum):
 
 @dataclass(frozen=True, slots=True)
 class TallyResult:
-    """Ergebnis von ``decide`` (04-governance.md §3.3, D106, D109)."""
+    """Ergebnis von ``decide`` (04-governance.md §3.3, D106, D109).
+
+    ``current_ballot`` ist der geltende Wahlgang, gerechnet bei einem Vorschlag, dessen Auszählung
+    ohne Wahlgang durchkäme; sonst ``None`` (04 §3.2, 04 §4.7, D601 Beschluss 1).
+    """
 
     state: TallyState
     yes: tuple[bytes, ...]
@@ -52,6 +57,7 @@ class TallyResult:
     findings: tuple[Finding, ...]
     epoch_id: bytes
     proposal_hash: bytes
+    current_ballot: int | None = None
 
     @property
     def n(self) -> int | None:
@@ -293,21 +299,27 @@ def approvals_conflict(own: Proposal | Motion, other: Proposal | Motion) -> bool
     ``predecessor``. Zwei Vorschläge sind unvereinbar, zwei Sachanträge, wenn ihre Vorbedingungen
     sich schneiden, ein Vorschlag und ein Sachantrag, wenn der Sachantrag nicht in ``S`` steht; ein
     formwidriges Feld 3 gilt als leeres ``S``.
+
+    Regel 1 gilt je Wahlgang: zwei Vorschläge sind unvereinbar, wenn ihr Wahlgang gleich ist; ein
+    Vorschlag mit formwidrigem Feld 4 ist mit jedem vereinbar (04 §4.4, D600 Beschluss 1 und 4,
+    D601 Beschluss 1).
     """
     for obj in (own, other):
         if isinstance(obj, Motion) and not motion_wellformed(obj):
             return False
+        if isinstance(obj, Proposal) and ballot_of(obj) is None:
+            return False
     if own.predecessor != other.predecessor:
         return False
     if isinstance(own, Proposal) and isinstance(other, Proposal):
-        return True
+        return ballot_of(own) == ballot_of(other)
     if isinstance(own, Motion) and isinstance(other, Motion):
         return bool(preconditions(own) & preconditions(other))
     proposal, motion = (own, other) if isinstance(own, Proposal) else (other, own)
     return motion.motion_hash not in (motion_list(proposal) or ())
 
 
-def decide(
+def _decide(
     store: ClaimStore,
     *,
     epoch: Epoch,
@@ -330,6 +342,9 @@ def decide(
     Ein Sachantrag hat kein Zielobjekt, seine Form steht vor dem Scope, seine Klasse ist
     ``ordinary`` in der Verfassung der Epoche; die Klasse eines Vorschlags misst den Stand aus
     der Verfassung der Epoche und ``S`` (04 §3.4, 04 §3.5).
+
+    Ohne den Wahlgang aus 04 §3.2; formwidriges Feld 4 ist ``MALFORMED_PROPOSAL`` neben Feld 3
+    (04 §2.4, 04 §3.5, D600 Beschluss 1, D601 Beschluss 1).
     """
     is_motion = isinstance(proposal, Motion)
     if is_motion:
@@ -362,7 +377,8 @@ def decide(
     s_hashes: tuple[bytes, ...] = ()
     if not is_motion:
         listed = motion_list(proposal)
-        if listed is None:
+        # Feld 3 oder Feld 4 formwidrig (04 §3.5, D600 Beschluss 1).
+        if listed is None or ballot_of(proposal) is None:
             return _unevaluable(
                 GovernanceFinding.MALFORMED_PROPOSAL,
                 object_hash,
@@ -657,3 +673,207 @@ def decide(
         epoch_id=epoch.epoch_id,
         proposal_hash=object_hash,
     )
+
+
+def decide(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    proposal: Proposal | Motion,
+    genesis_obj: dict,
+    constitution_obj: dict | None,
+    target_constitution_obj: dict | None,
+    known_proposals: Mapping[bytes, Proposal | Motion],
+    now: int,
+    policy: NucleusPolicy | None = None,
+    known_constitutions: Mapping[bytes, dict] | None = None,
+) -> TallyResult:
+    """Die Auszählung nach ``_decide`` und bei einem Vorschlag der Wahlgang aus 04 §3.2
+    (04 §4.7, D600 Beschluss 2, D601 Beschluss 1 und Befund 2).
+
+    Kommt ein Vorschlag durch, ist ``current_ballot`` der geltende Wahlgang; ist sein Wahlgang
+    ein anderer, bleibt er ``PENDING`` mit ``BALLOT_NOT_CURRENT``. Ohne ``known_constitutions``
+    kennt die Rechnung nur das eigene Zielobjekt.
+    """
+    if known_constitutions is None:
+        if isinstance(proposal, Proposal) and target_constitution_obj is not None:
+            known_constitutions = {proposal.constitution_hash: target_constitution_obj}
+        else:
+            known_constitutions = {}
+    result = _decide(
+        store,
+        epoch=epoch,
+        proposal=proposal,
+        genesis_obj=genesis_obj,
+        constitution_obj=constitution_obj,
+        target_constitution_obj=target_constitution_obj,
+        known_proposals=known_proposals,
+        now=now,
+        policy=policy,
+    )
+    if isinstance(proposal, Motion) or result.state is not TallyState.PASSED:
+        return result
+    current = current_ballot(
+        store,
+        epoch=epoch,
+        genesis_obj=genesis_obj,
+        constitution_obj=constitution_obj,
+        known_proposals=known_proposals,
+        known_constitutions=known_constitutions,
+        now=now,
+        policy=policy,
+    )
+    if ballot_of(proposal) == current:
+        return replace(result, current_ballot=current)
+    return replace(
+        result,
+        state=TallyState.PENDING,
+        findings=dedupe_sort(
+            [
+                *result.findings,
+                Finding(kind=GovernanceFinding.BALLOT_NOT_CURRENT, subject=proposal.proposal_hash),
+            ]
+        ),
+        current_ballot=current,
+    )
+
+
+def _lowest_threshold(constitution_obj: dict) -> tuple[int, int] | None:
+    """Die kleinste Schwelle in ``thresholds`` nach Kreuzmultiplikation; ``None``, wenn
+    ``thresholds`` keine nicht leere Map ist oder ein Wert formwidrig ist (04 §4.7 Bedingung 3,
+    D600 Beschluss 5)."""
+    thresholds = constitution_obj.get("thresholds")
+    if not isinstance(thresholds, dict) or not thresholds:
+        return None
+    lowest: tuple[int, int] | None = None
+    for value in thresholds.values():
+        if not _is_ratio(value):
+            return None
+        num, den = value
+        if lowest is None or num * lowest[1] < lowest[0] * den:
+            lowest = (num, den)
+    return lowest
+
+
+def stalemate(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    ballot: int,
+    genesis_obj: dict,
+    constitution_obj: dict | None,
+    known_proposals: Mapping[bytes, Proposal | Motion],
+    known_constitutions: Mapping[bytes, dict],
+    now: int,
+    policy: NucleusPolicy | None = None,
+) -> bool:
+    """Steht der Wahlgang ``ballot`` der Epoche im Patt? Die vier Bedingungen aus 04 §4.7
+    (D600 Beschluss 5, D601 Beschluss 1).
+
+    Kann die Auszählung der Epoche selbst nicht laufen, steht kein Wahlgang im Patt. Gebunden
+    bindet jede Ja-Stimme, die die Einzelprüfungen aus 04 §3.1 besteht, ohne Zusammenfassung je
+    Wurzel und ohne 04 §4.4.
+    """
+    if constitution_obj is None or constitution_hash(constitution_obj) != epoch.constitution_hash:
+        return False
+    if constitution_governable(constitution_obj) is not None:
+        return False
+    lowest = _lowest_threshold(constitution_obj)
+    if lowest is None:
+        return False
+    participants = frozenset(constitution_obj["participants"])
+    by_cid = classify_all(store, now, policy)
+    attr = attribution(store, by_cid, epoch.scope)
+    bound: dict[bytes, set[bytes]] = {}
+    for vote in store.all_claims():
+        if not is_nuc_name(vote, "vote") or vote.N != epoch.scope or vote.t_exp is not None:
+            continue
+        cid = claim_id(vote)
+        if by_cid[cid].state is not State.ACTIVE:
+            continue
+        root = vote_root(attr, vote)
+        if root not in participants:
+            continue
+        obj, v_kind = read_v(vote.v)
+        if v_kind is not None or obj is None or not _is_yes_choice(obj.get(0)):
+            continue
+        if attr.status(vote) is AttributionStatus.DISPUTED and not _reattributed(
+            store, by_cid, vote_cid=cid, scope=epoch.scope, constitution_obj=constitution_obj
+        ):
+            continue
+        if vote.J[0] != 3:
+            continue
+        target = resolve_object(known_proposals, vote.J[1])
+        if target is None:
+            # Bedingung 2: unbekannt heisst möglicherweise zählend.
+            return False
+        if (
+            isinstance(target, Proposal)
+            and target.scope == epoch.scope
+            and target.predecessor == epoch.epoch_id
+            and ballot_of(target) == ballot
+        ):
+            bound.setdefault(root, set()).add(target.proposal_hash)
+    # Bedingung 1.
+    if not bound:
+        return False
+    n = len(participants)
+    free = n - len(bound)
+    # Bedingung 3: ein Vorschlag, der noch nicht gestellt ist.
+    num, den = lowest
+    if free * den > num * n:
+        return False
+    # Bedingung 4: jeder Vorschlag des Wahlgangs, der nicht an Feld 3 scheitert.
+    for h in sorted(known_proposals):
+        proposal = resolve_object(known_proposals, h)
+        if not isinstance(proposal, Proposal):
+            continue
+        if proposal.scope != epoch.scope or proposal.predecessor != epoch.epoch_id:
+            continue
+        if ballot_of(proposal) != ballot or motion_list(proposal) is None:
+            continue
+        tally = _decide(
+            store,
+            epoch=epoch,
+            proposal=proposal,
+            genesis_obj=genesis_obj,
+            constitution_obj=constitution_obj,
+            target_constitution_obj=known_constitutions.get(proposal.constitution_hash),
+            known_proposals=known_proposals,
+            now=now,
+            policy=policy,
+        )
+        num_x, den_x = tally.threshold if tally.threshold is not None else lowest
+        only_here = sum(1 for hashes in bound.values() if hashes == {h})
+        if (only_here + free) * den_x > num_x * n:
+            return False
+    return True
+
+
+def current_ballot(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    genesis_obj: dict,
+    constitution_obj: dict | None,
+    known_proposals: Mapping[bytes, Proposal | Motion],
+    known_constitutions: Mapping[bytes, dict],
+    now: int,
+    policy: NucleusPolicy | None = None,
+) -> int:
+    """Der geltende Wahlgang: der kleinste ab ``0``, der nicht im Patt steht (04 §4.7, D600
+    Beschluss 5, D601 Beschluss 1)."""
+    ballot = 0
+    while stalemate(
+        store,
+        epoch=epoch,
+        ballot=ballot,
+        genesis_obj=genesis_obj,
+        constitution_obj=constitution_obj,
+        known_proposals=known_proposals,
+        known_constitutions=known_constitutions,
+        now=now,
+        policy=policy,
+    ):
+        ballot += 1
+    return ballot

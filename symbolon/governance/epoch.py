@@ -10,7 +10,14 @@ from symbolon.governance.findings import (
     GovernanceFinding,
     dedupe_sort,
 )
-from symbolon.governance.objects import Epoch, Motion, Proposal, motion_list, motion_wellformed
+from symbolon.governance.objects import (
+    Epoch,
+    Motion,
+    Proposal,
+    ballot_of,
+    motion_list,
+    motion_wellformed,
+)
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
@@ -80,9 +87,10 @@ def verify_ratification(
     """Prüft ein ``ratify@1`` gegen eine Auszählung (04 §4.1, D106, D109, D112, D200, D203, D275, D276, D432).
 
     Feststeller und Zeugen je Wurzel nach 02 §2.1 (04 §4.1 Bedingungen 1, 4 und 5).
-    Bei einem Sachantrag entfallen die Bedingungen 6 und 7, und ein tragender Claim stellt ihn
+    Bei einem Sachantrag entfallen die Bedingungen 6 bis 8, und ein tragender Claim stellt ihn
     fest; bei einem Vorschlag verlangt Bedingung 7 jeden Eintrag in ``S`` in
-    ``ratified_motions`` (04 §4.1, D567, D569).
+    ``ratified_motions`` (04 §4.1, D567, D569), Bedingung 8 seinen Wahlgang gleich
+    ``tally.current_ballot`` (04 §4.1, 04 §4.7, D600 Beschluss 3, D601 Beschluss 1).
 
     Bei einem formwidrigen Sachantrag liest der Abgleich ``scope`` nicht; der Claim endet über
     Bedingung 0 mit ``TALLY_UNEVALUABLE`` (04 §4.1, D570 Beschluss 2).
@@ -218,6 +226,19 @@ def verify_ratification(
                     *(
                         Finding(kind=GovernanceFinding.MOTION_UNRATIFIED, subject=h)
                         for h in unratified
+                    ),
+                    *tally.findings,
+                ]
+            ),
+        )
+    # Bedingung 8: nur der geltende Wahlgang trägt (04 §4.1, 04 §4.7, D600 Beschluss 3).
+    if ballot_of(proposal) != tally.current_ballot:
+        return RatificationResult(
+            next_epoch=None,
+            findings=dedupe_sort(
+                [
+                    Finding(
+                        kind=GovernanceFinding.BALLOT_NOT_CURRENT, subject=proposal.proposal_hash
                     ),
                     *tally.findings,
                 ]

@@ -211,6 +211,9 @@ def resolve_epoch(
                 known_proposals=known_proposals,
                 now=now,
                 policy=policy,
+                # Bedingung 4 aus 04 §4.7 misst die angewandte Schwelle jedes Vorschlags (D601
+                # Befund 2).
+                known_constitutions=known_constitutions,
             )
             for claim in claims:
                 result = verify_ratification(

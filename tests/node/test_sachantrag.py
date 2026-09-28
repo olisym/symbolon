@@ -14,7 +14,7 @@ from symbolon import cbor_canon
 from symbolon.atom import signed_bytes
 from symbolon.domains import DOM_NUC_PROPOSAL
 from symbolon.governance.findings import GovernanceFinding
-from symbolon.governance.objects import Motion
+from symbolon.governance.objects import ABSENT, Motion
 from symbolon.node.api import _Named, _intent_body, _tally_of
 from symbolon.node.store import ObjectKind
 from symbolon.node.view import (
@@ -227,7 +227,7 @@ def test_formwidriger_sachantrag_wird_gespeichert(tmp_path) -> None:
 
 
 def test_formwidriges_feld_3_wird_gespeichert(tmp_path) -> None:
-    """Feld 3 wie es kam; ausgezählt als formwidrig. Key 4 ist abgewiesen (04 §2.4, D577)."""
+    """Feld 3 wie es kam; ausgezählt als formwidrig. Key 5 ist abgewiesen (04 §2.4, D577, D600)."""
     world, _geraete, store = _welt(tmp_path)
     gov = world.ex.N_gov
     epoche = _sicht(store, world).state.epoch.epoch_id
@@ -239,8 +239,25 @@ def test_formwidriges_feld_3_wird_gespeichert(tmp_path) -> None:
     assert GovernanceFinding.MALFORMED_PROPOSAL in _vermerke(store, world, digest)
     with pytest.raises(ValueError, match="keys"):
         store.submit_object(
-            ObjectKind.PROPOSAL, cbor_canon.encode({0: gov, 1: epoche, 2: ziel, 4: 1})
+            ObjectKind.PROPOSAL, cbor_canon.encode({0: gov, 1: epoche, 2: ziel, 5: 1})
         )
+
+
+def test_feld_4_im_store(tmp_path) -> None:
+    """Feld 4 wird gelesen und bleibt im Hash; formwidrig bleibt es unter seinen Bytes
+    (04 §2.4, D600 Beschluss 1)."""
+    world, _geraete, store = _welt(tmp_path)
+    gov = world.ex.N_gov
+    epoche = _sicht(store, world).state.epoch.epoch_id
+    ziel = world.constitution_hash_3
+    for feld_4 in (1, 0, "1"):
+        data = cbor_canon.encode({0: gov, 1: epoche, 2: ziel, 4: feld_4})
+        digest = store.submit_object(ObjectKind.PROPOSAL, data)
+        assert digest == hashlib.sha256(DOM_NUC_PROPOSAL + data).digest()
+        assert store.all_proposals()[digest].ballot == feld_4
+        assert store.all_proposals()[digest].proposal_hash == digest
+    ohne = store.submit_object(ObjectKind.PROPOSAL, cbor_canon.encode({0: gov, 1: epoche, 2: ziel}))
+    assert store.all_proposals()[ohne].ballot is ABSENT
 
 
 def test_fremder_scope_bricht_die_sicht_nicht(tmp_path) -> None:

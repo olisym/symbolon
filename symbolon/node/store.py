@@ -120,7 +120,8 @@ class SqliteStore:
         """Liefert ein Objekt ein und gibt seinen Hash zurück (D473 Beschluss 1, D474 Beschluss 1).
 
         Ein Sachantrag und Feld 3 eines Vorschlags werden gespeichert, wie sie kamen, auch
-        formwidrig (04 §2.4, 04 §2.5, D577 Beschluss 2).
+        formwidrig (04 §2.4, 04 §2.5, D577 Beschluss 2); ebenso Feld 4 (04 §2.4, D600
+        Beschluss 1, D601 Beschluss 1).
         """
         try:
             canonical = cbor_canon.is_canonical(data)
@@ -150,8 +151,8 @@ class SqliteStore:
         elif kind is ObjectKind.PROPOSAL:
             if not isinstance(obj, dict) or any(type(key) is not int for key in obj):
                 raise ValueError("proposal object is not a map of uint keys")
-            if set(obj) not in ({0, 1, 2}, {0, 1, 2, 3}):
-                raise ValueError("proposal object keys are not 0, 1, 2 or 0, 1, 2, 3")
+            if not {0, 1, 2} <= set(obj) <= {0, 1, 2, 3, 4}:
+                raise ValueError("proposal object keys are not 0, 1, 2 and optionally 3 and 4")
             fields: list[bytes] = []
             for key in (0, 1, 2):
                 value = obj[key]
@@ -163,6 +164,7 @@ class SqliteStore:
                 predecessor=fields[1],
                 constitution_hash=fields[2],
                 motions=obj.get(3, ABSENT),
+                ballot=obj.get(4, ABSENT),
             ).proposal_hash
         elif kind is ObjectKind.MOTION:
             digest = Motion(obj).motion_hash
@@ -197,12 +199,16 @@ class SqliteStore:
         }
 
     def all_proposals(self) -> dict[bytes, Proposal]:
-        """Alle Vorschläge, Abbildung vom Hash auf das Proposal (D473, 04 §2.4, D577)."""
+        """Alle Vorschläge, Abbildung vom Hash auf das Proposal (D473, 04 §2.4, D577, D601)."""
         found: dict[bytes, Proposal] = {}
         for digest, data in self._rows(ObjectKind.PROPOSAL):
             obj = cbor_canon.decode(data)
             found[digest] = Proposal(
-                scope=obj[0], predecessor=obj[1], constitution_hash=obj[2], motions=obj.get(3, ABSENT)
+                scope=obj[0],
+                predecessor=obj[1],
+                constitution_hash=obj[2],
+                motions=obj.get(3, ABSENT),
+                ballot=obj.get(4, ABSENT),
             )
         return found
 

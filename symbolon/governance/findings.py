@@ -37,6 +37,7 @@ class GovernanceFinding(str, Enum):
     MALFORMED_PROPOSAL = "MALFORMED_PROPOSAL"
     MOTION_UNAVAILABLE = "MOTION_UNAVAILABLE"
     MOTION_UNRATIFIED = "MOTION_UNRATIFIED"
+    BALLOT_NOT_CURRENT = "BALLOT_NOT_CURRENT"  # 04 §3.2, 04 §4.1 Bedingung 8, D600
 
 
 @dataclass(frozen=True, slots=True, order=True)

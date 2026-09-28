@@ -42,14 +42,20 @@ ABSENT = _Absent()
 
 
 def proposal_hash(
-    scope: bytes, predecessor: bytes, constitution_hash: bytes, motions: object = ABSENT
+    scope: bytes,
+    predecessor: bytes,
+    constitution_hash: bytes,
+    motions: object = ABSENT,
+    ballot: object = ABSENT,
 ) -> bytes:
     """SHA-256(DOM_NUC_PROPOSAL || cbor({0: scope, 1: predecessor, 2: constitution_hash}));
     Key 3 genau dann, wenn ``motions`` nicht ``ABSENT`` ist, auch mit ``None`` als ``null``
-    (04 §2.4, D578 Beschluss 1)."""
+    (04 §2.4, D578 Beschluss 1); Key 4 ebenso mit ``ballot`` (04 §2.4, D600 Beschluss 1)."""
     obj: dict = {0: scope, 1: predecessor, 2: constitution_hash}
     if motions is not ABSENT:
         obj[3] = motions
+    if ballot is not ABSENT:
+        obj[4] = ballot
     return hashlib.sha256(DOM_NUC_PROPOSAL + cbor_canon.encode(obj)).digest()
 
 
@@ -71,17 +77,32 @@ class Proposal:
     """Content-adressiertes Vorschlagsobjekt (04-governance.md §2.4).
 
     ``motions`` ist Feld 3, wie es kam; ``ABSENT`` heisst, das Feld fehlt, ``None`` ist der Wert
-    ``null`` (D569 Beschluss 2, D578 Beschluss 1).
+    ``null`` (D569 Beschluss 2, D578 Beschluss 1). ``ballot`` ist Feld 4, wie es kam; ``ABSENT``
+    heisst Wahlgang 0 (04 §2.4, D600 Beschluss 1, D601 Beschluss 1).
     """
 
     scope: bytes
     predecessor: bytes
     constitution_hash: bytes
     motions: object = ABSENT
+    ballot: object = ABSENT
 
     @property
     def proposal_hash(self) -> bytes:
-        return proposal_hash(self.scope, self.predecessor, self.constitution_hash, self.motions)
+        return proposal_hash(
+            self.scope, self.predecessor, self.constitution_hash, self.motions, self.ballot
+        )
+
+
+def ballot_of(proposal: Proposal) -> int | None:
+    """Der Wahlgang aus Feld 4: ``0`` ohne Feld 4, der Wert bei einem ``int`` größer 0, sonst
+    ``None``, auch bei ``bool`` (04 §2.4, 04 §4.7, D600 Beschluss 1, D601 Beschluss 1)."""
+    ballot = proposal.ballot
+    if ballot is ABSENT:
+        return 0
+    if type(ballot) is int and ballot > 0:
+        return ballot
+    return None
 
 
 def motion_list(proposal: Proposal) -> tuple[bytes, ...] | None:

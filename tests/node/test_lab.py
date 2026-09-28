@@ -12,7 +12,9 @@ from tests.node.test_abgleich import _bestand, _knoten, _soll, _url
 from tests.node.test_api import _call, _start, _stop
 from tools.netz import (
     Ausgabe,
+    adressen_der,
     boten,
+    gesperrt_gemeldet,
     instanz_bereit,
     instanz_name,
     rns_konfiguration,
@@ -34,6 +36,8 @@ _EIGENER_RAHMEN = r'File "[^"]*[/\\](symbolon|tools)[/\\]'
         (["--versehen", "--reticulum"], ("--versehen", True)),
         (["--geraete", "--reticulum"], ("--geraete", True)),
         (["--aufloesen", "--reticulum"], ("--aufloesen", True)),
+        (["--spaltung"], ("--spaltung", False)),
+        (["--spaltung", "--reticulum"], ("--spaltung", True)),
     ],
 )
 def test_schalter(argv, erwartet) -> None:
@@ -153,3 +157,40 @@ def test_boten(tmp_path) -> None:
     assert re.search(_EIGENER_RAHMEN, "\n".join(zeilen)) is None
     assert (tmp_path / "rns" / "config").exists()
     assert (tmp_path / "a.sqlite.id").exists() and (tmp_path / "b.sqlite.id").exists()
+
+
+def test_boten_sperren(tmp_path) -> None:
+    """B sperrt A: B bleibt ohne den Verein und meldet es; entsperrt holt B nach (D594 B. 3)."""
+    path_a = tmp_path / "a.sqlite"
+    anlegen(path_a)
+    soll = _soll(path_a)
+    a = _start(path_a, lambda: _NOW)
+    b = _knoten(tmp_path / "b.sqlite")
+    leer = _bestand(b)
+    geraete = [("Gerät A", "a.sqlite", frozenset()), ("Gerät B", "b.sqlite", frozenset())]
+    adr_a, _adr_b = adressen_der(tmp_path, geraete)
+    (tmp_path / "sperren").mkdir()
+    (tmp_path / "sperren" / "b.sqlite.txt").write_text(adr_a + "\n", encoding="utf-8")
+    zeilen: list[str] = []
+    stand: dict[str, int | None] = {}
+    prozesse = boten(tmp_path, geraete, [_url(a), _url(b)], zeilen.append, stand)
+    try:
+        assert gesperrt_gemeldet(stand, {"Gerät B": 1}, frist=40.0), zeilen
+        assert ruhe([_url(a), _url(b)], frist=5.0) is None
+        assert _bestand(b) == leer
+        (tmp_path / "sperren" / "b.sqlite.txt").write_text("", encoding="utf-8")
+        assert gesperrt_gemeldet(stand, {"Gerät B": 0}, frist=40.0), zeilen
+        assert ruhe([_url(a), _url(b)], frist=40.0) is not None
+        assert _bestand(b) == soll
+    finally:
+        for prozess in prozesse:
+            prozess.terminate()
+        for prozess in prozesse:
+            prozess.wait(timeout=10)
+        _stop(a)
+        _stop(b)
+    assert "Gerät B: gesperrt=1" in zeilen and "Gerät B: gesperrt=0" in zeilen, zeilen
+    assert "Gerät A: gesperrt=1" not in zeilen, zeilen
+    gesperrt_ab = zeilen.index("Gerät B: gesperrt=1")
+    frei_ab = zeilen.index("Gerät B: gesperrt=0")
+    assert not [z for z in zeilen[gesperrt_ab:frei_ab] if z.startswith("Gerät B ← Gerät A")], zeilen

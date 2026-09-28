@@ -9,7 +9,7 @@ from pathlib import Path
 import RNS
 
 from symbolon.bote.draht import PFADE, beantworten, lesen
-from symbolon.bote.kern import Getrennt, HttpKnoten, Quelle, holen
+from symbolon.bote.kern import Getrennt, HttpKnoten, Quelle, rundgang
 
 APP = "symbolon"
 ASPEKT = "bote"
@@ -148,8 +148,12 @@ def laufen(
     nachbarn: list[bytes],
     takt: float,
     melden: Callable[[str], None],
+    sperren: Path | None = None,
 ) -> None:
-    """Anbieten und im Takt von jedem Nachbarn holen (D584 Beschluss 1 und 2, D585 Beschluss 3)."""
+    """Anbieten und im Takt von jedem Nachbarn holen (D584 Beschluss 1 und 2, D585 Beschluss 3).
+
+    Vor jedem Nachbarn liest ``rundgang`` die Sperrliste ``sperren`` (D594 Beschluss 3).
+    """
     RNS.Reticulum(configdir=str(konfiguration))
     destination = RNS.Destination(
         ident, RNS.Destination.IN, RNS.Destination.SINGLE, APP, ASPEKT
@@ -157,13 +161,8 @@ def laufen(
     mein = HttpKnoten(knoten_url)
     anbieten(destination, mein)
     quellen = [(ziel, RnsNachbar(ziel)) for ziel in nachbarn]
+    zuletzt: frozenset[bytes] | None = frozenset()
     while True:
         destination.announce()
-        for ziel, nachbar in quellen:
-            e = holen(mein, nachbar)
-            if e.geholt or e.abgewiesen or e.fehlend or e.formwidrig:
-                melden(
-                    f"{ziel.hex()}: geholt={e.geholt} abgewiesen={e.abgewiesen} "
-                    f"fehlend={e.fehlend} formwidrig={e.formwidrig}"
-                )
+        zuletzt = rundgang(mein, quellen, sperren, zuletzt, melden)
         time.sleep(takt)

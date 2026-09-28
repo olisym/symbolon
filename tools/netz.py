@@ -1,4 +1,7 @@
-"""Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4, D523, D542, D588)."""
+"""Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4, D523, D542, D588).
+
+Die Spaltung in West und Ost steht in D594.
+"""
 
 from __future__ import annotations
 
@@ -47,6 +50,10 @@ GERAETE_GERAETE: list[tuple[str, str, frozenset[str]]] = [
     for name, datei, personen in GERAETE_VERSEHEN
 ]
 
+# Die zwei Gruppen der Spaltung, Geräte aus GERAETE_GERAETE (D594 Beschluss 1).
+WEST = ("Annas Gerät", "Brunos Gerät", "Doras Gerät")
+OST = ("Chris' Gerät", "Brunos Zweitgerät", "Doras Zweitgerät")
+
 _PORT = 8471
 _HOST = "127.0.0.1"
 _WARTEN = 10
@@ -54,10 +61,10 @@ _TAKT = 2
 _RUHE = 30.0
 _BEREIT = 10.0
 _BOTE_TAKT = "1"
-_GESCHICHTEN = ("--personen", "--versehen", "--geraete", "--aufloesen")
+_GESCHICHTEN = ("--personen", "--versehen", "--geraete", "--aufloesen", "--spaltung")
 _USAGE = (
     "usage: python -m tools.netz <verzeichnis> "
-    "[--personen | --versehen | --geraete | --aufloesen] [--reticulum]"
+    "[--personen | --versehen | --geraete | --aufloesen | --spaltung] [--reticulum]"
 )
 
 # Der Ablauf, den der Startbefehl druckt (D518, „Der Ablauf, den der Startbefehl druckt“).
@@ -114,10 +121,67 @@ ZUSEHEN_AUFLOESEN = [
     "Kommt Doras Zweitgerät zurück, zählt ihre Stimme einmal, und der Beschluss hält.",
 ]
 
+# Der Text zum Zusehen in der Spaltung (D594 Beschluss 1).
+ZUSEHEN_SPALTUNG = [
+    *ZUSEHEN_VERSEHEN[:3],
+    "Die Geräte stehen in zwei Gruppen, die sich eine Weile nicht sehen: West mit Annas, Brunos und "
+    "Doras Gerät, Ost mit Chris' Gerät und den Zweitgeräten von Bruno und Dora.",
+    "Anna beantragt in West 30 Euro Beitrag, Chris in Ost 20 Euro. Bruno und Dora stimmen auf beiden "
+    "Seiten Ja, und jede Seite stellt ihren Beschluss fest.",
+    "Vereint zählen Brunos und Doras Ja nirgends mehr, beide Feststellungen fallen, und jedes Gerät "
+    "zeigt die alte Satzung.",
+]
 
-def durchgang(urls: list[str]) -> int:
-    """Ein Durchgang: runde über jedes Paar in der Ordnung von combinations (D518 Beschluss 2)."""
-    return sum(runde(url_a, url_b).eingeliefert for url_a, url_b in itertools.combinations(urls, 2))
+
+def durchgang(urls: list[str], gruppen: list[list[int]] | None = None) -> int:
+    """Ein Durchgang: runde über jedes Paar in der Ordnung von combinations (D518 Beschluss 2).
+
+    Mit ``gruppen`` nur Paare innerhalb einer Gruppe, Gruppe für Gruppe (D594 Beschluss 2).
+    """
+    if gruppen is None:
+        paare = list(itertools.combinations(urls, 2))
+    else:
+        paare = [
+            (urls[a], urls[b]) for teil in gruppen for a, b in itertools.combinations(teil, 2)
+        ]
+    return sum(runde(url_a, url_b).eingeliefert for url_a, url_b in paare)
+
+
+def gruppen(geraete, getrennt: bool) -> list[list[int]]:
+    """Getrennt West, dann Ost als Stellen in ``geraete``; sonst eine Gruppe (D594 Beschluss 1)."""
+    namen = [name for name, _datei, _personen in geraete]
+    if not getrennt:
+        return [list(range(len(namen)))]
+    return [[namen.index(name) for name in WEST], [namen.index(name) for name in OST]]
+
+
+def sperrdateien(verzeichnis: Path, geraete, adressen: list[str], teile: list[list[int]]) -> None:
+    """Je Gerät ``sperren/<datei>.txt`` mit den Adressen ausserhalb seiner Gruppe (D594 B. 3)."""
+    sperren = verzeichnis / "sperren"
+    sperren.mkdir(parents=True, exist_ok=True)
+    for teil in teile:
+        fremde = [hex_ for index, hex_ in enumerate(adressen) if index not in teil]
+        for index in teil:
+            datei = geraete[index][1]
+            (sperren / f"{datei}.txt").write_text(
+                "".join(hex_ + "\n" for hex_ in fremde), encoding="utf-8"
+            )
+
+
+def gesperrt_gemeldet(
+    stand: dict[str, int | None], erwartet: dict[str, int], frist: float = _RUHE
+) -> bool:
+    """Wartet, bis jeder Bote aus ``erwartet`` die erwartete Zahl gemeldet hat (D594 Beschluss 3).
+
+    Nach der Frist ``False``.
+    """
+    beginn = time.monotonic()
+    while True:
+        if all(stand.get(geraet) == zahl for geraet, zahl in erwartet.items()):
+            return True
+        if time.monotonic() - beginn >= frist:
+            return False
+        time.sleep(0.1)
 
 
 def _antwortet(url: str, prozess: subprocess.Popen) -> bool:
@@ -182,23 +246,32 @@ def instanz_bereit(name: str, tabelle: Path = Path("/proc/net/unix")) -> bool:
     return False
 
 
-def ruhe(urls: list[str], frist: float = _RUHE) -> float | None:
+def ruhe(
+    urls: list[str], frist: float = _RUHE, gruppen: list[list[int]] | None = None
+) -> float | None:
     """Wartet, bis jedes nicht getrennte Gerät denselben Stand trägt (D588 Beschluss 2).
 
-    Gibt die Sekunden bis dahin zurück, nach der Frist ``None``. Ein Fehler beim Lesen gilt als
-    nicht gleich.
+    Mit ``gruppen`` genügt gleicher Stand je Gruppe; ohne ist es eine Gruppe mit allen (D594
+    Beschluss 3). Gibt die Sekunden bis dahin zurück, nach der Frist ``None``. Ein Fehler beim
+    Lesen gilt als nicht gleich.
     """
+    if gruppen is None:
+        gruppen = [list(range(len(urls)))]
     beginn = time.monotonic()
     while True:
         try:
-            staende = set()
-            for url in urls:
-                with urllib.request.urlopen(url + "/getrennt", timeout=1) as response:
-                    if json.loads(response.read()) is True:
-                        continue
-                with urllib.request.urlopen(url + "/stand", timeout=1) as response:
-                    staende.add(json.loads(response.read()))
-            if len(staende) <= 1:
+            gleich = True
+            for teil in gruppen:
+                staende = set()
+                for index in teil:
+                    url = urls[index]
+                    with urllib.request.urlopen(url + "/getrennt", timeout=1) as response:
+                        if json.loads(response.read()) is True:
+                            continue
+                    with urllib.request.urlopen(url + "/stand", timeout=1) as response:
+                        staende.add(json.loads(response.read()))
+                gleich = gleich and len(staende) <= 1
+            if gleich:
                 return time.monotonic() - beginn
         except (urllib.error.URLError, OSError):
             pass
@@ -221,12 +294,28 @@ class Ausgabe:
                 datei.write(zeile + "\n")
 
 
-def _mitlesen(prozess: subprocess.Popen, geraet: str, namen: dict[str, str], ausgeben) -> None:
-    """Die Zeilen eines Boten, ein Holen als „Gerät ← Nachbar: …“ (D589 Beschluss 1)."""
+def _mitlesen(
+    prozess: subprocess.Popen,
+    geraet: str,
+    namen: dict[str, str],
+    ausgeben,
+    stand: dict[str, int | None] | None = None,
+) -> None:
+    """Die Zeilen eines Boten, ein Holen als „Gerät ← Nachbar: …“ (D589 Beschluss 1).
+
+    Mit ``stand`` steht dort je Gerät die zuletzt gemeldete Zahl der Sperren, bei einer formwidrigen
+    Liste ``None`` (D594 Beschluss 3).
+    """
     for zeile in prozess.stdout:
         zeile = zeile.rstrip("\n")
         if zeile.startswith("adresse "):
             continue
+        if stand is not None:
+            gesperrt = re.fullmatch(r"gesperrt=(\d+)", zeile)
+            if gesperrt:
+                stand[geraet] = int(gesperrt.group(1))
+            elif zeile == "sperren formwidrig":
+                stand[geraet] = None
         treffer = re.fullmatch(r"([0-9a-f]{32}): (.*)", zeile)
         if treffer and treffer.group(1) in namen:
             ausgeben(f"{geraet} ← {namen[treffer.group(1)]}: {treffer.group(2)}")
@@ -234,14 +323,28 @@ def _mitlesen(prozess: subprocess.Popen, geraet: str, namen: dict[str, str], aus
             ausgeben(f"{geraet}: {zeile}")
 
 
-def boten(verzeichnis: Path, geraete, urls: list[str], ausgeben) -> list[subprocess.Popen]:
-    """Die gemeinsame Instanz, dann je Gerät ein Bote mit allen anderen (D588, D589 Beschluss 1).
-
-    Rückgabe: ``rnsd`` zuerst, dann die Boten.
-    """
+def adressen_der(verzeichnis: Path, geraete) -> list[str]:
+    """Die Adressen der Geräte in Hex, aus ihren Identitäten ``<datei>.id`` (D589 Beschluss 1)."""
     # Erst hier: rns ist ein Zusatz, ohne ``--reticulum`` nicht verlangt (D584 Beschluss 4).
     from symbolon.bote.reticulum import adresse, identitaet
 
+    return [
+        adresse(identitaet(verzeichnis / f"{datei}.id")).hex() for _name, datei, _personen in geraete
+    ]
+
+
+def boten(
+    verzeichnis: Path,
+    geraete,
+    urls: list[str],
+    ausgeben,
+    stand: dict[str, int | None] | None = None,
+) -> list[subprocess.Popen]:
+    """Die gemeinsame Instanz, dann je Gerät ein Bote mit allen anderen (D588, D589 Beschluss 1).
+
+    Jeder Bote liest ``sperren/<datei>.txt``; was er meldet, steht in ``stand`` (D594 Beschluss 3).
+    Rückgabe: ``rnsd`` zuerst, dann die Boten.
+    """
     rns = rns_konfiguration(verzeichnis)
     rnsd = subprocess.Popen(
         [sys.executable, "-m", "RNS.Utilities.rnsd", "--config", str(rns)],
@@ -257,10 +360,10 @@ def boten(verzeichnis: Path, geraete, urls: list[str], ausgeben) -> list[subproc
             raise SystemExit("Die gemeinsame RNS-Instanz startet nicht.")
         time.sleep(0.1)
     dateien = [verzeichnis / f"{datei}.id" for _name, datei, _personen in geraete]
-    adressen = [adresse(identitaet(pfad)).hex() for pfad in dateien]
+    adressen = adressen_der(verzeichnis, geraete)
     namen = {hex_: geraet for hex_, (geraet, _datei, _personen) in zip(adressen, geraete)}
     prozesse = [rnsd]
-    for index, ((geraet, _datei, _personen), url, pfad) in enumerate(zip(geraete, urls, dateien)):
+    for index, ((geraet, datei, _personen), url, pfad) in enumerate(zip(geraete, urls, dateien)):
         nachbarn = [hex_ for anderer, hex_ in enumerate(adressen) if anderer != index]
         bote = subprocess.Popen(
             [
@@ -276,13 +379,15 @@ def boten(verzeichnis: Path, geraete, urls: list[str], ausgeben) -> list[subproc
                 *nachbarn,
                 "--takt",
                 _BOTE_TAKT,
+                "--sperren",
+                str(verzeichnis / "sperren" / f"{datei}.txt"),
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
         )
         threading.Thread(
-            target=_mitlesen, args=(bote, geraet, namen, ausgeben), daemon=True
+            target=_mitlesen, args=(bote, geraet, namen, ausgeben, stand), daemon=True
         ).start()
         prozesse.append(bote)
     return prozesse
@@ -295,7 +400,10 @@ def main() -> None:
     ``--versehen`` ebenso, über ``GERAETE_VERSEHEN`` (D523 Beschluss 4). Mit ``--geraete``
     ebenso, über ``GERAETE_GERAETE`` und mit den Aufnahmen im Bestand (D542 Beschluss 1 und 3).
     Mit ``--aufloesen`` wie ``--geraete``, dazu die Regeln aus ``takt`` unter ``aufloesen``
-    (D551 Beschluss 2). Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt
+    (D551 Beschluss 2). Mit ``--spaltung`` über ``GERAETE_GERAETE`` die Takte aus
+    ``takt_spaltung``; in den Takten aus ``SPALTUNG`` werden West und Ost getrennt und wieder
+    verbunden, über HTTP im Durchgang, über Reticulum mit den Sperrlisten, auf deren Meldung er
+    wartet (D594 Beschluss 1 bis 3). Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt
     der Durchgänge; mit einer Geschichte wartet er nach jedem Takt auf gleichen Stand. Jede Zeile
     steht auch in ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
     """
@@ -304,7 +412,8 @@ def main() -> None:
     geschichte, reticulum = schalter(sys.argv[2:])
     personen_an = geschichte is not None
     aufloesen = geschichte == "--aufloesen"
-    mit_geraeten = geschichte == "--geraete" or aufloesen
+    spaltung = geschichte == "--spaltung"
+    mit_geraeten = geschichte == "--geraete" or aufloesen or spaltung
     if mit_geraeten:
         geraete = GERAETE_GERAETE
     elif geschichte == "--versehen":
@@ -312,7 +421,7 @@ def main() -> None:
     else:
         geraete = GERAETE
     # Erst hier: tools.personen liest GERAETE aus diesem Modul.
-    from tools.personen import takt
+    from tools.personen import SPALTUNG, takt, takt_spaltung
 
     verzeichnis = Path(sys.argv[1])
     verzeichnis.mkdir(parents=True, exist_ok=True)
@@ -343,8 +452,9 @@ def main() -> None:
         for (name, _datei, _personen), url, prozess in zip(geraete, urls, prozesse):
             if not _antwortet(url, prozess):
                 raise SystemExit(f"{name} antwortet nicht unter {url}; alle Knoten werden beendet.")
+        stand: dict[str, int | None] = {}
         if reticulum:
-            prozesse.extend(boten(verzeichnis, geraete, urls, ausgeben))
+            prozesse.extend(boten(verzeichnis, geraete, urls, ausgeben, stand))
         jetzt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ausgeben(f"Start {jetzt}: {' '.join(sys.argv[2:])}")
         for (name, _datei, _personen), url in zip(geraete, urls):
@@ -352,7 +462,9 @@ def main() -> None:
         ausgeben("")
         if personen_an:
             ausgeben("Zum Zusehen:")
-            if aufloesen:
+            if spaltung:
+                text = ZUSEHEN_SPALTUNG
+            elif aufloesen:
                 text = ZUSEHEN_AUFLOESEN
             elif mit_geraeten:
                 text = ZUSEHEN_GERAETE
@@ -369,25 +481,43 @@ def main() -> None:
         gemeldet: set[tuple[str, str]] = set()
         gesehen: dict[tuple[str, str], list[dict]] = {}
         nummer = 0
+        teile = gruppen(geraete, False)
         while True:
             time.sleep(_TAKT)
             if personen_an:
+                if spaltung and nummer in SPALTUNG:
+                    teile = gruppen(geraete, nummer == SPALTUNG[0])
+                    if reticulum:
+                        sperrdateien(verzeichnis, geraete, adressen_der(verzeichnis, geraete), teile)
+                        erwartet = {
+                            geraete[index][0]: len(geraete) - len(teil)
+                            for teil in teile
+                            for index in teil
+                        }
+                        if not gesperrt_gemeldet(stand, erwartet):
+                            ausgeben(f"Takt {nummer}: nicht jeder Bote hat die Sperren gelesen")
+                    zustand = "getrennt" if nummer == SPALTUNG[0] else "wieder verbunden"
+                    ausgeben(f"Takt {nummer}: West und Ost {zustand}")
                 try:
-                    for zeile in takt(urls, nummer, gemeldet, geraete, gesehen, aufloesen):
+                    if spaltung:
+                        zeilen = takt_spaltung(urls, nummer, geraete)
+                    else:
+                        zeilen = takt(urls, nummer, gemeldet, geraete, gesehen, aufloesen)
+                    for zeile in zeilen:
                         ausgeben(zeile)
                 except Exception as exc:
                     ausgeben(f"Ein Takt ist gescheitert ({exc}); es geht weiter.")
                 nummer += 1
             if reticulum:
                 if personen_an:
-                    dauer = ruhe(urls)
+                    dauer = ruhe(urls, gruppen=teile)
                     if dauer is None:
                         ausgeben(f"Abgleich über Reticulum: nach {_RUHE:.0f} s nicht gleich")
                     else:
                         ausgeben(f"Abgleich über Reticulum: gleicher Stand nach {dauer:.1f} s")
                 continue
             try:
-                verteilt = durchgang(urls)
+                verteilt = durchgang(urls, teile)
             except Exception as exc:
                 ausgeben(f"Ein Durchgang ist gescheitert ({exc}); es geht weiter.")
                 continue

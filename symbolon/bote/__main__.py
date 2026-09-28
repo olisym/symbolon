@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -15,6 +16,7 @@ def main(argv: list[str] | None = None) -> None:
         "--nachbar", action="extend", nargs="+", type=bytes.fromhex, default=[], metavar="HEX"
     )
     parser.add_argument("--takt", type=float, default=2.0, metavar="SEKUNDEN")
+    parser.add_argument("--sperren", type=Path, metavar="DATEI")
     parser.add_argument("--nur-adresse", action="store_true")
     args = parser.parse_args(argv)
     try:
@@ -33,6 +35,7 @@ def main(argv: list[str] | None = None) -> None:
             args.nachbar,
             args.takt,
             lambda zeile: print(zeile, flush=True),
+            args.sperren,
         )
     except KeyboardInterrupt:
         pass

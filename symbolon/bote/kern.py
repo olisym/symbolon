@@ -8,7 +8,9 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Protocol
 
 _ZEITLIMIT = 10
@@ -163,3 +165,62 @@ def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
         else:
             abgewiesen[name] = abgewiesen.get(name, 0) + 1
     return Ergebnis(geholt, abgewiesen, False, fehlend, formwidrig)
+
+
+def sperrliste(text: str) -> frozenset[bytes]:
+    """Je Zeile leer oder eine Adresse aus 16 Bytes in Hex, sonst formwidrig (D594 Beschluss 3)."""
+    adressen: set[bytes] = set()
+    for zeile in text.splitlines():
+        zeile = zeile.strip()
+        if not zeile:
+            continue
+        try:
+            adresse = bytes.fromhex(zeile)
+        except ValueError as exc:
+            raise Formwidrig() from exc
+        if len(adresse) != 16:
+            raise Formwidrig()
+        adressen.add(adresse)
+    return frozenset(adressen)
+
+
+def sperren_lesen(pfad: Path) -> frozenset[bytes] | None:
+    """Ohne Datei ist niemand gesperrt; unlesbar oder formwidrig ``None`` (D594 Beschluss 3)."""
+    try:
+        text = pfad.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return frozenset()
+    except (OSError, UnicodeDecodeError):
+        return None
+    try:
+        return sperrliste(text)
+    except Formwidrig:
+        return None
+
+
+def rundgang(
+    mein: HttpKnoten,
+    quellen: list[tuple[bytes, Quelle]],
+    sperren: Path | None,
+    zuletzt: frozenset[bytes] | None,
+    melden: Callable[[str], None],
+) -> frozenset[bytes] | None:
+    """Vor jedem Nachbarn die Sperrliste lesen, keinen gesperrten fragen (D594 Beschluss 3).
+
+    Ändert sich die gelesene Liste gegenüber ``zuletzt``, steht das einmal als Zeile; ist sie
+    formwidrig, wird kein Nachbar gefragt. Rückgabe: die zuletzt gelesene Liste.
+    """
+    for ziel, nachbar in quellen:
+        gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
+        if gesperrt != zuletzt:
+            melden("sperren formwidrig" if gesperrt is None else f"gesperrt={len(gesperrt)}")
+            zuletzt = gesperrt
+        if gesperrt is None or ziel in gesperrt:
+            continue
+        e = holen(mein, nachbar)
+        if e.geholt or e.abgewiesen or e.fehlend or e.formwidrig:
+            melden(
+                f"{ziel.hex()}: geholt={e.geholt} abgewiesen={e.abgewiesen} "
+                f"fehlend={e.fehlend} formwidrig={e.formwidrig}"
+            )
+    return zuletzt

@@ -26,6 +26,15 @@ _AUFLOESER = "BRUNO"
 # Der Takt der Trennung und der Takt der Wiederverbindung (D523 Beschluss 3).
 TRENNUNG = (3, 7)
 
+# Der Takt der Spaltung und der Takt der Vereinigung; die Anträge in West und Ost mit Gerät und
+# Person, die ihn stellt und feststellt (D594 Beschluss 1).
+SPALTUNG = (2, 6)
+ANTRAG_OST = {"set": {"field": "beitrag", "text": "20 Euro im Jahr, fällig im Januar, an die Kasse"}}
+_SPALTUNG_ANTRAEGE = (
+    ("Annas Gerät", "ANNA", ANTRAG),
+    ("Chris' Gerät", "CHRIS", ANTRAG_OST),
+)
+
 
 def absichten(geraet: str, person: str, I: str, aufgaben: list[dict]) -> list[dict]:
     """Rümpfe für POST /sim/intent aus den Aufgaben, in deren Reihenfolge (D521 Beschluss 2)."""
@@ -227,4 +236,61 @@ def takt(
             "change": ANTRAG,
         }
         zeilen.append(_einliefern(url, f"Takt {nummer}, {_ANTRAG_GERAET}: {_ANTRAG_PERSON}", rumpf))
+    return zeilen
+
+
+def takt_spaltung(
+    urls: list[str], nummer: int, geraete: list[tuple[str, str, frozenset[str]]]
+) -> list[str]:
+    """Ein Takt der Spaltung ohne den Durchgang: erst die Personen, dann die Anträge (D594 B. 1).
+
+    Ab dem Takt der Vereinigung handelt niemand mehr, ohne eine Anfrage. Sonst Geräte in der
+    Ordnung von ``geraete``, Personen je Gerät nach Namen: jedes VOTE wird Ja, auf einem Zweitgerät
+    sonst nichts; CONFIRM_RULES und RECEIPT werden erledigt, RATIFY nur von der Person, die auf
+    diesem Gerät den Antrag stellt. Im Takt der Spaltung stellen Anna und Chris danach je einen
+    Antrag. Keine Prüfung auf mehrere Spitzen.
+    """
+    if nummer >= SPALTUNG[1]:
+        return []
+    namen: dict[str, str] = {
+        eintrag["name"]: eintrag["I"] for eintrag in _anfrage(urls[0], "GET", "/names")[1]
+    }
+    feststeller = {(geraet, person) for geraet, person, _antrag in _SPALTUNG_ANTRAEGE}
+    zeilen: list[str] = []
+    for (geraet, _datei, personen), url in zip(geraete, urls):
+        for person in sorted(personen):
+            I = namen[person]
+            kopf = f"Takt {nummer}, {geraet}: {person}"
+            aufgaben: list[dict[str, Any]] = _anfrage(url, "GET", f"/tasks/{I}")[1]
+            for aufgabe in aufgaben:
+                art = aufgabe["art"]
+                if art == "VOTE":
+                    rumpf = {"I": I, "art": "vote", "proposal": aufgabe["proposal"], "choice": "yes"}
+                elif geraet.endswith("Zweitgerät"):
+                    continue
+                elif art == "CONFIRM_RULES":
+                    rumpf = {
+                        "I": I,
+                        "art": "accept-rules",
+                        "scope": aufgabe["scope"],
+                        "constitution": aufgabe["constitution"],
+                    }
+                elif art == "RECEIPT":
+                    rumpf = {"I": I, "art": "receipt", "obligation": aufgabe["obligation"]}
+                elif art == "RATIFY" and (geraet, person) in feststeller:
+                    rumpf = {"I": I, "art": "ratify", "proposal": aufgabe["proposal"]}
+                else:
+                    continue
+                zeilen.append(_einliefern(url, kopf, rumpf))
+    if nummer == SPALTUNG[0]:
+        namen_geraete = [name for name, _datei, _personen in geraete]
+        for geraet, person, antrag in _SPALTUNG_ANTRAEGE:
+            url = urls[namen_geraete.index(geraet)]
+            rumpf = {
+                "I": namen[person],
+                "art": "propose",
+                "scope": _vereinsscope(url),
+                "change": antrag,
+            }
+            zeilen.append(_einliefern(url, f"Takt {nummer}, {geraet}: {person}", rumpf))
     return zeilen

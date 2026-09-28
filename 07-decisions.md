@@ -25492,3 +25492,58 @@ Die Nachbarn nennt der Bote in `p36` als Adressen beim Start; die Entdeckung üb
 bleibt offen.
 
 **Geändert.** `07-decisions.md`.
+
+### D585 — Prototyp zum Boten; die Form auf dem Draht; Auftrag `p36-bote`
+
+**Anlass.** D584 Beschluss 4: der Auftrag `p36-bote`. Nach der Arbeitsweise zuerst der Prototyp in
+der Form des Auftrags, die Tests in der Fassung des Auftrags, jede Rücknahmeprobe dagegen gefahren.
+Gelesen: `AGENTS.md`, `tests/node/test_abgleich.py`, die Testhilfen in `tests/node/test_api.py`,
+`symbolon/cbor_canon.py`, `SqliteStore.submit_object`, dazu `RNS.Destination` und `RNS.Link` in
+`rns 1.5.4`.
+
+**Gemessen, im Supervisor-Klon auf `5c5cad4`, ohne Bytecode.** Der Prototyp fährt `make check` ganz,
+Exit 0, 1324 Tests in 171 Sekunden; danach kam ein Test für das fehlende Objekt hinzu, 1325. Die
+drei Testdateien des Boten laufen in elf Sekunden, davon zehn im Test über zwei RNS-Instanzen.
+
+**Befund 1 — RNS prüft die Signatur eines Request-Handlers an der Zahl der Parameter.** Ein Handler
+mit einem siebten Parameter, einem Vorgabewert zum Binden des Pfads, wirft im Faden von RNS einen
+`TypeError`. Die Anfrage bleibt ohne Antwort, der Fragende sieht nach Ablauf der Frist nur
+„getrennt“. Nur der Test über zwei Instanzen hat es gesehen; der Handler wird deshalb aus einer
+Fabrik gebaut.
+
+**Befund 2 — ein Fehler im Handler ist für den Fragenden ein Schweigen.** Jede Ausnahme ausser
+`Getrennt` endet wie Befund 1. Der Bote fängt sie nicht: der Fehler bleibt im Protokoll des
+antwortenden Boten sichtbar, der fragende zählt die Runde als getrennt.
+
+**Beschluss 1 — die Form auf dem Draht.** Die Destination ist `symbolon.bote`, ihre Adresse der
+Hash der Destination; die Identität liegt in einer Datei und bleibt über Starts gleich. Drei Pfade,
+`bestand`, `claim`, `object`. Die Anfrage `bestand` trägt keine Daten, `claim` und `object` je einen
+Byte-String zu 32 Byte. Jede Antwort ist kanonisches CBOR (`01 §3`): `[0, inhalt]` bei Erfolg,
+`[1]` getrennt, `[2]` fehlt, `[3]` formwidrige Anfrage. Der Inhalt ist für `bestand` die Liste der
+`claim_id` und die der Objekt-Hashes, für `claim` die signierten Bytes, für `object` Art und Bytes.
+`[1]` ist `h'8101'`.
+
+**Beschluss 2 — der formwidrige Fall.** Der Bote nimmt fremden Inhalt an, also nennt der Auftrag,
+was formwidrig ist (D474, D526, D572). Eine formwidrige Anfrage bekommt `[3]`, ohne dass der Knoten
+gefragt wird. Eine Antwort ist formwidrig, wenn sie keine Bytes, kein kanonisches CBOR oder nicht in
+der Form aus Beschluss 1 ist; `[2]` auf `bestand` ist formwidrig. Ein formwidriger Bestand beendet
+das Holen; ein formwidriger einzelner Eintrag wird übersprungen und gezählt.
+
+**Beschluss 3 — was ein Holen meldet.** Geholt, die Abweisungen je Name und getrennt wie in D516
+Beschluss 4, dazu `fehlend` (der Nachbar nennt einen Eintrag und liefert ihn nicht) und
+`formwidrig`. Der Bote druckt eine Zeile nur, wenn eine Zahl davon nicht null ist.
+
+**Beschluss 4 — der Auftrag `p36-bote`.** Das Paket `symbolon/bote/` mit `kern.py` (Holen ohne
+Transport), `draht.py` (die Bytes aus Beschluss 1 ohne Transport), `reticulum.py` (die Bindung) und
+`__main__.py`; `rns>=1.5` in `dev` und als Zusatz `reticulum`. Die Tests stehen wörtlich im Auftrag,
+39 in `tests/bote/`. Rücknahmeproben vorher gefahren, jede an ihrem Test rot: die Rückkehr bei
+getrenntem eigenem Knoten, die Zählung fehlender Objekte und Claims, der Abbruch bei formwidrigem
+Bestand, die Länge 32 der Anfrage, die Prüfung auf kanonisches CBOR, `[2]` auf `bestand`, die leere
+Anfrage `bestand`, die geschlossene Menge der Pfade und das Anbieten selbst. Die Zählung fehlender
+Objekte blieb zuerst grün; der Test für das fehlende Objekt kam deshalb hinzu.
+
+Nicht im Auftrag: die Entdeckung über Announces (L2), eine Prüfung der `claim_id` beim Holen (L7),
+eine Grenze für Antworten (L8; `RNS.Link.request` kennt `max_response_size`), das Lab (`p37`),
+`tools/abgleich.py` und `tools/netz.py`, das zweite Strg-C (D519).
+
+**Geändert.** `07-decisions.md`.

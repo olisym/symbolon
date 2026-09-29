@@ -453,14 +453,20 @@ LoRa, dann über Funk (`ROADMAP §7`). Stufen und Lücken L1 bis L10 in D583. O9
 
 Sperre als Absicht (D596), Wahlgänge mit Patt in Norm, Bibliothek und Knoten (D598–D603).
 
-### O99 Die Seite zeigt keinen Wahlgang und kein Patt
+### O99 Die Seite zeigt keinen Wahlgang und kein Patt — erledigt (D606)
 
-Der Knoten rechnet mit Wahlgängen und nennt nur Aufgaben im geltenden (D603). Die Seite sagt nicht,
-dass ein Wahlgang im Patt steht und warum alte Anträge nichts mehr bewirken; das braucht einen
-Durchlauf mit Oli (D490, D603).
+„Im Verein“ sagt, wenn eine Abstimmung vorbei ist; der Verlauf wandert nach O101 (D605, D606).
 
 ### O100 Das Patt kostet Zeit
 
 Der geltende Wahlgang wird bei jedem durchgekommenen Vorschlag und in jeder Aufgabenliste neu
 gerechnet, und das Patt klassifiziert den Bestand je Wahlgang und je Vorschlag. Die Testreihe wurde
 merklich langsamer (D601 Befund 4, D604 Befund 1); auf einem Telefon oder über LoRa ungemessen.
+
+### O101 Die Seite hat kein Konzept dafür, was ein Mensch zuerst sieht
+
+Olis Durchlauf zu D605: „Im Verein“ ist eine gewachsene Liste ohne Zweck. Eine Fassungsnummer ohne
+Inhalt, die Mitgliederliste doppelt, „Alle haben bestätigt“ ohne Bezug; die Bestätigung gehört zur
+Ansicht der Satzung. Offen: was „Im Verein“ ist (Lage, Neuigkeiten), der Tab „Verlauf“ (D605),
+Ansichten je Grösse des Bildschirms, und wie ein Mensch ankommt, der nichts weiss; das beginnt mit
+Gründung und Beitritt (D606).

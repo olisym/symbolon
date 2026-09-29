@@ -26485,3 +26485,42 @@ Beschluss 3, und keine Widerspruchskarte steht oben.
 Nicht im Auftrag: der Tab „Verlauf“, der zweite Teil von O99.
 
 **Geändert.** `07-decisions.md`.
+
+### D606 — Abnahme `p43-laufend`: angenommen; Olis Durchlauf, O99 erledigt, O101 neu
+
+**Anlass.** Bericht zu `p43-laufend`, Commit `97c773d`, Basis `e703577`, ausgeführt mit Cursor statt
+Claude Code. Dazu Olis Durchlauf mit `--spaltung` auf dem Branch (D490).
+
+**Geprüft.** Den Diff aus dem Spiegel habe ich ganz gelesen und gegen den Prototyp aus D605
+verglichen. Die Tests sind gleich, der Code ist gleichwertig: anders sind Kommentare, die Ordnung
+der Importe, in `view.py` die Lage als `if`/`else` statt als Ausdruck und im Tab „Anträge“ Zeile und
+Knöpfe über `else if`. Vier Rücknahmeproben rot, mit benannten Fällen, 1403 Tests, 241 Fälle.
+
+**Befund 1 — das Werkzeug.** Die Deny-Regeln aus D592 stehen in der Konfiguration von Claude Code;
+Cursor kennt sie nicht. Die Abnahme hängt daran nicht, sie liest den Diff. Ob Cursor Befehle wie
+`git push` ohne Rückfrage ausführt, prüft Oli in dessen Einstellungen.
+
+**Befund 2 — Olis Durchlauf.** Als Anna wüsste er nicht, was los ist, und auch nicht, worum es
+überhaupt geht. Zu „Im Verein“ im Einzelnen: die Nummer der Fassung sagt nichts ohne ihren Inhalt
+und den Unterschied zur vorigen; die Mitgliederliste steht auch im Tab „Mitglieder“; „Alle haben die
+geltende Satzung bestätigt.“ hat keinen Bezug, wer bestätigt hat, gehört zur Ansicht der Satzung.
+Seine Frage: was ist der Tab, Neuigkeiten oder Verlauf? Die ehrliche Antwort: nichts davon. „Im
+Verein“ war „Im Verein gerade“ (D506 Beschluss 2), eine Liste, der jeder Auftrag eine Zeile
+hinzufügte. Der Satz aus D605 steht richtig darin und geht darin unter.
+
+**Befund 3 — was Oli daraus wichtiger ist.** Nicht die Oberfläche fertig machen, sondern wissen, was
+wir abbilden, und ausprobieren, wo es hakt. Ein Mensch ohne Einführung wäre nach einer halben Minute
+verloren; das ist zu erwarten, solange niemand ankommt, der nichts weiss.
+
+**Beschluss 1 — angenommen.** `p43-laufend` wird nach `main` vorgespult. Die Seite behauptet nicht
+mehr, eine tote Abstimmung laufe; das ist eine Korrektur, keine Gestaltung.
+
+**Beschluss 2 — O99 erledigt, O101 neu.** Der Kern von O99, dass die Seite ein Patt verschweigt, ist
+behoben. Der Tab „Verlauf“ und alles, was Olis Durchlauf über die Seite sagt, gehören zu einer
+Frage, die grösser ist als ein Tab: was ein Mensch zuerst sieht. Das ist O101, und es beginnt dort,
+wo ein Mensch ankommt, bei Gründung und Beitritt.
+
+**Beschluss 3 — die Reihenfolge bleibt.** Als Nächstes Reticulum Stufe 4 mit den fertigen Bildern,
+dann die Bestandsaufnahme zur Gründung, die O101 mitnimmt.
+
+**Geändert.** `offen.md` (O99 erledigt, O101 neu), `07-decisions.md`.

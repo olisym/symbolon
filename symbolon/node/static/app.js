@@ -15,7 +15,9 @@ import {
   spitzeBestaetigen,
 } from "./geraet.js";
 import {
+  ANTRAG_VORBEI,
   VORHERSAGE,
+  abstimmungVorbeiSatz,
   abweisungInWorten,
   aenderungen,
   antragMarke,
@@ -35,6 +37,8 @@ import {
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
+  laufend,
+  laufendeGruppen,
   mitgliedschaftInWorten,
   nachHandlung,
   nameVon,
@@ -898,7 +902,8 @@ async function widerspruchKarten(forks, kontext) {
 // oben steht; wie die Gabelkarte mit Marke, Satz, Punkten und Kennungen (D542 Beschluss 6, D543).
 function geraeteKarten(kontext) {
   const karten = [];
-  for (const gruppe of kontext.geraetestimmen) {
+  // Nur Gruppen zu Anträgen der laufenden Abstimmung (04 §4.7, D605 Beschluss 4).
+  for (const gruppe of laufendeGruppen(kontext.geraetestimmen, kontext.antraege)) {
     const { karte: alsKarte, satz, punkte } = geraeteSatz(
       nameVon(kontext.namen, gruppe.root),
       gruppe,
@@ -922,7 +927,8 @@ function geraeteKarten(kontext) {
 // Titeln dieser Anträge in ihrer Reihenfolge; sie steht oben (D556 Beschluss 4, 04 §4.4).
 function zustimmungKarten(kontext) {
   const titelJeWurzel = new Map();
-  for (const antrag of kontext.antraege) {
+  // Karten nur zu Anträgen der laufenden Abstimmung (04 §4.7, D605 Beschluss 4).
+  for (const antrag of kontext.antraege.filter(laufend)) {
     for (const wurzel of antrag.conflicting ?? []) {
       if (!titelJeWurzel.has(wurzel)) titelJeWurzel.set(wurzel, []);
       titelJeWurzel.get(wurzel).push(antragTitel(antrag.changes, kontext.namen));
@@ -959,8 +965,12 @@ function vereinGerade(view, kontext) {
   );
   const hinweis = hinweisSatzungGeaendert(mitglieder);
   if (hinweis) saetze.push(hinweis);
-  const offen = antraege.filter((antrag) => antrag.state === "PENDING");
-  const angenommen = antraege.filter((antrag) => antrag.state === "PASSED");
+  // Offen und angenommen nur aus der laufenden Abstimmung; davor der Satz, wenn eine vorbei ist
+  // (04 §4.7, D605 Beschluss 2 und 3).
+  const offen = antraege.filter((antrag) => laufend(antrag) && antrag.state === "PENDING");
+  const angenommen = antraege.filter((antrag) => laufend(antrag) && antrag.state === "PASSED");
+  const vorbei = abstimmungVorbeiSatz(antraege);
+  if (vorbei) saetze.push(vorbei);
   if (offen.length === 0 && angenommen.length === 0) saetze.push("Keine offenen Anträge.");
   for (const antrag of offen) {
     saetze.push(`Offener Antrag: „${antragTitel(antrag.changes, namen)}“, ${standZeile(antrag)}.`);
@@ -971,12 +981,14 @@ function vereinGerade(view, kontext) {
   // Stimmen einer Wurzel von mehreren Schlüsseln mit gleicher Wahl und der Satz einer Auflösung
   // (D542 Beschluss 6, D551 Beschluss 5); ohne Satz, wenn die Wurzel unter conflicting steht
   // (D556 Beschluss 4).
-  for (const gruppe of kontext.geraetestimmen) {
+  // Sätze nur zu Gruppen der laufenden Abstimmung (04 §4.7, D605 Beschluss 4).
+  for (const gruppe of laufendeGruppen(kontext.geraetestimmen, antraege)) {
     const { karte, satz } = geraeteSatz(nameVon(namen, gruppe.root), gruppe, namen, antraege);
     if (!karte && satz !== null) saetze.push(satz);
   }
-  // Je Stimme eines gesperrten Geräts ein Satz (D556 Beschluss 5).
-  for (const antrag of antraege) {
+  // Je Stimme eines gesperrten Geräts ein Satz, nur für laufende Anträge (D556 Beschluss 5,
+  // 04 §4.7, D605 Beschluss 4).
+  for (const antrag of antraege.filter(laufend)) {
     for (const schluessel of antrag.disputed ?? []) {
       saetze.push(gesperrtSatz(nameVon(namen, schluessel), antragTitel(antrag.changes, namen)));
     }
@@ -1113,7 +1125,11 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, h
     if (antragZitate(antrag.changes).length === 0 && antrag.changes.fields.length > 0) {
       for (const text of aenderungen(antrag.changes, namen)) karte.append(zeile(text));
     }
-    if (antrag.state === "PENDING") {
+    if (!laufend(antrag)) {
+      // Ausserhalb der laufenden Abstimmung keine Ja- und Nein-Knöpfe (04 §4.7, D605 Beschluss 2
+      // und 3).
+      karte.append(zeile(ANTRAG_VORBEI));
+    } else if (antrag.state === "PENDING") {
       karte.append(
         knopfReihe(
           knopf("Ja …", () => handeln("vote", { proposal: antrag.proposal, choice: "yes" })),
@@ -1412,7 +1428,8 @@ async function zeichnenInhalt() {
     ["Im Verein", 0, () => [vereinGerade(govView, kontext), ...unten]],
     [
       "Anträge",
-      antraege.filter((antrag) => antrag.state === "PENDING").length,
+      // Nur PENDING in der laufenden Abstimmung (04 §4.7, D605 Beschluss 2).
+      antraege.filter((antrag) => laufend(antrag) && antrag.state === "PENDING").length,
       () => [antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln)],
     ],
     ["Vertrauen", 0, () => [vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln)]],

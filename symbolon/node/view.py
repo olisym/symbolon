@@ -276,6 +276,9 @@ class ProposalView:
     Stimmen unter ``CONFLICTING_APPROVAL``, ``disputed`` die Schlüssel der Stimmen unter
     ``DISPUTED_VOTE`` (D556 Beschluss 4 und 5, 04 §4.4, 04 §3.1). ``kind`` ist ``proposal`` oder
     ``motion``, ``motions`` die Liste ``S`` eines Vorschlags (04 §2.4, D577 Beschluss 5).
+    ``ballot`` ist der Wahlgang eines Vorschlags und ``None`` bei einem Sachantrag; ``current``
+    ist falsch ausserhalb des geltenden Wahlgangs, auch bei formwidrigem Feld 4, und wahr für
+    jeden Sachantrag (04 §4.7, D605 Beschluss 1).
     """
 
     proposal: bytes
@@ -291,6 +294,9 @@ class ProposalView:
     changes: ProposalChanges
     conflicting: tuple[bytes, ...]
     disputed: tuple[bytes, ...]
+    # Wahlgang und Lage (04 §4.7, D605 Beschluss 1).
+    ballot: int | None = None
+    current: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -398,6 +404,8 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
     ``DISPUTED_VOTE``; ein Subjekt, das nicht im Bestand liegt, fällt weg (D556 Beschluss 4 und 5).
     Die Änderungen eines Vorschlags stehen gegen den Stand aus der Verfassung der Epoche und den
     bekannten, wohlgeformten Sachanträgen aus ``S`` (04 §4.6, D577 Beschluss 5, D580).
+    ``ballot`` und ``current`` nennen Wahlgang und Lage gegen den geltenden Wahlgang, einmal
+    gerechnet (04 §4.7, D605 Beschluss 1).
     """
     if scope not in store.all_genesis():
         raise ValueError("genesis of scope is not in the store")
@@ -410,6 +418,8 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
     constitutions = store.all_constitutions()
     current = view.state.constitution_obj
     attr = attribution(store, classify_all(store, now, view.state.policy), scope)
+    # Der geltende Wahlgang einmal (04 §4.7, D605 Beschluss 1).
+    geltend = ballot_view(store, scope, now)
     result: list[ProposalView] = []
     for digest, tally in view.verein.decisions:
         # Ein festgestellter Sachantrag gehört zum Stand, nicht zu den Anträgen (04 §4.6, D580).
@@ -450,9 +460,16 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 }
             )
         )
-        kind, motions, changes = _antrag_aenderungen(
-            proposals[digest], current, constitutions, proposals
-        )
+        antrag = proposals[digest]
+        kind, motions, changes = _antrag_aenderungen(antrag, current, constitutions, proposals)
+        # Ein Vorschlag nur bei gleichem Wahlgang, formwidriges Feld 4 nicht; ein Sachantrag immer
+        # (04 §4.7, D605 Beschluss 1).
+        if isinstance(antrag, Proposal):
+            ballot = ballot_of(antrag)
+            im_geltenden = ballot == geltend
+        else:
+            ballot = None
+            im_geltenden = True
         result.append(
             ProposalView(
                 proposal=digest,
@@ -468,6 +485,8 @@ def proposals_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Proposal
                 changes=changes,
                 conflicting=conflicting,
                 disputed=disputed,
+                ballot=ballot,
+                current=im_geltenden,
             )
         )
     return tuple(sorted(result, key=lambda item: item.proposal))

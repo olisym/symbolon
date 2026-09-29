@@ -18,8 +18,10 @@ import {
   verbuchen,
 } from "./geraet.js";
 import {
+  ANTRAG_VORBEI,
   KEIN_SATZ,
   absichtSatz,
+  abstimmungVorbeiSatz,
   abweisungInWorten,
   aenderungen,
   antragMarke,
@@ -38,6 +40,8 @@ import {
   geschichte,
   hinweisSatzungGeaendert,
   kassenZeilen,
+  laufend,
+  laufendeGruppen,
   konfliktWarnung,
   mitgliedschaftInWorten,
   nachHandlung,
@@ -1218,6 +1222,43 @@ function sachantragFaelle() {
   return results;
 }
 
+// Die laufende Abstimmung: was ein Satzungsantrag ausserhalb des geltenden Wahlgangs auf der Seite
+// ist (04 §4.7, D605 Beschluss 2 bis 4).
+function wahlgangFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  const vorbei =
+    "Die bisherige Abstimmung über eine neue Fassung ist vorbei: keiner ihrer Anträge kann noch " +
+    "durchkommen. Ein neuer Antrag kann es.";
+  gleich("laufend: ausserhalb des geltenden Wahlgangs", laufend({ kind: "proposal", current: false }), false);
+  gleich("laufend: im geltenden Wahlgang", laufend({ kind: "proposal", current: true }), true);
+  gleich("laufend: ohne Angabe", laufend({ kind: "motion" }), true);
+  gleich(
+    "abstimmungVorbeiSatz: ein Satzungsantrag vorbei",
+    abstimmungVorbeiSatz([{ kind: "proposal", current: true }, { kind: "proposal", current: false }]),
+    vorbei,
+  );
+  gleich("abstimmungVorbeiSatz: alle laufend", abstimmungVorbeiSatz([{ kind: "proposal", current: true }]), null);
+  gleich("abstimmungVorbeiSatz: nur ein Sachantrag", abstimmungVorbeiSatz([{ kind: "motion", current: false }]), null);
+  gleich("abstimmungVorbeiSatz: keine Anträge", abstimmungVorbeiSatz([]), null);
+  gleich("abstimmungVorbeiSatz: ohne Liste", abstimmungVorbeiSatz(undefined), null);
+  const gruppe = (proposal) => ({ root: "01".repeat(32), proposal, stimmen: [], ersetzt: [] });
+  gleich(
+    "laufendeGruppen: nur Gruppen zu laufenden Anträgen der Seite",
+    laufendeGruppen(
+      [gruppe("aa"), gruppe("bb"), gruppe("cc")],
+      [
+        { proposal: "aa", current: true },
+        { proposal: "bb", current: false },
+      ],
+    ),
+    [gruppe("aa")],
+  );
+  gleich("ANTRAG_VORBEI", ANTRAG_VORBEI, "Kann nicht mehr durchkommen. Ein neuer Antrag kann es.");
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1226,6 +1267,7 @@ export async function run(vectors, subtle) {
   results.push(...fuehrungFaelle());
   results.push(...feinschliffFaelle());
   results.push(...sachantragFaelle());
+  results.push(...wahlgangFaelle());
   return results;
 }
 

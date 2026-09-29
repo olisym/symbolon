@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
+
 from symbolon.governance.objects import ABSENT, Proposal, ballot_of
 from symbolon.node import view as view_modul
 from symbolon.node.store import SqliteStore
 from symbolon.node.view import _decide_proposal, _known, scope_view
 from tests.node.test_abgleich import _url
-from tests.node.test_api import _stop
+from tests.node.test_api import _call, _stop
 from tests.node.test_personen import _ausgang
 from tests.node.test_spaltung import _arten, _lage
 from tests.node.test_versehen import _start
@@ -95,6 +97,41 @@ def test_bild_wahlgang(tmp_path) -> None:
         alte = [p for p in dieselbe if p is not neu]
         # Die Anträge aus Takt 2 und was der Verein vorher kannte: alle ohne Feld 4.
         assert len(alte) >= 2 and all(p.ballot is ABSENT for p in alte), alte
+    finally:
+        for server in knoten:
+            _stop(server)
+
+
+def _antraege(server) -> list[dict]:
+    status, body = _call(server, "GET", f"/proposals/{build().ex.N_gov.hex()}")
+    assert status == 200, body
+    return json.loads(body)
+
+
+def test_antraege_laufend(tmp_path) -> None:
+    """Vereint stehen die Anträge der Spaltung ausserhalb des geltenden Wahlgangs; Annas neuer
+    Antrag steht darin (04 §4.7, D605 Beschluss 1)."""
+    jetzt = {"t": _NOW}
+    knoten = []
+    for name, datei, personen in GERAETE_GERAETE:
+        anlegen(tmp_path / datei, personen, geraete=True)
+        knoten.append(_start(tmp_path / datei, name, lambda: jetzt["t"]))
+    try:
+        urls = [_url(server) for server in knoten]
+        anna = knoten[[name for name, _d, _p in GERAETE_GERAETE].index("Annas Gerät")]
+        teile = gruppen(GERAETE_GERAETE, False)
+        for nummer in range(WAHLGANG + 1):
+            jetzt["t"] = _NOW + nummer
+            if nummer in SPALTUNG:
+                teile = gruppen(GERAETE_GERAETE, nummer == SPALTUNG[0])
+            if nummer == WAHLGANG:
+                alt = _antraege(anna)
+                assert len(alt) == 2, alt
+                assert {(a["kind"], a["ballot"], a["current"]) for a in alt} == {("proposal", 0, False)}
+            takt_spaltung(urls, nummer, GERAETE_GERAETE, wahlgang=True)
+            durchgang(urls, teile)
+        neu = [a for a in _antraege(anna) if a["proposal"] not in {b["proposal"] for b in alt}]
+        assert [(a["ballot"], a["current"]) for a in neu] == [(1, True)], neu
     finally:
         for server in knoten:
             _stop(server)

@@ -359,6 +359,33 @@ export function gesperrtSatz(name, titel) {
   return `Eine Stimme von ${name} zum Antrag „${titel}“ zählt nicht: das Gerät ist gesperrt.`;
 }
 
+// Ein Antrag der laufenden Abstimmung: current ist nicht falsch (04 §4.7, D605 Beschluss 2).
+export function laufend(antrag) {
+  return antrag.current !== false;
+}
+
+// Steht ein Satzungsantrag ausserhalb der laufenden Abstimmung, der Satz; ohne Liste keiner
+// (04 §4.7, D605 Beschluss 3).
+export function abstimmungVorbeiSatz(antraege) {
+  const vorbei = (antraege ?? []).some((antrag) => antrag.kind === "proposal" && !laufend(antrag));
+  if (!vorbei) return null;
+  return (
+    "Die bisherige Abstimmung über eine neue Fassung ist vorbei: keiner ihrer Anträge kann noch " +
+    "durchkommen. Ein neuer Antrag kann es."
+  );
+}
+
+// Die Zeile auf der Karte eines Antrags ausserhalb der laufenden Abstimmung (04 §4.7,
+// D605 Beschluss 3).
+export const ANTRAG_VORBEI = "Kann nicht mehr durchkommen. Ein neuer Antrag kann es.";
+
+// Gruppen, deren Antrag auf der Seite steht und läuft, in der Reihenfolge der Gruppen; ohne
+// Gruppen keine (04 §4.7, D605 Beschluss 4).
+export function laufendeGruppen(gruppen, antraege) {
+  const kennungen = new Set((antraege ?? []).filter(laufend).map((antrag) => antrag.proposal));
+  return (gruppen ?? []).filter((gruppe) => kennungen.has(gruppe.proposal));
+}
+
 // Ob die Karte einer Gruppe aus GET /geraetestimmen oben steht: genau dann, wenn ihr Antrag unter
 // den Anträgen der Seite steht, in jedem Zustand; bis zur Feststellung wirkt eine neue Stimme
 // (D551 Beschluss 4, ändert D542 Beschluss 6).

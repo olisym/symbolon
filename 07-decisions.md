@@ -26573,3 +26573,47 @@ bit/s, 5 % Verlust; beides einstellbar.
 **Nächster Schritt.** Prototyp im Klon, gefahren mit `--spaltung` und `--wahlgang`, dann Auftrag.
 
 **Geändert.** `07-decisions.md`.
+
+### D608 — Stufe 4 gemessen: bei 1200 bit/s bricht der Abgleich zusammen; Gründe und Weg
+
+**Anlass.** D607 Beschluss 3. Prototyp im Supervisor-Klon auf `02ab030`: `tools/funk.py` als Kanal,
+`--funk` im Lab mit je einer RNS-Instanz, `UDPInterface` und `bitrate` je Gerät, gefahren mit
+`--personen` (fünf Geräte).
+
+**Gemessen.** Drei Läufe mit 5 % Verlust. (1) 1200 bit/s, der Bote kündigt wie heute in jedem Takt
+an: in vier Minuten kein einziges Holen, jeder Takt endet mit „nach 30 s nicht gleich“, der Kanal
+bekommt rund 53 kB angeboten. (2) 1200 bit/s, eine Ankündigung alle 120 s: ebenso kein Holen, rund
+40 kB angeboten. (3) 20 000 bit/s wie heute: die Geschichte läuft durch, gleicher Stand je Takt nach
+0 bis 28 s, drei Takte über 30 s, 43 Holvorgänge, 420 kB angeboten in drei Minuten. Der Bestand am
+Ende: 26 Claims und 12 Objekte, die Liste der Kennungen rund 1,3 kB.
+
+**Befund 1 — die Liste ist nicht das Problem, die Häufigkeit ist es.** Der Bote fragt in jedem Takt
+von einer Sekunde jeden Nachbarn nach dem ganzen Bestand. Fünf Boten mit je vier Nachbarn wollen
+damit weit mehr, als ein Kanal mit 150 Byte in der Sekunde trägt. L5 und O90, der Mengenabgleich,
+helfen erst danach.
+
+**Befund 2 — Überlast bis zum Zusammenbruch.** Ist der Kanal voll, warten Pakete in der Schlange
+länger als die Frist des Linkaufbaus von 10 s. Der Bote gibt auf und baut in der nächsten Runde
+einen neuen Link, dessen Anfrage die Schlange weiter füllt; der unfertige alte bleibt liegen (D586
+Beschluss 4). Nichts kommt mehr durch. Das ist der klassische Überlastzusammenbruch, den jedes Netz
+ohne Rücknahme der Last kennt.
+
+**Befund 3 — Ankündigen in jedem Takt flutet.** Jeder Bote ruft in jeder Runde `announce()`. Auf
+einem geteilten Kanal hört das jeder, und fünf Boten, die jede Sekunde ankündigen, füllen ihn
+allein. Das ist L8 aus D583, zum ersten Mal gemessen. Weniger ankündigen allein genügt aber nicht,
+wie Lauf (2) zeigt.
+
+**Die Richtung.** Auf einem geteilten Kanal ist Rundfunk billig und Nachfragen teuer. Die
+Anti-Entropie aus den epidemischen Verfahren tauscht zuerst eine kurze Zusammenfassung und holt nur
+bei Unterschied. Der Knoten hat die Zusammenfassung schon: `/stand`, der Hash des Bestands, mit dem
+`ruhe` misst. Der Vorschlag: ein Bote kündigt nur an, wenn sich sein Stand ändert, und sonst selten;
+die Ankündigung trägt den Stand als `app_data`. Er holt nur von einem Nachbarn, dessen gehörter
+Stand vom eigenen abweicht; nach einem Fehlschlag wartet er länger. Die Kette bleibt dabei, wie sie
+ist: nur holen, nie schieben (D584 Beschluss 2), denn gehört wird nur, wer sich ändert.
+
+**Beschluss 1 — erst den Weg messen, dann den Auftrag.** Im Prototyp nacheinander: Ankündigung mit
+Stand nur bei Änderung und alle zehn Minuten; Holen nur bei abweichendem Stand; Wartezeit nach einem
+Fehlschlag. Nach jedem Schritt ein Lauf bei 1200 bit/s. Der Auftrag kommt, wenn `--personen` bei
+1200 bit/s durchläuft.
+
+**Geändert.** `07-decisions.md`.

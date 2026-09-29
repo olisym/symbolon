@@ -26666,3 +26666,48 @@ Duty Cycle von 1 %; die Werte nach ETSI werden vor Stufe 5 nachgelesen. RNS begr
 je RNode mit `airtime_limit_short` und `airtime_limit_long` (`RNodeInterface.py`).
 
 **Geändert.** `07-decisions.md`.
+
+### D610 — Stufe 4, Ursache gefunden: Fristen und Ankündigung; der Kanal hatte ein Echo
+
+**Anlass.** D609 Beschluss 2 und Olis Einordnung: 1200 bit/s ist der Extremfall. Das Ziel ist, dass
+es dort langsam wird, statt zu brechen; ab etwa 5 bis 20 kbit/s soll es normal laufen. Gebaut wurde
+die Last von unten: ein Messskript im Supervisor-Klon startet `N` Knoten aus `GERAETE`, Boten über
+den Kanal, einen Antrag auf dem ersten Gerät, und misst die Zeit bis gleicher Stand; 5 % Verlust.
+
+**Befund 1 — mein Kanal hatte ein Echo, die Zahlen aus D608 und D609 sind damit verfälscht.**
+`UDPInterface` von RNS sendet jedes Paket aus einem neuen Socket (`process_outgoing`); die
+Absenderadresse sagt nicht, wer sendet. Der Kanal schickte deshalb jedes Paket auch an den Sender
+zurück. Ein Funkgerät hört sich selbst nicht. Jetzt hat der Kanal je Teilnehmer einen eigenen
+Eingang, und wer auf Eingang `i` sendet, ist Teilnehmer `i`. Das Echo belegte den Kanal nicht, es
+lieferte aber jedem Knoten seine eigenen Pakete zurück. D608 Befund 2 und die Tabellen in D608 und
+D609 sind deshalb neu gemessen.
+
+**Gemessen ohne Echo, 1200 bit/s.** Der Bote von `main` (`e830304`), fünf Geräte: nach 235 s nicht
+gleich, kein Holen, 62 kB auf dem Kanal, davon 35 kB Ankündigungen. Der Prototyp mit Trickle
+(kleinstes Intervall 60 s, zurückgesetzt nur bei eigenem neuem Stand), gebündeltem Holen und den
+Fristen von heute (Link 10 s, Antwort 15 s): zwei Geräte gleich nach 61 s; drei Geräte nach 200 s
+nicht gleich. Derselbe Prototyp mit Fristen von 60 s für den Link und 120 s für die Antwort: drei
+Geräte gleich nach 179 s, fünf Geräte gleich nach 173 s mit 16 kB auf dem Kanal.
+
+**Befund 2 — die Ursache sind zwei Dinge.** Erstens die Ankündigung in jedem Takt: sie allein belegt
+mehr als die Hälfte des Kanals. Zweitens die festen Fristen: auf einem geteilten Kanal wartet ein
+Paket länger als 10 oder 15 s in der Schlange, der Bote gibt auf und beginnt neu, und die
+Wiederholung füllt die Schlange weiter. Sind beide behoben, läuft das Bild mit fünf Geräten bei 1200
+bit/s durch, langsam, aber stabil. Der Kern von D608 steht, jetzt sauber gemessen: mit dem Boten von
+heute bricht es.
+
+**Befund 3 — was jetzt noch kostet.** Im Lauf mit fünf Geräten entfallen von 16 kB rund 9 kB auf
+Teile von Resources (`RESOURCE`, Kontext `0x01`), also auf Antworten über einem Paket: vor allem die
+ganze Liste der Kennungen je Holen, dazu das Bündel. Neu waren drei Einträge, etwa 1 kB. Das ist L5
+und O90: erst ein Mengenabgleich macht das Holen so klein wie das, was fehlt.
+
+**Beschluss 1 — der Bote bekommt drei Änderungen.** Trickle nach RFC 6206 mit dem Stand als
+`app_data`, zurückgesetzt nur, wenn der eigene Stand sich ändert; wer einen anderen Stand hört,
+holt. Fristen für Link und Antwort nach der Bitrate der Schnittstelle statt fester Sekunden. Holen
+in einer Anfrage für alles Fehlende. Dazu im Lab `tools/funk.py` mit einem Eingang je Teilnehmer und
+`--funk`.
+
+**Beschluss 2 — danach.** Das Bündel als Format ohne Netz, mit Kompression, und das Bild mit QR-Code
+(Olis Vorschlag). O90 bleibt der Weg, die Liste zu verkleinern.
+
+**Geändert.** `07-decisions.md`.

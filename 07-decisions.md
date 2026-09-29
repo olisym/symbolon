@@ -26524,3 +26524,52 @@ wo ein Mensch ankommt, bei Gründung und Beitritt.
 dann die Bestandsaufnahme zur Gründung, die O101 mitnimmt.
 
 **Geändert.** `offen.md` (O99 erledigt, O101 neu), `07-decisions.md`.
+
+### D607 — O97 Stufe 4: ein geteilter Funkkanal im Userspace statt `netem`; Messung vorab
+
+**Anlass.** D606 Beschluss 3: Reticulum Stufe 4 mit den fertigen Bildern. D583 Beschluss 2 plante
+`tc netem`, dafür Docker oder Namensräume, weil `netem` je Knoten eine eigene Netzschnittstelle
+braucht. Oli sollte vorher erfahren, was das auf seiner Maschine anfasst.
+
+**Was LoRa ist, und was `netem` modelliert.** LoRa ist ein geteiltes Medium: ein Kanal, alle hören
+mit, einer sendet zur Zeit, jedes Paket kostet Sendezeit nach seiner Grösse. `netem` verzögert und
+verwirft Pakete auf einer Punkt-zu-Punkt-Schnittstelle des Kernels; das geteilte Medium hat es
+nicht. Die Forschung modelliert LoRa über den Kanal: das Modul für ns-3 bildet Physik und Zugriff
+nach Art von ALOHA ab. Das RNode von Reticulum hört vor dem Senden (CSMA), Pakete gehen also
+nacheinander.
+
+**Gemessen, im Supervisor-Klon mit `rns 1.5.4`.** Ein Prozess als Kanal: jedes UDP-Paket geht an
+alle anderen Teilnehmer, einer sendet zur Zeit, die Sendezeit ist Bytes mal 8 durch die Bitrate,
+Verlust je Empfänger zufällig mit festem Samen. Zwei RNS-Instanzen ohne gemeinsame Instanz, je mit
+`UDPInterface` auf den Kanal und `bitrate = 1200`; RNS liest die Bitrate aus der Konfiguration
+(`Reticulum.py`, `configured_bitrate`). Ohne Verlust: Pfad sofort über das Announce, Link nach 2,9
+s, eine Antwort über 100 Bytes nach 2,6 s, über 2000 Bytes nach 20,7 s, über 20 000 Bytes nach 167
+s. Mit 5 % Verlust scheiterte der Link: ein verlorenes Paket beim Aufbau, und niemand baut neu auf.
+
+**Befund 1 — ein Link, der nicht aktiv wird, ist unter Verlust der Normalfall.** D586 Beschluss 4
+liess offen, dass der Bote einen solchen Link nicht abbaut; D591 wiederholt Anfragen, nicht den
+Aufbau. Ob der Bote in der nächsten Runde neu aufbaut, prüft Stufe 4 zuerst.
+
+**Befund 2 — die Grösse zählt jetzt.** 20 kB brauchen bei 1200 bit/s fast drei Minuten. Der Bote
+holt je Runde den ganzen Bestand der Kennungen (L5, O90); wie gross der ist, misst Stufe 4 an den
+Bildern.
+
+**Beschluss 1 — ein Kanal im Userspace statt `netem`.** Ein Werkzeug `tools/funk.py` spielt den
+geteilten Kanal: Bitrate, Verlust, Verzögerung, ein Sender zur Zeit, fester Samen, dazu je Paar, wer
+wen hört; damit fallen Trennungen je Verbindung ab. Kein Root, kein Docker, keine Namensräume: auf
+Olis Maschine fasst es nichts ausser Ports auf `127.0.0.1` an. Es läuft im Supervisor-Klon und in
+`make check`. Was es nicht prüft, den Netzwerkstapel des Kernels, benutzt RNS über LoRa ohnehin
+nicht. Die Wirklichkeit prüft Stufe 5 mit den T-Beams. Das ersetzt D583 Beschluss 2 für Stufe 4.
+
+**Beschluss 2 — je Gerät eine eigene RNS-Instanz im Funkmodus.** Die gemeinsame Instanz aus D588
+bleibt für `--reticulum`; mit `--funk` bekommt jeder Bote eine eigene Instanz mit `UDPInterface` auf
+den Kanal und der Bitrate des Kanals, damit der Kanal zwischen ihnen sitzt.
+
+**Beschluss 3 — was Stufe 4 misst.** Ob die Bilder über den Kanal durchlaufen; Bytes und Pakete je
+Takt; die Zeit bis gleicher Stand je Takt; ob die Frist von 15 s trägt (D586 Beschluss 2); ob der
+Bote nach einem gescheiterten Linkaufbau neu aufbaut. Voreinstellung wie ein langsames LoRa: 1200
+bit/s, 5 % Verlust; beides einstellbar.
+
+**Nächster Schritt.** Prototyp im Klon, gefahren mit `--spaltung` und `--wahlgang`, dann Auftrag.
+
+**Geändert.** `07-decisions.md`.

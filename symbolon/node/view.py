@@ -12,6 +12,7 @@ from symbolon.governance.objects import (
     Motion,
     Proposal,
     apply_motions,
+    ballot_of,
     epoch_id,
     motion_list,
     motion_wellformed,
@@ -19,6 +20,7 @@ from symbolon.governance.objects import (
 from symbolon.governance.tally import (
     TallyResult,
     TallyState,
+    current_ballot,
     decide,
     maximal_votes,
     reached,
@@ -211,7 +213,10 @@ def _decide_proposal(
     proposals: dict[bytes, Proposal | Motion],
     now: int,
 ) -> TallyResult:
-    """Auszählung eines Antrags; ein Sachantrag hat kein Zielobjekt (04 §3.5, D577 Beschluss 5)."""
+    """Auszählung eines Antrags; ein Sachantrag hat kein Zielobjekt (04 §3.5, D577 Beschluss 5).
+
+    Die Auszählung kennt jede Verfassung des Bestands (04 §4.7, D601 Befund 2, D603 Beschluss 2).
+    """
     target = None if isinstance(proposal, Motion) else constitutions.get(proposal.constitution_hash)
     return decide(
         store,
@@ -223,6 +228,25 @@ def _decide_proposal(
         known_proposals=proposals,
         now=now,
         policy=state.policy,
+        known_constitutions=constitutions,
+    )
+
+
+def ballot_view(store: SqliteStore, scope: bytes, now: int) -> int:
+    """Der geltende Wahlgang der geltenden Epoche eines Scopes (04 §4.7, D603 Beschluss 2)."""
+    genesis = store.all_genesis().get(scope)
+    if genesis is None:
+        raise ValueError("genesis of scope is not in the store")
+    view = scope_view(store, scope, now)
+    return current_ballot(
+        store,
+        epoch=view.state.epoch,
+        genesis_obj=genesis,
+        constitution_obj=view.state.constitution_obj,
+        known_proposals=_known(store),
+        known_constitutions=store.all_constitutions(),
+        now=now,
+        policy=view.state.policy,
     )
 
 
@@ -455,6 +479,9 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
     Ist ``I`` in einem Scope als Gerät aufgenommen, gelten dort die Aufgaben ``VOTE`` und
     ``RATIFY`` seiner Wurzel und keine andere; „abgestimmt“ heisst eine Stimme zum Antrag mit
     derselben Wurzel (D542 Beschluss 4, D534 Beschluss 2, 04 §3.1, 02 §2.1).
+
+    Ein Vorschlag ausserhalb des geltenden Wahlgangs ist weder VOTE noch RATIFY; Sachanträge haben
+    keinen Wahlgang (04 §4.7, D603 Beschluss 3).
     """
     tasks: list[TaskView] = []
     for scope in store.all_genesis():
@@ -483,9 +510,16 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                         )
                     )
                 grouped = _antraege(store, scope, participants)
+                known = _known(store)
+                geltend = ballot_view(store, scope, now)
                 for digest, tally in view.verein.decisions:
                     # Ein festgestellter Sachantrag ist keine Aufgabe mehr (04 §4.6, D580).
                     if digest in view.stand.ratified:
+                        continue
+                    # Ein Ja ausserhalb des geltenden Wahlgangs wirkte nicht (04 §4.7, D603
+                    # Beschluss 3).
+                    antrag = known.get(digest)
+                    if isinstance(antrag, Proposal) and ballot_of(antrag) != geltend:
                         continue
                     if not grouped.get(digest):
                         continue

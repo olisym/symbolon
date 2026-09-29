@@ -36,6 +36,7 @@ from symbolon.node.view import (
     _known,
     _needed,
     antragstitel,
+    ballot_view,
     fork_evidence,
     geraetestimmen,
     obligations_view,
@@ -284,6 +285,7 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
     04 §2.4, 04 §3.5, 04 §4.6).
 
     Feld 3 nennt die festgestellten Sachanträge der Epoche und fehlt ohne sie (D577 Beschluss 3).
+    Feld 4 nennt den geltenden Wahlgang und fehlt bei 0 (04 §2.4, 04 §4.7, D603 Beschluss 1).
     """
     if not isinstance(change, dict) or len(change) != 1 or not set(change) <= {"add", "remove", "set"}:
         raise _Named("INVALID_CHANGE")
@@ -322,6 +324,9 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
     obj: dict[int, Any] = {0: scope, 1: epoch.epoch_id, 2: digest}
     if view.stand.ratified:
         obj[3] = list(view.stand.ratified)
+    ballot = ballot_view(store, scope, now)
+    if ballot != 0:
+        obj[4] = ballot
     return store.submit_object(ObjectKind.PROPOSAL, cbor_canon.encode(obj))
 
 
@@ -612,10 +617,16 @@ def _intent_body(
         tally = _tally_of(view, digest)
         if tally is None or tally.state is not TallyState.PASSED:
             raise _Named("NOT_PASSED")
+        # Je Wurzel ein Zeuge, die Stimme mit der kleinsten claim_id; zwei Zeugen derselben Wurzel
+        # machten den Claim unwirksam (04 §4.1 Bedingung 4, D603 Befund 1).
+        attr = attribution(store, classify_all(store, now, view.state.policy), proposal.scope)
+        zeugen: dict[bytes, bytes] = {}
+        for cid in sorted(tally.yes):
+            zeugen.setdefault(vote_root(attr, store.get(cid)), cid)
         fields.update(
             p=f"nuc:{proposal.scope.hex()}/ratify@1",
             J=[3, digest.hex()],
-            v=cbor_canon.encode({0: list(tally.yes)}).hex(),
+            v=cbor_canon.encode({0: sorted(zeugen.values())}).hex(),
             N=proposal.scope.hex(),
         )
         # Ein Sachantrag ändert den Stand, nicht die Epoche (04 §4.6, D577 Beschluss 5).

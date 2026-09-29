@@ -180,8 +180,9 @@ def test_bild_spaltung(tmp_path) -> None:
         teile = gruppen(GERAETE_GERAETE, False)
         jetzt["t"] = _NOW + SPALTUNG[1]
         durchgang(urls, teile)
-        # Vereint gäbe es zu tun: Anna soll über Chris' Antrag abstimmen. Niemand handelt mehr.
-        assert "VOTE" in _arten(knoten[namen.index("Annas Gerät")], "ANNA")
+        # Vereint steht Wahlgang 0 im Patt; Chris' Antrag ist keine Aufgabe mehr (04 §4.7, D603
+        # Beschluss 3). Niemand handelt.
+        assert "VOTE" not in _arten(knoten[namen.index("Annas Gerät")], "ANNA")
         assert takt_spaltung(urls, SPALTUNG[1], GERAETE_GERAETE) == []
         staende = set()
         for name, server in zip(namen, knoten):

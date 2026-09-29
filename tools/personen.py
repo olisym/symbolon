@@ -35,6 +35,14 @@ _SPALTUNG_ANTRAEGE = (
     ("Chris' Gerät", "CHRIS", ANTRAG_OST),
 )
 
+# Der neue Wahlgang nach der Spaltung: Takt, Antrag und das Paar, das ihn stellt und feststellt
+# (D603 Beschluss 4).
+WAHLGANG = 7
+ANTRAG_WAHLGANG = {
+    "set": {"field": "beitrag", "text": "25 Euro im Jahr, fällig im Januar, an die Kasse"}
+}
+_WAHLGANG_ANTRAEGE = (("Annas Gerät", "ANNA", ANTRAG_WAHLGANG),)
+
 # Der Ausweg nach der Spaltung: Takt, Gerät, Person und das Zweitgerät, das sie dort sperrt
 # (D596 Beschluss 3).
 AUSWEG = (
@@ -277,6 +285,7 @@ def takt_spaltung(
     nummer: int,
     geraete: list[tuple[str, str, frozenset[str]]],
     ausweg: bool = False,
+    wahlgang: bool = False,
 ) -> list[str]:
     """Ein Takt der Spaltung ohne den Durchgang: erst die Personen, dann die Anträge (D594 B. 1).
 
@@ -286,13 +295,22 @@ def takt_spaltung(
     sonst nichts; CONFIRM_RULES und RECEIPT werden erledigt, RATIFY nur von der Person, die auf
     diesem Gerät den Antrag stellt. Im Takt der Spaltung stellen Anna und Chris danach je einen
     Antrag. Keine Prüfung auf mehrere Spitzen.
+
+    Mit ``wahlgang`` handeln die Personen nach dem Takt der Vereinigung wieder nach denselben
+    Regeln; fest stellt dann nur ein Paar aus ``_WAHLGANG_ANTRAEGE``, und im Takt ``WAHLGANG``
+    stellt es danach seinen Antrag (04 §4.7, D603 Beschluss 4). Im Takt der Vereinigung selbst
+    handelt auch mit ``wahlgang`` niemand.
     """
     if nummer >= SPALTUNG[1]:
-        return _sperren(urls, nummer, geraete) if ausweg else []
+        if ausweg:
+            return _sperren(urls, nummer, geraete)
+        if not wahlgang or nummer == SPALTUNG[1]:
+            return []
     namen: dict[str, str] = {
         eintrag["name"]: eintrag["I"] for eintrag in _anfrage(urls[0], "GET", "/names")[1]
     }
-    feststeller = {(geraet, person) for geraet, person, _antrag in _SPALTUNG_ANTRAEGE}
+    antraege = _WAHLGANG_ANTRAEGE if nummer > SPALTUNG[1] else _SPALTUNG_ANTRAEGE
+    feststeller = {(geraet, person) for geraet, person, _antrag in antraege}
     zeilen: list[str] = []
     for (geraet, _datei, personen), url in zip(geraete, urls):
         for person in sorted(personen):
@@ -319,9 +337,9 @@ def takt_spaltung(
                 else:
                     continue
                 zeilen.append(_einliefern(url, kopf, rumpf))
-    if nummer == SPALTUNG[0]:
+    if nummer in (SPALTUNG[0], WAHLGANG):
         namen_geraete = [name for name, _datei, _personen in geraete]
-        for geraet, person, antrag in _SPALTUNG_ANTRAEGE:
+        for geraet, person, antrag in antraege:
             url = urls[namen_geraete.index(geraet)]
             rumpf = {
                 "I": namen[person],

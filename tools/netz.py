@@ -68,10 +68,12 @@ _GESCHICHTEN = (
     "--aufloesen",
     "--spaltung",
     "--ausweg",
+    "--wahlgang",
 )
 _USAGE = (
     "usage: python -m tools.netz <verzeichnis> "
-    "[--personen | --versehen | --geraete | --aufloesen | --spaltung | --ausweg] [--reticulum]"
+    "[--personen | --versehen | --geraete | --aufloesen | --spaltung | --ausweg | --wahlgang] "
+    "[--reticulum]"
 )
 
 # Der Ablauf, den der Startbefehl druckt (D518, „Der Ablauf, den der Startbefehl druckt“).
@@ -137,6 +139,14 @@ ZUSEHEN_SPALTUNG = [
     "Seiten Ja, und jede Seite stellt ihren Beschluss fest.",
     "Vereint zählen Brunos und Doras Ja nirgends mehr, beide Feststellungen fallen, und jedes Gerät "
     "zeigt die alte Satzung.",
+]
+
+# Der Text zum Zusehen im neuen Wahlgang nach der Spaltung (04 §4.7, D603 Beschluss 4).
+ZUSEHEN_WAHLGANG = [
+    *ZUSEHEN_SPALTUNG,
+    "Im alten Wahlgang kann jetzt nichts mehr durchkommen, also gilt von selbst der nächste.",
+    "Anna beantragt 25 Euro. Alle vier stimmen Ja, Anna stellt fest, und jedes Gerät zeigt die neue "
+    "Satzung, ohne dass jemand ein Gerät sperrt.",
 ]
 
 # Der Text zum Zusehen im Ausweg nach der Spaltung (D596 Beschluss 3).
@@ -420,7 +430,8 @@ def main() -> None:
     verbunden, über HTTP im Durchgang, über Reticulum mit den Sperrlisten, auf deren Meldung er
     wartet (D594 Beschluss 1 bis 3). Mit ``--ausweg`` wie ``--spaltung``, dazu nach der
     Vereinigung die Sperren aus ``takt_spaltung`` unter ``ausweg`` (D596 Beschluss 3). Mit
-    ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt der Durchgänge; mit einer
+    ``--wahlgang`` wie ``--spaltung``, dazu nach der Vereinigung die Takte aus ``takt_spaltung``
+    unter ``wahlgang`` (D603 Beschluss 4). Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt der Durchgänge; mit einer
     Geschichte wartet er nach jedem Takt auf gleichen Stand. Jede Zeile steht auch in
     ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
     """
@@ -430,7 +441,8 @@ def main() -> None:
     personen_an = geschichte is not None
     aufloesen = geschichte == "--aufloesen"
     ausweg = geschichte == "--ausweg"
-    spaltung = geschichte == "--spaltung" or ausweg
+    wahlgang = geschichte == "--wahlgang"
+    spaltung = geschichte == "--spaltung" or ausweg or wahlgang
     mit_geraeten = geschichte == "--geraete" or aufloesen or spaltung
     if mit_geraeten:
         geraete = GERAETE_GERAETE
@@ -482,6 +494,8 @@ def main() -> None:
             ausgeben("Zum Zusehen:")
             if ausweg:
                 text = ZUSEHEN_AUSWEG
+            elif wahlgang:
+                text = ZUSEHEN_WAHLGANG
             elif spaltung:
                 text = ZUSEHEN_SPALTUNG
             elif aufloesen:
@@ -520,7 +534,7 @@ def main() -> None:
                     ausgeben(f"Takt {nummer}: West und Ost {zustand}")
                 try:
                     if spaltung:
-                        zeilen = takt_spaltung(urls, nummer, geraete, ausweg)
+                        zeilen = takt_spaltung(urls, nummer, geraete, ausweg, wahlgang)
                     else:
                         zeilen = takt(urls, nummer, gemeldet, geraete, gesehen, aufloesen)
                     for zeile in zeilen:

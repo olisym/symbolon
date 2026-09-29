@@ -26617,3 +26617,52 @@ Fehlschlag. Nach jedem Schritt ein Lauf bei 1200 bit/s. Der Auftrag kommt, wenn 
 1200 bit/s durchläuft.
 
 **Geändert.** `07-decisions.md`.
+
+### D609 — Stufe 4: Trickle nach RFC 6206 für die Ankündigung; das Holen selbst ist zu schwer
+
+**Anlass.** D608 Beschluss 1, dazu Olis Frage, ob sich aus dem ALOHAnet oder einem Standard lernen
+lässt. Die Lehre aus ALOHA ist D608 Befund 2: ein geteilter Kanal, dem man mehr anbietet, als er
+trägt, bricht zusammen, statt nur langsamer zu werden. Die Verfahren danach (CSMA, das Warten nach
+einer Kollision in Ethernet, WLAN) nehmen die Last zurück. Der Standard für unseren Fall ist RFC
+6206, Trickle (IETF, 2011): Knoten, deren Daten nicht übereinstimmen, melden sich schnell; stimmen
+sie überein, verlängern sie das Intervall exponentiell bis auf wenige Meldungen je Stunde, und wer
+im Intervall schon `k` gleiche Meldungen gehört hat, schweigt.
+
+**Prototyp, im Supervisor-Klon auf `8de516a`.** Der Bote kündigt nach Trickle an (kleinstes
+Intervall 10 s, sechs Verdopplungen, `k = 2`), mit seinem Stand aus `/stand` als `app_data`. Ein
+Hörer für Ankündigungen von `symbolon.bote` vergleicht den gehörten Stand mit dem eigenen: gleich
+zählt für `k`, anders setzt das Intervall zurück und macht den Nachbarn fällig. Der Bote holt je
+Takt höchstens von einem fälligen Nachbarn; bringt das nichts, wartet er doppelt so lange, zwischen
+10 und 300 s. Der Kanal zählt jetzt die Bytes je Paketart aus dem ersten Byte des RNS-Kopfes.
+
+**Gemessen, `--personen`, 5 % Verlust.** Bei 1200 bit/s, 200 s: kein Holen; auf dem Kanal 29 kB,
+davon Ankündigungen 6,3 kB, Linkanfragen 3,8 kB, Bestätigungen 3,9 kB, Daten 15,5 kB. Bei 5000
+bit/s, 200 s: 15 Holvorgänge, kein Takt in 30 s gleich; auf dem Kanal 111 kB, davon Ankündigungen
+2,7 kB und Daten 98,5 kB.
+
+**Befund 1 — die Ankündigung ist gelöst.** Mit Trickle trägt sie bei 5000 bit/s noch 2 % des
+Verkehrs statt den ganzen Kanal.
+
+**Befund 2 — das Holen ist zu schwer.** Rund 6,5 kB Daten je gelungenem Holen bei einem Bestand von
+38 Einträgen. Der Bote holt die ganze Liste und dann jeden fehlenden Claim und jedes Objekt mit
+einer eigenen Anfrage (`claim`, `object` in `bote/draht.py`); jede Anfrage ist ein Hin und Zurück
+über den Link. Das ist L4 aus D583. Dazu kommt die Frist von 15 s ohne Fortschritt, die bei
+langsamer Leitung den Link abbaut, während die Antwort noch unterwegs ist (D586 Beschluss 2).
+
+**Befund 3 — der Takt des Labs passt nicht zu Funk.** Die Personen handeln alle 2 s und warten
+höchstens 30 s auf gleichen Stand; jeder neue Claim macht den Stand wieder ungleich und setzt
+Trickle zurück. Über Funk misst das Lab damit die eigene Ungeduld mit.
+
+**Beschluss 1 — Trickle bleibt.** Es ist der Standard für genau diese Lage, und die Messung
+bestätigt ihn.
+
+**Beschluss 2 — als Nächstes im Prototyp.** Ein Holen in einer Anfrage: der Nachbar liefert alle
+Einträge, die dem Anfragenden fehlen, gebündelt als eine Antwort, die RNS als Resource überträgt.
+Die Frist ohne Fortschritt richtet sich nach der Bitrate des Links. Das Lab wartet über Funk auf
+gleichen Stand, bevor die Personen weiter handeln. Dann wieder bei 1200 bit/s messen.
+
+**Offen, vor den T-Beams.** Auf 868 MHz gilt nach Supervisor-Kenntnis in den meisten Teilbändern ein
+Duty Cycle von 1 %; die Werte nach ETSI werden vor Stufe 5 nachgelesen. RNS begrenzt die Sendezeit
+je RNode mit `airtime_limit_short` und `airtime_limit_long` (`RNodeInterface.py`).
+
+**Geändert.** `07-decisions.md`.

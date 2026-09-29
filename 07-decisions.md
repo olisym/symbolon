@@ -26322,3 +26322,25 @@ Nicht im Auftrag: `node/view.py`, die Absicht `propose` mit dem geltenden Wahlga
 Lab, die Dauer aus Befund 4.
 
 **Geändert.** `04-golden-anchors.md` (`§11`), `07-decisions.md`.
+
+### D602 — Abnahme `p41-wahlgang`: angenommen
+
+**Anlass.** Bericht zu `p41-wahlgang`, Commit `c8be482`, Basis `9c5d9e5`.
+
+**Geprüft.** Den Diff aus dem Spiegel habe ich ganz gelesen und gegen den Prototyp aus D601
+verglichen. Die Tests sind gleich. Der Code ist gleichwertig; anders sind Docstrings, Kommentare,
+die Lage von `decide` hinter `_decide` und zwei Stellen. `approvals_conflict` prüft formwidriges
+Feld 4 jetzt vor dem `predecessor`; das Ergebnis ist in beiden Reihenfolgen `False`. `stalemate`
+bindet an `target.proposal_hash` statt an `J[1]`, was nach `resolve_object` gleich ist.
+`tests/governance` und `test_sachantrag` sind grün, `ruff` meldet nichts.
+
+**Befund 1 — die Dauer.** Das Werkzeug meldet 268 Sekunden für pytest, parallel zu einem zweiten
+Lauf gemessen; D601 Befund 4 nannte 231. Gemessen wird, wenn der Knoten das Patt rechnet.
+
+**Beschluss 1 — angenommen.** `p41-wahlgang` wird nach `main` vorgespult.
+
+**Beschluss 2 — der nächste Schritt.** Der Auftrag für den Knoten, mit Prototyp vorher. Dazu gehören
+`node/view.py` mit `known_constitutions`, die Absicht `propose` im geltenden Wahlgang, die Anzeige
+eines Patts auf der Seite und das Lab mit der Spaltung, die in Wahlgang 1 weitergeht.
+
+**Geändert.** `07-decisions.md`.

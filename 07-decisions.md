@@ -26396,3 +26396,32 @@ Nicht im Auftrag: wie die Seite ein Patt und den geltenden Wahlgang zeigt; das b
 Durchlauf mit Oli (D490). Die Dauer der Testreihe.
 
 **Geändert.** `07-decisions.md`.
+
+### D604 — Abnahme `p42-wahlgang-knoten`: angenommen; O98 erledigt, O99 und O100 neu
+
+**Anlass.** Bericht zu `p42-wahlgang-knoten`, Commit `2566493`, Basis `a645044`.
+
+**Geprüft.** Den Diff aus dem Spiegel habe ich ganz gelesen und gegen den Prototyp aus D603
+verglichen. Die Tests sind gleich, der Code ist gleichwertig. `tasks_view` liest die bekannten
+Objekte einmal je Scope statt je Antrag und prüft den Wahlgang vor der Gruppierung. `takt_spaltung`
+wählt die Anträge über `nummer > SPALTUNG[1]` und stellt sie in den Takten `SPALTUNG[0]` und
+`WAHLGANG`; das ergibt dieselben Takte. `test_wahlgang_knoten` und `test_spaltung` sind auf dem
+Commit grün. Den Lauf von `--wahlgang` über HTTP meldet das Werkzeug; über Reticulum bin ich ihn in
+D603 gefahren.
+
+**Befund 1 — die Dauer, jetzt auf einer Maschine gemessen.** Das Werkzeug hat die Testreihe auf der
+Basis und auf dem Commit in derselben Umgebung gefahren: 255 und 319 Sekunden. Der Knoten rechnet
+den geltenden Wahlgang in jeder Aufgabenliste und in jeder Absicht `propose` neu, dazu die Sicht des
+Scopes ein zweites Mal. Für die Seite im Lab reicht es, eine `scope_view` dauert 0,2 Sekunden
+(D603). Offen als O100.
+
+**Befund 2, klein.** Im Docstring von `main` in `tools/netz.py` ist eine Zeile länger als 100
+Zeichen; `ruff` prüft das nicht. Ohne Nachtrag, beim nächsten Griff in die Datei.
+
+**Beschluss 1 — angenommen.** `p42-wahlgang-knoten` wird nach `main` vorgespult.
+
+**Beschluss 2 — O98 erledigt.** Der Stillstand aus D594 Befund 2 hat zwei Auswege: die Sperre durch
+die Brücken (D596) und den nächsten Wahlgang, der von selbst gilt (D598 bis D603). Offen bleiben die
+Anzeige auf der Seite als O99 und die Dauer als O100.
+
+**Geändert.** `offen.md` (O98 erledigt, O99 und O100 neu), `07-decisions.md`.

@@ -449,9 +449,18 @@ Die Knoten gleichen sich heute nicht selbst ab; ein Werkzeug fährt die Runde (D
 sie über Reticulum abgleichen, zuerst in einem Lab auf einer Maschine, dann mit Verlust nach Art von
 LoRa, dann über Funk (`ROADMAP §7`). Stufen und Lücken L1 bis L10 in D583. O90 gehört dazu.
 
-### O98 Nach einer Spaltung mit Brücken ist die Fassung gebunden
+### O98 Nach einer Spaltung mit Brücken ist die Fassung gebunden — erledigt (D604)
 
-Stellen zwei Gruppen dank Doppelstimmen je einen Antrag fest, fallen vereint beide, und jedes
-weitere Ja der Beteiligten ist nach `04 §4.4` unvereinbar; die Fassung kommt nicht mehr weiter (D594
-Befund 2). Offen: die Sperre als Absicht (D532), eine Zeile in `04 §8`, und ob ein Weg aus der
-Forschung (Ausschluss, Runden) sich mit B1 bis B4 verträgt.
+Sperre als Absicht (D596), Wahlgänge mit Patt in Norm, Bibliothek und Knoten (D598–D603).
+
+### O99 Die Seite zeigt keinen Wahlgang und kein Patt
+
+Der Knoten rechnet mit Wahlgängen und nennt nur Aufgaben im geltenden (D603). Die Seite sagt nicht,
+dass ein Wahlgang im Patt steht und warum alte Anträge nichts mehr bewirken; das braucht einen
+Durchlauf mit Oli (D490, D603).
+
+### O100 Das Patt kostet Zeit
+
+Der geltende Wahlgang wird bei jedem durchgekommenen Vorschlag und in jeder Aufgabenliste neu
+gerechnet, und das Patt klassifiziert den Bestand je Wahlgang und je Vorschlag. Die Testreihe wurde
+merklich langsamer (D601 Befund 4, D604 Befund 1); auf einem Telefon oder über LoRa ungemessen.

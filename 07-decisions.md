@@ -26344,3 +26344,55 @@ Lauf gemessen; D601 Befund 4 nannte 231. Gemessen wird, wenn der Knoten das Patt
 eines Patts auf der Seite und das Lab mit der Spaltung, die in Wahlgang 1 weitergeht.
 
 **Geändert.** `07-decisions.md`.
+
+### D603 — Der Knoten im neuen Wahlgang, Zeugen je Wurzel; Auftrag `p42-wahlgang-knoten`
+
+**Anlass.** D602 Beschluss 2: der Knoten nach `04 §4.7`, und das Bild, in dem die Spaltung ohne
+Sperre weitergeht.
+
+**Gemessen, im Supervisor-Klon auf `97a8fcb`.** Prototyp in `node/view.py`, `node/api.py`,
+`tools/personen.py` und `tools/netz.py`, Tests in der Fassung des Auftrags. `make check` Exit 0,
+1402 Tests in 248 Sekunden. `--wahlgang` über HTTP und über Reticulum gefahren: getrennt in Takt 2,
+beide Seiten stellen in Takt 4 fest, vereint in Takt 6 fallen beide, in Takt 7 beantragt Anna 25
+Euro, in Takt 8 stimmen alle Ja, in Takt 9 stellt Anna fest, und alle sechs Geräte stehen auf
+Fassung 3 ohne Vermerk. Eine `scope_view` am Ende dauert 0,16 bis 0,23 Sekunden.
+
+**Befund 1 — die Absicht `ratify` verletzte Bedingung 4, sobald eine Person auf zwei Geräten Ja
+sagt.** Sie nahm jede zählende Ja-Stimme aus `tally.yes` als Zeugen; Bruno und Dora stimmten auf
+beiden Geräten, und zwei Zeugen derselben Wurzel machen den Claim nach `04 §4.1` Bedingung 4
+unwirksam. Anna stellte in jedem Takt fest, und nichts trug. Das Fehlen reicht bis D542 zurück;
+bisher stimmte in keinem Bild eine Person zweimal Ja auf denselben Antrag. Jetzt wird je Wurzel eine
+Stimme Zeuge, die mit der kleinsten `claim_id`.
+
+**Befund 2 — die Aufgabe aus D594 Befund 3 ist weg.** Nach der Vereinigung steht Wahlgang 0 im Patt;
+ein Vorschlag daraus ist keine Aufgabe mehr. `test_bild_spaltung` prüfte bisher, dass Anna vereint
+ein VOTE hätte, damit die Probe „die Personen handeln weiter“ etwas sieht (D594 Beschluss 4). Er
+prüft jetzt das Gegenteil. Die Probe hätte keinen Gegenstand mehr, denn ohne Aufgabe gibt es nichts
+zu tun.
+
+**Beschluss 1 — ein neuer Vorschlag steht im geltenden Wahlgang.** Die Absicht `propose` setzt Feld
+4 auf den geltenden Wahlgang, bei 0 fehlt es. Sonst stünde nach einem Patt jeder neue Antrag im
+toten Wahlgang und wäre mit den alten Ja unvereinbar.
+
+**Beschluss 2 — der Knoten kennt jede Verfassung.** `_decide_proposal` gibt
+`store.all_constitutions()` als `known_constitutions` weiter (D601 Befund 2). Neu ist `ballot_view`,
+der geltende Wahlgang eines Scopes.
+
+**Beschluss 3 — eine Aufgabe nur im geltenden Wahlgang.** `tasks_view` nennt kein VOTE und kein
+RATIFY für einen Vorschlag ausserhalb des geltenden Wahlgangs; ein Ja darauf wirkte nicht.
+Sachanträge haben keinen Wahlgang und bleiben Aufgaben.
+
+**Beschluss 4 — das Bild `--wahlgang`.** Die Spaltung wie in D594; mit `wahlgang` handeln die
+Personen nach der Vereinigung wieder, in Takt 7 stellt Anna einen neuen Antrag über 25 Euro, und
+fest stellt nur Anna auf ihrem Gerät.
+
+**Beschluss 5 — der Auftrag `p42-wahlgang-knoten`.** Die vier Dateien, die neue Testdatei
+`tests/node/test_wahlgang_knoten.py`, die Änderung in `tests/node/test_spaltung.py` und ein Fall in
+`test_schalter`, wörtlich im Auftrag. Rücknahmeproben vorher gefahren, jede an ihrem Test rot:
+`view` ohne Verfassungen; `propose` ohne Wahlgang; die Zeugen wieder alle; Aufgaben ohne Wahlgang;
+die Personen handeln vereint nicht; Chris stellt auch fest.
+
+Nicht im Auftrag: wie die Seite ein Patt und den geltenden Wahlgang zeigt; das braucht einen
+Durchlauf mit Oli (D490). Die Dauer der Testreihe.
+
+**Geändert.** `07-decisions.md`.

@@ -26425,3 +26425,63 @@ die Brücken (D596) und den nächsten Wahlgang, der von selbst gilt (D598 bis D6
 Anzeige auf der Seite als O99 und die Dauer als O100.
 
 **Geändert.** `offen.md` (O98 erledigt, O99 und O100 neu), `07-decisions.md`.
+
+### D605 — O99, erster Teil: „Im Verein“ zeigt die laufende Abstimmung; Auftrag `p43-laufend`
+
+**Anlass.** Olis Durchlauf mit `--wahlgang` (D604): das Ende trägt. Nach der Vereinigung, vor Annas
+neuem Antrag, sagt Oli als Anna: alles in Ordnung, es läuft eine Abstimmung, man ist sich über den
+Beitrag uneinig. Nach `04 §4.7` ist diese Abstimmung vorbei; keiner der beiden Anträge kann je
+durchkommen. Die Seite lässt also etwas Falsches glauben. Der Massstab für O99: Anna denkt „die alte
+Abstimmung ist vorbei, ein neuer Antrag kann durchkommen“.
+
+**Olis Entwurf, übernommen.** Menschen lesen die Überschrift. „Im Verein“ ist die Gegenwart; ein
+neuer Tab „Verlauf“ trägt die Geschichte: wer was festgestellt hat, was fiel und warum, wann eine
+Abstimmung neu begann, welche Geräte gesperrt wurden. Zwei Aufträge: dieser für die Gegenwart, ein
+zweiter für den Verlauf.
+
+**Befund 1 — in Olis Bild fehlt DORA.** Am Ende steht „BRUNO hat zum Antrag … auf zwei Geräten Ja
+gestimmt. Das zählt einmal.“, für DORA nichts, obwohl auch sie auf zwei Geräten Ja sagte. Nachgebaut
+über HTTP liefert `GET /geraetestimmen` beide Gruppen, und die Seite filtert keine. Vermutlich war
+Doras zweite Stimme bei Annas Gerät noch nicht angekommen, als die Seite zeichnete. Nicht weiter
+verfolgt: die Zeile betrifft einen Antrag einer vergangenen Fassung und fällt mit Beschluss 4 aus
+„Im Verein“ heraus.
+
+**Befund 2 — die Zeile ist nach dem Beschluss Rauschen.** `geraetestimmen` liest über alle Epochen
+(D543 Beschluss 3); die Seite zeigt deshalb Sätze zu Anträgen, die längst entschieden sind. Sie
+gehören in den Verlauf.
+
+**Beschluss 1 — der Knoten nennt Wahlgang und Lage je Antrag.** `ProposalView` bekommt `ballot` (der
+Wahlgang eines Vorschlags, `None` bei einem Sachantrag) und `current` (falsch für einen Vorschlag
+ausserhalb des geltenden Wahlgangs, auch mit formwidrigem Feld 4; wahr für jeden Sachantrag).
+
+**Beschluss 2 — `laufend` auf der Seite.** Ein Antrag steht in der laufenden Abstimmung, wenn
+`current` nicht falsch ist. Offen heisst `PENDING` und laufend; nur solche zählt der Tab „Anträge“,
+nur sie bekommen die Knöpfe Ja und Nein.
+
+**Beschluss 3 — der Satz.** Steht ein Satzungsantrag der geltenden Fassung ausserhalb der laufenden
+Abstimmung, sagt „Im Verein“: „Die bisherige Abstimmung über eine neue Fassung ist vorbei: keiner
+ihrer Anträge kann noch durchkommen. Ein neuer Antrag kann es.“ Die Karte eines solchen Antrags
+sagt: „Kann nicht mehr durchkommen. Ein neuer Antrag kann es.“ Das Wort „Wahlgang“ erscheint nicht;
+Oli sprach von einer Abstimmung, und die Seite sagt, was ein Mensch sagt (D490).
+
+**Beschluss 4 — Widersprüche nur in der laufenden Abstimmung.** Karten und Sätze aus `GET
+/geraetestimmen`, die Karten zu `conflicting` und die Sätze zu gesperrten Geräten gelten nur
+Anträgen, die auf der Seite stehen und laufen. Was vorbei ist, gehört in den Verlauf; bis der steht,
+zeigt der Tab „Anträge“ die alten Anträge mit ihrem Stand weiter. Das ändert D542 Beschluss 6 und
+D551 Beschluss 4 für entschiedene und vergangene Anträge.
+
+**Gemessen, im Supervisor-Klon auf `b3fe813`.** Prototyp in `node/view.py`, `static/anzeige.js` und
+`static/app.js`, Tests in der Fassung des Auftrags: ein Knotentest und zehn Fälle im Selbsttest,
+dann 241. `make check` Exit 0, 1403 Tests. Rücknahmeproben vorher gefahren, jede an ihrem Test rot,
+die Fälle des Selbsttests benannt (D580): `current` immer wahr; `laufend` immer wahr; der Satz ohne
+Prüfung der Art; die Gruppen ungefiltert. Die Verdrahtung in `app.js` sieht kein Test; sie prüft der
+Durchlauf mit Oli (D490).
+
+**Beschluss 5 — der Auftrag `p43-laufend`.** `node/view.py`, `static/anzeige.js`, `static/app.js`;
+der Knotentest, die zehn Fälle im Selbsttest und `_FAELLE = 241` wörtlich im Auftrag. Vor der
+Abnahme ein Durchlauf mit Oli mit `--spaltung`: nach der Vereinigung sagt „Im Verein“ den Satz aus
+Beschluss 3, und keine Widerspruchskarte steht oben.
+
+Nicht im Auftrag: der Tab „Verlauf“, der zweite Teil von O99.
+
+**Geändert.** `07-decisions.md`.

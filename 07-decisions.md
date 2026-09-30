@@ -26711,3 +26711,62 @@ in einer Anfrage für alles Fehlende. Dazu im Lab `tools/funk.py` mit einem Eing
 (Olis Vorschlag). O90 bleibt der Weg, die Liste zu verkleinern.
 
 **Geändert.** `07-decisions.md`.
+
+### D611 — Der Bote nach Trickle, Fristen nach Bitrate, Funk im Lab; Auftrag `p44-trickle`
+
+**Anlass.** D610 Beschluss 1. Prototyp im Supervisor-Klon auf `9903122`, Tests in der Fassung des
+Auftrags.
+
+**Befund 1 — RNS ruft den Hörer mit Namen auf.** `Transport.py` ruft
+`received_announce(destination_hash=…, announced_identity=…, app_data=…)`; die Zahl der Parameter
+wählt die Form. Hiess ein Parameter anders, warf der Aufruf, RNS verschluckte den Fehler, und kein
+Bote hörte eine Ankündigung. Die Parameter heissen jetzt wie in RNS. Mit `receive_path_responses =
+True` tragen auch Antworten auf Pfadanfragen den Stand.
+
+**Befund 2 — die Sperrliste muss in jedem Takt gelesen werden.** Bisher las sie `rundgang` vor jedem
+Nachbarn. Mit Trickle holt der Bote nur bei abweichendem Stand; bei gleichem Stand läse er die Liste
+nie, und der Handschlag der Spaltung (D594 Beschluss 3) wartete vergebens. `sperrstand` liest sie
+jetzt auch ausserhalb des Rundgangs.
+
+**Befund 3 — was es kostet.** Die Spaltung über Reticulum läuft durch, ohne Holen über die Grenze;
+ein Takt braucht jetzt 7 bis 18 s, weil die erste Ankündigung erst nach fünf bis zehn Sekunden
+kommt. Der Wahlgang über Funk mit sechs Geräten bei 9600 bit/s läuft, ist aber langsam: 117 s für
+den ersten Takt, 192 kB in vier Minuten, bis Takt 2. Der Kanal ist voll mit Daten: je Holen die
+ganze Liste und je Eintrag eine Anfrage. Die Testreihe dauert gut sechs Minuten; der Test mit drei
+Geräten über Funk kostet rund 40 s.
+
+**Beschluss 1 — Trickle nach RFC 6206.** `symbolon/bote/trickle.py`: ein Intervall der Länge `imin`,
+ein Zeitpunkt zufällig in der zweiten Hälfte, angekündigt wird dort, wenn weniger als `k = 2`
+gleiche Stände gehört wurden; abgelaufen verdoppelt es bis `imin * 2**6`; ein neuer eigener Stand
+beginnt ein Intervall mit `imin`, wenn das laufende länger ist. Die Ankündigung trägt den Stand aus
+`/stand` als `app_data`; ein gehörter Stand, der nicht genau 32 Bytes hat, ist formwidrig und macht
+niemanden fällig (`stand_aus`). Ein gehörter gleicher Stand zählt für `k`; ein anderer macht den
+Nachbarn fällig. Je Takt holt der Bote höchstens bei einem fälligen Nachbarn, dem am längsten
+fälligen; bringt das keinen gleichen Stand, wartet er dort doppelt so lange, von `imin` bis 300 s.
+Das ändert D584 Beschluss 2 nicht: der Bote holt, er schiebt nie.
+
+**Beschluss 2 — Fristen nach der Bitrate.** `zeiten(bitrate)` gibt Link, Antwort und `imin`:
+`72000/bitrate`, `144000/bitrate`, `72000/bitrate` Sekunden, nie unter 10, 15 und 10; bei 1200 bit/s
+die Werte aus D610. Die Bitrate ist die kleinste der Schnittstellen der Instanz. Jeder Nachbar trägt
+seine `Zeiten`; die Konstanten `_LINK_FRIST` und `_ANTWORT_FRIST` entfallen.
+
+**Beschluss 3 — die Sperrliste in jedem Takt.** Nach Befund 2.
+
+**Beschluss 4 — Funk im Lab.** `tools/funk.py` mit `Kanal` (Sendezeit, einer zur Zeit, Verlust mit
+Samen, nie an den Sender, Zählung der Ankündigungen) und einem Eingang je Teilnehmer; `--funk` im
+Lab wie `--reticulum`, mit einer eigenen Instanz je Gerät, 9600 bit/s, 5 % Verlust, bis 600 s Warten
+auf gleichen Stand.
+
+**Beschluss 5 — das gebündelte Holen kommt mit dem Bündel.** D610 Beschluss 1 nannte es als dritte
+Änderung. Es ist dasselbe Format wie das Bündel ohne Netz (D610 Beschluss 2) und gehört in den
+nächsten Auftrag. Dieser fragt, ob es zusammenbricht; der nächste, was es kostet.
+
+**Beschluss 6 — der Auftrag `p44-trickle`.** Die Dateien `symbolon/bote/trickle.py` neu,
+`symbolon/bote/kern.py`, `symbolon/bote/reticulum.py`, `tools/funk.py` neu, `tools/netz.py`; die
+neuen Testdateien `tests/bote/test_trickle.py` und `tests/node/test_funk.py`, die Fristtests in
+`tests/bote/test_reticulum.py` über `Zeiten` je Nachbar, zwei Tests in `tests/node/test_lab.py`,
+wörtlich im Auftrag. Rücknahmeproben vorher gefahren, jede an ihrem Test rot: Ankündigung in jedem
+Takt; ohne `k`; Rücksetzen auch bei `imin`; feste Zeiten; der Hörer mit anderem Parameternamen; Echo
+im Kanal; Sperrliste nur beim Holen; ohne Verdoppeln; `stand_aus` ohne Längenprüfung.
+
+**Geändert.** `07-decisions.md`.

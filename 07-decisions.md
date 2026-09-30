@@ -26820,3 +26820,74 @@ das Bündel als nächsten Schritt und die verabredete Reihenfolge; `sitzungsstar
 `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cw.md`, `archiv/sitzungsstart-00cv.md`.
+
+### D614 — Das Bündel: Format, Drahtpfad `paket`, Datei; Auftrag `p45-buendel`
+
+**Anlass.** D610 Beschluss 2, D611 Beschluss 5, D612 Beschluss 2. Geprüft gegen `offen.md` und das
+Register-Ende (D409): das Bündel hat keine eigene Nummer, es gehört zu O97. Gelesen vor dem Entwurf:
+`symbolon/bote/draht.py`, `kern.py`, `reticulum.py`, `_LIMIT` in `symbolon/node/api.py`, der
+Objekt-Hash in `symbolon/node/store.py`, die Tests unter `tests/bote/`. Prototyp im Supervisor-Klon
+auf `51cc29c`, Tests in der Fassung des Auftrags, `make check` ganz grün mit 1478 Tests.
+
+**Befund 1 — RNS komprimiert selbst.** `RNS.Resource` packt mit bz2, wenn es kleiner wird
+(`auto_compress`, `Resource.py`). Über Reticulum spart das Bündel deshalb kaum Bytes durch zlib; es
+spart Anfragen. Die Kompression zählt für die Datei und den QR-Code.
+
+**Befund 2 — ein Lauf, kein Vergleich.** Der Prototyp fährt `--wahlgang --funk` (sechs Geräte,
+9600 bit/s, 5 % Verlust) durch: gleicher Stand nach dem ersten Takt nach 140 s mit 146 kB auf dem
+Kanal, Takt 3 nach etwa vier Minuten mit 214 kB. D611 Befund 3 nannte 117 s und 192 kB bis Takt 2.
+Ein Lauf auf einer anderen Maschine ist kein Vergleich (D390); gemessen wird nach dem Bau, beide
+Fassungen auf derselben Maschine, bei 9600 und 1200 bit/s. Der Kanal ist mit Inhalt voll.
+
+**Beschluss 1 — der QR-Code ist ein eigener Schritt, und nur, wenn er trägt.** Olis Bedingung:
+niemand läuft mit Stapeln von Codes herum oder gleicht minutenlang Bildschirme ab. Ob ein Bündel
+sinnvoll über QR-Codes geht, wird nach der Messung im Lab an echten Grössen geprüft; ein Code
+Version 40 fasst 2953 Bytes. Wahl der Bibliothek und Stückelung dann mit Oli.
+
+**Beschluss 2 — das Format.** `symbolon/buendel.py`. Die Hülle ist kanonisches CBOR (`01 §3`)
+`["symbolon-buendel", 1, zlib]`, Kennung und Version lesbar ohne Entpacken. Entpackt ist `zlib`
+kanonisches CBOR `[[claim, …], [[art, daten], …]]`, Claims als signierte Bytes, Objekte mit der Art
+als Text. Kennungen je Eintrag trägt das Bündel nicht; wer es liest, rechnet sie selbst oder lässt
+den Knoten urteilen. Formwidrig ist: keine Bytes; nicht kanonische Hülle; falsche Kennung, auch als
+Bytes; eine Version ausser der ganzen Zahl 1, auch `True`; eine Hülle mit anderer Länge; `zlib` kein
+Byte-String; ein fehlerhafter, abgeschnittener oder gefolgter zlib-Strom (`unused_data`); mehr als
+`GRENZE` Bytes entpackt; ein nicht kanonisches oder anders geformtes Inneres. Die Prüfung der
+einzelnen Einträge ist Sache des Knotens.
+
+**Beschluss 3 — die Grenze.** `GRENZE` ist das `_LIMIT` des Knotens, 1048576 Bytes entpackt; ein
+Test bindet beide. Entpackt wird höchstens `GRENZE + 1` Bytes, genau `GRENZE` gilt. `packen` nimmt
+Objekte vor Claims, je in der gegebenen Reihenfolge, solange das Innere unter der Grenze bleibt; ab
+dem ersten Eintrag, der nicht passt, wird alles weggelassen und gezählt, kein kleinerer rückt nach.
+Was eine knappe Runde zuerst schicken soll, bleibt L6.
+
+**Beschluss 4 — der Drahtpfad `paket`.** Die Pfade sind `("bestand", "paket")`; `claim` und `object`
+entfallen, der Code `[2]` bleibt vergeben und ist auf jedem Pfad formwidrig. Die Anfrage ist
+`[[claim_id, …], [objekt_hash, …]]` mit je 32 Bytes, die Antwort `[0, bündel]`. `Quelle` hat
+`bestand` und `paket`. `holen` liest beide Bestände, fragt bei Fehlendem genau einmal `paket` mit
+allem Fehlenden, sortiert, und bei nichts Fehlendem gar nicht. Ein formwidriges Bündel oder eine
+formwidrige Antwort zählt einmal und liefert nichts ein. `fehlend` ist je Art angefragt weniger
+geliefert, nie negativ. Was ungefragt im Bündel steht, wird eingeliefert; der Knoten urteilt, wie
+bei fremden Bytes zur angefragten Kennung (D516). Damit ändert sich D585 Beschluss 3: formwidrige
+Bytes eines einzelnen Eintrags zählen als abgewiesen, formwidrig ist nur das Bündel. Das Einliefern
+geht in eine eigene Funktion `einliefern`. D584 Beschluss 2 bleibt: der Bote holt, er schiebt nie.
+
+**Beschluss 5 — die Datei.** `python -m tools.buendel schreiben|lesen <url> <datei>` über die
+HTTP-Schnittstelle. `schreiben` legt den ganzen Bestand ab, `lesen` liefert jeden Eintrag ein und
+zählt als `neu`, was der Bestand danach mehr hat. Eine Zeile Ausgabe; 0 bei Erfolg, 1 bei
+formwidriger Datei, getrenntem Knoten oder einem Dateifehler, 2 bei falschem Aufruf.
+
+**Beschluss 6 — der Ort.** Das Format steht im Register wie die Drahtform aus D585. Ein
+Transport-Profil (`01 §1`) entsteht, wenn eine zweite Implementierung oder die T-Beams es brauchen;
+die Version trägt Änderungen bis dahin.
+
+**Beschluss 7 — der Auftrag `p45-buendel`.** Neu `symbolon/buendel.py`, `tools/buendel.py`,
+`tests/test_buendel.py`, `tests/node/test_buendel_datei.py`; geändert `symbolon/bote/kern.py`,
+`draht.py`, `reticulum.py` und die Tests in `tests/bote/`; die Tests als Diff zum Anwenden.
+Rücknahmeproben vorher gefahren, jede an ihrem Test rot: ohne Grenze beim Entpacken; nur die
+Längenprüfung weg; ohne `unused_data`; ohne Prüfung des Stromendes; ohne Kennung; ohne Version;
+Version ohne Typprüfung; Claims vor Objekten; ein kleinerer Eintrag rückt nach; ohne Kürzen; eine
+Anfrage je Eintrag; `paket` auch ohne Fehlendes; formwidriges Bündel ungefangen; `fehlend` null;
+Ungefragtes gefiltert; Anfrage `paket` ohne Formprüfung; Antwort `paket` ohne Formprüfung; `neu` als
+Zahl der Einlieferungen; eine getippte Grenze.
+
+**Geändert.** `07-decisions.md`.

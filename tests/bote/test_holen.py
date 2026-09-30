@@ -6,6 +6,7 @@ import pytest
 
 from symbolon import buendel
 from symbolon.atom import claim_id, signed_bytes
+from symbolon.bote import rbsr
 from symbolon.bote.kern import Ergebnis, Formwidrig, Getrennt, HttpKnoten, holen
 from tests.helpers import Identity, scope_id
 from tests.node.test_abgleich import _bestand, _knoten, _soll, _url
@@ -22,21 +23,23 @@ class _Fremd:
     def __init__(
         self,
         claims: dict[bytes, object],
-        bestand_wirft: type[Exception] | None = None,
+        abgleich_wirft: type[Exception] | None = None,
         objekte: dict[bytes, object] | None = None,
     ):
         self.claims = claims
         self.objekte = objekte or {}
-        self.bestand_wirft = bestand_wirft
+        self.abgleich_wirft = abgleich_wirft
         self.paket_wirft: type[Exception] | None = None
         self.paket_roh: bytes | None = None
         self.aufrufe = 0
 
-    def bestand(self):
+    def abgleich(self, roh: bytes):
+        """Wie ein Nachbar über den Draht: die Anfrage gelesen, die Antwort aus dem Bestand."""
         self.aufrufe += 1
-        if self.bestand_wirft is not None:
-            raise self.bestand_wirft()
-        return sorted(self.claims), sorted(self.objekte)
+        if self.abgleich_wirft is not None:
+            raise self.abgleich_wirft()
+        s = rbsr.schluessel(list(self.claims), list(self.objekte))
+        return rbsr.kodieren(rbsr.antworten(s, rbsr.lesen(roh, vom_boten=True)))
 
     def paket(self, claims: list[bytes], objekte: list[bytes]):
         """Ein Bündel aus dem, was da ist; ``bytes`` unter einer Kennung sind das ganze Paket."""
@@ -215,14 +218,14 @@ def test_fehlendes_objekt(tmp_path) -> None:
         _stop(x)
 
 
-def test_formwidriger_bestand(tmp_path) -> None:
-    """Ein formwidriger Bestand beendet das Holen ohne weitere Anfrage."""
-    fremd = _Fremd({}, bestand_wirft=Formwidrig)
+def test_formwidriger_abgleich(tmp_path) -> None:
+    """Eine formwidrige Antwort im Abgleich beendet das Holen ohne weitere Anfrage (D617)."""
+    fremd = _Fremd({}, abgleich_wirft=Formwidrig)
     x = _knoten(tmp_path / "x.sqlite")
     try:
         assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, False, 0, 1)
         assert fremd.aufrufe == 1
-        fremd.bestand_wirft = Getrennt
+        fremd.abgleich_wirft = Getrennt
         assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, True, 0, 0)
     finally:
         _stop(x)
@@ -243,3 +246,39 @@ def test_nur_formwidrig_zaehlt(tmp_path, monkeypatch) -> None:
             holen(HttpKnoten(_url(x)), fremd)
     finally:
         _stop(x)
+
+
+class _Luegner(_Fremd):
+    """Ein Nachbar, dessen Antwort nicht in der Form aus D617 ist."""
+
+    def abgleich(self, _roh: bytes):
+        self.aufrufe += 1
+        return rbsr.kodieren([(None, rbsr.FEHLT, [bytes([2]) + bytes(32)])])
+
+
+def test_formwidrige_antwort_im_abgleich(tmp_path) -> None:
+    """Eine Antwort ausserhalb der Form zählt einmal und fragt kein Paket (D617 Beschluss 2)."""
+    fremd = _Luegner({})
+    x = _knoten(tmp_path / "x.sqlite")
+    try:
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, False, 0, 1)
+        assert fremd.aufrufe == 1
+    finally:
+        _stop(x)
+
+
+def test_viele_eintraege(tmp_path) -> None:
+    """Ein ganzer Verein über HTTP geholt, der Nachbar ein ``HttpKnoten`` (D617)."""
+    path_a = tmp_path / "a.sqlite"
+    anlegen(path_a)
+    soll = _soll(path_a)
+    a = _start(path_a, lambda: _NOW)
+    b = _knoten(tmp_path / "b.sqlite")
+    try:
+        e = holen(HttpKnoten(_url(b)), HttpKnoten(_url(a)))
+        assert e.geholt == len(soll["claims"]) + len(soll["objects"])
+        assert (e.fehlend, e.formwidrig) == (0, 0)
+        assert _bestand(b) == soll
+    finally:
+        _stop(a)
+        _stop(b)

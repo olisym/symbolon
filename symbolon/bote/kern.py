@@ -1,7 +1,7 @@
 """Holen ohne Transport: der eigene Knoten holt von einem Nachbarn (D584 Beschluss 1 und 2).
 
 Der Nachbar wird nur gefragt, nie beliefert. Was ein Holen meldet, steht in D585 Beschluss 3,
-geändert durch D614 Beschluss 4: formwidrig ist nur das Bündel.
+geändert durch D614 Beschluss 4 und D617 Beschluss 4.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from symbolon import buendel
+from symbolon.bote import rbsr
 
 _ZEITLIMIT = 10
 
@@ -42,6 +43,8 @@ class Quelle(Protocol):
     """Was ein Bote lesen kann; keine Methode zum Einliefern (D584 Beschluss 2)."""
 
     def bestand(self) -> tuple[list[bytes], list[bytes]]: ...
+
+    def abgleich(self, roh: bytes) -> bytes: ...
 
     def paket(self, claims: list[bytes], objekte: list[bytes]) -> bytes: ...
 
@@ -108,6 +111,13 @@ class HttpKnoten:
                 gehalten_claims.append(data)
         return buendel.schreiben(gehalten_claims, gehalten_objekte)
 
+    def abgleich(self, roh: bytes) -> bytes:
+        """Antwort aus dem eigenen Bestand (D617 Beschluss 4 und 5)."""
+        claims, objekte = self.bestand()
+        teile = rbsr.lesen(roh, vom_boten=True)
+        antwort = rbsr.antworten(rbsr.schluessel(claims, objekte), teile)
+        return rbsr.kodieren(antwort)
+
     def stand(self) -> bytes:
         """``GET /stand``: 64 Hexzeichen sind der Stand, sonst getrennt (D611 Beschluss 1)."""
         try:
@@ -168,25 +178,30 @@ def einliefern(
 
 
 def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
-    """Beide Bestände, bei Fehlendem genau einmal ``paket``, sortiert (D614 Beschluss 4).
+    """Gleicht ab und fragt dann einmal ``paket`` (D617 Beschluss 4, D614 Beschluss 4).
 
-    Fehlt nichts, gibt es keine Anfrage. Ein formwidriges Bündel oder eine formwidrige Antwort
-    zählt einmal und liefert nichts ein; beim Lesen nur ``buendel.Formwidrig`` (D615 Beschluss 2).
-    ``fehlend`` ist je Art angefragt weniger geliefert, nie negativ. Was ungefragt im Bündel
-    steht, wird eingeliefert; der Knoten urteilt.
+    ``nachbar.bestand`` wird nicht gefragt. Eine formwidrige Antwort, vom Draht oder aus
+    dem Abgleich, zählt einmal und liefert nichts ein. Nach ``RUNDEN`` holt er, was bis
+    dahin fehlt. ``fehlend`` ist je Art angefragt weniger geliefert, nie negativ. Was
+    ungefragt im Bündel steht, wird eingeliefert; der Knoten urteilt (D615 Beschluss 2).
     """
     try:
         meine_claims, meine_objekte = mein.bestand()
     except Getrennt:
         return Ergebnis(0, {}, True, 0, 0)
+    abgleich = rbsr.Abgleich(rbsr.schluessel(meine_claims, meine_objekte))
     try:
-        seine_claims, seine_objekte = nachbar.bestand()
+        while (anfrage := abgleich.naechste()) is not None:
+            roh = nachbar.abgleich(anfrage)
+            abgleich.auswerten(rbsr.lesen(roh, vom_boten=False))
     except Formwidrig:
+        return Ergebnis(0, {}, False, 0, 1)
+    except rbsr.Formwidrig:
         return Ergebnis(0, {}, False, 0, 1)
     except Getrennt:
         return Ergebnis(0, {}, True, 0, 0)
-    fehlende_claims = sorted(set(seine_claims) - set(meine_claims))
-    fehlende_objekte = sorted(set(seine_objekte) - set(meine_objekte))
+    fehlende_claims = sorted(key[1:] for key in abgleich.fehlt if key[0] == rbsr.ART_CLAIM)
+    fehlende_objekte = sorted(key[1:] for key in abgleich.fehlt if key[0] == rbsr.ART_OBJEKT)
     if not fehlende_claims and not fehlende_objekte:
         return Ergebnis(0, {}, False, 0, 0)
     try:

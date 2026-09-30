@@ -6,6 +6,7 @@ import cbor2
 import pytest
 
 from symbolon import buendel, cbor_canon
+from symbolon.bote import rbsr
 from symbolon.bote.draht import FEHLT, FORMWIDRIG, GETRENNT, OK, PFADE, beantworten, lesen
 from symbolon.bote.kern import Formwidrig, Getrennt
 
@@ -27,6 +28,11 @@ class _Quelle:
         self._pruefen()
         return [_C], [_O]
 
+    def abgleich(self, roh: bytes):
+        self._pruefen()
+        self.abgeglichen = roh
+        return rbsr.kodieren([(None, rbsr.SKIP, None)])
+
     def paket(self, claims: list[bytes], objekte: list[bytes]):
         self._pruefen()
         self.gefragt = (claims, objekte)
@@ -39,7 +45,7 @@ class _Quelle:
 def test_codes() -> None:
     """Die Codes und die Pfade sind fest (D584 Beschluss 3)."""
     assert (OK, GETRENNT, FEHLT, FORMWIDRIG) == (0, 1, 2, 3)
-    assert PFADE == ("bestand", "paket")
+    assert PFADE == ("bestand", "paket", "abgleich")
     assert beantworten(_Quelle(getrennt=True), "bestand", None) == bytes.fromhex("8101")
 
 
@@ -51,7 +57,12 @@ def test_hin_und_zurueck() -> None:
     assert q.gefragt == ([_C, _O], [_O])
     assert buendel.lesen(roh) == ([b"claim-bytes"], [("proposal", b"objekt-bytes")])
     assert buendel.lesen(lesen("paket", beantworten(q, "paket", [[], []]))) == ([], [])
-    for pfad, data in (("bestand", None), ("paket", [[_C], []])):
+    anfrage = rbsr.kodieren([(None, rbsr.FP, bytes(16))])
+    assert lesen("abgleich", beantworten(q, "abgleich", anfrage)) == rbsr.kodieren(
+        [(None, rbsr.SKIP, None)]
+    )
+    assert q.abgeglichen == anfrage
+    for pfad, data in (("bestand", None), ("paket", [[_C], []]), ("abgleich", anfrage)):
         with pytest.raises(Getrennt):
             lesen(pfad, beantworten(_Quelle(getrennt=True), pfad, data))
 
@@ -68,6 +79,11 @@ def test_hin_und_zurueck() -> None:
         ("paket", [[], [_O + b"\x00"]]),
         ("paket", [[_C.hex()], []]),
         ("paket", [_C, _O]),
+        ("abgleich", None),
+        ("abgleich", [[None, 0, None]]),
+        ("abgleich", b"\xff"),
+        ("abgleich", rbsr.kodieren([(None, rbsr.FEHLT, [])])),
+        ("abgleich", bytes(rbsr.RAHMEN + 1)),
         ("claim", _C),
         ("object", _O),
         ("liefern", _C),
@@ -105,6 +121,8 @@ _GUT = cbor_canon.encode([OK, [[_C], [_O]]])
         ("paket", cbor_canon.encode([OK, [b""]])),
         ("paket", cbor_canon.encode([FEHLT])),
         ("paket", cbor_canon.encode([7])),
+        ("abgleich", cbor_canon.encode([OK, [[None, 0, None]]])),
+        ("abgleich", cbor_canon.encode([FEHLT])),
         ("claim", cbor_canon.encode([OK, b"claim-bytes"])),
     ],
 )

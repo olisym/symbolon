@@ -51,6 +51,10 @@ class _Ziel:
             assert antwort("paket", [[b"\x00" * 31], []], b"", b"", None, 0.0) == cbor_canon.encode(
                 [FORMWIDRIG]
             )
+        if pfad == "abgleich":
+            assert antwort("abgleich", b"\xff", b"", b"", None, 0.0) == cbor_canon.encode(
+                [FORMWIDRIG]
+            )
 
 
 def test_anbieten_nur_lesen(tmp_path) -> None:

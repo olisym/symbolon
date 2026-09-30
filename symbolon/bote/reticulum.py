@@ -58,7 +58,7 @@ def _antwort(quelle: Quelle, pfad: str):
 
 
 def anbieten(destination, quelle: Quelle) -> None:
-    """Nur die lesenden Pfade, keiner zum Einliefern (D584 Beschluss 2, D585 Beschluss 1)."""
+    """Die lesenden Pfade, auch ``abgleich``; keiner zum Einliefern (D617 Beschluss 5)."""
     for pfad in PFADE:
         destination.register_request_handler(
             pfad, _antwort(quelle, pfad), RNS.Destination.ALLOW_ALL
@@ -156,6 +156,10 @@ class RnsNachbar:
     def paket(self, claims: list[bytes], objekte: list[bytes]) -> bytes:
         """Die Anfrage geht als ``[claims, objekte]`` über ``_anfrage`` (D614 Beschluss 4)."""
         return self._anfrage("paket", [claims, objekte])
+
+    def abgleich(self, roh: bytes) -> bytes:
+        """Die Nachricht geht als Bytes über ``_anfrage`` (D617 Beschluss 5)."""
+        return self._anfrage("abgleich", roh)
 
 
 def laufen(

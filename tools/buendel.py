@@ -10,7 +10,7 @@ from symbolon.bote.kern import Getrennt, HttpKnoten, einliefern
 
 
 def _schreiben(url: str, pfad: Path) -> int:
-    """Legt den ganzen Bestand ab (D614 Beschluss 5)."""
+    """Legt den Bestand ab; die Zeile zählt die Datei (D614 Beschluss 5, D615 Beschluss 1)."""
     knoten = HttpKnoten(url)
     try:
         claims, objekte = knoten.bestand()
@@ -23,12 +23,22 @@ def _schreiben(url: str, pfad: Path) -> int:
     except OSError as exc:
         print(f"datei: {exc}")
         return 1
-    print(f"claims={len(claims)} objekte={len(objekte)} bytes={pfad.stat().st_size}")
+    datei_claims, datei_objekte = buendel.lesen(pfad.read_bytes())
+    zeile = (
+        f"claims={len(datei_claims)} objekte={len(datei_objekte)} "
+        f"bytes={pfad.stat().st_size}"
+    )
+    bestand = len(claims) + len(objekte)
+    in_datei = len(datei_claims) + len(datei_objekte)
+    if in_datei < bestand:
+        zeile += f" weggelassen={bestand - in_datei}"
+    print(zeile)
     return 0
 
 
 def _lesen(url: str, pfad: Path) -> int:
-    """Liefert jeden Eintrag ein. ``neu`` ist, was der Bestand danach mehr hat (D614 Beschluss 5)."""
+    """Liefert jeden Eintrag ein. ``neu`` ist, was der Bestand danach mehr hat
+    (D614 Beschluss 5)."""
     try:
         roh = pfad.read_bytes()
     except OSError as exc:

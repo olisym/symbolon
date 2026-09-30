@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from symbolon import buendel
 from symbolon.atom import claim_id, signed_bytes
 from symbolon.bote.kern import Ergebnis, Formwidrig, Getrennt, HttpKnoten, holen
@@ -222,5 +224,22 @@ def test_formwidriger_bestand(tmp_path) -> None:
         assert fremd.aufrufe == 1
         fremd.bestand_wirft = Getrennt
         assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, True, 0, 0)
+    finally:
+        _stop(x)
+
+
+def test_nur_formwidrig_zaehlt(tmp_path, monkeypatch) -> None:
+    """Nur ``buendel.Formwidrig`` zählt als formwidrig; ein anderer Fehler bleibt einer (D615)."""
+    vouches = _vouches()
+    fremd = _Fremd({claim_id(c): signed_bytes(c) for c in vouches})
+
+    def kaputt(_roh):
+        raise ValueError("kein Formfehler")
+
+    monkeypatch.setattr(buendel, "lesen", kaputt)
+    x = _knoten(tmp_path / "x.sqlite")
+    try:
+        with pytest.raises(ValueError, match="kein Formfehler"):
+            holen(HttpKnoten(_url(x)), fremd)
     finally:
         _stop(x)

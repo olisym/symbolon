@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from tests.node.test_abgleich import _bestand, _knoten, _soll, _url
 from tests.node.test_api import _call, _start, _stop
+from symbolon import buendel
+from symbolon.bote.kern import HttpKnoten
+from symbolon.buendel import GRENZE
 from tools import buendel as werkzeug
 from tools.verein_node import anlegen
 
@@ -59,3 +62,28 @@ def test_aufruf_falsch(capsys) -> None:
     """Ein falscher Aufruf endet mit 2."""
     assert werkzeug.main(["x", "senden", "http://127.0.0.1:1", "d"]) == 2
     assert capsys.readouterr().out.startswith("aufruf: ")
+
+
+class _Gross(HttpKnoten):
+    """Ein Knoten-Ersatz, dessen Bestand über ``GRENZE`` liegt; ein Claim ist verschwunden."""
+
+    def bestand(self):
+        return [bytes([1]) * 32, bytes([2]) * 32, bytes([3]) * 32], [bytes([4]) * 32]
+
+    def claim(self, cid: bytes):
+        return None if cid[0] == 3 else bytes([cid[0]]) * (GRENZE // 3)
+
+    def objekt(self, _digest: bytes):
+        return "proposal", b"o" * (GRENZE // 3)
+
+
+def test_datei_zaehlt_was_darin_steht(tmp_path, monkeypatch, capsys) -> None:
+    """Die Zeile zählt den Inhalt der Datei; was fehlt, steht als ``weggelassen`` (D615)."""
+    monkeypatch.setattr(werkzeug, "HttpKnoten", _Gross)
+    datei = tmp_path / "gross.buendel"
+    assert werkzeug.main(["x", "schreiben", "http://gross", str(datei)]) == 0
+    assert capsys.readouterr().out.strip() == (
+        f"claims=1 objekte=1 bytes={datei.stat().st_size} weggelassen=2"
+    )
+    claims, objekte = buendel.lesen(datei.read_bytes())
+    assert (len(claims), len(objekte)) == (1, 1)

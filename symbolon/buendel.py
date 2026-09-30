@@ -72,7 +72,8 @@ def schreiben(claims: list[bytes], objekte: list[tuple[str, bytes]]) -> bytes:
 
 
 def _entpacken(komprimiert: bytes) -> bytes:
-    """Höchstens ``GRENZE + 1`` Bytes; abgeschnitten oder gefolgt ist formwidrig (D614 Beschluss 2)."""
+    """Höchstens ``GRENZE + 1`` Bytes; abgeschnitten oder gefolgt ist formwidrig
+    (D614 Beschluss 2)."""
     dec = zlib.decompressobj()
     try:
         innen = dec.decompress(komprimiert, max_length=GRENZE + 1)

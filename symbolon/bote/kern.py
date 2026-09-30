@@ -171,8 +171,9 @@ def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
     """Beide Bestände, bei Fehlendem genau einmal ``paket``, sortiert (D614 Beschluss 4).
 
     Fehlt nichts, gibt es keine Anfrage. Ein formwidriges Bündel oder eine formwidrige Antwort
-    zählt einmal und liefert nichts ein. ``fehlend`` ist je Art angefragt weniger geliefert,
-    nie negativ. Was ungefragt im Bündel steht, wird eingeliefert; der Knoten urteilt.
+    zählt einmal und liefert nichts ein; beim Lesen nur ``buendel.Formwidrig`` (D615 Beschluss 2).
+    ``fehlend`` ist je Art angefragt weniger geliefert, nie negativ. Was ungefragt im Bündel
+    steht, wird eingeliefert; der Knoten urteilt.
     """
     try:
         meine_claims, meine_objekte = mein.bestand()
@@ -196,7 +197,7 @@ def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
         return Ergebnis(0, {}, True, 0, 0)
     try:
         claims, objekte = buendel.lesen(roh)
-    except ValueError:
+    except buendel.Formwidrig:
         return Ergebnis(0, {}, False, 0, 1)
     fehlend = max(0, len(fehlende_claims) - len(claims)) + max(
         0, len(fehlende_objekte) - len(objekte)

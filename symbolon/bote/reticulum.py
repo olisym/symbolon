@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import random
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -9,13 +11,19 @@ from pathlib import Path
 import RNS
 
 from symbolon.bote.draht import PFADE, beantworten, lesen
-from symbolon.bote.kern import Getrennt, HttpKnoten, Quelle, rundgang
+from symbolon.bote.kern import (
+    Getrennt,
+    HttpKnoten,
+    Quelle,
+    rundgang,
+    sperrstand,
+    stand_aus,
+)
+from symbolon.bote.trickle import Trickle, Zeiten, zeiten
 
 APP = "symbolon"
 ASPEKT = "bote"
 
-_LINK_FRIST = 10.0
-_ANTWORT_FRIST = 15.0
 _ZUSTELL_MIN = 1.0
 _ZUSTELL_FAKTOR = 20.0
 _VERSUCHE = 3
@@ -62,11 +70,22 @@ def _zustellfrist(link) -> float:
     return max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * (link.rtt or 0.0))
 
 
-class RnsNachbar:
-    """Ein Nachbar über einen Link zu ``symbolon.bote`` an seiner Adresse (D584 Beschluss 1)."""
+def _bitrate() -> float | None:
+    """Die kleinste ``bitrate`` unter den Schnittstellen, ohne eine ``None`` (D611 Beschluss 2)."""
+    werte = [
+        interface.bitrate
+        for interface in RNS.Transport.interfaces
+        if interface.bitrate is not None
+    ]
+    return min(werte) if werte else None
 
-    def __init__(self, ziel: bytes) -> None:
+
+class RnsNachbar:
+    """Ein Nachbar über einen Link; die Fristen trägt er selbst (D584 Beschluss 1, D611 Beschluss 2)."""
+
+    def __init__(self, ziel: bytes, zeit: Zeiten | None = None) -> None:
         self.ziel = ziel
+        self.zeit = zeiten(None) if zeit is None else zeit
         self._link: RNS.Link | None = None
 
     def _verbinden(self) -> RNS.Link:
@@ -84,7 +103,7 @@ class RnsNachbar:
         link = RNS.Link(destination)
         begun = time.monotonic()
         while link.status != RNS.Link.ACTIVE:
-            if time.monotonic() - begun > _LINK_FRIST:
+            if time.monotonic() - begun > self.zeit.link:
                 raise Getrennt()
             time.sleep(_WARTEN)
         self._link = link
@@ -122,7 +141,7 @@ class RnsNachbar:
             if jetzt != fortschritt:
                 fortschritt = jetzt
                 seit = time.monotonic()
-            elif time.monotonic() - seit > _ANTWORT_FRIST:
+            elif time.monotonic() - seit > self.zeit.antwort:
                 link.teardown()
                 self._link = None
                 raise Getrennt()
@@ -150,9 +169,11 @@ def laufen(
     melden: Callable[[str], None],
     sperren: Path | None = None,
 ) -> None:
-    """Anbieten und im Takt von jedem Nachbarn holen (D584 Beschluss 1 und 2, D585 Beschluss 3).
+    """Anbieten, nach Trickle ankündigen und je Takt höchstens einen Nachbarn holen.
 
-    Vor jedem Nachbarn liest ``rundgang`` die Sperrliste ``sperren`` (D594 Beschluss 3).
+    Die Ankündigung trägt den Stand (D584 Beschluss 1 und 2, D611 Beschluss 1). Die Fristen kommen
+    aus der kleinsten Bitrate (D611 Beschluss 2). ``sperrstand`` liest die Sperrliste in jedem Takt,
+    auch ohne Holen (D594 Beschluss 3, D611 Beschluss 3). Der Bote holt, er schiebt nie.
     """
     RNS.Reticulum(configdir=str(konfiguration))
     destination = RNS.Destination(
@@ -160,9 +181,80 @@ def laufen(
     )
     mein = HttpKnoten(knoten_url)
     anbieten(destination, mein)
-    quellen = [(ziel, RnsNachbar(ziel)) for ziel in nachbarn]
+    zeit = zeiten(_bitrate())
+    quellen = {ziel: RnsNachbar(ziel, zeit) for ziel in nachbarn}
+    trickle = Trickle(zeit.imin, 6, 2, time.monotonic(), random.Random())
+    sperre = threading.Lock()
+    gehoerte: dict[bytes, bytes] = {}
+    faellig: dict[bytes, float] = {}
+    pausen: dict[bytes, float] = {}
+    eigener: list[bytes | None] = [None]
+
+    class _Hoerer:
+        """Hört Ankündigungen; die Parameternamen sind die von RNS (D611 Beschluss 1, Befund 1)."""
+
+        aspect_filter = "symbolon.bote"
+        receive_path_responses = True
+
+        def received_announce(self, destination_hash, announced_identity, app_data) -> None:
+            # RNS ruft mit Namen auf. Die Identität hat ``aspect_filter`` schon geprüft
+            # (D611 Befund 1); hier zählt der Stand.
+            if announced_identity is None and destination_hash is None:
+                return
+            roh = stand_aus(app_data)
+            if destination_hash not in quellen or roh is None:
+                return
+            with sperre:
+                gehoerte[destination_hash] = roh
+                if eigener[0] is not None and roh == eigener[0]:
+                    trickle.gleich()
+                elif destination_hash not in faellig:
+                    faellig[destination_hash] = time.monotonic()
+
+    RNS.Transport.register_announce_handler(_Hoerer())
     zuletzt: frozenset[bytes] | None = frozenset()
     while True:
-        destination.announce()
-        zuletzt = rundgang(mein, quellen, sperren, zuletzt, melden)
+        jetzt = time.monotonic()
+        try:
+            stand = mein.stand()
+        except Getrennt:
+            stand = None
+        with sperre:
+            if stand is not None and stand != eigener[0]:
+                trickle.neu(jetzt)
+                eigener[0] = stand
+                for ziel, gehoert in gehoerte.items():
+                    if gehoert != stand:
+                        faellig[ziel] = jetzt
+                        pausen.pop(ziel, None)
+                    else:
+                        faellig.pop(ziel, None)
+                        pausen.pop(ziel, None)
+            melden_stand = stand if stand is not None and trickle.ankuendigen(jetzt) else None
+            kandidaten = [(wann, ziel) for ziel, wann in faellig.items() if wann <= jetzt]
+        if melden_stand is not None:
+            destination.announce(app_data=melden_stand)
+        gelesen = sperrstand(sperren, zuletzt, melden)
+        zuletzt = gelesen
+        if gelesen is not None and kandidaten:
+            _wann, gewaehlt = min(kandidaten)
+            zuletzt = rundgang(
+                mein, [(gewaehlt, quellen[gewaehlt])], sperren, zuletzt, melden
+            )
+            try:
+                danach = mein.stand()
+            except Getrennt:
+                danach = None
+            with sperre:
+                gehoert = gehoerte.get(gewaehlt)
+                geaendert = eigener[0] is not None and danach is not None and danach != eigener[0]
+                gleich = gehoert is not None and danach == gehoert
+                if geaendert or gleich:
+                    faellig.pop(gewaehlt, None)
+                    pausen.pop(gewaehlt, None)
+                else:
+                    # Kein gleicher Stand: doppelt so lange, von imin bis 300 s (D611 Beschluss 1).
+                    pause = min(300.0, max(zeit.imin, 2 * pausen.get(gewaehlt, 0.0)))
+                    pausen[gewaehlt] = pause
+                    faellig[gewaehlt] = time.monotonic() + pause
         time.sleep(takt)

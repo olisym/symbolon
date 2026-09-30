@@ -196,3 +196,31 @@ def test_boten_sperren(tmp_path) -> None:
     gesperrt_ab = zeilen.index("Gerät B: gesperrt=1")
     frei_ab = zeilen.index("Gerät B: gesperrt=0")
     assert not [z for z in zeilen[gesperrt_ab:frei_ab] if z.startswith("Gerät B ← Gerät A")], zeilen
+
+
+def test_sperren_bei_gleichem_stand(tmp_path) -> None:
+    """Die Sperrliste wird in jedem Takt gelesen, auch wenn nichts zu holen ist; darauf wartet
+    der Handschlag der Spaltung (D594 Beschluss 3, D611 Beschluss 3)."""
+    path_a = tmp_path / "a.sqlite"
+    path_b = tmp_path / "b.sqlite"
+    anlegen(path_a)
+    anlegen(path_b)
+    a = _start(path_a, lambda: _NOW)
+    b = _start(path_b, lambda: _NOW)
+    geraete = [("Gerät A", "a.sqlite", frozenset()), ("Gerät B", "b.sqlite", frozenset())]
+    zeilen: list[str] = []
+    stand: dict[str, int | None] = {}
+    prozesse = boten(tmp_path, geraete, [_url(a), _url(b)], zeilen.append, stand)
+    try:
+        assert ruhe([_url(a), _url(b)], frist=5.0) is not None
+        adr_a, _adr_b = adressen_der(tmp_path, geraete)
+        (tmp_path / "sperren").mkdir(exist_ok=True)
+        (tmp_path / "sperren" / "b.sqlite.txt").write_text(adr_a + "\n", encoding="utf-8")
+        assert gesperrt_gemeldet(stand, {"Gerät B": 1}, frist=20.0), zeilen
+    finally:
+        for prozess in prozesse:
+            prozess.terminate()
+        for prozess in prozesse:
+            prozess.wait(timeout=10)
+        _stop(a)
+        _stop(b)

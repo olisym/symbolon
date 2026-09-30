@@ -93,6 +93,21 @@ class HttpKnoten:
             return None
         return body["kind"], bytes.fromhex(body["data"])
 
+    def stand(self) -> bytes:
+        """``GET /stand``: 64 Hexzeichen sind der Stand, sonst getrennt (D611 Beschluss 1)."""
+        try:
+            status, body = self._anfrage("GET", "/stand")
+        except (RuntimeError, json.JSONDecodeError) as exc:
+            raise Getrennt() from exc
+        if status == 200 and isinstance(body, str) and len(body) == 64:
+            try:
+                roh = bytes.fromhex(body)
+            except ValueError as exc:
+                raise Getrennt() from exc
+            if len(roh) == 32 and all(c in "0123456789abcdefABCDEF" for c in body):
+                return roh
+        raise Getrennt()
+
     def liefern_claim(self, data: bytes) -> str | None:
         """``None`` bei Annahme, sonst der Name der Abweisung (D516 Beschluss 2 und 4)."""
         status, body = self._anfrage("POST", "/peer/claims", {"data": data.hex()})
@@ -106,6 +121,13 @@ class HttpKnoten:
 
 def _name(body: object) -> str:
     return body if isinstance(body, str) else json.dumps(body)
+
+
+def stand_aus(app_data: object) -> bytes | None:
+    """Nur genau 32 Bytes sind ein Stand; alles andere ist formwidrig (D611 Beschluss 1)."""
+    if type(app_data) is bytes and len(app_data) == 32:
+        return app_data
+    return None
 
 
 def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
@@ -198,6 +220,22 @@ def sperren_lesen(pfad: Path) -> frozenset[bytes] | None:
         return None
 
 
+def sperrstand(
+    sperren: Path | None,
+    zuletzt: frozenset[bytes] | None,
+    melden: Callable[[str], None],
+) -> frozenset[bytes] | None:
+    """Liest die Sperrliste wie der Rundgang; ohne Datei ist niemand gesperrt (D611 Beschluss 3).
+
+    Weicht sie von ``zuletzt`` ab, steht einmal ``gesperrt=<Zahl>`` oder ``sperren formwidrig``.
+    Rückgabe: die gelesene Liste.
+    """
+    gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
+    if gesperrt != zuletzt:
+        melden("sperren formwidrig" if gesperrt is None else f"gesperrt={len(gesperrt)}")
+    return gesperrt
+
+
 def rundgang(
     mein: HttpKnoten,
     quellen: list[tuple[bytes, Quelle]],
@@ -205,16 +243,14 @@ def rundgang(
     zuletzt: frozenset[bytes] | None,
     melden: Callable[[str], None],
 ) -> frozenset[bytes] | None:
-    """Vor jedem Nachbarn die Sperrliste lesen, keinen gesperrten fragen (D594 Beschluss 3).
+    """Vor jedem Nachbarn ``sperrstand``, keinen gesperrten fragen (D594 Beschluss 3, D611 Beschluss 3).
 
     Ändert sich die gelesene Liste gegenüber ``zuletzt``, steht das einmal als Zeile; ist sie
     formwidrig, wird kein Nachbar gefragt. Rückgabe: die zuletzt gelesene Liste.
     """
     for ziel, nachbar in quellen:
-        gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
-        if gesperrt != zuletzt:
-            melden("sperren formwidrig" if gesperrt is None else f"gesperrt={len(gesperrt)}")
-            zuletzt = gesperrt
+        gesperrt = sperrstand(sperren, zuletzt, melden)
+        zuletzt = gesperrt
         if gesperrt is None or ziel in gesperrt:
             continue
         e = holen(mein, nachbar)

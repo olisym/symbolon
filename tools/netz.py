@@ -1,6 +1,6 @@
 """Geräte, ein Netz und der Startbefehl (D518 Beschluss 1 bis 3, D521 Beschluss 4, D523, D542, D588).
 
-Die Spaltung in West und Ost steht in D594.
+Die Spaltung in West und Ost steht in D594. ``--funk`` steht in D611 Beschluss 4.
 """
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ import hashlib
 import itertools
 import json
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -59,6 +60,11 @@ _HOST = "127.0.0.1"
 _WARTEN = 10
 _TAKT = 2
 _RUHE = 30.0
+# Über Funk wartet das Lab bis 600 s auf gleichen Stand (D611 Beschluss 4).
+_RUHE_FUNK = 600.0
+# Lab über Funk: 9600 bit/s und 5 % Verlust (D611 Beschluss 4).
+FUNK_BITRATE = 9600
+FUNK_VERLUST = 0.05
 _BEREIT = 10.0
 _BOTE_TAKT = "1"
 _GESCHICHTEN = (
@@ -73,7 +79,7 @@ _GESCHICHTEN = (
 _USAGE = (
     "usage: python -m tools.netz <verzeichnis> "
     "[--personen | --versehen | --geraete | --aufloesen | --spaltung | --ausweg | --wahlgang] "
-    "[--reticulum]"
+    "[--reticulum | --funk]"
 )
 
 # Der Ablauf, den der Startbefehl druckt (D518, „Der Ablauf, den der Startbefehl druckt“).
@@ -224,13 +230,16 @@ def _antwortet(url: str, prozess: subprocess.Popen) -> bool:
 
 
 def schalter(argv: list[str]) -> tuple[str | None, bool]:
-    """Eine Geschichte oder keine, ``--reticulum`` nur am Ende (D589 Beschluss 1)."""
-    reticulum = bool(argv) and argv[-1] == "--reticulum"
-    rest = argv[:-1] if reticulum else argv
+    """Eine Geschichte oder keine; ``--reticulum`` oder ``--funk`` nur am Ende.
+
+    Beide ergeben ``True`` an zweiter Stelle (D589 Beschluss 1, D611 Beschluss 4).
+    """
+    netz = bool(argv) and argv[-1] in ("--reticulum", "--funk")
+    rest = argv[:-1] if netz else argv
     if not rest:
-        return None, reticulum
+        return None, netz
     if len(rest) == 1 and rest[0] in _GESCHICHTEN:
-        return rest[0], reticulum
+        return rest[0], netz
     raise SystemExit(_USAGE)
 
 
@@ -254,6 +263,35 @@ def rns_konfiguration(verzeichnis: Path) -> Path:
         "[interfaces]",
     ]
     (rns / "config").write_text("".join(z + "\n" for z in zeilen), encoding="utf-8")
+    return rns
+
+
+def funk_konfiguration(
+    verzeichnis: Path, datei: str, hoeren: int, kanal: int, bitrate: int
+) -> Path:
+    """Verzeichnis ``rns-<datei>``: eigene Instanz, ``UDPInterface`` auf den Kanal (D611 Beschluss 4).
+
+    Hört auf ``hoeren``, sendet an ``kanal`` und trägt ``bitrate``. Keine gemeinsame Instanz.
+    """
+    rns = verzeichnis / f"rns-{datei}"
+    rns.mkdir(parents=True, exist_ok=True)
+    zeilen = [
+        "[reticulum]",
+        "  enable_transport = No",
+        "  share_instance = No",
+        "[logging]",
+        "  loglevel = 2",
+        "[interfaces]",
+        "  [[Funk]]",
+        "    type = UDPInterface",
+        "    enabled = yes",
+        "    listen_ip = 127.0.0.1",
+        f"    listen_port = {hoeren}",
+        "    forward_ip = 127.0.0.1",
+        f"    forward_port = {kanal}",
+        f"    bitrate = {bitrate}",
+    ]
+    (rns / "config").write_text("".join(zeile + "\n" for zeile in zeilen), encoding="utf-8")
     return rns
 
 
@@ -364,31 +402,81 @@ def boten(
     urls: list[str],
     ausgeben,
     stand: dict[str, int | None] | None = None,
+    funk: tuple[int, float] | None = None,
 ) -> list[subprocess.Popen]:
     """Die gemeinsame Instanz, dann je Gerät ein Bote mit allen anderen (D588, D589 Beschluss 1).
 
     Jeder Bote liest ``sperren/<datei>.txt``; was er meldet, steht in ``stand`` (D594 Beschluss 3).
-    Rückgabe: ``rnsd`` zuerst, dann die Boten.
+    Rückgabe: ``rnsd`` zuerst, dann die Boten. Mit ``funk`` als ``(bitrate, verlust)`` statt der
+    gemeinsamen Instanz ein Kanal und je Gerät eine eigene Instanz; Rückgabe dann der Kanal zuerst
+    (D611 Beschluss 4).
     """
-    rns = rns_konfiguration(verzeichnis)
-    rnsd = subprocess.Popen(
-        [sys.executable, "-m", "RNS.Utilities.rnsd", "--config", str(rns)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    name = instanz_name(verzeichnis)
-    ende = time.monotonic() + _BEREIT
-    while not instanz_bereit(name):
-        if rnsd.poll() is not None or time.monotonic() > ende:
-            rnsd.terminate()
-            rnsd.wait()
-            raise SystemExit("Die gemeinsame RNS-Instanz startet nicht.")
-        time.sleep(0.1)
+    if funk is None:
+        rns = rns_konfiguration(verzeichnis)
+        rnsd = subprocess.Popen(
+            [sys.executable, "-m", "RNS.Utilities.rnsd", "--config", str(rns)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        name = instanz_name(verzeichnis)
+        ende = time.monotonic() + _BEREIT
+        while not instanz_bereit(name):
+            if rnsd.poll() is not None or time.monotonic() > ende:
+                rnsd.terminate()
+                rnsd.wait()
+                raise SystemExit("Die gemeinsame RNS-Instanz startet nicht.")
+            time.sleep(0.1)
+        konfigurationen = [rns for _ in geraete]
+        prozesse = [rnsd]
+    else:
+        bitrate, verlust = funk
+        anzahl = len(geraete)
+        reserviert = []
+        ports: list[int] = []
+        for _ in range(anzahl * 2):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.bind((_HOST, 0))
+            ports.append(sock.getsockname()[1])
+            reserviert.append(sock)
+        for sock in reserviert:
+            sock.close()
+        eingaenge, ausgaenge = ports[:anzahl], ports[anzahl:]
+        kanal = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "tools.funk",
+                "--eingaenge",
+                *[str(port) for port in eingaenge],
+                "--teilnehmer",
+                *[str(port) for port in ausgaenge],
+                "--bitrate",
+                str(bitrate),
+                "--verlust",
+                str(verlust),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+        def _kanalzeilen() -> None:
+            assert kanal.stdout is not None
+            for zeile in kanal.stdout:
+                ausgeben(zeile.rstrip("\n"))
+
+        threading.Thread(target=_kanalzeilen, daemon=True).start()
+        konfigurationen = [
+            funk_konfiguration(verzeichnis, datei, ausgaenge[index], eingaenge[index], bitrate)
+            for index, (_name, datei, _personen) in enumerate(geraete)
+        ]
+        prozesse = [kanal]
     dateien = [verzeichnis / f"{datei}.id" for _name, datei, _personen in geraete]
     adressen = adressen_der(verzeichnis, geraete)
     namen = {hex_: geraet for hex_, (geraet, _datei, _personen) in zip(adressen, geraete)}
-    prozesse = [rnsd]
-    for index, ((geraet, datei, _personen), url, pfad) in enumerate(zip(geraete, urls, dateien)):
+    for index, ((geraet, datei, _personen), url, pfad, konfig) in enumerate(
+        zip(geraete, urls, dateien, konfigurationen)
+    ):
         nachbarn = [hex_ for anderer, hex_ in enumerate(adressen) if anderer != index]
         bote = subprocess.Popen(
             [
@@ -397,7 +485,7 @@ def boten(
                 "symbolon.bote",
                 url,
                 "--rns",
-                str(rns),
+                str(konfig),
                 "--identitaet",
                 str(pfad),
                 "--nachbar",
@@ -431,13 +519,15 @@ def main() -> None:
     wartet (D594 Beschluss 1 bis 3). Mit ``--ausweg`` wie ``--spaltung``, dazu nach der
     Vereinigung die Sperren aus ``takt_spaltung`` unter ``ausweg`` (D596 Beschluss 3). Mit
     ``--wahlgang`` wie ``--spaltung``, dazu nach der Vereinigung die Takte aus ``takt_spaltung``
-    unter ``wahlgang`` (D603 Beschluss 4). Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt der Durchgänge; mit einer
-    Geschichte wartet er nach jedem Takt auf gleichen Stand. Jede Zeile steht auch in
-    ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
+    unter ``wahlgang`` (D603 Beschluss 4).     Mit ``--reticulum`` gleichen Boten über eine gemeinsame Instanz ab statt der Durchgänge; mit einer
+    Geschichte wartet er nach jedem Takt auf gleichen Stand. Mit ``--funk`` ebenso, jeder Bote mit
+    eigener Instanz auf dem Kanal, das Warten bis ``_RUHE_FUNK`` (D611 Beschluss 4). Jede Zeile steht
+    auch in ``verlauf.txt`` (D588 Beschluss 1 bis 3, D589 Beschluss 1).
     """
     if len(sys.argv) < 2:
         raise SystemExit(_USAGE)
     geschichte, reticulum = schalter(sys.argv[2:])
+    funk = (FUNK_BITRATE, FUNK_VERLUST) if reticulum and sys.argv[-1] == "--funk" else None
     personen_an = geschichte is not None
     aufloesen = geschichte == "--aufloesen"
     ausweg = geschichte == "--ausweg"
@@ -484,7 +574,7 @@ def main() -> None:
                 raise SystemExit(f"{name} antwortet nicht unter {url}; alle Knoten werden beendet.")
         stand: dict[str, int | None] = {}
         if reticulum:
-            prozesse.extend(boten(verzeichnis, geraete, urls, ausgeben, stand))
+            prozesse.extend(boten(verzeichnis, geraete, urls, ausgeben, stand, funk))
         jetzt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ausgeben(f"Start {jetzt}: {' '.join(sys.argv[2:])}")
         for (name, _datei, _personen), url in zip(geraete, urls):
@@ -544,9 +634,10 @@ def main() -> None:
                 nummer += 1
             if reticulum:
                 if personen_an:
-                    dauer = ruhe(urls, gruppen=teile)
+                    frist = _RUHE_FUNK if funk is not None else _RUHE
+                    dauer = ruhe(urls, frist=frist, gruppen=teile)
                     if dauer is None:
-                        ausgeben(f"Abgleich über Reticulum: nach {_RUHE:.0f} s nicht gleich")
+                        ausgeben(f"Abgleich über Reticulum: nach {frist:.0f} s nicht gleich")
                     else:
                         ausgeben(f"Abgleich über Reticulum: gleicher Stand nach {dauer:.1f} s")
                 continue

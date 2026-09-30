@@ -17,6 +17,7 @@ import RNS
 from symbolon.atom import signed_bytes
 from symbolon.bote.draht import FORMWIDRIG, PFADE
 from symbolon.bote import reticulum
+from symbolon.bote.trickle import Zeiten
 from symbolon.bote.kern import Getrennt, HttpKnoten
 from symbolon.bote.reticulum import adresse, anbieten, identitaet
 from symbolon import cbor_canon
@@ -199,11 +200,10 @@ class _Link:
         self.abgebaut = True
 
 
-def test_antwort_frist(monkeypatch) -> None:
+def test_antwort_frist() -> None:
     """Ohne Fortschritt ist eine Anfrage nach der Frist getrennt, der Link abgebaut (D586)."""
-    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.2)
     link = _Link(_Quittung(2.0, RNS.RequestReceipt.FAILED, b"", steigt=False))
-    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar = reticulum.RnsNachbar(bytes(16), Zeiten(10.0, 0.2, 10.0))
     nachbar._link = link
     begun = time.monotonic()
     with pytest.raises(Getrennt):
@@ -213,12 +213,11 @@ def test_antwort_frist(monkeypatch) -> None:
     assert nachbar._link is None
 
 
-def test_antwort_mit_fortschritt(monkeypatch) -> None:
+def test_antwort_mit_fortschritt() -> None:
     """Solange die Antwort fortschreitet, läuft die Frist neu; die Antwort kommt an (D586)."""
-    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.2)
     gut = cbor_canon.encode([0, [[], []]])
     link = _Link(_Quittung(0.6, RNS.RequestReceipt.READY, gut, steigt=True))
-    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar = reticulum.RnsNachbar(bytes(16), Zeiten(10.0, 0.2, 10.0))
     nachbar._link = link
     assert nachbar.bestand() == ([], [])
     assert not link.abgebaut
@@ -235,14 +234,13 @@ class _Stockend(_Quittung):
         return min(time.monotonic(), self.stockt_ab)
 
 
-def test_antwort_stockt_nach_fortschritt(monkeypatch) -> None:
+def test_antwort_stockt_nach_fortschritt() -> None:
     """Stockt die Antwort nach Fortschritt kürzer als die Frist, kommt sie an (D587)."""
-    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.5)
     gut = cbor_canon.encode([0, [[], []]])
     begun = time.monotonic()
     quittung = _Stockend(begun + 1.0, 1.2, RNS.RequestReceipt.READY, gut, steigt=True)
     link = _Link(quittung)
-    nachbar = reticulum.RnsNachbar(bytes(16))
+    nachbar = reticulum.RnsNachbar(bytes(16), Zeiten(10.0, 0.5, 10.0))
     nachbar._link = link
     assert nachbar.bestand() == ([], [])
     assert time.monotonic() - begun >= 1.0
@@ -277,8 +275,8 @@ def _gut(dauer: float = 0.05) -> _Quittung:
     return _Quittung(dauer, RNS.RequestReceipt.READY, gut, steigt=False)
 
 
-def _nachbar(link: _Folge) -> reticulum.RnsNachbar:
-    nachbar = reticulum.RnsNachbar(bytes(16))
+def _nachbar(link: _Folge, zeit: Zeiten | None = None) -> reticulum.RnsNachbar:
+    nachbar = reticulum.RnsNachbar(bytes(16), zeit)
     nachbar._link = link
     return nachbar
 
@@ -300,11 +298,10 @@ def test_versuche_begrenzt(monkeypatch) -> None:
     Jede Anfrage wartet ihre eigene Zustellfrist, die letzte die Antwortfrist.
     """
     monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.2)
-    monkeypatch.setattr(reticulum, "_ANTWORT_FRIST", 0.3)
     link = _Folge([_verloren() for _ in range(5)])
     begun = time.monotonic()
     with pytest.raises(Getrennt):
-        _nachbar(link).bestand()
+        _nachbar(link, Zeiten(10.0, 0.3, 10.0)).bestand()
     assert time.monotonic() - begun >= 0.7
     assert link.anfragen == reticulum._VERSUCHE == 3
     assert link.abgebaut

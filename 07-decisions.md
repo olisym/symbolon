@@ -26770,3 +26770,30 @@ Takt; ohne `k`; Rücksetzen auch bei `imin`; feste Zeiten; der Hörer mit andere
 im Kanal; Sperrliste nur beim Holen; ohne Verdoppeln; `stand_aus` ohne Längenprüfung.
 
 **Geändert.** `07-decisions.md`.
+
+### D612 — Abnahme `p44-trickle`: angenommen
+
+**Anlass.** Bericht zu `p44-trickle`, Commit `dd40be8`, Basis `a57d0c2`.
+
+**Geprüft.** Den Diff aus dem Spiegel habe ich ganz gelesen und gegen den Prototyp aus D611
+verglichen. Die Tests sind gleich. Der Code ist gleichwertig, mit drei Unterschieden. (1) Takt und
+Hörer teilen sich eine Sperre; der Hörer läuft im Faden von RNS, das fehlte im Prototyp und ist eine
+Verbesserung. (2) Ändert sich der eigene Stand, wird jeder abweichende Nachbar ab jetzt fällig und
+seine Pause vergessen; der Prototyp liess einen schon fälligen bei seinem Zeitpunkt. Neues eigenes
+Wissen rechtfertigt den sofortigen Versuch; der Auftrag liess das offen. (3) `HttpKnoten.stand`
+prüft die 64 Hexzeichen selbst und macht aus einem Fehler der Anfrage `Getrennt`. Neun
+Rücknahmeproben rot, die Spaltung über Reticulum mit sechs Mal `gesperrt=3` und beiden
+Feststellungen in Takt 4.
+
+**Befund 1, klein.** Im Hörer steht `if announced_identity is None and destination_hash is None:
+return`, damit der Parameter benutzt ist. Die Bedingung tritt nie ein; ohne Nachtrag.
+
+**Befund 2 — die Dauer.** pytest braucht beim Werkzeug 470 s, im Supervisor-Klon 358 s. Die Tests
+mit Boten warten jetzt auf die erste Ankündigung nach Trickle. Zu O100.
+
+**Beschluss 1 — angenommen.** `p44-trickle` wird nach `main` vorgespult.
+
+**Beschluss 2 — der nächste Schritt.** Das Bündel: alles Fehlende in einem CBOR-Paket, komprimiert,
+gleich für Reticulum, Datei und QR-Code (D610 Beschluss 2, D611 Beschluss 5). Prototyp vorher.
+
+**Geändert.** `07-decisions.md`.

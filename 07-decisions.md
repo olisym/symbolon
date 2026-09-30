@@ -26943,3 +26943,25 @@ Gewinn ohne Rückschritt. Dass der Abgleich bei 1200 bit/s steht, ist ein Befund
 Die Zerlegung des Kanals nach Paketart (D610) klärt, wohin er geht, bevor ein Auftrag entsteht.
 
 **Geändert.** `07-decisions.md`.
+
+### D616 — Abnahme `p45-buendel`: angenommen, Merge
+
+**Anlass.** Der Nachtrag nach D615 Beschluss 3, Commit `be40fb5` auf `p45-buendel`. Gelesen ist der
+vollständige Diff gegen `5c95e5c`.
+
+**Befund 1 — der Nachtrag.** `holen` fängt beim Lesen nur `buendel.Formwidrig`. `schreiben` liest
+die geschriebene Datei zurück, zählt ihren Inhalt und hängt ` weggelassen=N` an, wenn die Datei
+weniger hat als der Bestand. Die zwei Docstrings sind umbrochen. Nichts ausserhalb des Auftrags.
+
+**Befund 2 — Tests und Proben.** Der Testdiff gegen `5c95e5c` ist Byte für Byte der gelieferte.
+Beide Rücknahmeproben sind rot, jede an der Sache: der Fang an `DID NOT RAISE`, die Zählung an
+`claims=3` statt `claims=1`. `make check` grün mit 1480 Tests, gleich dem Prototyp.
+
+**Beschluss 1 — angenommen.** `p45-buendel` mit D614 und D615 wird nach `main` vorgespult. Das
+Bündel ist gebaut: Format, Drahtpfad `paket`, Datei.
+
+**Beschluss 2 — was folgt.** Stufe 4 steht bei 1200 bit/s, auf `main` wie auf dem Branch (D615
+Befund 5). Nächster Schritt in O97 ist die Zerlegung des Kanals nach Paketart bei 1200 bit/s (D610,
+D615 Beschluss 4). Der QR-Code wartet auf Olis Bedingung aus D614 Beschluss 1.
+
+**Geändert.** `07-decisions.md`.

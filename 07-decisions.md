@@ -26891,3 +26891,55 @@ Ungefragtes gefiltert; Anfrage `paket` ohne Formprüfung; Antwort `paket` ohne F
 Zahl der Einlieferungen; eine getippte Grenze.
 
 **Geändert.** `07-decisions.md`.
+
+### D615 — Abnahme `p45-buendel`, erster Teil: zwei Defekte, Nachtrag; Messung über Funk
+
+**Anlass.** Der Lauf `p45-buendel` (`6b0810d`) nach D614 Beschluss 7. Der Bericht meldet 1478 Tests,
+alle sechs verlangten Rücknahmeproben rot, den angewandten Testdiff unverändert. Gelesen ist der
+vollständige Diff gegen `2b8a1c8`.
+
+**Befund 1 — die Zeile von `schreiben` zählt den Bestand.** `tools.buendel schreiben` nennt die Zahl
+der Einträge im Bestand, nicht in der Datei. Liegt der Bestand über `GRENZE` oder verschwindet ein
+Eintrag zwischen Bestand und Abruf, sagt die Zeile mehr, als die Datei hat. Das Werkzeug hat es
+gemeldet statt gebaut. Die Lücke liegt im Auftrag: D614 Beschluss 5 nannte den Fall der Kürzung
+nicht, der Test fuhr nur den Fall ohne (Schwester von D474).
+
+**Befund 2 — `holen` fängt `ValueError`.** Beim Lesen des Bündels fängt `holen` `ValueError` statt
+`buendel.Formwidrig`. Ein Programmfehler, der zufällig ein `ValueError` wirft, würde still als
+formwidriges Bündel gezählt. Mein Test `test_formwidrig_ist_valueerror` hat diese Lesart nahegelegt.
+
+**Befund 3 — Docstrings.** Zwei neue Zeilen sind länger als 100 Zeichen: `_entpacken` in
+`symbolon/buendel.py`, `_lesen` in `tools/buendel.py`.
+
+**Befund 4 — Messung bei 9600 bit/s.** `--wahlgang --funk`, sechs Geräte, 5 % Verlust, beide
+Fassungen auf derselben Maschine nacheinander. `main`: erster gleicher Stand nach 153,5 s mit etwa
+168 kB auf dem Kanal, Takt 2 nach 129,8 s. `p45-buendel`: 76,8 s mit etwa 75 kB, Takt 2 nach
+50,0 s; der Prototyp in D614 Befund 2 brauchte für Takt 2 67,7 s. Der Gewinn zeigt sich am
+deutlichsten in Takt 2, wo wenige Claims fehlen und die Zahl der Anfragen zählt. Der erste Takt
+streut stark (140 s und 76,8 s bei gleichem Bau).
+
+**Befund 5 — Messung bei 1200 bit/s.** `p45-buendel` erreicht in 25 Minuten keinen gleichen Stand:
+185 kB auf dem Kanal, 68 Ankündigungen, rund 28 % der Pakete verloren, neun Holvorgänge mit je
+einem Claim. Die Nutzlast ist klein; der Kanal geht an etwas anderes als an Inhalt. `main` bei
+1200 bit/s steht ebenso: nach 20 Minuten 166 kB, 26 Ankündigungen, rund 29 % verloren, zwölf
+Holvorgänge mit je einem Claim, kein gleicher Stand. Das Stehen liegt nicht am Bündel.
+
+**Beschluss 1 — die Zeile von `schreiben`.** `claims=` und `objekte=` zählen, was in der Datei
+steht. Hat die Datei weniger Einträge als der Bestand, hängt ` weggelassen=N` an, N die Differenz,
+ob durch die Grenze oder durch einen verschwundenen Eintrag. Exit bleibt 0: die Datei ist ein
+gültiges Bündel, und die Zeile sagt, was fehlt. Ändert D614 Beschluss 5.
+
+**Beschluss 2 — der enge Fang.** `holen` fängt beim Lesen des Bündels nur `buendel.Formwidrig`. Ein
+anderer Fehler bleibt einer. Präzisiert D614 Beschluss 4.
+
+**Beschluss 3 — der Nachtrag.** Auf demselben Branch, mit diesem Eintrag auf dem Branch (D544). Zwei
+neue Tests, als Diff: `test_datei_zaehlt_was_darin_steht` mit einem Knoten-Ersatz über der Grenze
+und einem verschwundenen Claim, `test_nur_formwidrig_zaehlt` mit einem `buendel.lesen`, das einen
+anderen `ValueError` wirft. Beide sind gegen `6b0810d` rot und gegen den Prototyp der Reparatur
+grün; das ist die Rücknahmeprobe. Dazu die zwei Docstrings.
+
+**Beschluss 4 — Stufe 4 bei 1200 bit/s.** Das Bündel wird gemergt; bei 9600 bit/s zeigt es den
+Gewinn ohne Rückschritt. Dass der Abgleich bei 1200 bit/s steht, ist ein Befund für O97 Stufe 4.
+Die Zerlegung des Kanals nach Paketart (D610) klärt, wohin er geht, bevor ein Auftrag entsteht.
+
+**Geändert.** `07-decisions.md`.

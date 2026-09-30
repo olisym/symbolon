@@ -26965,3 +26965,118 @@ Befund 5). Nächster Schritt in O97 ist die Zerlegung des Kanals nach Paketart b
 D615 Beschluss 4). Der QR-Code wartet auf Olis Bedingung aus D614 Beschluss 1.
 
 **Geändert.** `07-decisions.md`.
+### D617 — O90: Abgleich nach Bereichen (RBSR); Grundsatz Transport und Bote; Auftrag `p46-rbsr`
+
+**Anlass.** D615 Befund 5, D616 Beschluss 2. Oli zieht O90 vor die T-Beams. Vorher gesucht (D527)
+mit Negentropy, RBSR, Mengenabgleich, Bestand und Fingerabdruck: O90, D514 Beschluss 2, D518
+Beschluss 4, D583 L4 und L5, D609 bis D611. Gelesen vor dem Entwurf: `symbolon/bote/kern.py`,
+`draht.py`, `reticulum.py`, `_stand` in `symbolon/node/api.py`, die Tests unter `tests/bote/`.
+
+**Befund 1 — wohin der Kanal geht.** Im Supervisor-Klon auf `81a3945`, `--wahlgang --funk` bei
+1200 bit/s, zehn Minuten, gezählt nach Paketart von RNS: 70 kB auf dem Kanal, sieben geholte Claims.
+Resources 74 % (Teile 51 %, Ankündigung, Anforderung und Quittung 23 %), Anfragen und Antworten
+13 %, Linkaufbau 7 %, Ankündigungen 4 %. 48 Resources für sieben Claims: die Liste aus `bestand`
+(20 Claims und 10 Objekte, rund 1 kB Kennungen) passt in kein Paket und geht bei jedem Holen als
+Resource.
+
+**Befund 2 — Literatur.** Meyer, Range-Based Set Reconciliation (arXiv 2212.13567): beide Seiten
+sortieren, tauschen Fingerabdrücke über Bereiche, teilen nur, wo sie sich unterscheiden; Runden
+logarithmisch in der Grösse, Bytes nach der Differenz; jede Seite darf so fein teilen und so kleine
+Nachrichten schicken, wie sie will. Negentropy V1 (Anhang von NIP-77) baut das mit Zeitstempeln,
+Grenzen als kürzesten Präfixen, Modi Skip, Fingerprint, IdList und einem Fingerabdruck aus der Summe
+der Kennungen modulo 2^256. Meyer Abschnitt 5: die Summe ist gegen einen Angreifer schwach (Wagner);
+ein böser Nachbar kann aber ohnehin verschweigen, Schaden entsteht nur, wenn zwei ehrliche Knoten
+etwas übersehen, und viele Nachbarn verzögern das höchstens.
+
+**Befund 3 — Reticulum hat keinen Mengenabgleich.** Nachgelesen in `lxmf 1.2.0`, `LXMPeer.py`: Die
+Propagation Nodes führen je Nachbar Buch über ungesendete Nachrichten, bieten ihm deren Kennungen
+als Liste an (`/offer`) und übertragen die gewünschten als Resource. LXMF ist ein Postfach für
+adressierte, je Empfänger verschlüsselte Nachrichten. Eine Aussage, die für alle gilt, ginge dort je
+Mitglied einzeln; D583 L4 bleibt.
+
+**Befund 4 — der Stand ist schon ein sicherer Fingerabdruck.** `_stand` (D518 Beschluss 4) ist
+SHA-256 über Anzahl und sortierte Kennungen, linear gerechnet. Die Summe braucht nur, wer Millionen
+Einträge im Baum hält; bei unseren Grössen kostet SHA-256 je Bereich nichts.
+
+**Befund 5 — Simulation.** Ein Prototyp, geprüft mit einem Eigenschaftstest auf genau die
+Differenz und fünf Rücknahmeproben. Mittel über 20 Läufe mit den Parametern aus Beschluss 3 (`n`
+gemeinsam, `d` fehlen dem Boten): 30 und 1 in 2 Runden mit 438 Byte statt 1023 für die Liste; 300
+und 1 in 4 Runden mit 568 statt 9933; 3000 und 1 in 6 Runden mit 850 statt 99033; 300 und 5 in 6,9
+Runden mit 2208 statt 10065; 300 und 30 in 25,5 Runden mit 10149 statt 10890; 0 und 30 in 4 Runden
+mit 1192 statt 990. Jede Nachricht höchstens 380 Byte.
+
+**Befund 6 — Messung über Funk.** Der Prototyp im Boten, derselbe Lauf wie Befund 1: nach zehn
+Minuten 52 kB und elf geholte Claims, drei Resources, gleicher Stand nach 579,5 s. `main` erreichte
+ihn in 20 Minuten nicht (D615 Befund 5). Eine Antwort im Mittel rund 260 Byte, keine als Resource.
+
+**Befund 7 — vergebliche Abgleiche.** Von 47 Abgleichen fanden 33 nichts: der Bote fragt einen
+Nachbarn mit anderem Stand, der hinter ihm liegt (D611). Mit RBSR kostet das ein bis zwei Pakete hin
+und zurück.
+
+**Befund 8 — ein leerer Bote.** Teilt der Nachbar auch dort, wo dem Boten fast alles fehlt, braucht
+`test_boten` 24,6 s statt 11,5 s auf `main`, und einmal lief er unter Last über die Frist von 40 s.
+Füllt der Nachbar `FEHLT` bis zum Rahmen (Beschluss 4), sind es 12,4 s. Grosse Differenzen bleiben
+die schwache Stelle: 300 gemeinsame und 300 fehlende brauchen 64 Runden für 206 und einen zweiten
+Abgleich mit 31 Runden für den Rest. Mit dem Füllen lief `test_boten_sperren` einmal im vollen Lauf
+rot: nach dem Entsperren keine Ruhe binnen 40 s. Danach war die volle Reihe grün mit 1519 Tests, und
+beide Lab-Tests liefen achtmal grün unter derselben Last wie `main`, schneller als dort. Die Ursache
+ist nicht bestätigt (D390).
+
+**Beschluss 1 — Grundsatz: Reticulum macht das Netz, der Bote trägt, was ein Verein weiss.**
+Identitäten, Pfade, Ankündigungen, Links, Resources für grosse Einträge, Ziele für den Rundruf,
+Interfaces und Grenzen der Sendezeit nimmt MaR von Reticulum und baut nichts davon nach. Der Bote
+trägt nur, was es dort nicht gibt: welche Aussagen ein Verein kennt und wie zwei Geräte finden, was
+dem einen fehlt.
+
+**Beschluss 2 — die Form, Regel des Protokolls.** Ein Schlüssel ist 33 Byte: die Art (0 Objekt,
+1 Claim) vor der Kennung; geordnet nach Bytes. Der Fingerabdruck eines Bereichs ist SHA-256 über die
+Anzahl als 8 Byte big-endian und die Schlüssel aufsteigend, die ersten 16 Byte. Eine Nachricht ist
+kanonisches CBOR, höchstens `RAHMEN` Byte, eine nicht leere Liste von Teilen `[obergrenze, modus,
+inhalt]`. Die Obergrenze ist `null` (bis zum Ende, nur als letzter Teil) oder 1 bis 33 Byte, streng
+aufsteigend; die Untergrenze ist die vorige Obergrenze, die erste der leere Byte-String. Modus 0
+`SKIP` mit `null`: nichts zu tun. Modus 1 `FP` mit 16 Byte: der Fingerabdruck des Senders. Modus 2
+`IDS`: alle Schlüssel des Senders im Bereich. Modus 3 `FEHLT`, nur vom Nachbarn: Schlüssel, die dem
+Boten fehlen. Listen sind streng aufsteigend, jeder Schlüssel 33 Byte mit Art 0 oder 1 und im
+Bereich. Alles andere ist formwidrig.
+
+**Beschluss 3 — Parameter.** `RAHMEN` 380 ist Regel: gepackt wie RNS eine Anfrage (411 Byte) und
+eine Antwort im Draht (407 Byte) packt, bleibt beides unter `RNS.Link.MDU` 431; ein Test bindet es.
+Wahl der Implementierung, gemessen in Befund 5: `TEILUNG` 4 Unterbereiche, `LISTE` 3 Schlüssel,
+`ANFRAGE` halber Rahmen, `RUNDEN` 64 je Abgleich. 16 Byte Fingerabdruck statt 32: 2^64 Aufwand für
+eine Kollision, bei 32 kostet der Abgleich 20 bis 40 % mehr Byte.
+
+**Beschluss 4 — der Ablauf, Wahl der Implementierung.** Der Nachbar bleibt zustandslos und
+beantwortet die Teile der Reihe nach: gleicher Fingerabdruck `SKIP`; ungleicher: in `TEILUNG`
+Bereiche gleicher Anzahl geteilt, Grenze der kürzeste Präfix, der grösser ist als der letzte
+Schlüssel davor, Bereiche bis `LISTE` Schlüssel als `IDS`, sonst `FP`; `IDS` des Boten: `FEHLT` mit
+so vielen Schlüsseln, wie passen, der Rest des Bereichs als `FP` hinter einem Trenner, passt keiner,
+geteilt. Passt ein Teil nicht mehr, endet die Antwort an der vorigen Grenze; ist noch kein Teil
+ausser `SKIP` darin, wird knapp geteilt (zwei Bereiche, Listen bis ein Schlüssel). Der Bote führt
+eine Warteschlange offener Bereiche, schickt je Runde so viele, wie in `ANFRAGE` passen, Lücken als
+`SKIP`, und stellt Unbeantwortetes und ungleiche Bereiche wieder ein; einen Bereich mit höchstens
+`LISTE` eigenen Schlüsseln als `IDS`, sonst als `FP`. `holen` gleicht ab, fragt dann wie bisher
+`paket` (D614) und liefert ein. Nach `RUNDEN` holt er, was er bis dahin gefunden hat. Eine
+formwidrige Antwort zählt einmal. D584 Beschluss 2 bleibt: der Bote lernt nur, was ihm fehlt, und
+schiebt nie.
+
+**Beschluss 5 — der Draht.** Neuer Pfad `abgleich`: Anfrage die Nachricht als Bytes, Antwort `[0,
+nachricht]`; eine formwidrige Anfrage bekommt `[3]` und fragt den Knoten nicht. `Quelle` bekommt
+`abgleich`. Der Pfad `bestand` bleibt für Diagnose und die Tests der Linkschicht; `holen` fragt ihn
+nicht mehr.
+
+**Beschluss 6 — was folgt, ohne Auftrag.** (a) Befund 7: der Nachbar sieht in `IDS` des Boten, was
+ihm selbst fehlt, und sein eigener Bote holt dort; kein Schieben. (b) Der Rundruf: Inhalt einmal für
+alle als einzelnes Paket, die Zustellung kommt aus dem nächsten Abgleich. (c) Die Vertraulichkeit im
+Funk (offen, Ziel vom Typ `GROUP` oder Link je Paar) entscheidet Oli vor dem echten Funk. (d) Grosse
+Differenzen (Befund 8). Gemessen wird je Schritt einzeln.
+
+**Beschluss 7 — der Auftrag `p46-rbsr`.** Neu `symbolon/bote/rbsr.py` und `tests/bote/test_rbsr.py`;
+geändert `kern.py`, `draht.py`, `reticulum.py` und die Tests unter `tests/bote/`; die Tests als
+Diff. Rücknahmeproben vorher gefahren, jede an ihrem Test rot: Fingerabdruck ohne Anzahl; Antwort
+ohne Rahmen; `FEHLT` beim Boten ignoriert; `IDS` beim Boten ignoriert; Unbeantwortetes verworfen;
+Grenzen nicht aufsteigend; `FEHLT` vom Boten angenommen; Schlüssel ausserhalb des Bereichs; Runden
+unbegrenzt; knappe Teilung entfällt; `FEHLT` nicht bis zum Rahmen gefüllt (fünf Runden statt vier);
+`holen` fängt die Formwidrigkeit des Abgleichs nicht; der Draht prüft die Anfrage nicht; ein Rahmen
+von 431 Byte.
+
+**Geändert.** `07-decisions.md`.

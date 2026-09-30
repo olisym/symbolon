@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from symbolon import buendel
 from symbolon.atom import claim_id, signed_bytes
 from symbolon.bote.kern import Ergebnis, Formwidrig, Getrennt, HttpKnoten, holen
 from tests.helpers import Identity, scope_id
@@ -25,6 +26,8 @@ class _Fremd:
         self.claims = claims
         self.objekte = objekte or {}
         self.bestand_wirft = bestand_wirft
+        self.paket_wirft: type[Exception] | None = None
+        self.paket_roh: bytes | None = None
         self.aufrufe = 0
 
     def bestand(self):
@@ -33,16 +36,18 @@ class _Fremd:
             raise self.bestand_wirft()
         return sorted(self.claims), sorted(self.objekte)
 
-    def claim(self, cid: bytes):
+    def paket(self, claims: list[bytes], objekte: list[bytes]):
+        """Ein Bündel aus dem, was da ist; ``bytes`` unter einer Kennung sind das ganze Paket."""
         self.aufrufe += 1
-        found = self.claims[cid]
-        if isinstance(found, type) and issubclass(found, Exception):
-            raise found()
-        return found
-
-    def objekt(self, digest: bytes):
-        self.aufrufe += 1
-        return self.objekte[digest]
+        self.gefragt = (claims, objekte)
+        if self.paket_wirft is not None:
+            raise self.paket_wirft()
+        if self.paket_roh is not None:
+            return self.paket_roh
+        return buendel.schreiben(
+            [self.claims[c] for c in claims if self.claims[c] is not None],
+            [self.objekte[o] for o in objekte if self.objekte[o] is not None],
+        )
 
 
 def _vouches():
@@ -121,16 +126,78 @@ def test_nachbar_getrennt(tmp_path) -> None:
         _stop(y)
 
 
-def test_fehlend_und_formwidrig(tmp_path) -> None:
-    """Ein fehlender und ein formwidriger Eintrag zählen je einzeln, der dritte kommt an."""
+def test_fehlend_und_abgewiesen(tmp_path) -> None:
+    """Ein fehlender Eintrag zählt als fehlend, formwidrige Claim-Bytes weist der Knoten ab.
+
+    Seit D614 urteilt über den einzelnen Eintrag der Knoten; formwidrig ist nur das Bündel.
+    """
     eins, zwei, drei = _vouches()
     fremd = _Fremd(
-        {claim_id(eins): signed_bytes(eins), claim_id(zwei): None, claim_id(drei): Formwidrig}
+        {claim_id(eins): signed_bytes(eins), claim_id(zwei): None, claim_id(drei): b"\xff"}
     )
     x = _knoten(tmp_path / "x.sqlite")
     try:
-        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(1, {}, False, 1, 1)
+        e = holen(HttpKnoten(_url(x)), fremd)
+        assert (e.geholt, e.getrennt, e.fehlend, e.formwidrig) == (1, False, 1, 0)
+        assert sum(e.abgewiesen.values()) == 1
         assert _bestand(x) == {"claims": [claim_id(eins).hex()], "objects": []}
+    finally:
+        _stop(x)
+
+
+def test_eine_anfrage_fuer_alles(tmp_path) -> None:
+    """Nach dem Bestand genau eine Anfrage, mit allem Fehlenden, sortiert (D614 Beschluss 4)."""
+    vouches = _vouches()
+    fremd = _Fremd({claim_id(c): signed_bytes(c) for c in vouches})
+    x = _knoten(tmp_path / "x.sqlite", vouches[0])
+    try:
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(2, {}, False, 0, 0)
+        assert fremd.aufrufe == 2
+        assert fremd.gefragt == (sorted(claim_id(c) for c in vouches[1:]), [])
+    finally:
+        _stop(x)
+
+
+def test_nichts_fehlt_keine_anfrage(tmp_path) -> None:
+    """Fehlt nichts, wird kein Paket angefragt (D614 Beschluss 4)."""
+    vouches = _vouches()
+    fremd = _Fremd({claim_id(c): signed_bytes(c) for c in vouches[:1]})
+    x = _knoten(tmp_path / "x.sqlite", *vouches)
+    try:
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, False, 0, 0)
+        assert fremd.aufrufe == 1
+    finally:
+        _stop(x)
+
+
+def test_formwidriges_buendel(tmp_path) -> None:
+    """Ein formwidriges Bündel zählt einmal und liefert nichts ein (D614 Beschluss 4)."""
+    vouches = _vouches()
+    fremd = _Fremd({claim_id(c): signed_bytes(c) for c in vouches})
+    gut = buendel.schreiben([signed_bytes(c) for c in vouches], [])
+    x = _knoten(tmp_path / "x.sqlite")
+    try:
+        for roh in (b"\xff", gut + b"\x00", gut[:-1]):
+            fremd.paket_roh = roh
+            assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, False, 0, 1)
+        fremd.paket_roh = None
+        fremd.paket_wirft = Formwidrig
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, False, 0, 1)
+        fremd.paket_wirft = Getrennt
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(0, {}, True, 0, 0)
+        assert _bestand(x) == {"claims": [], "objects": []}
+    finally:
+        _stop(x)
+
+
+def test_ungefragtes_urteilt_der_knoten(tmp_path) -> None:
+    """Was ungefragt im Bündel steht, wird eingeliefert; der Knoten urteilt (D614 Beschluss 4)."""
+    eins, zwei, _drei = _vouches()
+    fremd = _Fremd({claim_id(eins): signed_bytes(eins)})
+    fremd.paket_roh = buendel.schreiben([signed_bytes(eins), signed_bytes(zwei)], [])
+    x = _knoten(tmp_path / "x.sqlite")
+    try:
+        assert holen(HttpKnoten(_url(x)), fremd) == Ergebnis(2, {}, False, 0, 0)
     finally:
         _stop(x)
 

@@ -109,7 +109,7 @@ class RnsNachbar:
         self._link = link
         return link
 
-    def _anfrage(self, pfad: str, data: bytes | None) -> object:
+    def _anfrage(self, pfad: str, data: object) -> object:
         """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2).
 
         Bleibt eine Anfrage über die Zustellfrist unzugestellt, geht sie auf demselben Link erneut,
@@ -153,11 +153,9 @@ class RnsNachbar:
     def bestand(self) -> tuple[list[bytes], list[bytes]]:
         return self._anfrage("bestand", None)
 
-    def claim(self, cid: bytes) -> bytes | None:
-        return self._anfrage("claim", cid)
-
-    def objekt(self, digest: bytes) -> tuple[str, bytes] | None:
-        return self._anfrage("object", digest)
+    def paket(self, claims: list[bytes], objekte: list[bytes]) -> bytes:
+        """Die Anfrage geht als ``[claims, objekte]`` über ``_anfrage`` (D614 Beschluss 4)."""
+        return self._anfrage("paket", [claims, objekte])
 
 
 def laufen(

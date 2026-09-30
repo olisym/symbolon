@@ -5,7 +5,7 @@ from __future__ import annotations
 import cbor2
 import pytest
 
-from symbolon import cbor_canon
+from symbolon import buendel, cbor_canon
 from symbolon.bote.draht import FEHLT, FORMWIDRIG, GETRENNT, OK, PFADE, beantworten, lesen
 from symbolon.bote.kern import Formwidrig, Getrennt
 
@@ -27,19 +27,19 @@ class _Quelle:
         self._pruefen()
         return [_C], [_O]
 
-    def claim(self, cid: bytes):
+    def paket(self, claims: list[bytes], objekte: list[bytes]):
         self._pruefen()
-        return b"claim-bytes" if cid == _C else None
-
-    def objekt(self, digest: bytes):
-        self._pruefen()
-        return ("proposal", b"objekt-bytes") if digest == _O else None
+        self.gefragt = (claims, objekte)
+        return buendel.schreiben(
+            [b"claim-bytes" for c in claims if c == _C],
+            [("proposal", b"objekt-bytes") for o in objekte if o == _O],
+        )
 
 
 def test_codes() -> None:
     """Die Codes und die Pfade sind fest (D584 Beschluss 3)."""
     assert (OK, GETRENNT, FEHLT, FORMWIDRIG) == (0, 1, 2, 3)
-    assert PFADE == ("bestand", "claim", "object")
+    assert PFADE == ("bestand", "paket")
     assert beantworten(_Quelle(getrennt=True), "bestand", None) == bytes.fromhex("8101")
 
 
@@ -47,11 +47,11 @@ def test_hin_und_zurueck() -> None:
     """Was ein Bote beantwortet, liest der andere so, wie die Quelle es gab."""
     q = _Quelle()
     assert lesen("bestand", beantworten(q, "bestand", None)) == ([_C], [_O])
-    assert lesen("claim", beantworten(q, "claim", _C)) == b"claim-bytes"
-    assert lesen("claim", beantworten(q, "claim", _O)) is None
-    assert lesen("object", beantworten(q, "object", _O)) == ("proposal", b"objekt-bytes")
-    assert lesen("object", beantworten(q, "object", _C)) is None
-    for pfad, data in (("bestand", None), ("claim", _C), ("object", _O)):
+    roh = lesen("paket", beantworten(q, "paket", [[_C, _O], [_O]]))
+    assert q.gefragt == ([_C, _O], [_O])
+    assert buendel.lesen(roh) == ([b"claim-bytes"], [("proposal", b"objekt-bytes")])
+    assert buendel.lesen(lesen("paket", beantworten(q, "paket", [[], []]))) == ([], [])
+    for pfad, data in (("bestand", None), ("paket", [[_C], []])):
         with pytest.raises(Getrennt):
             lesen(pfad, beantworten(_Quelle(getrennt=True), pfad, data))
 
@@ -60,11 +60,16 @@ def test_hin_und_zurueck() -> None:
     ("pfad", "data"),
     [
         ("bestand", b""),
-        ("claim", _C[:31]),
-        ("claim", _C + b"\x00"),
-        ("claim", _C.hex()),
-        ("claim", None),
-        ("object", 5),
+        ("paket", None),
+        ("paket", _C),
+        ("paket", [[_C]]),
+        ("paket", [[_C], [], []]),
+        ("paket", [[_C[:31]], []]),
+        ("paket", [[], [_O + b"\x00"]]),
+        ("paket", [[_C.hex()], []]),
+        ("paket", [_C, _O]),
+        ("claim", _C),
+        ("object", _O),
         ("liefern", _C),
     ],
 )
@@ -96,10 +101,11 @@ _GUT = cbor_canon.encode([OK, [[_C], [_O]]])
         ("bestand", cbor_canon.encode([True, [[], []]])),
         ("bestand", cbor_canon.encode([])),
         ("bestand", cbor_canon.encode({"claims": []})),
-        ("claim", cbor_canon.encode([OK, "text"])),
-        ("claim", cbor_canon.encode([7])),
-        ("object", cbor_canon.encode([OK, [1, b""]])),
-        ("object", cbor_canon.encode([OK, ["proposal"]])),
+        ("paket", cbor_canon.encode([OK, "text"])),
+        ("paket", cbor_canon.encode([OK, [b""]])),
+        ("paket", cbor_canon.encode([FEHLT])),
+        ("paket", cbor_canon.encode([7])),
+        ("claim", cbor_canon.encode([OK, b"claim-bytes"])),
     ],
 )
 def test_formwidrige_antwort(pfad: str, antwort: object) -> None:

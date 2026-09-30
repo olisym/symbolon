@@ -47,14 +47,14 @@ class _Ziel:
 
     def register_request_handler(self, pfad, antwort, _allow) -> None:
         self.pfade.append(pfad)
-        if pfad == "claim":
-            assert antwort("claim", b"\x00" * 31, b"", b"", None, 0.0) == cbor_canon.encode(
+        if pfad == "paket":
+            assert antwort("paket", [[b"\x00" * 31], []], b"", b"", None, 0.0) == cbor_canon.encode(
                 [FORMWIDRIG]
             )
 
 
 def test_anbieten_nur_lesen(tmp_path) -> None:
-    """Genau die drei lesenden Pfade, keiner zum Einliefern (D584 Beschluss 2)."""
+    """Genau die lesenden Pfade, keiner zum Einliefern (D584 Beschluss 2)."""
     x = _knoten(tmp_path / "x.sqlite")
     ziel = _Ziel()
     try:

@@ -1,6 +1,7 @@
 """Holen ohne Transport: der eigene Knoten holt von einem Nachbarn (D584 Beschluss 1 und 2).
 
-Der Nachbar wird nur gefragt, nie beliefert. Was ein Holen meldet, steht in D585 Beschluss 3.
+Der Nachbar wird nur gefragt, nie beliefert. Was ein Holen meldet, steht in D585 Beschluss 3,
+geändert durch D614 Beschluss 4: formwidrig ist nur das Bündel.
 """
 
 from __future__ import annotations
@@ -12,6 +13,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
+
+from symbolon import buendel
 
 _ZEITLIMIT = 10
 
@@ -26,7 +29,7 @@ class Formwidrig(Exception):
 
 @dataclass(frozen=True)
 class Ergebnis:
-    """Was ein Holen meldet (D585 Beschluss 3, D516 Beschluss 4)."""
+    """Was ein Holen meldet (D585 Beschluss 3, D614 Beschluss 4, D516 Beschluss 4)."""
 
     geholt: int
     abgewiesen: dict[str, int]
@@ -40,9 +43,7 @@ class Quelle(Protocol):
 
     def bestand(self) -> tuple[list[bytes], list[bytes]]: ...
 
-    def claim(self, cid: bytes) -> bytes | None: ...
-
-    def objekt(self, digest: bytes) -> tuple[str, bytes] | None: ...
+    def paket(self, claims: list[bytes], objekte: list[bytes]) -> bytes: ...
 
 
 class HttpKnoten:
@@ -93,6 +94,20 @@ class HttpKnoten:
             return None
         return body["kind"], bytes.fromhex(body["data"])
 
+    def paket(self, claims: list[bytes], objekte: list[bytes]) -> bytes:
+        """Das Bündel aus ``claim`` und ``objekt``; Fehlendes fehlt (D614 Beschluss 4)."""
+        gehalten_objekte: list[tuple[str, bytes]] = []
+        for digest in objekte:
+            found = self.objekt(digest)
+            if found is not None:
+                gehalten_objekte.append(found)
+        gehalten_claims: list[bytes] = []
+        for cid in claims:
+            data = self.claim(cid)
+            if data is not None:
+                gehalten_claims.append(data)
+        return buendel.schreiben(gehalten_claims, gehalten_objekte)
+
     def stand(self) -> bytes:
         """``GET /stand``: 64 Hexzeichen sind der Stand, sonst getrennt (D611 Beschluss 1)."""
         try:
@@ -130,47 +145,10 @@ def stand_aus(app_data: object) -> bytes | None:
     return None
 
 
-def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
-    """Zuerst lesen, dann einliefern, Objekte vor Claims (D584 Beschluss 2, D516 Beschluss 1).
-
-    Ein fehlender oder formwidriger Eintrag wird gezählt und übersprungen, ein formwidriger
-    Bestand beendet das Holen (D585 Beschluss 2 und 3).
-    """
-    try:
-        meine_claims, meine_objekte = mein.bestand()
-    except Getrennt:
-        return Ergebnis(0, {}, True, 0, 0)
-    fehlend = 0
-    formwidrig = 0
-    objekte: list[tuple[str, bytes]] = []
-    claims: list[bytes] = []
-    try:
-        try:
-            seine_claims, seine_objekte = nachbar.bestand()
-        except Formwidrig:
-            return Ergebnis(0, {}, False, fehlend, formwidrig + 1)
-        for digest in sorted(set(seine_objekte) - set(meine_objekte)):
-            try:
-                found = nachbar.objekt(digest)
-            except Formwidrig:
-                formwidrig += 1
-                continue
-            if found is None:
-                fehlend += 1
-            else:
-                objekte.append(found)
-        for cid in sorted(set(seine_claims) - set(meine_claims)):
-            try:
-                data = nachbar.claim(cid)
-            except Formwidrig:
-                formwidrig += 1
-                continue
-            if data is None:
-                fehlend += 1
-            else:
-                claims.append(data)
-    except Getrennt:
-        return Ergebnis(0, {}, True, fehlend, formwidrig)
+def einliefern(
+    mein: HttpKnoten, claims: list[bytes], objekte: list[tuple[str, bytes]]
+) -> tuple[int, dict[str, int], bool]:
+    """Objekte vor Claims. Getrennt mitten darin gibt den Stand zurück (D614 Beschluss 4)."""
     geholt = 0
     abgewiesen: dict[str, int] = {}
     lieferungen: list[tuple[str | None, bytes]] = [*objekte, *((None, data) for data in claims)]
@@ -181,12 +159,50 @@ def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
             else:
                 name = mein.liefern_objekt(kind, data)
         except Getrennt:
-            return Ergebnis(geholt, abgewiesen, True, fehlend, formwidrig)
+            return geholt, abgewiesen, True
         if name is None:
             geholt += 1
         else:
             abgewiesen[name] = abgewiesen.get(name, 0) + 1
-    return Ergebnis(geholt, abgewiesen, False, fehlend, formwidrig)
+    return geholt, abgewiesen, False
+
+
+def holen(mein: HttpKnoten, nachbar: Quelle) -> Ergebnis:
+    """Beide Bestände, bei Fehlendem genau einmal ``paket``, sortiert (D614 Beschluss 4).
+
+    Fehlt nichts, gibt es keine Anfrage. Ein formwidriges Bündel oder eine formwidrige Antwort
+    zählt einmal und liefert nichts ein. ``fehlend`` ist je Art angefragt weniger geliefert,
+    nie negativ. Was ungefragt im Bündel steht, wird eingeliefert; der Knoten urteilt.
+    """
+    try:
+        meine_claims, meine_objekte = mein.bestand()
+    except Getrennt:
+        return Ergebnis(0, {}, True, 0, 0)
+    try:
+        seine_claims, seine_objekte = nachbar.bestand()
+    except Formwidrig:
+        return Ergebnis(0, {}, False, 0, 1)
+    except Getrennt:
+        return Ergebnis(0, {}, True, 0, 0)
+    fehlende_claims = sorted(set(seine_claims) - set(meine_claims))
+    fehlende_objekte = sorted(set(seine_objekte) - set(meine_objekte))
+    if not fehlende_claims and not fehlende_objekte:
+        return Ergebnis(0, {}, False, 0, 0)
+    try:
+        roh = nachbar.paket(fehlende_claims, fehlende_objekte)
+    except Formwidrig:
+        return Ergebnis(0, {}, False, 0, 1)
+    except Getrennt:
+        return Ergebnis(0, {}, True, 0, 0)
+    try:
+        claims, objekte = buendel.lesen(roh)
+    except ValueError:
+        return Ergebnis(0, {}, False, 0, 1)
+    fehlend = max(0, len(fehlende_claims) - len(claims)) + max(
+        0, len(fehlende_objekte) - len(objekte)
+    )
+    geholt, abgewiesen, getrennt = einliefern(mein, claims, objekte)
+    return Ergebnis(geholt, abgewiesen, getrennt, fehlend, 0)
 
 
 def sperrliste(text: str) -> frozenset[bytes]:

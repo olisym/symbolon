@@ -26797,3 +26797,26 @@ mit Boten warten jetzt auf die erste Ankündigung nach Trickle. Zu O100.
 gleich für Reticulum, Datei und QR-Code (D610 Beschluss 2, D611 Beschluss 5). Prototyp vorher.
 
 **Geändert.** `07-decisions.md`.
+
+### D613 — Schluss der Sitzung 00cv
+
+**Anlass.** Nach D612 ist Stufe 4 bis auf das Bündel gebaut; das Bündel ist ein eigener Strang mit
+einer Entscheidung über den QR-Code und gehört an den Anfang einer Sitzung.
+
+**Beschluss 1 — Stand.** Spaltung, Ausweg und Wahlgänge auf `main` (D594 bis D604), die Seite sagt,
+wenn eine Abstimmung vorbei ist (D605, D606), Trickle, Fristen nach Bitrate und Funk im Lab (D607
+bis D612). 1434 Tests, der Selbsttest 241 Fälle, Register D1–D613, `offen.md` 101 Posten, davon 17
+offen: O97, O100, O101 und die 14 Wartestände.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Messwerkzeug wird gegen die Wirklichkeit geprüft, bevor seine Zahlen gelten (D610
+Befund 1); eine Position wird vor dem Normtext an einem Prototyp gemessen (D599 bis D601); ein Test,
+dessen Wächter an einer Aufgabe hängt, verliert ihn mit der Aufgabe (D603 Befund 2); wer einer
+fremden Bibliothek einen Rückruf gibt, liest nach, wie sie ihn aufruft (D611 Befund 1); eine
+richtige Aussage auf der Seite genügt nicht, sie muss stehen, wo ein Mensch hinsieht (D605, D606).
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cw.md` trägt Stand, Arbeitsweise, die Bilder,
+das Bündel als nächsten Schritt und die verabredete Reihenfolge; `sitzungsstart-00cv.md` geht nach
+`archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cw.md`, `archiv/sitzungsstart-00cv.md`.

@@ -412,11 +412,9 @@ Die Quittung wird byteweise gegen den Gläubiger geprüft (`03 §3.3.2`); wer de
 einmal hatte, kann weiter quittieren. Aus D468 Beschluss 2. Öffnet mit einem Szenario, in dem das
 Amt wechselt.
 
-### O90 Negentropy für den Abgleich über knappe Strecken
+### O90 Negentropy für den Abgleich über knappe Strecken — erledigt (D618)
 
-Stufe 1 schickt die volle Liste (D514 Beschluss 2). Über LoRa oder Reticulum kostet sie je Runde
-32 Byte für jeden gehaltenen Eintrag. Negentropy (Nostr NIP-77) gleicht Mengen bereichsweise ab.
-Öffnet in Phase 5, oder wenn eine Messung die Liste zu gross findet.
+Abgleich nach Bereichen (RBSR) im Boten, jede Nachricht ein Paket (D617, D618).
 
 ### O91 Mehrere Geräte einer Person ohne geteilten Schlüssel — erledigt (D527)
 
@@ -470,3 +468,10 @@ Inhalt, die Mitgliederliste doppelt, „Alle haben bestätigt“ ohne Bezug; die
 Ansicht der Satzung. Offen: was „Im Verein“ ist (Lage, Neuigkeiten), der Tab „Verlauf“ (D605),
 Ansichten je Grösse des Bildschirms, und wie ein Mensch ankommt, der nichts weiss; das beginnt mit
 Gründung und Beitritt (D606).
+
+### O102 Vertraulichkeit im Funk
+
+Claims sind signiert, nicht verschlüsselt. Heute schützt nur der Link von Reticulum je Paar. Der
+Rundruf (D617 Beschluss 6) sendet einmal für alle; offen gesendet liest jeder mit einem Empfänger
+mit, ein Ziel vom Typ `GROUP` braucht einen geteilten Vereinsschlüssel, der beim Austritt wechselt.
+D26: Nachvollziehbarkeit ist nicht Öffentlichkeit. Entscheidet Oli vor dem echten Funk (D618).

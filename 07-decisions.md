@@ -27080,3 +27080,43 @@ unbegrenzt; knappe Teilung entfällt; `FEHLT` nicht bis zum Rahmen gefüllt (fü
 von 431 Byte.
 
 **Geändert.** `07-decisions.md`.
+
+### D618 — Abnahme `p46-rbsr`: angenommen, Merge; O90 erledigt, O102 neu
+
+**Anlass.** Der Lauf `p46-rbsr` (`ae121dd`) nach D617 Beschluss 7. Der Bericht meldet 1519 Tests im
+ersten Lauf grün, die Lab-Tests nicht rot, acht Rücknahmeproben rot, den Testdiff unverändert.
+Gelesen ist der vollständige Diff gegen `ab16978`, `symbolon/bote/rbsr.py` ganz.
+
+**Befund 1 — Tests.** Der Testdiff gegen `ab16978` ist Byte für Byte der gelieferte. Die Proben sind
+die aus dem Auftrag; zwei nennen ihre Zahl (65 statt 64 Runden, fünf statt höchstens vier), beide an
+der Sache.
+
+**Befund 2 — die Antwort endet auch innerhalb eines Bereichs.** Passt die Teilung eines Bereichs
+nicht ganz, hängt der Nachbar so viele Unterbereiche an, wie passen, und endet dort (`_prefix` in
+`_geteilt`). D617 Beschluss 4 sagt, die Antwort ende an der vorigen Grenze. Der Bote fragt den Rest
+ab der letzten Grenze wieder (`auswerten`), der Eigenschaftstest hält. Das ist eine Wahl der
+Implementierung, die die Form aus Beschluss 2 erlaubt, und mehr Fortschritt je Runde; nicht
+gemeldet. Beschluss 4 gilt mit diesem Satz.
+
+**Befund 3 — Kleinbefunde, ohne Auftrag.** `_auf_ids` probiert jede Anzahl fehlender Schlüssel von
+oben und kodiert jedes Mal; bei Tausenden in einem Bereich ist das quadratisch. Im Docstring von
+`holen` steht D615 Beschluss 2 jetzt hinter dem Satz über Ungefragtes statt über den engen Fang.
+
+**Befund 4 — Messung über Funk.** Derselbe Lauf wie D617 Befund 1 und 6 (`--wahlgang --funk`, sechs
+Geräte, 1200 bit/s, 5 % Verlust) auf `ae121dd`: gleicher Stand nach 383,9 s mit 42 kB auf dem Kanal,
+keine Resource bis dahin, 14 Holvorgänge. Der Prototyp brauchte 579,5 s, `main` vor dem Abgleich
+erreichte ihn in 20 Minuten nicht. Ein Lauf je Fassung (D390).
+
+**Beschluss 1 — angenommen.** `p46-rbsr` wird nach `main` vorgespult.
+
+**Beschluss 2 — O90 erledigt.** Der Bote gleicht nach Bereichen ab, jede Nachricht passt in ein
+Paket.
+
+**Beschluss 3 — O102 neu: Vertraulichkeit im Funk.** Vorher gesucht (D527) mit Vertraulichkeit,
+Verschlüsselung, Rundruf und `GROUP`: nur D26 (Nachvollziehbarkeit ist nicht Öffentlichkeit).
+Entscheidung durch Oli vor dem echten Funk (D617 Beschluss 6).
+
+**Beschluss 4 — was folgt.** In O97: das Holen auf Anregung des Nachbarn und der Rundruf (D617
+Beschluss 6, je einzeln gemessen), dann die T-Beams.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

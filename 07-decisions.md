@@ -27278,3 +27278,83 @@ zu O102. Die Plateaus aus Befund 4 misst der Supervisor an `main` mit demselben 
 ein Posten werden.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D623 — Stillstand: Trickle holt nach und setzt zurück; D622 berichtigt; Auftrag `p48-trickle`
+
+**Anlass.** D622 Beschluss 4, Olis Wahl in `00cx`: der Stillstand vor die T-Beams. Vorher gesucht
+(D527) mit Trickle, Stillstand, Pause und zurücksetzen: D611, D612, D619, D622. Gelesen:
+`symbolon/bote/trickle.py`, Schleife, Hörer und `RnsNachbar` in `symbolon/bote/reticulum.py`,
+`sperren_lesen` in `kern.py`, `tests/bote/test_trickle.py`.
+
+**Befund 1 — `main` bleibt selbst stehen.** Lauf m3 auf `2044b53`, `--wahlgang --funk`, sechs
+Geräte, 1200 bit/s, mit einem Wächter über `/stand`: Takt 0 nach 600 s nicht gleich; ab 290 s haben
+alle 19 Claims, Chris' Gerät einen anderen Stand. Damit ist D622 Befund 4, der den Stillstand von
+(a) dem verlorenen Rundruf zuschreibt, nicht gezeigt, und die Begründung von D622 Beschluss 1 („(a)
+blieb einmal stehen“) unterscheidet (a) nicht von `main`. Das Ergebnis von D622 bleibt: kein
+Zeitgewinn, O103 vertagt.
+
+**Befund 2 — Schicht A: ein langer Rundgang verschluckt die Ankündigung.** Lauf d3 auf `2044b53` mit
+Zeitstempeln und dem Zustand von Trickle alle 20 s: Chris' Rundgang bei Anna dauerte 128 s (t=39 bis
+167). Holen und Ankündigen laufen in derselben Schleife; beim nächsten Aufruf war das Intervall
+abgelaufen, `ankuendigen` begann das doppelte, und die Ankündigung des alten entfiel. Chris hält als
+Einziger seinen Claim; geholt wird nur bei einem Nachbarn, dessen Ankündigung man hört. Lauf d1
+zeigt dasselbe Bild (Chris kündigt nie an), lief aber womöglich am Ende von m3 an; der Befund trägt
+nur d3.
+
+**Befund 3 — Schicht B: kein Zurücksetzen bei anderem Stand.** Im abgebrochenen Lauf f2 stand Bruno2
+von 110 s bis 361 s bei 18 Claims, die übrigen fünf mit gleichem Stand bei 20. Sie hören einander,
+`k = 2` unterdrückt, das Intervall verdoppelt sich; Bruno2 hat weniger, also lohnt das Holen bei ihm
+für niemanden, und er hört keinen, bei dem es lohnt. RFC 6206, Abschnitt 4.2, setzt den Zeitgeber
+zurück, wenn ein anderer Stand gehört wird; der Bau setzt nur bei eigenem neuem Stand zurück.
+
+**Befund 4 — Schicht C: eine Anfrage blockiert die Schleife.** Lauf g1 mit einer Zeile je Anfrage:
+eine gescheiterte Anfrage `abgleich` hielt Bruno2 250 s fest, während ein anderer Nachbar ab t=365
+den fehlenden Stand ankündigte; danach brauchte der Abgleich dort 10 s. Im Lauf c1 scheiterten 12
+von 66 Anfragen, jede nach mindestens 60 s; auch gelungene brauchten oft 80 s.
+
+**Befund 5 — gemessen.** Alle Läufe bis zum ersten gleichen Stand nach Takt 0, gleicher Aufbau wie
+D622 Befund 3:
+
+- `main`: 455,3 s; 482,6 s; nach 600 s nicht gleich (m1, m2, m3).
+- A als eigener Faden, B nur wenn das Holen nicht lohnt: nach 600 s nicht gleich (f3); 497,4 s (g1).
+- dazu C, zwei Nachbarn zugleich: 380,0 s mit 40,0 kB; 474,7 s mit 48,2 kB (c1, c2).
+- die Fassung des Auftrags (Beschluss 1 und 2): 418,3 s mit 163 Paketen und 31,0 kB (q2).
+
+Kein Lauf liegt ausserhalb der Streuung von `main`. Nicht gezählt: d2 und f1 (die Knoten des vorigen
+Laufs belegten noch die Ports) und f2 (abgebrochen).
+
+**Beschluss 1 — A: Trickle holt nach.** `Trickle.ankuendigen`: ist das Intervall abgelaufen und
+wurde darin nicht gefragt, wird seine Ankündigung jetzt nachgeholt, wenn `gehoert < k`; dann beginnt
+das doppelte Intervall. Bei RFC 6206 ist der Zeitpunkt ein Zeitgeber; ein verspäteter Aufruf ist
+Verzug, ein ausgelassener weicht von D611 Beschluss 1 ab. Kein eigener Faden, anders als in f3 und
+g1: eine Datei, keine Nebenläufigkeit, mit falscher Uhr prüfbar. Der Preis ist ein Verzug bis zur
+Dauer eines Rundgangs.
+
+**Beschluss 2 — B: ein anderer Stand setzt zurück.** Hört der Bote von einem Nachbarn aus `quellen`
+einen anderen Stand, ruft der Hörer `trickle.neu` (RFC 6206, Abschnitt 4.2). Nicht ohne eigenen
+Stand, nicht von einem gesperrten Nachbarn und nicht bei formwidriger Sperrliste: `zuruecksetzen` in
+`kern.py` entscheidet. Gesperrte zählen nicht, sonst hielte ein gesperrtes Zweitgerät, das hinten
+liegt, alle übrigen bei `imin`. Anders als in f3 und g1 auch dann, wenn das Holen lohnt; das ist die
+Regel der RFC, und q2 ist auf dieser Fassung gemessen.
+
+**Beschluss 3 — C wird nicht gebaut.** D611 Beschluss 1 bleibt: je Takt höchstens ein Nachbar. Zwei
+Nachbarn zugleich brachten keinen Abstand und 30 bis 50 % mehr Bytes.
+
+**Beschluss 4 — der Massstab ist die Lebendigkeit.** A und B werden gebaut, weil der Bau von D611
+Beschluss 1 abweicht und ein Gerät, das allein einen Claim hält, sonst nie ankündigen kann. Einen
+Zeitgewinn behauptet dieser Eintrag nicht; solange Schicht C die Zeit bestimmt, ist keiner zu
+erwarten.
+
+**Beschluss 5 — O104 neu.** Anfragen über den Link scheitern unter Verlust zu oft und zu teuer
+(Befund 4). Das ist der nächste Strang vor den T-Beams, zuerst gemessen.
+
+**Beschluss 6 — der Auftrag `p48-trickle`.** Branch `p48-trickle` von dem Commit, der diesen Eintrag
+trägt. `trickle.py` nach Beschluss 1, `kern.py` mit `zuruecksetzen` und der Hörer in `reticulum.py`
+nach Beschluss 2. Die Tests stehen wörtlich im Auftrag: drei in `tests/bote/test_trickle.py`, ein
+neuer Test mit sechs Fällen in `tests/bote/test_zuruecksetzen.py`. Rücknahmeproben vorher gegen
+diese Fassung gefahren, jede rot an ihrem Test: ohne Nachholen; Nachholen ohne `k`; Nachholen auch
+nach einer Frage im Intervall (dort fällt auch `test_einmal_je_intervall`); ohne Sperrprüfung;
+formwidrige Liste als frei; ohne eigenen Stand. Den Aufruf im Hörer prüft kein Test; die Abnahme
+liest ihn im Diff.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

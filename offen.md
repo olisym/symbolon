@@ -481,3 +481,9 @@ D26: Nachvollziehbarkeit ist nicht Öffentlichkeit. Entscheidet Oli vor dem echt
 Gemessen und nicht gebaut: spart Bytes, nicht Zeit (D622). Vertagt mit Bedingung: wird an den
 T-Beams die Sendezeit nach Duty Cycle knapp (D609), kommt er in der Form aus D622 zurück, mit
 Prüfung des Absenders und Wiederholung über den Link.
+
+### O104 Anfragen über den Link scheitern unter Verlust
+
+Bei 1200 bit/s und 5 % Verlust scheiterte im Lab jede sechste Anfrage, jede nach mindestens 60 s,
+eine nach 250 s; auch gelungene brauchten oft 80 s (D623 Befund 4). Die Zeit bis zum gleichen Stand
+hängt daran. Zuerst messen, woran (Aufbau des Links, Wiederholung, Frist), dann die T-Beams.

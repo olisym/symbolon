@@ -15,9 +15,11 @@ from symbolon.bote.kern import (
     Getrennt,
     HttpKnoten,
     Quelle,
+    ankuendigung,
+    ankuendigung_aus,
+    lohnt,
     rundgang,
     sperrstand,
-    stand_aus,
 )
 from symbolon.bote.trickle import Trickle, Zeiten, zeiten
 
@@ -173,8 +175,9 @@ def laufen(
 ) -> None:
     """Anbieten, nach Trickle ankündigen und je Takt höchstens einen Nachbarn holen.
 
-    Die Ankündigung trägt den Stand (D584 Beschluss 1 und 2, D611 Beschluss 1). Die Fristen kommen
-    aus der kleinsten Bitrate (D611 Beschluss 2). ``sperrstand`` liest die Sperrliste in jedem Takt,
+    Die Ankündigung trägt Stand und Zahl der Einträge (D584 Beschluss 1 und 2, D619 Beschluss 1).
+    Fällig wird ein Nachbar nur, wenn das Holen lohnt (D619 Beschluss 2). Die Fristen kommen aus
+    der kleinsten Bitrate (D611 Beschluss 2). ``sperrstand`` liest die Sperrliste in jedem Takt,
     auch ohne Holen (D594 Beschluss 3, D611 Beschluss 3). Der Bote holt, er schiebt nie.
     """
     RNS.Reticulum(configdir=str(konfiguration))
@@ -187,10 +190,11 @@ def laufen(
     quellen = {ziel: RnsNachbar(ziel, zeit) for ziel in nachbarn}
     trickle = Trickle(zeit.imin, 6, 2, time.monotonic(), random.Random())
     sperre = threading.Lock()
-    gehoerte: dict[bytes, bytes] = {}
+    gehoerte: dict[bytes, tuple[bytes, int]] = {}
     faellig: dict[bytes, float] = {}
     pausen: dict[bytes, float] = {}
     eigener: list[bytes | None] = [None]
+    eigene_zahl: list[int] = [0]
 
     class _Hoerer:
         """Hört Ankündigungen; die Parameternamen sind die von RNS (D611 Beschluss 1, Befund 1)."""
@@ -200,18 +204,21 @@ def laufen(
 
         def received_announce(self, destination_hash, announced_identity, app_data) -> None:
             # RNS ruft mit Namen auf. Die Identität hat ``aspect_filter`` schon geprüft
-            # (D611 Befund 1); hier zählt der Stand.
+            # (D611 Befund 1); hier zählen Stand und Zahl (D619 Beschluss 1 und 2).
             if announced_identity is None and destination_hash is None:
                 return
-            roh = stand_aus(app_data)
-            if destination_hash not in quellen or roh is None:
+            paar = ankuendigung_aus(app_data)
+            if destination_hash not in quellen or paar is None:
                 return
             with sperre:
-                gehoerte[destination_hash] = roh
-                if eigener[0] is not None and roh == eigener[0]:
+                gehoerte[destination_hash] = paar
+                if eigener[0] is not None and paar[0] == eigener[0]:
                     trickle.gleich()
-                elif destination_hash not in faellig:
-                    faellig[destination_hash] = time.monotonic()
+                if lohnt(paar, eigener[0], eigene_zahl[0]):
+                    if destination_hash not in faellig:
+                        faellig[destination_hash] = time.monotonic()
+                else:
+                    faellig.pop(destination_hash, None)
 
     RNS.Transport.register_announce_handler(_Hoerer())
     zuletzt: frozenset[bytes] | None = frozenset()
@@ -222,20 +229,34 @@ def laufen(
         except Getrennt:
             stand = None
         with sperre:
-            if stand is not None and stand != eigener[0]:
+            geaendert = stand is not None and stand != eigener[0]
+        zahl: int | None = None
+        if geaendert:
+            try:
+                claims, objekte = mein.bestand()
+                zahl = len(claims) + len(objekte)
+            except Getrennt:
+                zahl = None
+        with sperre:
+            if geaendert:
                 trickle.neu(jetzt)
                 eigener[0] = stand
+                if zahl is not None:
+                    eigene_zahl[0] = zahl
                 for ziel, gehoert in gehoerte.items():
-                    if gehoert != stand:
+                    if lohnt(gehoert, stand, eigene_zahl[0]):
                         faellig[ziel] = jetzt
                         pausen.pop(ziel, None)
                     else:
                         faellig.pop(ziel, None)
                         pausen.pop(ziel, None)
-            melden_stand = stand if stand is not None and trickle.ankuendigen(jetzt) else None
+            if stand is not None and trickle.ankuendigen(jetzt):
+                meldung: bytes | None = ankuendigung(stand, eigene_zahl[0])
+            else:
+                meldung = None
             kandidaten = [(wann, ziel) for ziel, wann in faellig.items() if wann <= jetzt]
-        if melden_stand is not None:
-            destination.announce(app_data=melden_stand)
+        if meldung is not None:
+            destination.announce(app_data=meldung)
         gelesen = sperrstand(sperren, zuletzt, melden)
         zuletzt = gelesen
         if gelesen is not None and kandidaten:
@@ -250,7 +271,7 @@ def laufen(
             with sperre:
                 gehoert = gehoerte.get(gewaehlt)
                 geaendert = eigener[0] is not None and danach is not None and danach != eigener[0]
-                gleich = gehoert is not None and danach == gehoert
+                gleich = gehoert is not None and danach == gehoert[0]
                 if geaendert or gleich:
                     faellig.pop(gewaehlt, None)
                     pausen.pop(gewaehlt, None)

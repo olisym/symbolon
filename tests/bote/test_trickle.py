@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from symbolon.bote.kern import stand_aus
+from symbolon.bote.kern import ankuendigung, ankuendigung_aus
 from symbolon.bote.trickle import Trickle, Zeiten, zeiten
 
 
@@ -90,16 +90,27 @@ def test_zeiten(bitrate, erwartet) -> None:
 @pytest.mark.parametrize(
     ("app_data", "erwartet"),
     [
-        (bytes(range(32)), bytes(range(32))),
+        (bytes(range(32)) + bytes([0, 0, 1, 2]), (bytes(range(32)), 258)),
+        (bytes(36), (bytes(32), 0)),
+        (bytes(32) + b"\xff" * 4, (bytes(32), 2**32 - 1)),
+        (bytes(range(32)), None),
         (None, None),
         (b"", None),
-        (bytes(31), None),
-        (bytes(33), None),
-        ("00" * 32, None),
-        (bytearray(32), None),
+        (bytes(35), None),
+        (bytes(37), None),
+        ("00" * 36, None),
+        (bytearray(36), None),
     ],
 )
-def test_stand_aus(app_data, erwartet) -> None:
-    """Nur genau 32 Bytes sind ein Stand; alles andere aus einer Ankündigung ist formwidrig und
-    macht keinen Nachbarn fällig (D611 Beschluss 1)."""
-    assert stand_aus(app_data) == erwartet
+def test_ankuendigung_aus(app_data, erwartet) -> None:
+    """Nur genau 36 Bytes sind eine Ankündigung, die alte Form mit 32 nicht; alles andere ist
+    formwidrig und macht keinen Nachbarn fällig (D619 Beschluss 1)."""
+    assert ankuendigung_aus(app_data) == erwartet
+
+
+def test_ankuendigung() -> None:
+    """Hin und zurück; eine Zahl über vier Byte wird gekappt (D619 Beschluss 1)."""
+    stand = bytes(range(32))
+    assert ankuendigung(stand, 258) == stand + bytes([0, 0, 1, 2])
+    assert ankuendigung_aus(ankuendigung(stand, 7)) == (stand, 7)
+    assert ankuendigung_aus(ankuendigung(stand, 2**40)) == (stand, 2**32 - 1)

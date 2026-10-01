@@ -148,11 +148,23 @@ def _name(body: object) -> str:
     return body if isinstance(body, str) else json.dumps(body)
 
 
-def stand_aus(app_data: object) -> bytes | None:
-    """Nur genau 32 Bytes sind ein Stand; alles andere ist formwidrig (D611 Beschluss 1)."""
-    if type(app_data) is bytes and len(app_data) == 32:
-        return app_data
+def ankuendigung(stand: bytes, anzahl: int) -> bytes:
+    """Stand und Zahl der Einträge, die Zahl gekappt bei 2^32 - 1 (D619 Beschluss 1)."""
+    return stand + min(anzahl, 2**32 - 1).to_bytes(4, "big")
+
+
+def ankuendigung_aus(app_data: object) -> tuple[bytes, int] | None:
+    """Genau 36 Byte vom Typ ``bytes`` sind Stand und Zahl, sonst ``None`` (D619 Beschluss 1)."""
+    if type(app_data) is bytes and len(app_data) == 36:
+        return app_data[:32], int.from_bytes(app_data[32:], "big")
     return None
+
+
+def lohnt(gehoert: tuple[bytes, int], stand: bytes | None, anzahl: int) -> bool:
+    """Wahr, wenn der gehörte Stand anders ist und seine Zahl mindestens die eigene
+    (D619 Beschluss 2)."""
+    fremd, zahl = gehoert
+    return fremd != stand and zahl >= anzahl
 
 
 def einliefern(

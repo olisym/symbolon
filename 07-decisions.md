@@ -27120,3 +27120,50 @@ Entscheidung durch Oli vor dem echten Funk (D617 Beschluss 6).
 Beschluss 6, je einzeln gemessen), dann die T-Beams.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D619 — Ankündigung mit Zahl der Einträge, holen nur beim Grösseren; Auftrag `p47-anzahl`
+
+**Anlass.** D617 Befund 7 und Beschluss 6 (a), D618 Beschluss 4. Vorher gesucht (D527) mit
+Ankündigung, `app_data`, Stand und Anzahl: D611 Beschluss 1 (die Ankündigung trägt genau den Stand),
+D612, D617. Gelesen: die Schleife in `symbolon/bote/reticulum.py`, `stand_aus` in `kern.py`,
+`tests/bote/test_trickle.py`.
+
+**Befund 1 — die Hälfte ist Natur, nicht Zufall.** Haben zwei Geräte verschiedene Stände, fragen
+beide einander; der Vorausliegende fragt vergeblich. Das Holen auf Anregung des Nachbarn (D617
+Beschluss 6 (a)) verkürzt nur die Wartezeit und ändert daran nichts.
+
+**Befund 2 — gemessen auf `main`.** `be569cd`, `--wahlgang --funk`, sechs Geräte, 1200 bit/s, mit
+einer Zeile je Abgleich: in rund 14 Minuten 47 vergebliche Abgleiche (74 Runden, 11,8 kB Nachrichten
+ohne Kopf) und 17 erfolgreiche (41 Runden, 24 Einträge). Mit dem Kopf der Pakete rund ein Viertel
+des Kanals. Erster gleicher Stand nach 667 s; in D618 Befund 4 waren es 384 s. Die Zeiten streuen
+stark.
+
+**Befund 3 — gemessen mit der Zahl.** Ein Prototyp nach Beschluss 1 und 2, derselbe Lauf: kein
+vergeblicher Abgleich, 18 erfolgreiche mit 23 Einträgen, erster gleicher Stand nach 471,6 s. Die
+saubere Fassung des Auftrags: wieder kein vergeblicher, 16 erfolgreiche, gleicher Stand nach 385,2
+s.
+
+**Befund 4 — warum nichts liegen bleibt.** Lohnt das Holen von `b` für `a`, hat `b` mindestens so
+viele Einträge und einen anderen Bestand, also etwas, das `a` fehlt: kein Holen ist vergeblich.
+Danach hat `a` die Vereinigung, also mindestens so viele Einträge wie `b`. Von zwei verschiedenen
+Beständen holt immer der kleinere oder holen beide; das endet bei der Vereinigung. Ein Lügner mit
+hoher Zahl zieht Abgleiche an und kostet Pakete; mit niedriger Zahl entzieht er sich, verschweigen
+kann er ohnehin (D617 Befund 2).
+
+**Beschluss 1 — die Form der Ankündigung.** `app_data` ist genau 36 Byte: der Stand (32 Byte, D611)
+und die Zahl der gehaltenen Claims und Objekte als 4 Byte big-endian, gekappt bei 2^32 − 1. Alles
+andere ist formwidrig und macht keinen Nachbarn fällig, auch die alte Form mit 32 Byte. Ändert D611
+Beschluss 1.
+
+**Beschluss 2 — wann holen lohnt.** Ein Nachbar wird fällig, wenn sein Stand anders ist als der
+eigene und seine Zahl mindestens die eigene. Ändert sich der eigene Stand, wird die eigene Zahl neu
+gezählt und jeder gehörte Nachbar neu bewertet. Wahl der Implementierung, ohne Änderung an der Form.
+
+**Beschluss 3 — der Auftrag `p47-anzahl`.** `kern.py` bekommt `ankuendigung`, `ankuendigung_aus`
+statt `stand_aus` und `lohnt`; die Schleife in `reticulum.py` nutzt sie. Neu
+`tests/bote/test_lohnt.py`, geändert `tests/bote/test_trickle.py`; die Tests als Diff.
+Rücknahmeproben vorher gefahren, jede an ihrem Test rot: `>` statt `>=`; ohne Zahl; ohne Stand; die
+alte Form angenommen; ohne Kappung. Die Verdrahtung in der Schleife sieht kein Test; der Supervisor
+fährt vor der Abnahme den Funklauf.
+
+**Geändert.** `07-decisions.md`.

@@ -27167,3 +27167,26 @@ alte Form angenommen; ohne Kappung. Die Verdrahtung in der Schleife sieht kein T
 fährt vor der Abnahme den Funklauf.
 
 **Geändert.** `07-decisions.md`.
+
+### D620 — Abnahme `p47-anzahl`: angenommen, Merge
+
+**Anlass.** Der Lauf `p47-anzahl` (`9f85967`) nach D619 Beschluss 3. Gelesen ist der vollständige
+Diff gegen `d1edd06`.
+
+**Befund 1 — Tests und Proben.** Der Testdiff ist Byte für Byte der gelieferte; 1525 Tests grün; die
+drei verlangten Rücknahmeproben rot an ihren Tests.
+
+**Befund 2 — die Verdrahtung.** Die Schleife bewertet jeden gehörten Nachbarn mit `lohnt`, zählt die
+eigenen Einträge nur bei geändertem Stand und ausserhalb der Sperre, und kündigt Stand mit Zahl an.
+Ein gehörter gleicher Stand nimmt den Nachbarn jetzt auch aus `faellig`; das folgt aus `lohnt`.
+Funklauf auf `9f85967` wie D619 Befund 2 und 3: kein vergeblicher Abgleich, 16 erfolgreiche,
+gleicher Stand nach 389,6 s.
+
+**Befund 3 — mein Kriterium war zu weit.** `grep stand_aus` trifft den Namen
+`test_gv61_gv62_klasse_gegen_stand_aus_s` in `tests/governance/test_sachantraege.py`; dort heisst
+„Stand aus S“ etwas anderes. Das Werkzeug hat es gemeldet; nichts zu tun.
+
+**Beschluss 1 — angenommen.** `p47-anzahl` wird nach `main` vorgespult. Nächster Schritt in O97 ist
+der Rundruf (D617 Beschluss 6 (b)); das Holen auf Anregung des Nachbarn entfällt (D619 Befund 1).
+
+**Geändert.** `07-decisions.md`.

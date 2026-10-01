@@ -27358,3 +27358,32 @@ formwidrige Liste als frei; ohne eigenen Stand. Den Aufruf im Hörer prüft kein
 liest ihn im Diff.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D624 — Abnahme `p48-trickle`: angenommen, Merge
+
+**Anlass.** Der Lauf `p48-trickle` (`34aa479`) nach D623 Beschluss 6. Gelesen ist der vollständige
+Diff gegen `785775a` aus dem Spiegel; der Bericht ist nicht die Abnahme.
+
+**Befund 1 — der Diff.** Geändert sind genau die fünf Dateien des Auftrags. Die Tests sind
+byte-gleich mit dem Testdiff des Auftrags. `Trickle.ankuendigen` hält vor dem Beginn des doppelten
+Intervalls fest, ob nachgeholt wird, und gibt dann `True` zurück; `zuruecksetzen` in `kern.py` ist
+wörtlich die Bedingung aus D623 Beschluss 2; der Hörer liest die Sperrliste ausserhalb der Sperre
+und ruft `trickle.neu` direkt nach dem Block mit `trickle.gleich()`. Den Aufruf im Hörer prüft kein
+Test; er steht im Diff wie verlangt. Der Bericht nennt 1534 Tests, `make check` mit Exit-Status 0
+und alle sechs Rücknahmeproben rot am benannten Test.
+
+**Befund 2 — ein Wort im Docstring.** In `ankuendigen` bezieht sich „darin“ grammatisch auf das neue
+Intervall, gemeint ist das abgelaufene. Kein Nachtrag; bei der nächsten Änderung an `trickle.py` mit
+zu richten.
+
+**Befund 3 — über Funk.** Lauf r1 auf `34aa479`, `--wahlgang --funk`, sechs Geräte, 1200 bit/s, mit
+Wächter: gleicher Stand nach 479,5 s mit 162 Paketen und 29,2 kB, kein Stillstand. Doras Zweitgerät
+lag aber von Beginn bis etwa 460 s bei 17 Claims, rund 200 s länger als alle anderen. Ohne
+Diagnosezeilen ist nicht zu sagen, ob an Anfragen, die scheitern (O104), oder an etwas anderem; das
+klärt die Messung zu O104.
+
+**Beschluss 1 — angenommen.** `p48-trickle` wird nach `main` vorgespult. Nächster Schritt ist O104:
+mit einer Zeile je Anfrage messen, woran Anfragen über den Link scheitern, dann die T-Beams mit Olis
+Entscheidung zu O102.
+
+**Geändert.** `07-decisions.md`.

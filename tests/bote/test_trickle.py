@@ -58,6 +58,29 @@ def test_neu_setzt_zurueck() -> None:
     assert t.ankuendigen(38.5) is True
 
 
+def test_verspaetet_nachgeholt() -> None:
+    """Fragt der Bote erst nach Ablauf, holt er die Ankündigung einmal nach (D623)."""
+    t = Trickle(10.0, 3, 2, 0.0, _Mitte())
+    assert t.ankuendigen(12.0) is True
+    assert (t.laenge, t.beginn) == (20.0, 12.0)
+    assert [t.ankuendigen(x) for x in (13.0, 26.9, 27.0)] == [False, False, True]
+
+
+def test_verspaetet_nicht_nach_k() -> None:
+    """Wer im abgelaufenen Intervall ``k`` gleiche Stände gehört hat, holt nichts nach."""
+    t = Trickle(10.0, 3, 2, 0.0, _Mitte())
+    t.gleich()
+    t.gleich()
+    assert t.ankuendigen(12.0) is False
+
+
+def test_verspaetet_nicht_doppelt() -> None:
+    """Wer zum Zeitpunkt angekündigt hat, holt nach Ablauf nichts nach."""
+    t = Trickle(10.0, 3, 2, 0.0, _Mitte())
+    assert t.ankuendigen(7.5) is True
+    assert t.ankuendigen(12.0) is False
+
+
 def test_neu_bei_imin_nichts() -> None:
     """Ist das laufende Intervall schon ``imin``, ändert ein neuer Stand nichts (RFC 6206, Abschnitt 4.2)."""
     t = Trickle(10.0, 3, 2, 0.0, _Mitte())

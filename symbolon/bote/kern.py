@@ -167,6 +167,16 @@ def lohnt(gehoert: tuple[bytes, int], stand: bytes | None, anzahl: int) -> bool:
     return fremd != stand and zahl >= anzahl
 
 
+def zuruecksetzen(
+    ziel: bytes, fremd: bytes, stand: bytes | None, gesperrt: frozenset[bytes] | None
+) -> bool:
+    """Wahr, wenn ein anderer Stand von einem nicht gesperrten Nachbarn gehört wird
+    (RFC 6206, Abschnitt 4.2, D623 Beschluss 2)."""
+    return (
+        stand is not None and fremd != stand and gesperrt is not None and ziel not in gesperrt
+    )
+
+
 def einliefern(
     mein: HttpKnoten, claims: list[bytes], objekte: list[tuple[str, bytes]]
 ) -> tuple[int, dict[str, int], bool]:

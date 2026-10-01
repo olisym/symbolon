@@ -19,7 +19,9 @@ from symbolon.bote.kern import (
     ankuendigung_aus,
     lohnt,
     rundgang,
+    sperren_lesen,
     sperrstand,
+    zuruecksetzen,
 )
 from symbolon.bote.trickle import Trickle, Zeiten, zeiten
 
@@ -210,10 +212,13 @@ def laufen(
             paar = ankuendigung_aus(app_data)
             if destination_hash not in quellen or paar is None:
                 return
+            gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
             with sperre:
                 gehoerte[destination_hash] = paar
                 if eigener[0] is not None and paar[0] == eigener[0]:
                     trickle.gleich()
+                if zuruecksetzen(destination_hash, paar[0], eigener[0], gesperrt):
+                    trickle.neu(time.monotonic())
                 if lohnt(paar, eigener[0], eigene_zahl[0]):
                     if destination_hash not in faellig:
                         faellig[destination_hash] = time.monotonic()

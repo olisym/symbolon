@@ -70,10 +70,14 @@ class Trickle:
         """Einmal je Intervall, beim ersten Aufruf ab dem Zeitpunkt, und nur wenn ``gehoert < k``.
 
         Ist das Intervall abgelaufen, beginnt bei ``jetzt`` eines mit doppelter Länge, höchstens
-        ``imax`` (RFC 6206, Abschnitt 4.2, D611 Beschluss 1).
+        ``imax``. Wurde darin noch nicht gefragt und gilt ``gehoert < k``, holt dieser Aufruf
+        die Ankündigung nach (RFC 6206, Abschnitt 4.2, D611 Beschluss 1, D623 Beschluss 1).
         """
         if jetzt >= self.beginn + self.laenge:
+            nachholen = not self._gemeldet and self.gehoert < self.k
             self._intervall(min(2 * self.laenge, self.imax), jetzt)
+            if nachholen:
+                return True
         if self._gemeldet or jetzt < self.zeitpunkt:
             return False
         self._gemeldet = True

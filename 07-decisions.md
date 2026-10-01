@@ -27447,3 +27447,26 @@ Prüfung auf `CLOSED`; ohne Deckel; Deckel nur bei der Antwortfrist; erneutes Se
 Frist neu.
 
 **Geändert.** `07-decisions.md`.
+
+### D626 — Abnahme `p49-fristen`: angenommen, Merge
+
+**Anlass.** Der Lauf `p49-fristen` (`562cabc`) nach D625 Beschluss 5. Gelesen ist der vollständige
+Diff gegen `441e673` aus dem Spiegel; der Bericht ist nicht die Abnahme.
+
+**Befund 1 — der Diff.** Geändert sind genau `symbolon/bote/reticulum.py` und
+`tests/bote/test_reticulum.py`. Die Tests sind byte-gleich mit dem Testdiff des Auftrags. Der Code
+stimmt mit dem Prototyp überein; abweichend ist nur der Wortlaut zweier Docstrings und eines
+Kommentars, in der Sache gleich. `_verbinden` gibt bei `CLOSED` auf, `_zustellfrist` ist gedeckelt
+und hat den einzigen Aufruf mit `self.zeit.antwort`, beim erneuten Senden wird `seit` nicht mehr
+gesetzt. Der Bericht nennt 1536 Tests, `make check` mit Exit-Status 0, fünf grüne Läufe der
+zeitkritischen Tests und alle vier Rücknahmeproben rot am benannten Test.
+
+**Befund 2 — über Funk.** Lauf v1 auf `562cabc`, `--wahlgang --funk`, sechs Geräte, 1200 bit/s, mit
+Wächter: gleicher Stand nach 255,4 s mit 153 Paketen und 28,6 kB, kein Stillstand; Bruno2 lag rund
+40 s länger zurück als die übrigen. Das ist der kürzeste Lauf dieser Reihe, aber ein einzelner; über
+die Streuung sagt er nichts (D390).
+
+**Beschluss 1 — angenommen.** `p49-fristen` wird nach `main` vorgespult. O104 bleibt offen (D625
+Beschluss 4).
+
+**Geändert.** `07-decisions.md`.

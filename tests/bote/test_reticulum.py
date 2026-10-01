@@ -297,16 +297,18 @@ def test_erneut_nach_verlust(monkeypatch) -> None:
 
 
 def test_versuche_begrenzt(monkeypatch) -> None:
-    """Nach ``_VERSUCHE`` Anfragen gilt die Frist; dann getrennt, der Link abgebaut (D591).
+    """Höchstens ``_VERSUCHE`` Anfragen; die Frist läuft ab der ersten, dann getrennt (D591, D625).
 
-    Jede Anfrage wartet ihre eigene Zustellfrist, die letzte die Antwortfrist.
+    Ein erneutes Senden startet die Antwortfrist nicht neu: getrennt nach rund 0,3 s, nicht nach
+    0,5 s.
     """
-    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.2)
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
     link = _Folge([_verloren() for _ in range(5)])
     begun = time.monotonic()
     with pytest.raises(Getrennt):
         _nachbar(link, Zeiten(10.0, 0.3, 10.0)).bestand()
-    assert time.monotonic() - begun >= 0.7
+    dauer = time.monotonic() - begun
+    assert 0.3 <= dauer < 0.45
     assert link.anfragen == reticulum._VERSUCHE == 3
     assert link.abgebaut
 
@@ -333,3 +335,47 @@ def test_zustellfrist_waechst_mit_rtt(monkeypatch) -> None:
     assert _nachbar(link).bestand() == ([], [])
     assert time.monotonic() - begun >= 1.0
     assert link.anfragen == 2
+
+
+def test_zustellfrist_gedeckelt(monkeypatch) -> None:
+    """Eine lange Laufzeit schiebt das erneute Senden nicht hinter die Antwortfrist (D625)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    link = _Folge([_verloren(), _gut()], rtt=10.0)
+    begun = time.monotonic()
+    assert _nachbar(link, Zeiten(10.0, 0.6, 10.0)).bestand() == ([], [])
+    assert time.monotonic() - begun < 0.6
+    assert link.anfragen == 2
+
+
+class _Ausgang:
+    """Ein Ziel ohne RNS; trägt nur die Konstanten, die ``_verbinden`` liest."""
+
+    OUT = RNS.Destination.OUT
+    SINGLE = RNS.Destination.SINGLE
+
+    def __init__(self, *_args) -> None:
+        pass
+
+
+class _Geschlossen:
+    """Ein Link, den RNS beim Aufbau schliesst."""
+
+    ACTIVE = RNS.Link.ACTIVE
+    CLOSED = RNS.Link.CLOSED
+
+    def __init__(self, _ziel) -> None:
+        self.status = RNS.Link.CLOSED
+
+
+def test_geschlossener_link_sofort_getrennt(monkeypatch) -> None:
+    """Schliesst RNS den Link beim Aufbau, ist der Nachbar sofort getrennt, nicht erst nach der
+    Frist für den Link (D625)."""
+    monkeypatch.setattr(reticulum.RNS.Transport, "has_path", lambda _ziel: True)
+    monkeypatch.setattr(reticulum.RNS.Identity, "recall", lambda _ziel: object())
+    monkeypatch.setattr(reticulum.RNS, "Destination", _Ausgang)
+    monkeypatch.setattr(reticulum.RNS, "Link", _Geschlossen)
+    nachbar = reticulum.RnsNachbar(bytes(16), Zeiten(5.0, 15.0, 10.0))
+    begun = time.monotonic()
+    with pytest.raises(Getrennt):
+        nachbar.bestand()
+    assert time.monotonic() - begun < 1.0

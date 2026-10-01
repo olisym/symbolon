@@ -69,9 +69,10 @@ def anbieten(destination, quelle: Quelle) -> None:
         )
 
 
-def _zustellfrist(link) -> float:
-    """Die Frist bis zum erneuten Senden wächst mit der Laufzeit des Links (D591 Beschluss 1)."""
-    return max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * (link.rtt or 0.0))
+def _zustellfrist(link, antwort: float) -> float:
+    """Die Frist bis zum erneuten Senden wächst mit der Laufzeit des Links und bleibt unter dem
+    Anteil der Antwortfrist (D591 Beschluss 1, D625 Beschluss 2)."""
+    return min(max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * (link.rtt or 0.0)), antwort / _VERSUCHE)
 
 
 def _bitrate() -> float | None:
@@ -107,7 +108,8 @@ class RnsNachbar:
         link = RNS.Link(destination)
         begun = time.monotonic()
         while link.status != RNS.Link.ACTIVE:
-            if time.monotonic() - begun > self.zeit.link:
+            # Ein geschlossener Link ist getrennt, nicht erst nach der Frist (D625 Beschluss 1).
+            if link.status == RNS.Link.CLOSED or time.monotonic() - begun > self.zeit.link:
                 raise Getrennt()
             time.sleep(_WARTEN)
         self._link = link
@@ -117,8 +119,9 @@ class RnsNachbar:
         """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2).
 
         Bleibt eine Anfrage über die Zustellfrist unzugestellt, geht sie auf demselben Link erneut,
-        bis zu ``_VERSUCHE`` Anfragen (D591 Beschluss 1). Eine doppelte Anfrage schadet nicht, weil
-        der Bote nur liest (D584 Beschluss 2).
+        bis zu ``_VERSUCHE`` Anfragen (D591 Beschluss 1). Ein erneutes Senden ist kein Fortschritt;
+        die Frist läuft ab der ersten Anfrage (D625 Beschluss 3). Eine doppelte Anfrage schadet
+        nicht, weil der Bote nur liest (D584 Beschluss 2).
         """
         link = self._verbinden()
         receipt = link.request(pfad, data)
@@ -132,14 +135,14 @@ class RnsNachbar:
             if (
                 anfragen < _VERSUCHE
                 and receipt.get_status() == RNS.RequestReceipt.SENT
-                and time.monotonic() - gesendet > _zustellfrist(link)
+                and time.monotonic() - gesendet > _zustellfrist(link, self.zeit.antwort)
             ):
                 receipt = link.request(pfad, data)
                 if not receipt:
                     raise Getrennt()
                 anfragen += 1
+                gesendet = time.monotonic()
                 fortschritt = receipt.get_progress()
-                seit = gesendet = time.monotonic()
                 continue
             jetzt = receipt.get_progress()
             if jetzt != fortschritt:

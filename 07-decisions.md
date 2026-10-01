@@ -27190,3 +27190,25 @@ gleicher Stand nach 389,6 s.
 der Rundruf (D617 Beschluss 6 (b)); das Holen auf Anregung des Nachbarn entfällt (D619 Befund 1).
 
 **Geändert.** `07-decisions.md`.
+
+### D621 — Schluss der Sitzung 00cw
+
+**Anlass.** Nach D620 ist der Abgleich über knappe Strecken in drei Schritten gebaut; der Rundruf
+berührt D584 Beschluss 2 und gehört an den Anfang einer Sitzung.
+
+**Beschluss 1 — Stand.** Das Bündel (D614 bis D616), der Abgleich nach Bereichen (D617, D618) und
+die Zahl der Einträge in der Ankündigung (D619, D620) auf `main`. 1525 Tests, der Selbsttest 241
+Fälle, Register D1–D621, `offen.md` 102 Posten, davon 17 offen: O97, O100, O101, O102 und die 13
+Wartestände. O90 erledigt.
+
+**Beschluss 2 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Auftrag nennt auch den Grenzfall einer Ausgabe (D615 Befund 1); was gefangen wird,
+sagt der Auftrag ausdrücklich (D615 Befund 2); eine Zahl im Docstring eines Tests wird gemessen
+(D617); eine Abweichung, die die Form erlaubt, kommt ins Register (D618 Befund 2); ein begründeter
+Nutzen wird vor dem Bau gemessen (D619 Befund 1); ein Prüfkriterium per `grep` ist so eng wie die
+Sache (D620 Befund 3); eine Annahme über Sicherheit wird gegen Spec und Code geprüft.
+
+**Beschluss 3 — Sitzungsschluss.** `sitzungsstart-00cx.md` trägt Stand, Arbeitsweise, den Grundsatz
+aus D617 und den Rundruf als nächsten Schritt; `sitzungsstart-00cw.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cx.md`, `archiv/sitzungsstart-00cw.md`.

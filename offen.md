@@ -475,3 +475,9 @@ Claims sind signiert, nicht verschlüsselt. Heute schützt nur der Link von Reti
 Rundruf (D617 Beschluss 6) sendet einmal für alle; offen gesendet liest jeder mit einem Empfänger
 mit, ein Ziel vom Typ `GROUP` braucht einen geteilten Vereinsschlüssel, der beim Austritt wechselt.
 D26: Nachvollziehbarkeit ist nicht Öffentlichkeit. Entscheidet Oli vor dem echten Funk (D618).
+
+### O103 Rundruf auf knappem Funk
+
+Gemessen und nicht gebaut: spart Bytes, nicht Zeit (D622). Vertagt mit Bedingung: wird an den
+T-Beams die Sendezeit nach Duty Cycle knapp (D609), kommt er in der Form aus D622 zurück, mit
+Prüfung des Absenders und Wiederholung über den Link.

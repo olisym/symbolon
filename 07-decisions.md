@@ -27212,3 +27212,69 @@ Sache (D620 Befund 3); eine Annahme über Sicherheit wird gegen Spec und Code ge
 aus D617 und den Rundruf als nächsten Schritt; `sitzungsstart-00cw.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cx.md`, `archiv/sitzungsstart-00cw.md`.
+
+### D622 — Rundruf gemessen: spart Bytes, nicht Zeit; nicht gebaut, vertagt als O103
+
+**Anlass.** D617 Beschluss 6 (b), D620 Beschluss 1, D621 Beschluss 3. Vorher gesucht (D527) mit
+Rundruf, `PLAIN`, `GROUP` und Sendezeit: D609, D617, D618, D620, D621, O102. Gelesen: D584,
+`symbolon/bote/draht.py`, `kern.py`, `reticulum.py`, `tools/funk.py`, `submit_claim` in
+`symbolon/node/store.py`, in `rns 1.5.4` die Grössen in `Packet.py` und die Prüfung der Sprünge in
+`Transport.py`.
+
+**Befund 1 — die Grenze der Annahme.** `submit_claim` nimmt jeden strukturell gültigen Claim, auch
+von einem Schlüssel, der sich eben selbst erzeugt hat. Die Grenze ist heute `quellen`: der Bote holt
+nur bei konfigurierten Nachbarn. Ein Paket an ein Ziel vom Typ `PLAIN` trägt keinen Absender; wer es
+annimmt, öffnet den Speicher für jeden in Funkreichweite. Die Prototypen trugen darum Adresse und
+Signatur des sendenden Boten und nahmen nur an, was von einer Adresse aus `quellen` kam, nicht
+gesperrt war und dessen Signatur galt.
+
+**Befund 2 — die Grössen.** Die Claims im Wahlgang haben 295 bis 368 Byte, im Mittel 303; die
+Objekte 7 bis 12. In `rns 1.5.4` ist `PLAIN_MDU` 464 Byte und `ENCRYPTED_MDU` 383. Signiert über
+`PLAIN` passt jeder Claim, höchstens rund 455 Byte. Über `GROUP` passt mit Signatur des Boten kein
+Claim, ohne sie gerade noch (rund 373 Byte). `PLAIN` und `GROUP` gehen einen Sprung; `Transport.py`
+verwirft sie bei mehr als einem.
+
+**Befund 3 — gemessen.** Im Supervisor-Klon, `--wahlgang --funk`, sechs Geräte, 1200 bit/s, 5 %
+Verlust, bis zum ersten gleichen Stand nach Takt 0 (drei neue Claims, 15 Zustellungen):
+
+- `main` auf `473e220`: 455,3 s mit 174 Paketen und 31,5 kB; 482,6 s mit 162 Paketen und 30,0 kB.
+- (a) die Antwort auf `paket` als Rundruf, je Eintrag ein Paket, der Rest über den Link: 325,2 s mit
+  136 Paketen und 23,9 kB; im zweiten Lauf nach 600 s nicht gleich.
+- (b) wie (a), derselbe Eintrag höchstens einmal je 60 s als Rundruf: 357,5 s mit 127 Paketen und
+  20,9 kB.
+- (c) wie (b), wer innerhalb der Frist erneut fragt, bekommt den Eintrag über den Link: 470,7 s mit
+  155 Paketen und 28,6 kB.
+
+Ein Lauf je Fassung bei (b) und (c), zwei bei `main` und (a).
+
+**Befund 4 — warum es nicht schneller wird.** Geht ein Rundruf verloren, bleibt der Fragende ohne
+den Eintrag, sein Stand bleibt gleich, und die Pause zu diesem Nachbarn verdoppelt sich bis 300 s
+(D611 Beschluss 1); über den Link hätte RNS die Anfrage wiederholt. Das ist der Stillstand in (a).
+Ohne Frist ging jeder Claim rund dreimal über den Kanal (43 Annahmen für 15 Zustellungen), weil
+mehrere Nachbarn denselben Halter fragen, bevor sein erster Rundruf sie erreicht. In (b) und (c)
+zeigt ein Wächter über `/stand` Plateaus bis 150 s, in denen ein Gerät voraus ist und der Kanal fast
+ruht. Die Zeit bis zum gleichen Stand hängt dort an Ankündigung und Pausen, nicht an der Sendezeit;
+`main` nutzt den Kanal zu weniger als der Hälfte. Ob `main` dieselben Plateaus hat, ist nicht
+gemessen.
+
+**Beschluss 1 — nicht gebaut.** Das Kriterium vor der Messung war ein klarer Abstand zu `main` über
+zwei Läufe. Keine Fassung erfüllt es, (a) blieb einmal stehen, und (c), die Reparatur des
+Stillstands, liegt bei `main`. Zwei Anläufe am selben Symptom: kein dritter. Die Prototypen sind
+verworfen; die Form steht in Befund 1 und 3.
+
+**Beschluss 2 — O103, vertagt mit Bedingung.** Der Rundruf spart Bytes, in (a) und (b) ein Viertel
+bis ein Drittel. Auf 868 MHz begrenzt der Duty Cycle die Sendezeit, dort können Bytes knapper sein
+als Zeit. Wird die Sendezeit an den T-Beams knapp (`airtime_limit_short`, `airtime_limit_long`,
+D609), kommt der Rundruf in Form (c) zurück, mit der Absenderprüfung aus Befund 1. Gemessen wird
+dann die Sendezeit je Abgleich, nicht nur die Zeit bis zum gleichen Stand.
+
+**Beschluss 3 — D584 Beschluss 2 bleibt unverändert.** Der Bote holt, Inhalt geht über Links. Damit
+fällt die Prämisse von O102 weg, soweit sie den Rundruf nennt; offen bleibt, was über Funk offen
+geht (Ankündigungen mit Stand und Zahl, die Metadaten der Links). Befund 2 gehört in Olis
+Entscheidung, falls O103 zurückkommt.
+
+**Beschluss 4 — was folgt.** Wie D606 Beschluss 3 verabredet: die T-Beams, vorher Olis Entscheidung
+zu O102. Die Plateaus aus Befund 4 misst der Supervisor an `main` mit demselben Wächter, bevor sie
+ein Posten werden.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

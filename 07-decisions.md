@@ -27387,3 +27387,63 @@ mit einer Zeile je Anfrage messen, woran Anfragen über den Link scheitern, dann
 Entscheidung zu O102.
 
 **Geändert.** `07-decisions.md`.
+
+### D625 — O104: kein Warten auf geschlossene Links, Zustellfrist gedeckelt; Auftrag `p49-fristen`
+
+**Anlass.** D623 Beschluss 5, D624 Beschluss 1. Vorher gesucht (D527) mit Zustellfrist,
+Antwortfrist, Laufzeit und Link: D586, D587, D591, D611 Beschluss 2, D623. Gelesen: `RnsNachbar` in
+`symbolon/bote/reticulum.py`, die Fristtests in `tests/bote/test_reticulum.py`.
+
+**Befund 1 — gemessen auf `1a84ab3`.** Zwei Läufe `--wahlgang --funk`, sechs Geräte, 1200 bit/s, mit
+einer Zeile je Anfrage (Grund, Dauer, Zahl der Sendungen, Laufzeit, Zustellfrist) und dem Wächter.
+s1: gleicher Stand nach 518,3 s, 49 Anfragen gelungen, 9 gescheitert. s2: Takt 0 nach 600 s nicht
+gleich; Bruno2 stand von 271 s bis über 600 s bei 19 Claims. `main` bleibt also auch nach `p48`
+stehen.
+
+**Befund 2 — Warten auf einen toten Link.** Fünf der neun Fehlschläge in s1: RNS gibt den Aufbau
+nach 15 s auf und setzt den Link auf `CLOSED`; `_verbinden` wartet trotzdem die eigene Frist von 60
+s ab.
+
+**Befund 3 — die Zustellfrist liegt hinter der Antwortfrist.** Die Laufzeit der Links über den Kanal
+lag in s2 bei 2,7 bis 13,4 s, die Zustellfrist nach D591 Beschluss 1 beim Zwanzigfachen, also 54 bis
+268 s. Liegt sie über der Antwortfrist von 120 s, geht eine verlorene Anfrage nie erneut: drei Fälle
+in s1, zwei in s2. D591 hat lokal gemessen, mit Laufzeiten unter 20 Millisekunden und 15 s
+Antwortfrist; über Funk kehrt sich das Verhältnis um.
+
+**Befund 4 — jede Wiederholung startet die Antwortfrist neu.** So hält eine Anfrage die Schleife bis
+zum Dreifachen fest: 336 s in s1, 231 s in s2 (Bruno2, danach 112 s für einen gelungenen Abgleich
+mit drei Sendungen). D591 Beschluss 1 sah das so vor.
+
+**Befund 5 — ungeklärt.** Alle drei Fehlschläge in s2 gingen an denselben Nachbarn, der kurz zuvor
+anderen geantwortet hatte. Die Ursache ist nicht gesucht.
+
+**Befund 6 — der Prototyp über Funk.** Lauf u1 auf der Fassung des Auftrags: gleicher Stand nach
+440,3 s mit 211 Paketen und 37,1 kB, kein Stillstand. Doras Gerät lag aber rund 190 s länger zurück
+als die übrigen; ohne Diagnosezeilen ist der Grund offen. Ein Lauf ist kein Befund über die
+Häufigkeit eines Stillstands (D390).
+
+**Beschluss 1 — ein geschlossener Link ist getrennt.** `_verbinden` gibt auf, sobald der Link
+`CLOSED` ist, nicht erst nach `zeit.link`. Die Frist aus D611 Beschluss 2 bleibt die Obergrenze.
+
+**Beschluss 2 — die Zustellfrist ist gedeckelt.** `_zustellfrist(link, antwort)` ist
+`min(max(_ZUSTELL_MIN, _ZUSTELL_FAKTOR * rtt), antwort / _VERSUCHE)`; bei 1200 bit/s 40 s, lokal
+unverändert. So geht jede der `_VERSUCHE` Anfragen innerhalb der Antwortfrist hinaus. Ändert D591
+Beschluss 1.
+
+**Beschluss 3 — ein erneutes Senden ist kein Fortschritt.** Die Antwortfrist läuft ab der ersten
+Anfrage; nur Fortschritt der Quittung startet sie neu. Eine gescheiterte Anfrage kostet damit
+höchstens die Antwortfrist und den Aufbau des Links. Ändert D591 Beschluss 1 („danach gilt die Frist
+aus D586 Beschluss 2 wie bisher“).
+
+**Beschluss 4 — O104 bleibt offen.** Befund 5 und der Rückstand in Befund 6 sind nicht erklärt. Der
+Massstab für diesen Auftrag ist wie in D623 die Lebendigkeit, nicht die Zeit.
+
+**Beschluss 5 — der Auftrag `p49-fristen`.** Branch `p49-fristen` von dem Commit, der diesen Eintrag
+trägt. `reticulum.py` nach Beschluss 1 bis 3. Die Tests stehen wörtlich im Auftrag:
+`test_zustellfrist_gedeckelt` und `test_geschlossener_link_sofort_getrennt` neu,
+`test_versuche_begrenzt` nach Beschluss 3 geändert (getrennt nach rund 0,3 s statt nach mindestens
+0,7 s). Rücknahmeproben vorher gegen diese Fassung gefahren, jede rot an ihrem Test: ohne die
+Prüfung auf `CLOSED`; ohne Deckel; Deckel nur bei der Antwortfrist; erneutes Senden startet die
+Frist neu.
+
+**Geändert.** `07-decisions.md`.

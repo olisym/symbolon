@@ -28345,3 +28345,47 @@ erlaubt; keine Mindestzahl; fremdes Feld erlaubt; ein Wert, der kein Text ist; l
 Pflichtfeld; ein Objekt des Probelaufs im Bestand des Knotens; Genesis vor der Satzung.
 
 **Geändert.** `07-decisions.md`.
+
+### D642 — Abnahme `p52-gruenden`: der Weg der Gründung im Knoten
+
+**Anlass.** Commit `1b4eb2c` auf `p52-gruenden`, Basis `8065ff0` (D641). Gelesen ist der Diff aus
+dem Spiegel, nicht der Bericht.
+
+**Befund 1 — der Diff.** Drei Dateien, 498 Zeilen: `symbolon/node/gruendung.py` neu, 23 Zeilen
+in `api.py`, `tests/node/test_gruendung.py` gleich dem Diff des Auftrags, Byte für Byte. Im
+Supervisor-Klon auf dem Branch: die neue Testdatei und `tests/node/test_api.py` grün (54 Tests),
+Lint und die vier Markdown-Ziele mit Status 0. Den vollen Lauf mit 1582 Tests meldet das
+Werkzeug; im Klon lief er auf dem Prototyp, nicht auf dem Branch. Der Vektor aus D641 Befund 3
+kommt aus dem Bau des Werkzeugs gleich heraus.
+
+**Befund 2 — der Probelauf ist anders gebaut als im Prototyp, innerhalb des Auftrags.** Er
+rechnet die Kennung der ersten Fassung selbst, statt sie aus der Sicht zu lesen, und liest die
+Satzung aus dem ersten Paar von `objekte`; darum wird die Probe „Genesis vor der Satzung“ bei ihm
+mit `UNSOUND_TEMPLATE` rot. Er prüft `findings` der Sicht und der Auszählungen, nicht
+`epoch_findings` des Zustands und nicht die Vermerke je Mitglied. „Ohne Vermerk“ in D641
+Beschluss 5 lässt das zu. Eine Vorlage, die nur dort auffiele, kenne ich nicht.
+
+**Befund 3 — eigene Probe gegen die Form des Werkzeugs.** Ohne die Prüfung auf `PENDING` werden
+vier der fünf Fälle von `test_probelauf_weist_eine_vorlage_ab_die_nicht_handeln_kann` rot und
+`test_route_weist_ab_und_schreibt_nichts`; den fünften (`trust_params`) fängt schon die Sicht des
+Vereinslebens.
+
+**Befund 4 — Ausnahmen ausserhalb der genannten Stellen.** Der Auftrag nannte das Einliefern und
+`scope_view`. Eine Ausnahme danach im Probelauf oder davor in `gruenden`, wie sie nur eine
+formwidrige Vorlage auslöst, kommt als Status 500 an, nicht als `UNSOUND_TEMPLATE`. Eine Vorlage
+steht im Code; das bleibt so. Der Kandidat aus D637 ist damit zum zweiten Mal belegt, diesmal an
+meinem Auftrag.
+
+**Befund 5 — ein Gründer muss kein gültiger Schlüssel sein.** `gruenden` prüft 32 Byte, nicht,
+ob es ein Punkt der Kurve ist. Gemessen: `h'ff'` und `h'fe'` je 32-mal als Gründer werden
+angenommen, auch neben dem Hilfsschlüssel des Probelaufs. Ein solcher Gründer kann nie
+bestätigen. Ohne Auftrag; mit dem Scan in Schritt 3 kommt der Schlüssel von einem Gerät.
+
+**Beschluss 1 — `p52-gruenden` ist angenommen.** Merge nach `main` als Vorspulen.
+
+**Beschluss 2 — der nächste Schritt.** Schritt 2 aus D641 Beschluss 1: die Bildschirme auf einem
+Knoten. Er öffnet zwei Fragen, die vor dem Auftrag stehen: die Feldtypen (D641 Beschluss 6) und
+wie drei Menschen an einem Knoten je ihren Schlüssel halten (D640 Befund 9). Prototyp der Seite
+im Klon gegen den echten Knoten, dann Olis Durchlauf (D490).
+
+**Geändert.** `07-decisions.md`.

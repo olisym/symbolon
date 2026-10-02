@@ -1,4 +1,4 @@
-# Sitzungsstart: 00db (MaR / symbolon), fortgeschrieben nach D643
+# Sitzungsstart: 00db (MaR / symbolon), fortgeschrieben nach D644
 
 **Mensch als Republik (MaR)**, ein dezentrales Koordinationsprotokoll. Python-Referenz-
 implementierung, Repositorium **`symbolon`**, Gitea (`git.h.error13.de/oli/symbolon`,
@@ -48,7 +48,7 @@ Seit D466 ist der Maßstab eine Anwendung, die man bedienen und sehen kann (`ROA
 ## Stand
 
 Am Ende von `00da`: **1582 Tests**, darin der Selbsttest der Seite mit **241 Fällen**, Register
-**D1–D643**, Prüfregeln **1–83**, `make check` grün, `main` beim Commit, der diesen Sitzungsstart
+**D1–D644**, Prüfregeln **1–83**, `make check` grün, `main` beim Commit, der diesen Sitzungsstart
 trägt. **35 Wurzel-Markdown-Dateien, alle gebunden**; `archiv/` steht bei 164 mit
 `sitzungsstart-00da.md`. `offen.md` führt **104 Posten**, davon **17 offen**: die 13 Wartestände,
 O97, O100, O101 und O104.
@@ -71,6 +71,8 @@ nach Trickle (D612 Befund 2).
   Probelauf und der Route `POST /gruenden`; 28 Tests, zehn Proben, im ersten Durchgang angenommen.
   Zu dritt braucht ein Satzungsfeld alle drei Stimmen (D641 Befund 2).
 - **D643 — Schluss.** Playwright läuft im Klon; die Seite ist zum ersten Mal gerendert gesehen.
+- **D644 — Nachtrag.** Oli: die Standardfelder des Vereins bekommen ihren Typ sofort; sein
+  Durchlauf läuft in Chrome oder Brave. Der Selbsttest besteht in Chromium mit 241 von 241.
 
 ## Arbeitsweise, bestätigt
 
@@ -128,20 +130,27 @@ nach Trickle (D612 Befund 2).
 
 ## Der nächste Schritt
 
-**Schritt 2 der Gründung: die Bildschirme auf einem Knoten (D641 Beschluss 1, D643 Beschluss 3
-und 4).** Heute zeigt der leere Knoten nach dem Schlüssel „Kein Verein.“ und die Geschichte der
-Demonstration.
+**Schritt 2 der Gründung, zuerst die Felder mit Typ (D644 Beschluss 1 und 2), dann die
+Bildschirme auf einem Knoten (D641 Beschluss 1, D643 Beschluss 3 und 4).** Heute zeigt der leere
+Knoten nach dem Schlüssel „Kein Verein.“ und die Geschichte der Demonstration.
 
-- Zuerst ganz lesen: `symbolon/node/static/app.js`, `anzeige.js`, `geraet.js`, `selbsttest.js`,
-  `style.css`; `tests/node/test_selbsttest.py` und `test_stil.py`; D494 und D556 zu den Wortregeln
-  der Seite; das Bild (acht Bildschirme) und D643 Beschluss 3.
-- Dann der Prototyp im Klon gegen den echten Knoten: gründen aus der Vorlage mit Mitgründern aus
-  dem Adressbuch, `/gruenden` und die eigene `accept-rules` in einem Zug, Brunos Bildschirm ohne
+- **Zuerst die Felder.** Lesen: `04-governance.md` zu Sachanträgen und Stand, D496, D564 bis
+  D581, `symbolon/node/gruendung.py`. Nachschlagen, wie andere solche Felder typisieren (Kandidat
+  CDDL). Dann Oli die Position aus D644 Beschluss 2 vorlegen: `name`, `sitz`, `zweck` als Text,
+  `beitrag` als Betrag mit Fälligkeit, die beiden Schwellen als Auswahl; Vorstand und Versammlung
+  ohne Feld. Eine Entscheidung nennt, was ein Mensch davon sieht, was sie kostet und wie fest sie
+  ist. Danach Register, Prototyp und ein Auftrag am Knoten: die Vorlage nennt Typen, `gruenden`
+  prüft sie.
+- **Dann die Seite.** Ganz lesen: `symbolon/node/static/app.js`, `anzeige.js`, `geraet.js`,
+  `selbsttest.js`, `style.css`; `tests/node/test_selbsttest.py` und `test_stil.py`; D494 und D556
+  zu den Wortregeln der Seite; das Bild (acht Bildschirme) und D643 Beschluss 3.
+- Der Prototyp im Klon gegen den echten Knoten: gründen aus der Vorlage mit Mitgründern aus dem
+  Adressbuch, `/gruenden` und die eigene `accept-rules` in einem Zug, Brunos Bildschirm ohne
   Einladenden, „In Gründung“ und „Der Verein besteht“, die Geschichte nur mit simulierten
-  Personen. Felder als Text.
-- Mit drei Contexts in Playwright durchklicken und die Bildschirmfotos lesen, bevor der Auftrag
-  hinausgeht. Der Auftrag nennt die neue Zahl `_FAELLE`.
-- Danach Olis Durchlauf in drei Containern oder Profilen (D490, D643 Beschluss 2).
+  Personen.
+- Mit drei Contexts in Playwright durchklicken, in Chromium und in Firefox, und die
+  Bildschirmfotos lesen, bevor der Auftrag hinausgeht. Der Auftrag nennt die neue Zahl `_FAELLE`.
+- Danach Olis Durchlauf in drei Profilen von Chrome oder Brave (D490, D644 Beschluss 3).
 
 Vorher gegen `offen.md` und das Register-Ende prüfen (D409).
 
@@ -222,8 +231,10 @@ dazu `beitrag`); danach je Gründer `accept-rules`. Die Seite kann es noch nicht
 - **Playwright im Supervisor-Klon:** `pip install --break-system-packages playwright`, dann
   `python3 -m playwright install firefox`. Je Person `browser.new_context(viewport=…)`; der Knoten
   startet davor in einem eigenen Aufruf. `page.on("pageerror", …)` sammelt Fehler der Seite.
-- **Für Olis Durchlauf mit mehreren Personen:** Firefox Multi-Account Containers, ein Container
-  je Person; mit unserer Seite noch nicht ausprobiert (D643).
+- **Für Olis Durchlauf mit mehreren Personen:** drei Profile in Chrome oder Brave, je Profil ein
+  eigener Speicher und damit ein eigener Schlüssel (D644 Beschluss 3). Firefox nutzt Oli nicht.
+- **Chromium für Playwright:** `python3 -m playwright install chromium`; der Selbsttest liegt
+  unter `/app/selbsttest.html` und schreibt „241 von 241 bestanden“ nach `#ausgabe`.
 - **Ein Prototyp mit neuen Dateien** braucht `git add` vor `check-tree`, sonst ist das Ziel rot.
 - **Der Auftrag liegt ausserhalb des Repositoriums** in `~/auftraege`, die Tests als Diff
   daneben; der Block legt beide ab und schiebt Älteres nach `erledigt/`.
@@ -638,8 +649,8 @@ jede Aufnahme (D538 Befund 1).
 **Aus `00cn`:** Der Antrag im Takt 2 prüft die Spitzen nicht (D522).
 
 **Kleine Befunde an der Seite:** der Stiltest sieht geerbte Farben nicht (D512); ob eine Bürgschaft
-Vertrauen weitergibt, als Folgezeile (D495); der Zugang vom Telefon (D481 Befund 3); Chrome
-ungeprüft (D484).
+Vertrauen weitergibt, als Folgezeile (D495); der Zugang vom Telefon (D481 Befund 3); Chromium
+ohne Oberfläche geprüft, Chrome und Brave selbst nicht (D484, D644 Befund 1).
 
 **Aus dem Netz:** ein zweites Strg-C beim Beenden von `tools.netz` druckt einen Traceback (D519).
 Die Uhr jedes Knotens beginnt bei jedem Start bei 1000 (D518, L9). Fremde Bytes zur angefragten

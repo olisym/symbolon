@@ -28441,3 +28441,43 @@ Knoten bauen, mit drei Contexts durchklicken, dann Auftrag und Olis Durchlauf.
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00db.md` neu, `sitzungsstart-00da.md` nach
 `archiv/`.
+
+### D644 — Nachtrag zum Schluss von `00da`: Felder mit Typ sofort; Chrome und Brave statt Firefox
+
+**Anlass.** Olis Antwort auf D643, nach dem Push von `9ecfda2`. Der Sitzungsstart `00db` trug
+zwei Sätze, die damit nicht mehr stimmen; er wird mit diesem Eintrag ersetzt.
+
+**Befund 1 — die Seite in Chromium.** Mit Playwright, Chromium 141.0.7390.37, gegen einen
+frischen Knoten: zwei Contexts legten je einen Schlüssel an, nach dem Neuladen stand der Name
+wieder da, kein Fehler der Seite. Der Selbsttest unter `/app/selbsttest.html` meldet „241 von 241
+bestanden“, in Chromium wie in Firefox 142.0.1. Das schliesst die offene Prüfung aus D484 für
+Chromium ohne Oberfläche; Chrome und Brave selbst, Brave mit seinen Schutzschilden, sind damit
+nicht gefahren.
+
+**Befund 2 — der Spiegel und gelöschte Branches.** Oli sieht gelöschte Branches auf GitHub
+stehen bleiben. `git ls-remote --heads` gegen den Spiegel zeigte nach seinem Push nur `main`;
+`p52-gruenden` war fort. Der Spiegel löscht also, mit Verzögerung oder beim nächsten Push; mehr
+ist nicht untersucht. Es bleibt bei der Regel: ob ein Branch auf Gitea existiert, entscheidet
+nicht der Spiegel.
+
+**Beschluss 1 — die Standardfelder des Vereins bekommen ihren Typ sofort (Oli).** Nicht erst
+Text und später Typen: die Vorlage `verein` legt fest, was jeder Verein haben muss, mit Typ. Das
+ändert D643 Beschluss 3 in seinem ersten Satz und entscheidet D641 Beschluss 6 in der Richtung,
+nicht im Einzelnen. Die Folge: vor den Bildschirmen steht ein Auftrag am Knoten, denn die Vorlage
+aus D641 Beschluss 2 nennt dann Typen, und `gruenden` prüft sie; sonst kehrt D496 über die
+Schnittstelle zurück.
+
+**Beschluss 2 — der Umfang; Position, von Oli noch nicht gesehen.** Festgelegt wird nur, was
+eine gesetzliche Pflicht oder ein Gegenstück in MaR hat: `name`, `sitz`, `zweck` als Text;
+`beitrag` als Betrag mit Fälligkeit; die Schwellen für Aufnahme und Satzungsänderung als Auswahl.
+Vorstand und Versammlung bekommen kein Feld, solange nichts in MaR von ihnen abhängt (nicht auf
+Vorrat, D639 Beschluss 3; der nächste Anlass ist O89). Der Typ steht in der Vorlage, die Satzung
+hält je Feld genau einen Text, und sie nennt ihre Vorlage, damit die Seite spätere Anträge
+gleich typisiert. Vor dem Normtext: `04` zu Sachanträgen und Stand lesen, D496 und D564 bis D581,
+und nachschlagen, wie andere solche Felder typisieren (Kandidat CDDL).
+
+**Beschluss 3 — Chrome und Brave, kein Firefox (Oli).** Olis Durchlauf läuft in drei Profilen
+von Chrome oder Brave; die Container aus D643 Beschluss 2 entfallen. Der Supervisor fährt die
+Seite vorher in Chromium und in Firefox.
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00db.md` ersetzt.

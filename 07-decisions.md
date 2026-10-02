@@ -28027,3 +28027,38 @@ die Bindung in `symbolon/bote/reticulum.py`, die Tests als Diff. Vor der Abnahme
 Supervisor den Lauf aus Befund 3 auf dem Branch.
 
 **Geändert.** `07-decisions.md`.
+
+### D637 — Abnahme `p51-rundruf`, erster Durchgang: `Getrennt` beim Senden beendet den Boten
+
+**Anlass.** Commit `7cbada9` auf `p51-rundruf`, Basis `5c70650`. Gelesen: der Diff aus dem Spiegel
+gegen `main`. Die beiden Testdateien sind gleich dem Diff des Auftrags.
+
+**Befund 1 — `Getrennt` in `senden` ist nicht gefangen.** `Rundruf.senden` liest die neuen Einträge
+über `mein.claim` und `mein.objekt`; beide werfen `Getrennt`. In `laufen` steht der Aufruf
+ausserhalb jedes Fangs. Wird der Knoten getrennt oder beendet, nachdem der Bestand gelesen ist,
+endet der Bote mit der Ausnahme. Das Fenster ist ein Takt, die Folge ein stummes Gerät. Gezeigt mit
+einem Test, der den Knoten zwischen Bestand und `senden` trennt: rot auf `7cbada9`. Der Prototyp
+des Supervisors fing an dieser Stelle; der Auftrag sagte nur, bei `Getrennt` bleibe der Anlass
+stehen, und nannte nicht, dass `senden` selbst werfen kann.
+
+**Befund 2 — sonst wie beauftragt.** Form, Annahme, Grenze, Halten und Anlass folgen D636. Die
+Grenze führt Listen statt einer Schlange, `quellen` ist die Liste der Nachbarn; beides erlaubt der
+Auftrag. In `laufen` heisst die Laufvariable der Nachbarn jetzt `nachbar`, weil `ziel` das Ziel des
+Rundrufs trägt. Der Docstring von `empfangen` ist mit 106 Zeichen zu lang.
+
+**Befund 3 — der Lauf über Funk auf dem Branch** (D636 Beschluss 9). Bis zum fünften gleichen Stand
+nach 408 s: 32,5 kB in 153 Paketen, Sendezeit des aktivsten Geräts 73,2 s, 14 Rundrufe mit 5,8 kB,
+33 Zustellungen darüber, 10 Holen, kein Stillstand, kein Traceback. Der erste Rundruf aus Takt 0
+kam 35 s nach dem Takt an: der Hörer ruft das Nachholen (D636 Beschluss 7).
+
+**Beschluss 1 — nicht angenommen; Nachtrag `p51b` auf demselben Branch** (D544).
+
+**Beschluss 2 — die Regel.** `senden` fängt `Getrennt` beim Lesen der neuen Einträge und gibt die
+leere Liste. Der Eintrag geht dann nicht als Rundruf; ihn bringt das Holen. Verworfen: den
+gemerkten Bestand zurücksetzen und im nächsten Takt neu senden; das wäre mehr Zustand für ein
+Fenster von einem Takt.
+
+**Beschluss 3 — Prüfregel-Kandidat.** Sagt ein Auftrag, was bei einer Ausnahme geschieht, nennt er
+jede Stelle, an der sie auftreten kann (Schwester von D586).
+
+**Geändert.** `07-decisions.md`.

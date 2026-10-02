@@ -27814,3 +27814,40 @@ Beschluss 3 (c), eine kürzere Zustellfrist für frische Links; er wartet weiter
 ohne erzwungenen Verlust.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D633 — IFAC am Kanal des Labs gemessen: trägt, kostet 8 Byte je Paket; kein Schalter im Lab
+
+**Anlass.** D629 Beschluss 4, Messung (3). Drei Läufe `--wahlgang --funk` auf `3801aa0` im Klon des
+Supervisors, 1200 bit/s, 5 % Verlust: mit IFAC 480 s, ohne IFAC 480 s, und eine Gegenprobe über
+200 s mit einer falschen Passphrase auf Annas Gerät. IFAC über drei Zeilen je Interface in der
+Konfiguration, die `funk_konfiguration` schreibt: `network_name`, `passphrase`, `ifac_size = 64`
+(das sind 8 Byte wie am RNode, D629 Befund 1). Der Kanal schrieb je Paket die ersten 40 Byte mit.
+
+**Befund 1 — der Bote läuft unverändert.** Mit IFAC: 256 Pakete, 51,9 kB, gleicher Stand nach
+Takt 0 nach 275,9 s, nach Takt 2 nach 164,8 s. Ohne: 263 Pakete, 48,2 kB, gleicher Stand nach
+Takt 0 nach 341,7 s. Ein Lauf je Fassung; beide leben, die Zeiten vergleicht das nicht (D623
+Beschluss 4).
+
+**Befund 2 — die Kosten.** Jedes Paket ist 8 Byte länger (eine Ankündigung 203 oder 211 statt 195
+oder 203 Byte, eine Linkanfrage 94 statt 86). Bei 256 Paketen sind das rund 2 kB, 4 % der Bytes.
+
+**Befund 3 — was ein Mithörer sieht.** Ohne IFAC steht in 45 von 263 Paketen die Adresse eines
+Boten im Klartext an ihrer Stelle im Kopf. Mit IFAC trägt jedes Paket das oberste Bit, und in
+keinem steht eine der sechs Adressen, an keiner Stelle der ersten 40 Byte.
+
+**Befund 4 — die Gegenprobe.** Annas Gerät mit anderer Passphrase, die fünf übrigen mit der
+richtigen: acht Abgleiche unter den fünf, keiner von Anna und keiner zu Anna. Das bestätigt D629
+Befund 1 und Befund 4 am laufenden Lab: ohne Schlüssel taub und stumm.
+
+**Befund 5 — die Zählung des Kanals.** `Kanal.senden` erkennt eine Ankündigung am ersten Byte. Mit
+IFAC ist es maskiert; der Bericht nannte 69 Ankündigungen, wo rund 21 gesendet wurden. Pakete,
+Bytes und Verluste zählt er weiter richtig.
+
+**Beschluss 1 — IFAC trägt im Lab.** Damit ist D629 Beschluss 4 ganz gemessen (D630, D633). Für
+den Funk gilt D629 Beschluss 1 mit den drei Zeilen aus dem Anlass und einer zufälligen Passphrase.
+
+**Beschluss 2 — kein Schalter in `tools/netz`.** Das Lab misst den Boten, und der merkt von IFAC
+nichts (Befund 1). Die drei Zeilen gehören in die Anleitung zu den T-Beams, wenn die Hardware da
+ist (O97, Schritt 5). Befund 5 bleibt ohne Auftrag, solange das Lab ohne IFAC läuft.
+
+**Geändert.** `07-decisions.md`.

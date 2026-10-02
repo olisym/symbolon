@@ -28133,3 +28133,129 @@ Einheit der Kosten vor der Wahl des Wegs, und die Gründung als nächsten Schrit
 `sitzungsstart-00cz.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00da.md`, `archiv/sitzungsstart-00cz.md`.
+
+### D640 — Bestandsaufnahme zur Gründung: wo sie trägt, wo sie abbricht; drei gründen am Tisch
+
+**Anlass.** D639 Beschluss 2 und O101: eine Gründung über die Schnittstelle fahren, so weit sie
+heute geht, ohne Bau. Gefahren im Supervisor-Klon auf `d992475`: ein frischer Knoten ohne
+`tools/verein_node.py`, drei Schlüssel, die selbst unterschreiben (`/intent`, dann `/submit`),
+Satzung und Genesis als kanonisches CBOR an `POST /objects`. Danach Olis Wahl und eine Runde
+Nachschlagen auf seinen Wunsch.
+
+**Befund 1 — was trägt.** Liegen Satzung und Genesis im Bestand, geht alles Weitere über die
+Absichten, die die Seite kennt: jede der drei Personen bekommt die Aufgabe `CONFIRM_RULES` und ist
+nach `accept-rules` `MEMBER`; Bürgschaft im zweiten Scope, Antrag auf Aufnahme, zwei Ja,
+Feststellung, Bestätigung der Aufgenommenen und ein Sachantrag liefen ohne Abweisung. Die Gründung
+braucht kein neues Protokoll.
+
+**Befund 2 — der Wurzelschlüssel trägt im Alltag nichts.** In einem Verein mit einem einzigen
+Schlüssel in `root_keys` stellte ein Mitglied fest, das nicht darin steht, und die Fassung
+wechselte. Ein verlorener Schlüssel kostet damit einen Sitz, den eine Abstimmung ersetzt
+(ausschliessen, neu aufnehmen). Unersetzlich sind Anker und Schiedsleute eines Scopes ohne
+Mitgliederliste (`00 §4.2`).
+
+**Befund 3 — der leere Knoten ist eine Sackgasse.** Aus `app.js` gelesen, nicht im Browser
+gesehen: die Seite bietet „Schlüssel anlegen“, danach steht in jedem Abschnitt „Kein Verein.“.
+Einen Weg zum Gründen gibt es nicht; Satzung und Genesis entstehen nur von Hand.
+
+**Befund 4 — ein totgeborener Verein wird angenommen.** In einer Variante nannte die Satzung
+`ratify@1` nicht unter `irrevocable_predicates`. Knoten und Mitgliedschaft nahmen sie an, jeder
+Antrag blieb `UNEVALUABLE` mit `RATIFY_REVOCABLE`, und ändern kann die Satzung nur ein Antrag.
+Nichts warnte. Der Fehler war ein Versehen von mir beim Schreiben der Variante, also genau der,
+den ein Mensch macht.
+
+**Befund 5 — Genesis vor der Satzung.** Der Scope hat dann keine Sicht als Verein und keine
+Aufgabe, aber `accept-rules` lässt sich auf den Hash ohne Text unterschreiben, mit leerer Folge.
+
+**Befund 6 — Entscheidungen für immer, die kein Mensch beurteilen kann.** `root_keys`,
+`anchor_set`, `amendment_rule`, `weight_mode`, `vote_mode` und `trust_params` stehen im Genesis
+(`00 §4`); der zweite Scope hat unveränderliche Schiedsleute (`00 §4.2`). Dazu weist die Absicht
+`propose` mit `set` die Regelfelder als `RESERVED_FIELD` ab: Schwellen und Schiedsleute ändert
+heute nur, wer ein Objekt von Hand baut.
+
+**Befund 7 — Felder sind Freitext.** `set` und der Sachantrag nehmen nur Text. Olis Feldtypen
+(ein Betrag in Cent, eine Auswahl) stehen in keiner Norm und bisher in keinem Registereintrag;
+sie stammen aus der Aussprache in `00cv`, Anlass war D496. Mengen als Sachfelder sind seit D565
+Beschluss 4 offen.
+
+**Befund 8 — die Seite kennt genau einen Verein.** `findeScope` nimmt den ersten Scope mit einer
+Sicht als Verein, `/scopes` ordnet nach Hash, und `/peer/objects` nimmt jedes Genesis an. Ein
+zweiter Verein im Bestand bleibt unsichtbar oder verdrängt den ersten; ein Nachbar kann das
+auslösen. Aus dem Code gelesen, nicht vorgeführt. Ein Defekt unabhängig von der Gründung, ohne
+Auftrag.
+
+**Befund 9 — Personen und Schlüssel.** Ein Browser hält einen Schlüssel, nicht exportierbar;
+simulierte Personen legt nur das Werkzeug an, die Schnittstelle hat dafür keine Route. Namen sind
+lokal je Knoten und reisen nicht. Wie ein Schlüssel von einem Menschen zum anderen kommt, fehlt
+ganz: für Mitgründer vor dem Genesis wie für die Aufnahme danach (D583, L10).
+
+**Befund 10 — die Schwelle ist strikt.** `reached` verlangt `|Ja| * den > num * n` (`04 §3.2`).
+Gefahren: drei Mitglieder brauchen zwei Ja, vier brauchen drei. Hergeleitet, nicht gefahren: zwei
+Mitglieder brauchen beide; ein Nein blockiert alles, und ein verlorener Schlüssel lässt sich nicht
+mehr abwählen.
+
+**Befund 11 — die kleinsten Einheiten.** Olis Frage nach der kleinsten Gruppe, vom Namen
+Symbolon her. Vier Stufen, jede schon vorhanden: (1) einer, ein Schlüssel mit seiner Kette;
+(2) zwei am Tisch, die ihre Schlüssel tauschen, das ist der Bruch der Münze, und das Protokoll
+hält davon nichts fest; (3) zwei mit einer gemeinsamen Sache, ein Scope ohne Mitgliederliste mit
+Bürgschaft, Schuld und Quittung, ohne Abstimmung und unveränderlich (`00 §4.2`); (4) drei und
+mehr, der Verein. Der Beispielverein enthält Stufe 3: sein Vereinsleben hat zwei Wurzeln, Anna
+und Bruno (`example-nucleus.md`). Gefahren ist von Stufe 3 allein nur das Genesis und eine
+Bürgschaft; Schuld und Quittung ohne Verein daneben und die Seite dazu sind ungeprüft, ebenso ob
+ein Scope ohne eingetragene Schiedsleute zulässig ist.
+
+**Nachgeschlagen.** Gelesen sind Suchergebnisse und Auszüge, keine Quelle ganz; vor einem
+Normtext wird die jeweilige Quelle zu Ende gelesen.
+
+- *Schlüssel am Tisch:* Briar, Bramble QR Code Protocol: beide scannen einen Code, der sich auf
+  einen kurzlebigen Schlüssel festlegt; ein Gerät verbindet sich nur mit seinen Kontakten.
+- *Einladung aus der Ferne:* Keybase, Seitan-Token, übernommen von `@localfirst/auth`: ein
+  einmaliges Geheimnis über einen vertrauten Seitenkanal, der Eingeladene beweist seine Kenntnis.
+- *Der handlungsunfähige Verband:* Aragon OSx warnt vor Einstellungen, die nie erfüllbar sind;
+  die Gründung über App und SDK prüft, das Protokoll selbst nicht.
+- *Vorab festgelegter Ersatzschlüssel:* KERI, Pre-Rotation: der Hash des nächsten Schlüssels
+  steht in der Kette, bevor er gebraucht wird.
+- *Verteilte Verwahrung:* Dark Crystal, Teile nach Shamir bei Vertrauten; ANARKey (IACR ePrint
+  2025/551), Verwahrung unter Mitgliedern, die schon Schlüssel halten, nur die Zusammenfassung.
+- *Felder der Vorlage:* BGB Paragraf 57 verlangt Name, Sitz und Zweck, Paragraf 58 Regeln zu
+  Mitgliedern, Beiträgen, Vorstand und Versammlung; sieben Gründer nur für die Eintragung
+  (Paragraf 56). Die Höhe des Beitrags gehört nach üblichem Rat nicht in die Satzung.
+- *State Channels (Chia Gaming):* signierte Stände ausserhalb der Chain, die Chain entscheidet im
+  Streit. Dazu Commit-Reveal für gemeinsamen Zufall.
+- *Nicht nachgeschlagen:* die Feldtypen (Kandidat CDDL), die geschichtlichen Beispiele der
+  gebrochenen Münze (Gastmarke, Kerbholz, Tigerpass, Chirograph), die Mindestzahl beim nicht
+  eingetragenen Verein.
+
+**Beschluss 1 — drei gründen gemeinsam am Tisch (Oli).** Alle drei stehen in `participants` und
+sind Anker. Verworfen: eine gründet und nimmt die anderen auf, weil sie für immer einziger Anker
+und einzige Schiedsperson bliebe; zwei gründen, wegen Befund 10.
+
+**Beschluss 2 — der Schlüssel reist zuerst per Scan, die Einladung aus der Ferne danach (Oli).**
+Am Ende beides. D614 Beschluss 1 bleibt unberührt: dort ging es um Bündel in Stapeln von Codes,
+hier um einen Code mit einem Schlüssel von 32 Byte.
+
+**Beschluss 3 — das zweite Beispiel ist die Verabredung zu zweit (Oli).** Stufe 3 aus Befund 11
+als zweite Vorlage nach D639 Beschluss 2, etwa zwei Nachbarn, die sich Werkzeug und Geld leihen.
+Sie prüft, ob MaR mehr ist als ein Vereinsprogramm.
+
+**Beschluss 4 — was eine Vorlage ist; Position, vor Olis Durchlauf.** Eine Satzung mit
+typisierten Lücken und dazu feste Werte des Genesis. In `00cv` hatte ich sie im Gespräch „ein
+Genesis mit Lücken“ genannt; die Felder stehen in der Satzung. Der Weg der Gründung prüft eine
+Vorlage mit einem Probelauf (kein Antrag darf `UNEVALUABLE` sein), `/objects` bleibt, wie es ist.
+Ein Knoten hält einen Scope nur, wenn sein Mensch ihn gegründet hat, eingeladen wurde oder
+beigetreten ist; das ist eine Regel des Knotens, nicht der Norm (D489).
+
+**Beschluss 5 — der Verlust eines Schlüssels ist aufgeworfen und bleibt ein eigener Strang.**
+Enger als gedacht (Befund 2). Der Schlüssel im Browser lässt sich nicht teilen; mit der heutigen
+Ablage bleiben das Zweitgerät (D542) und ein vorab festgelegter Ersatzschlüssel. Vor einer
+Position wird `00 §6.1` gelesen; in dieser Sitzung ist das nicht geschehen.
+
+**Beschluss 6 — verworfen und vertagt.** State Channels: ihr Kern ist ein Schiedsrichter, den
+beide anerkennen, weil dort ihr Geld liegt; MaR hat ihn mit Absicht nicht (`08 §2.2`).
+Commit-Reveal für eine verdeckte Wahl und für das Losen: ohne Anlass, nicht auf Vorrat (D639
+Beschluss 3); eine verdeckte Wahl kostete eine zweite Runde je Wahlgang (D638).
+
+**Beschluss 7 — der nächste Schritt.** Das Bild der Gründung zu dritt am Tisch für Olis
+Durchlauf. Kein Bau davor (D490). Der Strang läuft unter O101.
+
+**Geändert.** `07-decisions.md`.

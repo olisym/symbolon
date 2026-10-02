@@ -27572,3 +27572,102 @@ und Cloud, und die Bestandsaufnahme als nächsten Schritt; `sitzungsstart-00cx.m
 `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cy.md`, `archiv/sitzungsstart-00cx.md`.
+
+### D629 — Zweite Bestandsaufnahme Reticulum; O102 über IFAC am Funk, als Betrieb, nicht als Norm
+
+**Anlass.** D628 Beschluss 2. Gelesen: in `rns 1.5.4` `Transport.py`, `Reticulum.py`, `Link.py`,
+`Channel.py`, `Resource.py`, `Destination.py` und `Interfaces/RNodeInterface.py`; das Handbuch
+(`understanding`, `interfaces`); die Teilbänder um 868 MHz nach ERC/REC 70-03 und EN 300 220. Im
+Boten `symbolon/bote/reticulum.py` auf `accd4de`.
+
+**Befund 1 — IFAC, was gebaut ist.** Ein Interface mit `network_name` oder `passphrase` leitet
+einen Schlüssel von 64 Byte ab (`Reticulum.py`, Zeilen 992 bis 1006) und daraus eine Identität. Je
+Paket: die Kennung ist das Ende der Ed25519-Signatur über das ganze Paket (RNode 8 Byte, TCP und
+UDP 16); maskiert wird alles ausser der Kennung und dem obersten Bit, mit einem Strom aus HKDF über
+die Kennung, gesalzen mit dem Schlüssel (`handle_outgoing_ifac`, `handle_ifac`). Ein Empfänger ohne
+Schlüssel liest nichts und schleust nichts ein. Sichtbar bleiben Länge, Zeitpunkt, das eine Bit und
+dass ein wiederholtes Paket gleich aussieht. Das gilt für jedes Interface, also auch für das
+`UDPInterface` des Labs.
+
+**Befund 2 — IFAC, was das Handbuch sagt.** Es beschreibt Signatur und Verwerfen, also Zugang und
+getrennte Netze auf einem Medium. Die Maskierung nennt es nicht; sie steht nur im Quelltext. Eine
+zugesagte Vertraulichkeit ist sie damit nicht.
+
+**Befund 3 — die Schwäche liegt in der Passphrase.** Der Schlüssel entsteht aus Name und Passphrase
+über SHA-256 und HKDF mit festem Salz, ohne langsame Ableitung. Wer ein Paket mitschneidet, rät
+Passphrasen ohne Netz und prüft jede an der Kennung. Die Passphrase muss zufällig sein, mindestens
+128 Bit, kein Wort.
+
+**Befund 4 — der Wechsel.** Er geschieht in der Konfiguration jedes Geräts, ausserhalb des
+Protokolls. Ein Gerät, das ihn verpasst, ist am Funk ganz taub, nicht nur für Ankündigungen; sein
+Rückweg ist ein anderes Interface. Ein ausgetretenes Mitglied liest mit, bis alle gewechselt haben;
+das gälte für einen Vereinsschlüssel ebenso.
+
+**Befund 5 — verschlüsseltes `app_data`, berichtigt.** D628 Befund 3 nannte als Gefahr, dass ein
+Gerät ohne den neuen Schlüssel nie wieder holt. Das muss nicht sein: unlesbares `app_data` kann als
+anderer Stand gelten, der Abgleich geht über den Link, die Annahme hängt an `quellen` (D622).
+Verdeckt wären aber nur Stand und Zahl; Adresse, Name der Anwendung, Schlüssel des Boten und wer
+mit wem spricht, blieben offen.
+
+**Befund 6 — Ratchets.** Sie gelten für Pakete an `SINGLE`-Ziele und verlängern jede Ankündigung um
+32 Byte (`Destination.py`, `announce`). Ein Link handelt je Aufbau eigene Schlüssel aus und nutzt
+sie nicht. Der Bote spricht nur über Links.
+
+**Befund 7 — was RNS auf einem Link wiederholt.** Eine Anfrage, die in ein Paket passt, geht
+einmal; ebenso eine Antwort, die in ein Paket passt (`Link.request`, `handle_request`). Bei einer
+Anfrage als Paket setzt RNS den Status nie auf `DELIVERED`, die Frist greift dann nicht
+(`request_timed_out`); das ist D586 Befund 3 von der anderen Seite. Eine `Resource` wiederholt je
+Teil bis zu 16-mal. Ein `Channel` wiederholt bis zu fünfmal und baut danach den Link ab; seine
+erste Frist ist 2,5 Laufzeiten mal der Länge der Warteschlange plus 1,5, bei einem Paket also gut
+sechs Laufzeiten (`Channel.py`, `_get_packet_timeout_time`). `Buffer` ist ein Strom über `Channel`.
+
+**Befund 8 — der Aufbau des Links hat eine unquittierte Stelle.** Der Anfragende wird mit dem
+Beweis `ACTIVE` und schickt `LRRTT` genau einmal (`Link.validate_proof`). Erst dieses Paket macht
+den Antwortenden `ACTIVE` (`rtt_packet`). Geht es verloren, bleibt er im `HANDSHAKE`, beantwortet
+keine Anfrage (`handle_request` prüft `ACTIVE`) und schliesst nach 6 s je Sprung plus 360 s. Der
+Anfragende sieht einen aktiven Link. Das passt auf D627: Anfragen auf lokal aktiven Links bleiben
+dreimal ohne Antwort. Belegt ist der Weg im Quelltext, gemessen ist er nicht; die gehäuft
+scheiternden Aufbauten am selben Ziel erklärt er nicht.
+
+**Befund 9 — Sendezeit.** Der RNode setzt zwei Grenzen selbst durch: `airtime_limit_long` über
+rollende 60 Minuten, `airtime_limit_short` über etwa 15 s, beide in Prozent. Eigene Ankündigungen
+unterliegen `announce_cap` nicht, nur weitergereichte (`Transport.py`, Kommentar vor der Prüfung
+`packet.hops > 0`); die Bremse des Boten ist Trickle allein. Die Teilbänder: 865 bis 868 MHz und
+868,0 bis 868,6 MHz mit 1 % und 25 mW, 868,7 bis 869,2 MHz mit 0,1 %, 869,4 bis 869,65 MHz mit
+10 % und 500 mW.
+
+**Befund 10 — gerechnet, nicht gemessen.** 1 % sind 36 s je Stunde und Gerät, bei 1200 bit/s rund
+5 kB; 10 % sind rund 54 kB. Die Läufe mit fünf Geräten lagen zwischen 16 kB und rund 200 kB auf dem
+Kanal (D612, D615, D617), also bei 3 bis 40 kB je Gerät. Ein Wahlgang passt danach nur in das Band
+mit 10 %, das 250 kHz breit ist. `tools/funk.py` zählt die Sendezeit nicht je Gerät.
+
+**Befund 11 — Broadcast.** Bestätigt D628 Befund 1: `PLAIN` und `GROUP` gehen höchstens einen
+Sprung, eine Ankündigung dieser Typen wird verworfen (`Transport.py`, Paketfilter).
+
+**Beschluss 1 — O102: IFAC am Funk-Interface.** Olis Entscheidung. Die Ankündigung wird für
+Mitglieder lesbar, indem das Funk-Interface einen Netznamen und eine zufällige Passphrase trägt
+(Befund 3). Das ist eine Regel des Betriebs, keine der Norm: MaR schreibt nichts vor, keine
+Layer-Datei ändert sich. Verteilung und Wechsel der Passphrase geschehen von Hand. Das Funknetz des
+Vereins ist damit abgeschlossen; es reicht keinen fremden Verkehr weiter. O102 ist erledigt.
+
+**Beschluss 2 — verworfen: verschlüsseltes `app_data`.** Es verdeckt weniger (Befund 5) und
+verlangt einen Vereinsschlüssel in der Norm mit Wechsel beim Austritt. Es bleibt ein Kandidat,
+falls ein Verein die Verwaltung des Schlüssels im Protokoll haben will; D628 Beschluss 3 nannte es
+einen eigenen Strang nach den T-Beams, dabei bleibt es.
+
+**Beschluss 3 — nicht übernommen.** Ratchets bleiben aus (Befund 6). Der Bote bleibt bei Anfragen
+mit eigener Wiederholung (D591, D625); `Channel` wartet länger als die gedeckelte Zustellfrist und
+reisst den Link ab (Befund 7). Die Sendezeit begrenzt der RNode, MaR baut keine eigene Grenze
+(D617 Beschluss 1).
+
+**Beschluss 4 — was vor den T-Beams gemessen wird.** (1) Zu O104: wie oft der Antwortende beim
+Scheitern einer Anfrage im `HANDSHAKE` steht (Befund 8); erst danach eine Reparatur, etwa der zweite
+Versuch über einen neuen Link. (2) Die Sendezeit je Gerät und Stunde im Kanal (Befund 10); liegt
+sie über der Grenze des Bandes, kommt O103 zurück. (3) Ein Lauf `--wahlgang --funk` mit IFAC am
+Kanal, gegen einen ohne.
+
+**Beschluss 5 — Prüfregel-Kandidat.** Eine Eigenschaft einer fremden Bibliothek, die nur im
+Quelltext steht und nicht in ihrer Dokumentation, wird als solche benannt; sie kann sich ohne
+Ankündigung ändern (Befund 2).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

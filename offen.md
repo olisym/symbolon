@@ -469,12 +469,10 @@ Ansicht der Satzung. Offen: was „Im Verein“ ist (Lage, Neuigkeiten), der Tab
 Ansichten je Grösse des Bildschirms, und wie ein Mensch ankommt, der nichts weiss; das beginnt mit
 Gründung und Beitritt (D606).
 
-### O102 Vertraulichkeit im Funk
+### O102 Vertraulichkeit im Funk — erledigt (D629)
 
-Claims sind signiert, nicht verschlüsselt. Heute schützt nur der Link von Reticulum je Paar. Der
-Rundruf (D617 Beschluss 6) sendet einmal für alle; offen gesendet liest jeder mit einem Empfänger
-mit, ein Ziel vom Typ `GROUP` braucht einen geteilten Vereinsschlüssel, der beim Austritt wechselt.
-D26: Nachvollziehbarkeit ist nicht Öffentlichkeit. Entscheidet Oli vor dem echten Funk (D618).
+IFAC am Funk-Interface mit zufälliger Passphrase, als Regel des Betriebs, nicht der Norm (D628,
+D629).
 
 ### O103 Rundruf auf knappem Funk
 
@@ -487,3 +485,6 @@ Prüfung des Absenders und Wiederholung über den Link.
 Bei 1200 bit/s und 5 % Verlust scheiterte im Lab jede sechste Anfrage, jede nach mindestens 60 s,
 eine nach 250 s; auch gelungene brauchten oft 80 s (D623 Befund 4). Die Zeit bis zum gleichen Stand
 hängt daran. Zuerst messen, woran (Aufbau des Links, Wiederholung, Frist), dann die T-Beams.
+Enger seit D627: Anfragen auf lokal aktiven Links bleiben dreimal ohne Antwort. Kandidat aus D629
+Befund 8: ein verlorenes `LRRTT` lässt den Antwortenden im `HANDSHAKE`; belegt im Quelltext, nicht
+gemessen.

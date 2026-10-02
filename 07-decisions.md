@@ -27515,3 +27515,60 @@ Messauftrag sagt ausdrücklich, dass `AGENTS.md` §5 für ihn nicht gilt.
 Grenzen der Sendezeit auf 868 MHz nach ETSI (D609).
 
 **Geändert.** `07-decisions.md`.
+
+### D628 — O102: Richtung für Mitglieder lesbar; zweite Bestandsaufnahme Reticulum; Schluss `00cx`
+
+**Anlass.** D627 Beschluss 3: die T-Beams mit Olis Entscheidung zu O102. Gelesen: in `rns 1.5.4`
+`Destination.announce`, die Behandlung von `GROUP` und die Interface Access Codes in `Transport.py`
+(`handle_outgoing_ifac`, `handle_ifac`).
+
+**Befund 1 — Reticulum kündigt nur `SINGLE` an.** `Destination.announce` weist jeden anderen Typ ab;
+eine Ankündigung vom Typ `GROUP` verwirft `Transport.py` als Verstoss. Die `SINGLE`-Ankündigung
+braucht der Bote ohnehin, über sie finden die Nachbarn Pfad und Schlüssel für den Link. `PLAIN` und
+`GROUP` sind Broadcast, aber nur einen Sprung weit. Meine Frage an Oli setzte eine Ankündigung an
+ein `GROUP`-Ziel voraus; die gibt es nicht.
+
+**Befund 2 — was offen über Funk geht.** Seit D622 geht der Inhalt der Claims nur über Links je
+Paar, verschlüsselt. Offen geht die Ankündigung: die Adresse, aus der man `symbolon.bote` erkennt,
+der Schlüssel des Boten, der Zeitpunkt und `app_data` mit Stand und Zahl der Einträge. Seit D623
+kündigt ein Bote nach jeder Änderung rasch an; der Zeitpunkt verrät, wann im Verein etwas geschieht,
+auch ohne Inhalt.
+
+**Befund 3 — zwei Wege.** (a) Verschlüsseltes `app_data`: die Ankündigung bleibt `SINGLE`, Stand und
+Zahl mit einem Vereinsschlüssel, rund 100 statt 36 Byte. Der Wechsel des Schlüssels beim Austritt
+braucht einen Weg in der Spec und einen Rückweg für ein Gerät, das ihn verpasst; sonst holt es nie
+wieder etwas. (b) Interface Access Codes am Funk-Interface: nach dem Quelltext wird jedes Paket mit
+einem Schlüssel aus Netzname und Passphrase signiert und fast ganz maskiert, ein Empfänger ohne
+Passphrase kann es weder lesen noch einschleusen. Der Wechsel beim Austritt geschieht in der
+Konfiguration, ausserhalb des Protokolls. Ob die Maskierung als Vertraulichkeit gedacht und stark
+genug ist, ist nicht geprüft.
+
+**Beschluss 1 — Olis Richtung zu O102.** Die Ankündigung soll für Mitglieder lesbar sein, nicht für
+jeden mit einem Empfänger. Oli: im Prinzip reicht der heutige Stand, sauberer ist es so. Ob über (a)
+oder (b), entscheidet Oli nach der Bestandsaufnahme. Länge und Zeitpunkt der Pakete bleiben in
+beiden Wegen sichtbar.
+
+**Beschluss 2 — die zweite Bestandsaufnahme zu Reticulum.** Olis Anregung: nach den ersten Netztests
+prüfen, was Reticulum schon mitbringt, bevor MaR selbst baut (D617 Beschluss 1). Die erste (D583)
+kam vor allen Messungen. Gegenstand: IFAC, Ratchets, Channel und Buffer, wie RNS verlorene Pakete
+auf einem Link wiederholt (O104), die Grenzen der Sendezeit auf 868 MHz (D609), Broadcast. Je Punkt:
+was es gibt, mit Fundstelle; was MaR selbst gebaut hat; was ersetzt oder ergänzt werden sollte.
+
+**Beschluss 3 — Reihenfolge.** Erst die Bestandsaufnahme, dann O102, dann die T-Beams; Oli hat noch
+keine Hardware. Der Vereinsschlüssel nach Weg (a) wäre ein eigener Strang nach den T-Beams.
+
+**Beschluss 4 — Stand.** Der Rundruf gemessen und vertagt (D622, O103), der Stillstand behoben (D623
+bis D626), die Streuung ohne Stillstand (D627). 1536 Tests, der Selbsttest 241 Fälle, Register
+D1–D628, `offen.md` 104 Posten, davon 19 offen: O97, O100, O101, O102, O104 und 14 Wartestände mit
+O103.
+
+**Beschluss 5 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Befund über eine Fassung wird gegen `main` geprüft (D623); ein Lauf mit
+überlappenden Prozessen zählt nicht (D623, D625); eine Frist wird am neuen Ort gemessen (D625); eine
+Aussage über eine fremde Bibliothek wird im Quelltext geprüft, bevor Oli entscheidet (D628).
+
+**Beschluss 6 — Sitzungsschluss.** `sitzungsstart-00cy.md` trägt Stand, Arbeitsweise mit Messpaket
+und Cloud, und die Bestandsaufnahme als nächsten Schritt; `sitzungsstart-00cx.md` geht nach
+`archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cy.md`, `archiv/sitzungsstart-00cx.md`.

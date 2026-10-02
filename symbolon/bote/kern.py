@@ -409,7 +409,8 @@ class Rundruf:
 
     def senden(self, claims: list[bytes], objekte: list[bytes], jetzt: float) -> list[bytes]:
         """Neu seit dem letzten Bestand, der erste nicht; höchstens die Grenze
-        (D636 Beschluss 2, 3 und 5)."""
+        (D636 Beschluss 2, 3 und 5). ``Getrennt`` beim Lesen gibt nichts; der
+        gemerkte Bestand bleibt (D637 Beschluss 2)."""
         bestand = {(rbsr.ART_OBJEKT, kennung) for kennung in objekte}
         bestand.update((rbsr.ART_CLAIM, kennung) for kennung in claims)
         with self.mein.sperre:
@@ -422,16 +423,19 @@ class Rundruf:
             self.mein.eingeliefert -= bestand
         if not neu:
             return []
-        objekte_neu: list[tuple[str, bytes]] = []
-        for kennung in sorted(k for art, k in neu if art == rbsr.ART_OBJEKT):
-            gefunden = self.mein.objekt(kennung)
-            if gefunden is not None:
-                objekte_neu.append(gefunden)
-        claims_neu: list[bytes] = []
-        for kennung in sorted(k for art, k in neu if art == rbsr.ART_CLAIM):
-            daten = self.mein.claim(kennung)
-            if daten is not None:
-                claims_neu.append(daten)
+        try:
+            objekte_neu: list[tuple[str, bytes]] = []
+            for kennung in sorted(k for art, k in neu if art == rbsr.ART_OBJEKT):
+                gefunden = self.mein.objekt(kennung)
+                if gefunden is not None:
+                    objekte_neu.append(gefunden)
+            claims_neu: list[bytes] = []
+            for kennung in sorted(k for art, k in neu if art == rbsr.ART_CLAIM):
+                daten = self.mein.claim(kennung)
+                if daten is not None:
+                    claims_neu.append(daten)
+        except Getrennt:
+            return []
         pakete: list[bytes] = []
         for stueck in rundruf_stuecke(claims_neu, objekte_neu, self.platz):
             with self._sperre:
@@ -441,7 +445,8 @@ class Rundruf:
         return pakete
 
     def empfangen(self, data: object, jetzt: float, gesperrt: frozenset[bytes] | None) -> None:
-        """Angenommen nur aus ``quellen``, ungesperrt, mit gültiger Signatur (D636 Beschluss 4 und 5)."""
+        """Angenommen nur aus ``quellen``, ungesperrt, mit gültiger Signatur
+        (D636 Beschluss 4 und 5)."""
         if type(data) is not bytes or len(data) <= RUNDRUF_KOPF:
             return
         von = data[:16]

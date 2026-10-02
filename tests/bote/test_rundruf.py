@@ -279,6 +279,25 @@ def test_zu_grosser_eintrag_bleibt(tmp_path) -> None:
         _stop(x)
 
 
+def test_getrennt_nach_dem_bestand_wirft_nicht(tmp_path) -> None:
+    """Wird der Knoten getrennt, nachdem der Bestand gelesen ist, sendet der Bote nichts und
+    läuft weiter; den Eintrag bringt das Holen (D637 Beschluss 2)."""
+    x = _knoten(tmp_path / "x.sqlite")
+    try:
+        rundruf, _zeilen, _eigener = _rundruf(x, {})
+        assert rundruf.senden(*_ids(x), 0.0) == []
+        _lokal(x, _claim(1))
+        bestand = _ids(x)
+        status, _body = _call(x, "POST", "/getrennt", {"getrennt": True})
+        assert status == 200
+        assert rundruf.senden(*bestand, 1.0) == []
+        status, _body = _call(x, "POST", "/getrennt", {"getrennt": False})
+        assert status == 200
+        assert rundruf.senden(*_ids(x), 2.0) == []
+    finally:
+        _stop(x)
+
+
 def test_gehalten_bis_der_schluessel_bekannt_ist(tmp_path) -> None:
     """Ohne Schlüssel gehalten, höchstens ``RUNDRUF_GEHALTEN``; mit Schlüssel nachgeholt
     (D636 Beschluss 4)."""

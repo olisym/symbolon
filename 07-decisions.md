@@ -27781,3 +27781,36 @@ Befund 3, D590 Befund 2).
 als Diff. Vor der Abnahme misst der Supervisor den Lauf aus Befund 1 und 2 auf dem Branch.
 
 **Geändert.** `07-decisions.md`.
+
+### D632 — Abnahme `p50-neuer-link`: angenommen, Merge
+
+**Anlass.** D631 Beschluss 5. Gelesen ist der Diff `1b900e6..bf3746e` aus dem Spiegel, zwei Dateien.
+
+**Befund 1 — der Diff.** `tests/bote/test_reticulum.py` ist gleich dem Diff des Auftrags.
+`RnsNachbar` trägt `_beantwortet`; an der Stelle des erneuten Sendens wird ein Link, der nicht
+`_beantwortet` ist, abgebaut und über `_verbinden()` ersetzt; nach `READY` wird der Link vermerkt.
+Das ist der Prototyp aus D631 bis auf Docstring und Kommentar. Der Docstring nennt D631 Beschluss 1
+und 2. Im Klon: Lint grün, die Tests der Datei grün; die Testreihe des Werkzeugs zählt 1541.
+
+**Befund 2 — über Funk, auf dem Branch.** Der Lauf aus D631 Befund 1 und 2, wieder mit jedem
+dritten `LRRTT` verworfen, 480 s: 8 verworfen, 12 neue Links, 50 Anfragen gelungen, gleicher Stand
+nach Takt 0 nach 437,3 s. `main` hatte ihn unter dieser Last nicht erreicht.
+
+**Befund 3 — zwei Anfragen an der Antwortfrist.** Beide nach drei Sendungen über drei Links: neuer
+Link nach 40,0 s, noch einer nach 82 bis 90 s, dann blieben bis zur Frist rund 30 s. Viermal kam
+es zum zweiten neuen Link, zweimal gelang die dritte Anfrage. Das ist die Grenze aus D631 Beschluss
+2, kein Fehler der Regel: bei einem Drittel verworfener `LRRTT` trifft es zwei Links in Folge,
+beim gemessenen Anteil von 3 aus 92 (D630 Befund 1) selten. Ob der dritte Link einseitig war oder
+nur langsam, zeigt die Diagnose nicht.
+
+**Befund 4 — die Rücknahmeproben des Werkzeugs** wurden an den Tests rot, die der Auftrag nennt,
+und nur an ihnen.
+
+**Beschluss 1 — angenommen.** `p50-neuer-link` geht nach `main`.
+
+**Beschluss 2 — O104 bleibt offen.** Erledigt ist der einseitige Link. Offen bleiben die gehäuft
+scheiternden Aufbauten (D627 Befund 3, D630 Befund 2). Befund 3 stützt den Kandidaten aus D631
+Beschluss 3 (c), eine kürzere Zustellfrist für frische Links; er wartet weiter auf einen Anlass
+ohne erzwungenen Verlust.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

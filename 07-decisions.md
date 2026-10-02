@@ -27851,3 +27851,31 @@ nichts (Befund 1). Die drei Zeilen gehören in die Anleitung zu den T-Beams, wen
 ist (O97, Schritt 5). Befund 5 bleibt ohne Auftrag, solange das Lab ohne IFAC läuft.
 
 **Geändert.** `07-decisions.md`.
+
+### D634 — Schluss `00cy`: der Rundruf bekommt eine eigene Sitzung; kein Schalter für IFAC im Lab
+
+**Anlass.** Olis Wahl am Ende von `00cy`, nach D633.
+
+**Beschluss 1 — der Rundruf in eigener Sitzung.** O103 wird neu bewertet (D630 Beschluss 4), an
+der Sendezeit je Gerät und an den Anteilen der Bytes (D630 Befund 4 und 5). Zuerst wird gemessen,
+welcher Teil der Antworten und Anfragen der Abgleich nach Bereichen ist und welcher `paket`; erst
+danach eine Position. O103 bleibt bis dahin vertagt.
+
+**Beschluss 2 — kein Schalter für IFAC in `tools/netz`.** Oli bestätigt D633 Beschluss 2.
+
+**Beschluss 3 — Stand.** Die zweite Bestandsaufnahme zu Reticulum und O102 über IFAC als Betrieb
+(D629), der einseitige Link gemessen und repariert (D630 bis D632), die Sendezeit je Gerät und das
+Band mit 10 % (D630), IFAC am Kanal des Labs (D633). 1541 Tests, der Selbsttest 241 Fälle,
+Register D1–D634, `offen.md` 104 Posten, davon 18 offen: O97, O100, O101, O104 und 14 Wartestände
+mit O103.
+
+**Beschluss 4 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: eine Eigenschaft, die nur im Quelltext einer fremden Bibliothek steht, wird so benannt
+(D629); eine Regel, die hochrechnet, nennt ihre Annahme vorher (D630); ein Beschluss, der einen
+früheren öffnet, nennt ihn (D630); eine Zahl im Register wird gegen die Ausgabe nachgerechnet.
+
+**Beschluss 5 — Sitzungsschluss.** `sitzungsstart-00cz.md` trägt Stand, die Arbeitsweise mit
+erzwungenem Fall und Entscheidungsregel vor der Messung, und den Rundruf als nächsten Schritt;
+`sitzungsstart-00cy.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00cz.md`, `archiv/sitzungsstart-00cy.md`.

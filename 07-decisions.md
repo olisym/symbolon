@@ -27734,3 +27734,50 @@ freundlicher als LoRa (D627 Beschluss 1). Die Zeiten bis zum gleichen Stand gelt
 nennt die Annahme der Hochrechnung, bevor gemessen wird (aus Beschluss 4).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D631 — O104: ein Link, der noch nie geantwortet hat, wird neu aufgebaut statt wiederholt
+
+**Anlass.** D630 Beschluss 1. Die Reparatur ist im Klon des Supervisors als Prototyp gebaut, mit
+den Tests in der Fassung des Auftrags, und über Funk gegen `main` gemessen. Dabei verwarf der Kanal
+zusätzlich jedes dritte `LRRTT`, damit der Fall aus D630 Befund 1 in jedem Lauf eintritt.
+
+**Befund 1 — `main` bleibt unter dieser Last stehen.** `36ee4f4`, `--wahlgang --funk`, 1200 bit/s,
+480 s: 6 `LRRTT` verworfen, 21 Anfragen vom Antwortenden verworfen, 7 Anfragen an der Antwortfrist
+nach je 120,0 s und drei Sendungen, 37 gelungen. Den gleichen Stand nach Takt 0 erreichte der Lauf
+nicht.
+
+**Befund 2 — der Prototyp nicht.** Gleiche Last: 8 `LRRTT` verworfen, 9 neue Links, jeder nach
+40,0 s oder beim zweiten Versuch nach 82,6 s, keine Anfrage an der Antwortfrist, 55 gelungen,
+gleicher Stand nach Takt 0 nach 316,5 s. Ein Lauf je Fassung: es zählt die Lebendigkeit, nicht die
+Zeit (D623 Beschluss 4).
+
+**Befund 3 — ein neuer Link mehr als nötig.** Neun neue Links bei acht verworfenen `LRRTT`: einmal
+war die Antwort auf einem frischen Link nur langsam. Das kostet drei Pakete, rund 290 Byte.
+
+**Befund 4 — die Tests.** Fünf neue Tests, die Testreihe des Prototyps mit 1541 bestanden, Lint
+und Markdown-Prüfungen grün. Fünf Rücknahmeproben gegen die Tests in der Fassung des Auftrags,
+jede an der Sache rot: kein neuer Link; die Antwort nie vermerkt; immer ein neuer Link; der alte
+Link bleibt eingetragen; die Frist beginnt mit dem neuen Link neu.
+
+**Beschluss 1 — die Regel.** Der Bote merkt sich je Nachbar den Link, der zuletzt geantwortet hat.
+Bleibt eine Anfrage über die Zustellfrist unzugestellt, geht sie auf demselben Link erneut, wenn er
+schon geantwortet hat; sonst baut der Bote ihn ab und sendet über einen neuen. Auch der neue Link
+hat noch nie geantwortet. Das ändert D591 Beschluss 1 für Links ohne Antwort.
+
+**Beschluss 2 — was bleibt.** Höchstens drei Anfragen; die Antwortfrist läuft ab der ersten, auch
+über neue Links (D625 Beschluss 3); die Zustellfrist bleibt (D625 Beschluss 2). Scheitert der
+Aufbau des neuen Links, ist der Nachbar getrennt und hält keinen Link (D625 Beschluss 1).
+
+**Beschluss 3 — verworfen.** (a) Erst die dritte Anfrage über einen neuen Link: der einseitige Link
+kostete dann 80 s, und für den neuen blieben 40 s. (b) Eine Probe-Anfrage nach jedem Aufbau: Bytes
+auf jedem Link für einen Fall, der 3 von 92 trifft (D630 Befund 1). (c) Eine kürzere Zustellfrist
+für frische Links: nicht gemessen, eine zweite Wirkung; sie wartet auf einen Anlass.
+
+**Beschluss 4 — nicht unser Fehler, aber unsere Umgehung.** Die Ursache liegt in RNS: `LRRTT` geht
+einmal und unquittiert (D629 Befund 8). Ob Oli das meldet, steht bei den beiden Wettläufen (D586
+Befund 3, D590 Befund 2).
+
+**Beschluss 5 — Auftrag `p50-neuer-link`.** Die Regel in `symbolon/bote/reticulum.py`, die Tests
+als Diff. Vor der Abnahme misst der Supervisor den Lauf aus Befund 1 und 2 auf dem Branch.
+
+**Geändert.** `07-decisions.md`.

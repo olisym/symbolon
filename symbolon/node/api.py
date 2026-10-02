@@ -29,6 +29,7 @@ from symbolon.governance.tally import (
     vote_root,
 )
 from symbolon.index import classify_all
+from symbolon.node.gruendung import Abgewiesen, gruenden
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
     ScopeView,
@@ -712,6 +713,25 @@ def _sim_tip(store: SqliteStore, body: Mapping[str, Any]) -> Mapping[str, Any]:
     return body
 
 
+def _gruenden(store: SqliteStore, body: Mapping[str, Any]) -> dict[str, bytes]:
+    """Prüft zuerst und liefert die vier Objekte danach ein (D641 Beschluss 4, 00 §4, 00 §5)."""
+    try:
+        gebaut = gruenden(
+            _require(body, "vorlage"),
+            _require(body, "gruender"),
+            _require(body, "felder"),
+        )
+    except Abgewiesen as exc:
+        raise _Named(exc.name) from None
+    for art, daten in gebaut.objekte:
+        store.submit_object(art, daten)
+    return {
+        "verein": gebaut.verein,
+        "vereinsleben": gebaut.vereinsleben,
+        "constitution": gebaut.constitution,
+    }
+
+
 class _Forked(Exception):
     """Mehr als eine Spitze (D476 Beschluss 3)."""
 
@@ -901,6 +921,9 @@ def _handler(
                 if found is None:
                     raise _Missing()
                 self._send(200, {"kind": found[0], "data": found[1]})
+                return
+            if post and path == "/gruenden":
+                self._send(200, _gruenden(store, self._json_body()))
                 return
             if post and path in {
                 "/objects",

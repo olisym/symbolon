@@ -109,7 +109,10 @@ def _warten(bedingung) -> bool:
 
 
 def test_zwei_boten(tmp_path) -> None:
-    """B holt den Verein über Reticulum; A getrennt hält B an, verbunden holt B nach."""
+    """B holt den Verein über Reticulum; A getrennt hält B an, verbunden holt B nach.
+
+    Was in A entsteht, hört B als Rundruf, sobald A verbunden ist (D636 Beschluss 1 und 2).
+    """
     path_a = tmp_path / "a.sqlite"
     anlegen(path_a)
     soll = _soll(path_a)
@@ -137,6 +140,13 @@ def test_zwei_boten(tmp_path) -> None:
         status, _body = _call(a, "POST", "/getrennt", {"getrennt": False})
         assert status == 200
         assert _warten(lambda: _bestand(b) == _bestand(a) != soll)
+        vorher = _bestand(a)
+        eigener = Identity("p36-B").vouch(
+            Identity("p36-C"), n=4, scope=scope_id("p36-welt"), t=1, t_exp=5000
+        )
+        status, body = _call(a, "POST", "/claims", {"data": signed_bytes(eigener).hex()})
+        assert status == 200, body
+        assert _warten(lambda: _bestand(b) == _bestand(a) != vorher)
     finally:
         for bote in boten:
             bote.terminate()
@@ -145,7 +155,10 @@ def test_zwei_boten(tmp_path) -> None:
         _stop(b)
     assert re.search(_EIGENER_RAHMEN, ausgaben[0] + ausgaben[1]) is None
     geholt = sum(int(m) for m in re.findall(r"geholt=(\d+)", ausgaben[1]))
-    assert geholt == len(soll["claims"]) + len(soll["objects"]) + 1
+    assert geholt == len(soll["claims"]) + len(soll["objects"]) + 2
+    # Beide Einträge, die in A entstanden, kamen als Rundruf, der erste nach der Trennung
+    # (D636 Beschluss 1 und 2).
+    assert re.findall(r"rundruf geholt=(\d+)", ausgaben[1]) == ["1", "1"]
     assert re.findall(r"geholt=(\d+)", ausgaben[0]) == []
 
 

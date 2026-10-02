@@ -12,9 +12,11 @@ import RNS
 
 from symbolon.bote.draht import PFADE, beantworten, lesen
 from symbolon.bote.kern import (
+    RUNDRUF_KOPF,
     Getrennt,
     HttpKnoten,
     Quelle,
+    Rundruf,
     ankuendigung,
     ankuendigung_aus,
     lohnt,
@@ -179,6 +181,14 @@ class RnsNachbar:
         return self._anfrage("abgleich", roh)
 
 
+def _pruefen(von: bytes, signatur: bytes, nachricht: bytes) -> bool | None:
+    """``None`` ohne bekannte Identität, sonst ob die Signatur gilt (D636 Beschluss 4)."""
+    ident = RNS.Identity.recall(von)
+    if ident is None:
+        return None
+    return bool(ident.validate(signatur, nachricht))
+
+
 def laufen(
     knoten_url: str,
     konfiguration,
@@ -193,7 +203,8 @@ def laufen(
     Die Ankündigung trägt Stand und Zahl der Einträge (D584 Beschluss 1 und 2, D619 Beschluss 1).
     Fällig wird ein Nachbar nur, wenn das Holen lohnt (D619 Beschluss 2). Die Fristen kommen aus
     der kleinsten Bitrate (D611 Beschluss 2). ``sperrstand`` liest die Sperrliste in jedem Takt,
-    auch ohne Holen (D594 Beschluss 3, D611 Beschluss 3). Der Bote holt, er schiebt nie.
+    auch ohne Holen (D594 Beschluss 3, D611 Beschluss 3). Was im eigenen Knoten neu entstand,
+    sendet er einmal an alle (D636 Beschluss 1).
     """
     RNS.Reticulum(configdir=str(konfiguration))
     destination = RNS.Destination(
@@ -203,6 +214,25 @@ def laufen(
     anbieten(destination, mein)
     zeit = zeiten(_bitrate())
     quellen = {ziel: RnsNachbar(ziel, zeit) for ziel in nachbarn}
+    ziel = RNS.Destination(None, RNS.Destination.IN, RNS.Destination.PLAIN, APP, "rundruf")
+    rundruf = Rundruf(
+        mein,
+        adresse(ident),
+        ident.sign,
+        _pruefen,
+        nachbarn,
+        RNS.Packet.PLAIN_MDU - RUNDRUF_KOPF,
+        10 * zeit.imin,
+        melden,
+    )
+
+    def _paket(data, packet) -> None:
+        """Sperrliste wie der Hörer, dann ``empfangen`` (D636 Beschluss 4)."""
+        del packet
+        gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
+        rundruf.empfangen(data, time.monotonic(), gesperrt)
+
+    ziel.set_packet_callback(_paket)
     trickle = Trickle(zeit.imin, 6, 2, time.monotonic(), random.Random())
     sperre = threading.Lock()
     gehoerte: dict[bytes, tuple[bytes, int]] = {}
@@ -226,6 +256,7 @@ def laufen(
             if destination_hash not in quellen or paar is None:
                 return
             gesperrt = frozenset() if sperren is None else sperren_lesen(sperren)
+            rundruf.nachholen(destination_hash, time.monotonic(), gesperrt)
             with sperre:
                 gehoerte[destination_hash] = paar
                 if eigener[0] is not None and paar[0] == eigener[0]:
@@ -240,6 +271,7 @@ def laufen(
 
     RNS.Transport.register_announce_handler(_Hoerer())
     zuletzt: frozenset[bytes] | None = frozenset()
+    anlass = False
     while True:
         jetzt = time.monotonic()
         try:
@@ -248,31 +280,43 @@ def laufen(
             stand = None
         with sperre:
             geaendert = stand is not None and stand != eigener[0]
+        if geaendert:
+            anlass = True
+        bestand: tuple[list[bytes], list[bytes]] | None = None
         zahl: int | None = None
         if geaendert:
             try:
-                claims, objekte = mein.bestand()
-                zahl = len(claims) + len(objekte)
+                bestand = mein.bestand()
+                zahl = len(bestand[0]) + len(bestand[1])
             except Getrennt:
                 zahl = None
+        elif anlass:
+            try:
+                bestand = mein.bestand()
+            except Getrennt:
+                bestand = None
         with sperre:
             if geaendert:
                 trickle.neu(jetzt)
                 eigener[0] = stand
                 if zahl is not None:
                     eigene_zahl[0] = zahl
-                for ziel, gehoert in gehoerte.items():
+                for nachbar, gehoert in gehoerte.items():
                     if lohnt(gehoert, stand, eigene_zahl[0]):
-                        faellig[ziel] = jetzt
-                        pausen.pop(ziel, None)
+                        faellig[nachbar] = jetzt
+                        pausen.pop(nachbar, None)
                     else:
-                        faellig.pop(ziel, None)
-                        pausen.pop(ziel, None)
+                        faellig.pop(nachbar, None)
+                        pausen.pop(nachbar, None)
             if stand is not None and trickle.ankuendigen(jetzt):
                 meldung: bytes | None = ankuendigung(stand, eigene_zahl[0])
             else:
                 meldung = None
-            kandidaten = [(wann, ziel) for ziel, wann in faellig.items() if wann <= jetzt]
+            kandidaten = [(wann, nachbar) for nachbar, wann in faellig.items() if wann <= jetzt]
+        if anlass and bestand is not None:
+            for paket in rundruf.senden(bestand[0], bestand[1], jetzt):
+                RNS.Packet(ziel, paket).send()
+            anlass = False
         if meldung is not None:
             destination.announce(app_data=meldung)
         gelesen = sperrstand(sperren, zuletzt, melden)

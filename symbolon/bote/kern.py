@@ -7,9 +7,10 @@ geändert durch D614 Beschluss 4 und D617 Beschluss 4.
 from __future__ import annotations
 
 import json
+import threading
 import urllib.error
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -18,6 +19,10 @@ from symbolon import buendel
 from symbolon.bote import rbsr
 
 _ZEITLIMIT = 10
+RUNDRUF_MARKE = b"symbolon-rundruf-1"
+RUNDRUF_KOPF = 80
+RUNDRUF_ANZAHL = 16
+RUNDRUF_GEHALTEN = 16
 
 
 class Getrennt(Exception):
@@ -54,6 +59,8 @@ class HttpKnoten:
 
     def __init__(self, url: str) -> None:
         self.url = url.rstrip("/")
+        self.eingeliefert: set[tuple[int, bytes]] = set()
+        self.sperre = threading.Lock()
 
     def _anfrage(self, method: str, route: str, payload: object = None) -> tuple[int, Any]:
         """503 und jeder ``OSError`` beim Verbinden sind getrennt (D516 Beschluss 3)."""
@@ -134,14 +141,28 @@ class HttpKnoten:
         raise Getrennt()
 
     def liefern_claim(self, data: bytes) -> str | None:
-        """``None`` bei Annahme, sonst der Name der Abweisung (D516 Beschluss 2 und 4)."""
-        status, body = self._anfrage("POST", "/peer/claims", {"data": data.hex()})
-        return None if status == 200 else _name(body)
+        """``None`` bei Annahme, sonst der Name der Abweisung (D516 Beschluss 2 und 4).
+
+        Bei Annahme kommt ``claim_id`` nach ``eingeliefert`` (D636 Beschluss 2).
+        """
+        with self.sperre:
+            status, body = self._anfrage("POST", "/peer/claims", {"data": data.hex()})
+            if status == 200:
+                self.eingeliefert.add((rbsr.ART_CLAIM, bytes.fromhex(body["claim_id"])))
+            return None if status == 200 else _name(body)
 
     def liefern_objekt(self, kind: str, data: bytes) -> str | None:
-        """``None`` bei Annahme, sonst der Name der Abweisung (D516 Beschluss 2 und 4)."""
-        status, body = self._anfrage("POST", "/peer/objects", {"kind": kind, "data": data.hex()})
-        return None if status == 200 else _name(body)
+        """``None`` bei Annahme, sonst der Name der Abweisung (D516 Beschluss 2 und 4).
+
+        Bei Annahme kommt ``hash`` nach ``eingeliefert`` (D636 Beschluss 2).
+        """
+        with self.sperre:
+            status, body = self._anfrage(
+                "POST", "/peer/objects", {"kind": kind, "data": data.hex()}
+            )
+            if status == 200:
+                self.eingeliefert.add((rbsr.ART_OBJEKT, bytes.fromhex(body["hash"])))
+            return None if status == 200 else _name(body)
 
 
 def _name(body: object) -> str:
@@ -314,3 +335,142 @@ def rundgang(
                 f"fehlend={e.fehlend} formwidrig={e.formwidrig}"
             )
     return zuletzt
+
+
+def rundruf_stuecke(
+    claims: list[bytes], objekte: list[tuple[str, bytes]], platz: int
+) -> list[bytes]:
+    """Passt alles in ``platz``, geht ein Bündel; sonst je Eintrag, Objekte vor Claims
+    (D636 Beschluss 3)."""
+    if not claims and not objekte:
+        return []
+    alles = buendel.schreiben(claims, objekte)
+    if len(alles) <= platz:
+        return [alles]
+    stuecke: list[bytes] = []
+    for art, daten in objekte:
+        stueck = buendel.schreiben([], [(art, daten)])
+        if len(stueck) <= platz:
+            stuecke.append(stueck)
+    for claim in claims:
+        stueck = buendel.schreiben([claim], [])
+        if len(stueck) <= platz:
+            stuecke.append(stueck)
+    return stuecke
+
+
+class Grenze:
+    """Höchstens ``anzahl`` Aufrufe je Absender innerhalb ``fenster`` (D636 Beschluss 5)."""
+
+    def __init__(self, anzahl: int, fenster: float) -> None:
+        self.anzahl = anzahl
+        self.fenster = fenster
+        self._aufrufe: dict[bytes, list[float]] = {}
+
+    def erlaubt(self, wer: bytes, jetzt: float) -> bool:
+        """Wahr und gezählt, wenn im Fenster weniger als ``anzahl`` liegen (D636 Beschluss 5).
+
+        Ein Aufruf, der genau ``fenster`` alt ist, zählt nicht mehr. Ein abgelehnter zählt nicht.
+        """
+        bisher = [zeit for zeit in self._aufrufe.get(wer, ()) if jetzt - zeit < self.fenster]
+        if len(bisher) >= self.anzahl:
+            self._aufrufe[wer] = bisher
+            return False
+        bisher.append(jetzt)
+        self._aufrufe[wer] = bisher
+        return True
+
+
+class Rundruf:
+    """Eigene neue Einträge einmal hinaus, Annahme nur von Nachbarn (D636)."""
+
+    def __init__(
+        self,
+        mein: HttpKnoten,
+        eigene: bytes,
+        signieren: Callable[[bytes], bytes],
+        pruefen: Callable[[bytes, bytes, bytes], bool | None],
+        quellen: Sequence[bytes],
+        platz: int,
+        fenster: float,
+        melden: Callable[[str], None],
+    ) -> None:
+        self.mein = mein
+        self.eigene = eigene
+        self.signieren = signieren
+        self.pruefen = pruefen
+        self.quellen = quellen
+        self.platz = platz
+        self.melden = melden
+        self._grenze = Grenze(RUNDRUF_ANZAHL, fenster)
+        self._vorher: set[tuple[int, bytes]] | None = None
+        self._gehalten: list[bytes] = []
+        self._sperre = threading.Lock()
+
+    def senden(self, claims: list[bytes], objekte: list[bytes], jetzt: float) -> list[bytes]:
+        """Neu seit dem letzten Bestand, der erste nicht; höchstens die Grenze
+        (D636 Beschluss 2, 3 und 5)."""
+        bestand = {(rbsr.ART_OBJEKT, kennung) for kennung in objekte}
+        bestand.update((rbsr.ART_CLAIM, kennung) for kennung in claims)
+        with self.mein.sperre:
+            vorher = self._vorher
+            self._vorher = bestand
+            if vorher is None:
+                neu: set[tuple[int, bytes]] = set()
+            else:
+                neu = bestand - vorher - self.mein.eingeliefert
+            self.mein.eingeliefert -= bestand
+        if not neu:
+            return []
+        objekte_neu: list[tuple[str, bytes]] = []
+        for kennung in sorted(k for art, k in neu if art == rbsr.ART_OBJEKT):
+            gefunden = self.mein.objekt(kennung)
+            if gefunden is not None:
+                objekte_neu.append(gefunden)
+        claims_neu: list[bytes] = []
+        for kennung in sorted(k for art, k in neu if art == rbsr.ART_CLAIM):
+            daten = self.mein.claim(kennung)
+            if daten is not None:
+                claims_neu.append(daten)
+        pakete: list[bytes] = []
+        for stueck in rundruf_stuecke(claims_neu, objekte_neu, self.platz):
+            with self._sperre:
+                if not self._grenze.erlaubt(self.eigene, jetzt):
+                    break
+            pakete.append(self.eigene + self.signieren(RUNDRUF_MARKE + stueck) + stueck)
+        return pakete
+
+    def empfangen(self, data: object, jetzt: float, gesperrt: frozenset[bytes] | None) -> None:
+        """Angenommen nur aus ``quellen``, ungesperrt, mit gültiger Signatur (D636 Beschluss 4 und 5)."""
+        if type(data) is not bytes or len(data) <= RUNDRUF_KOPF:
+            return
+        von = data[:16]
+        if von not in self.quellen or gesperrt is None or von in gesperrt:
+            return
+        stueck = data[RUNDRUF_KOPF:]
+        ergebnis = self.pruefen(von, data[16:RUNDRUF_KOPF], RUNDRUF_MARKE + stueck)
+        if ergebnis is None:
+            with self._sperre:
+                if len(self._gehalten) < RUNDRUF_GEHALTEN and data not in self._gehalten:
+                    self._gehalten.append(data)
+            return
+        if not ergebnis:
+            return
+        with self._sperre:
+            if not self._grenze.erlaubt(von, jetzt):
+                return
+        try:
+            claims, objekte = buendel.lesen(stueck)
+        except buendel.Formwidrig:
+            return
+        geholt, abgewiesen, _getrennt = einliefern(self.mein, claims, objekte)
+        if geholt or abgewiesen:
+            self.melden(f"{von.hex()}: rundruf geholt={geholt} abgewiesen={abgewiesen}")
+
+    def nachholen(self, von: bytes, jetzt: float, gesperrt: frozenset[bytes] | None) -> None:
+        """Gibt Gehaltenes dieses Absenders an ``empfangen`` (D636 Beschluss 4)."""
+        with self._sperre:
+            weiter = [item for item in self._gehalten if item[:16] == von]
+            self._gehalten = [item for item in self._gehalten if item[:16] != von]
+        for item in weiter:
+            self.empfangen(item, jetzt, gesperrt)

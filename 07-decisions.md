@@ -28062,3 +28062,38 @@ Fenster von einem Takt.
 jede Stelle, an der sie auftreten kann (Schwester von D586).
 
 **Geändert.** `07-decisions.md`.
+
+### D638 — Abnahme `p51-rundruf`: angenommen, Merge; O103 erledigt
+
+**Anlass.** Commit `e8ab4a6` auf `p51-rundruf`, Nachtrag `p51b` zur Basis `47e44c6` (D637). Gelesen:
+der Diff aus dem Spiegel. Der Test des Nachtrags ist gleich dem Diff des Auftrags.
+
+**Befund 1 — der Nachtrag.** `Rundruf.senden` fängt `Getrennt` um das Lesen der neuen Einträge und
+gibt die leere Liste; der gemerkte Bestand bleibt (D637 Beschluss 2). Der Docstring von `empfangen`
+bricht unter 100 Zeichen. Sonst nichts geändert: `kern.py` und der eine Test.
+
+**Befund 2 — geprüft im Klon des Supervisors.** `tests/bote` mit 163 bestanden, Lint grün. Das
+Werkzeug meldet `make check` mit Status 0 und 1554 Tests, einen mehr als auf der Basis, und die
+Rücknahmeprobe rot mit `Getrennt` als Ursache. Den Lauf über Funk hat der Nachtrag nicht verlangt:
+die Schleife von `laufen` ist unberührt, und er steht in D637 Befund 3.
+
+**Befund 3 — was der Strang gebracht hat.** Über die Takte 0 bis 4 bei 1200 bit/s auf `main` vor
+dem Strang 109,6 kB und 176 s Sendezeit des aktivsten Geräts (D635 Befund 1); mit dem Rundruf in
+vier Läufen 27,8 bis 36,8 kB und 47 bis 73 s (D635 Befund 4, D636 Befund 3, D637 Befund 3). Im Band
+mit 10 % sind das statt eines Wahlgangs je Stunde rechnerisch vier bis sieben, unter der Annahme
+aus D630 Beschluss 4 und ohne Kollisionen (D630 Beschluss 5).
+
+**Beschluss 1 — angenommen.** `p51-rundruf` wird nach `main` vorgespult. D584 Beschluss 2 gilt in
+der Fassung von D636 Beschluss 1.
+
+**Beschluss 2 — O103 ist erledigt.** `offen.md` trägt die Schliessform. Es bleiben 17 offene
+Posten.
+
+**Beschluss 3 — was bleibt, ohne Auftrag.** Rundruf und IFAC zusammen, und der Rundruf unter
+Kollisionen: beides mit den T-Beams (D636 Beschluss 7). Ein wiederholt abgespielter Rundruf zählt
+gegen die Grenze seines Absenders. Dass der Hörer das Nachholen ruft, prüft kein Test. Ein Eintrag
+über 384 Byte im Bündel geht nie als Rundruf. Weniger Runden im Abgleich bleibt der kleinere Hebel
+(D636 Beschluss 6). Entsteht ein Eintrag im Takt einer Trennung, bringt ihn das Holen (D637
+Beschluss 2).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

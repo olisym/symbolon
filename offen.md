@@ -474,11 +474,9 @@ Gründung und Beitritt (D606).
 IFAC am Funk-Interface mit zufälliger Passphrase, als Regel des Betriebs, nicht der Norm (D628,
 D629).
 
-### O103 Rundruf auf knappem Funk
+### O103 Rundruf auf knappem Funk — erledigt (D638)
 
-Gemessen und nicht gebaut: spart Bytes, nicht Zeit (D622). Vertagt mit Bedingung: wird an den
-T-Beams die Sendezeit nach Duty Cycle knapp (D609), kommt er in der Form aus D622 zurück, mit
-Prüfung des Absenders und Wiederholung über den Link.
+Der Bote sendet eigene neue Einträge einmal als Rundruf; ein Drittel der Sendezeit (D635 bis D638).
 
 ### O104 Anfragen über den Link scheitern unter Verlust
 

@@ -28389,3 +28389,55 @@ wie drei Menschen an einem Knoten je ihren Schlüssel halten (D640 Befund 9). Pr
 im Klon gegen den echten Knoten, dann Olis Durchlauf (D490).
 
 **Geändert.** `07-decisions.md`.
+
+### D643 — Schluss der Sitzung `00da`: die Seite im Browser gesehen; Schritt 2 als Nächstes
+
+**Anlass.** `p52-gruenden` ist auf `main` (D642). Oli wählt für den Durchlauf drei Profile statt
+eines Umschalters und fragt nach vorhandenen Werkzeugen dafür. Seine Regel für die weitere
+Arbeit: was automatisch laufen kann, läuft vorher; er ist die Prüfinstanz dafür, ob ein Mensch es
+so benutzen kann, und braucht erst dann etwas zum Klicken.
+
+**Befund 1 — Playwright läuft im Supervisor-Klon.** `pip install playwright`, dann
+`python3 -m playwright install firefox` (Firefox 142.0.1, rund 97 MiB). Drei Browser Contexts
+gegen einen frischen Knoten: jeder legte einen Schlüssel mit Namen an, `/names` nannte danach
+drei Personen, keine davon simuliert, kein Fehler der Seite. Ein Context hat eigenes IndexedDB
+und ist damit ein Gerät. Die Seite ist so zum ersten Mal gerendert gesehen, als Bildschirmfoto.
+
+**Befund 2 — der leere Knoten im Browser.** D640 Befund 3 bestätigt: nach dem Anlegen des
+Schlüssels „Nichts. Sobald etwas ansteht, steht es hier.“ und „Kein Verein.“. Neu: die Regie
+zeigt „Die Geschichte“ der Demonstration (CHRIS bürgt für dich, ANNA beantragt deine Aufnahme) auch
+auf einem Knoten, der diesen Verein nicht hat.
+
+**Befund 3 — wer einlädt, steht nirgends.** Ein Genesis trägt keine Unterschrift (D641
+Beschluss 3). Brunos Bildschirm aus dem Bild („Anna lädt dich ein“) kann die Seite so nicht
+sagen; sie sieht nur, wer schon bestätigt hat.
+
+**Nachgeschlagen.** Für den Durchlauf von Hand: Firefox Multi-Account Containers, je Container
+eigenes localStorage und IndexedDB, als farbige Tabs in einem Fenster; mit unserer Seite nicht
+ausprobiert. Für Tests: „Browser Contexts“ in Playwright, das Muster heisst dort Tests mit
+mehreren Nutzern. Ein Kontenwechsler in der Seite nach Art einer Wallet wäre ein Bau nur für die
+Demonstration.
+
+**Beschluss 1 — Olis Rolle im Durchlauf (Oli).** Der Supervisor fährt jeden Schritt an der Seite
+vorher im Browser, mit einem Context je Person, und liest die Bildschirmfotos. Oli bekommt einen
+Durchlauf, wenn die Frage ist, ob ein Mensch es benutzen kann. Das schärft D490, es ersetzt es
+nicht.
+
+**Beschluss 2 — drei Profile, kein Umschalter (Oli).** Für Oli die Container, sonst getrennte
+Profile. Playwright kommt nicht in `make check`; es bleibt ein Werkzeug des Supervisors, bis es
+sich bewährt hat.
+
+**Beschluss 3 — Schritt 2, Positionen für den Auftrag der nächsten Sitzung.** Die Felder sind im
+ersten Wurf Text (D641 Beschluss 6 bleibt offen). Wer gründet, ruft `/gruenden` und unterschreibt
+im selben Zug seine `accept-rules`. Die Mitgründer kommen aus dem Adressbuch des Knotens. Brunos
+Bildschirm nennt die Gründer und wer schon bestätigt hat, keinen Einladenden (Befund 3). „In
+Gründung“ und „Der Verein besteht“ sind Regeln der Seite: der Verein besteht für sie, wenn alle
+Gründer bestätigt haben. „Die Geschichte“ steht nur dort, wo es simulierte Personen gibt. Nichts
+davon ist gebaut oder von Oli gesehen.
+
+**Beschluss 4 — der nächste Schritt.** Die Seite ganz lesen (`app.js`, `anzeige.js`,
+`geraet.js`, `selbsttest.js`, `style.css`), den Prototyp zu Schritt 2 im Klon gegen den echten
+Knoten bauen, mit drei Contexts durchklicken, dann Auftrag und Olis Durchlauf.
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00db.md` neu, `sitzungsstart-00da.md` nach
+`archiv/`.

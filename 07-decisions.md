@@ -28097,3 +28097,39 @@ gegen die Grenze seines Absenders. Dass der Hörer das Nachholen ruft, prüft ke
 Beschluss 2).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D639 — Schluss `00cz`: der Funk ruht, als Nächstes die Gründung
+
+**Anlass.** Olis Wahl am Ende von `00cz`, nach D638. T-Beams sind nicht da, und wann welche kommen,
+ist offen. Oli fragte nach drei Wegen: am Verein weiter, ein anderes Beispiel, oder
+kryptografische Konzepte als Werkzeuge ansehen.
+
+**Beschluss 1 — der Funk ruht.** O97 Stufe 5 wartet auf die Hardware. Was ohne sie zu tun war, ist
+mit D638 getan; O104 und die Reste aus D638 Beschluss 3 beantwortet nur echter Funk.
+
+**Beschluss 2 — die Reihenfolge.** Zuerst die Gründung eines Vereins als Bestandsaufnahme ohne
+Bau: eine Gründung über die Schnittstelle fahren, so weit sie heute geht, und aufschreiben, wo sie
+abbricht; sie nimmt O101, Vorlagen und Feldtypen mit. Danach ein zweites Beispiel als zweite
+Vorlage. Der Verlust eines Schlüssels (O25, die kalte Wurzel, verteilte Verwahrung) wird ein
+eigener Strang, sobald die Gründung ihn aufwirft. Das ändert die Reihenfolge aus D606 Beschluss 3:
+die Gründung wartet nicht mehr auf die T-Beams.
+
+**Beschluss 3 — verworfen.** Kryptografische Werkzeuge auf Vorrat: ein Werkzeug ohne Anlass ist
+unbegründete Normativität; O25 steht aus diesem Grund seit D120 ungebaut. Ein zweites Beispiel vor
+der Gründung: es hiesse, ein zweites Werkzeug wie `tools/verein_node.py` von Hand zu bauen; nach
+der Gründung ist es eine Vorlage.
+
+**Beschluss 4 — Stand.** Der Rundruf an der Quelle gemessen, gebaut und angenommen (D635 bis D638).
+1554 Tests, der Selbsttest 241 Fälle, Register D1–D639, `offen.md` 104 Posten, davon 17 offen: O97,
+O100, O101, O104 und 13 Wartestände.
+
+**Beschluss 5 — Prüfregel-Kandidaten.** Aus dieser Sitzung, im Sitzungsstart geführt und nicht
+übernommen: ein Auftrag nennt jede Stelle, an der eine Ausnahme auftreten kann (D637); ein
+Prototyp wird ab dem kalten Start gemessen (D635 Befund 5); Zahlen aus einem Lauf werden bis zum
+selben Schnitt gezählt (D635 Befund 8).
+
+**Beschluss 6 — Sitzungsschluss.** `sitzungsstart-00da.md` trägt Stand, die Arbeitsweise mit der
+Einheit der Kosten vor der Wahl des Wegs, und die Gründung als nächsten Schritt;
+`sitzungsstart-00cz.md` geht nach `archiv/` (D314).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00da.md`, `archiv/sitzungsstart-00cz.md`.

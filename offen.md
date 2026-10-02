@@ -485,6 +485,6 @@ Prüfung des Absenders und Wiederholung über den Link.
 Bei 1200 bit/s und 5 % Verlust scheiterte im Lab jede sechste Anfrage, jede nach mindestens 60 s,
 eine nach 250 s; auch gelungene brauchten oft 80 s (D623 Befund 4). Die Zeit bis zum gleichen Stand
 hängt daran. Zuerst messen, woran (Aufbau des Links, Wiederholung, Frist), dann die T-Beams.
-Enger seit D627: Anfragen auf lokal aktiven Links bleiben dreimal ohne Antwort. Kandidat aus D629
-Befund 8: ein verlorenes `LRRTT` lässt den Antwortenden im `HANDSHAKE`; belegt im Quelltext, nicht
-gemessen.
+Gemessen in D630: jede Anfrage, die an der Antwortfrist scheitert, liegt auf einem Link, dessen
+`LRRTT` verloren ging; die Reparatur wird gebaut (D630 Beschluss 1). Offen bleiben die gehäuft
+scheiternden Aufbauten (D627 Befund 3, D630 Befund 2).

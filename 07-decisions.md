@@ -27671,3 +27671,66 @@ Quelltext steht und nicht in ihrer Dokumentation, wird als solche benannt; sie k
 Ankündigung ändern (Befund 2).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D630 — O104: das verlorene `LRRTT` ist gemessen; Sendezeit je Gerät; nur das Band mit 10 %
+
+**Anlass.** D629 Beschluss 4, Messungen (1) und (2). Fünf Läufe `--wahlgang --funk` auf `5791884`,
+sechs Geräte, 1200 bit/s, 5 % Verlust, je 900 s, über Claude Code in der Cloud (D627 Beschluss 2).
+Der Diagnose-Patch schreibt im Kanal eine Zeile je Paket (Sender, Art, Ziel, wer es hörte) und im
+Boten je Link, ob er beim Anfragenden und beim Antwortenden aktiv wurde und ob der Antwortende
+eine Anfrage verwarf. Gelesen ist die vollständige Ausgabe von `auswert.py`. Alle fünf Läufe
+zählen (Takt 0 lief, 402 bis 466 Pakete).
+
+**Befund 1 — jede Anfrage, die an der Antwortfrist scheiterte, lag auf einem einseitigen Link.**
+580 Anfragen, 3 an der Frist (lauf2 einmal, lauf4 zweimal), jede nach 120,0 s und drei Sendungen.
+Bei allen dreien war der Antwortende nie aktiv, er verwarf die Anfragen (3, 2 und 3), und der
+Kanal zeigt das `LRRTT` dieses Links als beim Antwortenden verloren. Von 92 Links, die beim
+Anfragenden aktiv wurden, waren 3 einseitig; andere einseitige gab es nicht. Der Weg aus D629
+Befund 8 ist damit gemessen; er erklärt die Fälle aus D627 Befund 2.
+
+**Befund 2 — der Aufbau.** 107 Linkanfragen, 96 kamen an, 92 wurden beim Anfragenden aktiv, 15
+scheiterten nach 15 s (D625). 11 fehlende Ankünfte sind mehr, als 5 % Verlust erwarten lassen;
+ob der Kanal sie verlor oder der Antwortende sie abwies, zeigt die Auswertung nicht.
+
+**Befund 3 — Wiederholungen tragen.** 62 Anfragen brauchten zwei Sendungen, 9 drei; ausser den
+dreien aus Befund 1 kam jede an.
+
+**Befund 4 — Sendezeit je Gerät.** Bis zum ersten gleichen Stand (nach 255 bis 337 s) sendete ein
+Gerät 14 bis 89 s; in jedem Lauf lagen zwei bis vier der sechs Geräte über 36 s. Über den ganzen
+Lauf von rund 860 s, das sind die Takte 0 bis 4, waren es 51 bis 178 s je Gerät, am meisten bei
+Annas und Chris' Gerät. Der Kanal war zu 61 bis 71 % belegt, ein Paket wartete im Mittel 2,2 bis
+3,0 s, höchstens 16 s.
+
+**Befund 5 — wohin die Bytes gehen.** Je Lauf 79 bis 92 kB. In lauf1: Antworten 47 %, Anfragen
+22 %, Resources 13 %, Ankündigungen 10 %, Aufbau der Links 6 %. Die übrigen Läufe liegen nah daran.
+
+**Befund 6 — die Abbauzeilen tragen nichts.** Die meisten entstehen beim Beenden des Laufs, und
+wie viele noch geschrieben werden, hängt am Zeitpunkt.
+
+**Beschluss 1 — O104: die Reparatur wird gebaut.** Bleibt die erste Anfrage auf einem Link ohne
+Antwort, baut der Bote den Link ab und einen neuen auf, statt auf demselben zu wiederholen. Ein
+Link, der schon einmal geantwortet hat, wiederholt wie bisher (D591, D625); ihn trifft Befund 1
+nicht. Die Form wird am Prototyp gemessen, dann folgt der Auftrag. Das ändert D627 Beschluss 1:
+dieser Teil von O104 wartet nicht auf die T-Beams. Offen bleiben die Aufbauten aus Befund 2.
+
+**Beschluss 2 — verworfen: jede Wiederholung über einen neuen Link.** Von 71 Anfragen mit einer
+Wiederholung kamen 68 auf demselben Link an (Befund 3); ein neuer Link kostet drei Pakete und rund
+290 Byte.
+
+**Beschluss 3 — die Bänder mit 1 % scheiden aus.** Schon der erste Abgleich kostet mehrere Geräte
+mehr als 36 s (Befund 4). Für den Funk bleibt 869,4 bis 869,65 MHz mit 10 %, also 360 s je Stunde;
+`airtime_limit_long = 10` am RNode (D629 Befund 9).
+
+**Beschluss 4 — O103 bleibt vertagt, die Bedingung rückt näher.** D629 Beschluss 4 nannte als
+Grenze die Sendezeit je Stunde. Hochgerechnet läge sie für die beiden aktivsten Geräte über 360 s;
+die Rechnung unterstellt aber Takt auf Takt ohne Pause, und so stimmt kein Verein ab. Ein Wahlgang
+passt in eine Stunde, zwei nicht sicher. Vor den T-Beams wird der Rundruf nach der Reparatur neu
+bewertet, an den Anteilen aus Befund 5.
+
+**Beschluss 5 — was der Kanal nicht zeigt.** Bei 61 bis 71 % Belegung ohne Kollisionen ist das Lab
+freundlicher als LoRa (D627 Beschluss 1). Die Zeiten bis zum gleichen Stand gelten nur im Lab.
+
+**Beschluss 6 — Prüfregel-Kandidat.** Eine Entscheidungsregel, die eine Messung hochrechnet,
+nennt die Annahme der Hochrechnung, bevor gemessen wird (aus Beschluss 4).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

@@ -27470,3 +27470,48 @@ die Streuung sagt er nichts (D390).
 Beschluss 4).
 
 **Geändert.** `07-decisions.md`.
+
+### D627 — O104: Streuung nach `p48` und `p49` gemessen, kein Stillstand; Messung in der Cloud
+
+**Anlass.** D626 Beschluss 1, Olis Wahl in `00cx`: erst die Streuung, dann die T-Beams. Die Läufe
+fuhr Claude Code in der Cloud mit einem Messpaket (Auftrag, Diagnose-Patch, Skripte für Lauf,
+Wächter und Auswertung), hochgeladen als Bündel des lokalen Klons (`CCR_FORCE_BUNDLE=1 claude
+--cloud`); kein Commit, kein Push. Gelesen ist die vollständige Ausgabe von `auswert.py` für fünf
+Läufe.
+
+**Befund 1 — kein Stillstand.** Fünf Läufe auf `00fa204`, `--wahlgang --funk`, sechs Geräte, 1200
+bit/s: gleicher Stand nach Takt 0 nach 341,9 s, 310,2 s, 273,1 s, 383,5 s und 272,4 s, mit 165 bis
+184 Paketen und 29,2 bis 34,1 kB. Kein Lauf blieb stehen. Die Läufe vor `p48` (D623 Befund 5) liefen
+in der Sandbox des Supervisors, auf anderer Hardware; ihre Zeiten sind mit diesen nicht
+vergleichbar, die Stillstände schon.
+
+**Befund 2 — was noch scheitert.** 248 Anfragen, davon 17 mit gescheitertem Aufbau des Links und 4
+an der Antwortfrist. Ein gescheiterter Aufbau kostet jetzt 15 s (D625 Beschluss 1). Die Antwortfrist
+kostet 122 bis 133 s nach drei Sendungen, der Link steht dabei lokal auf `ACTIVE`, die Quittung auf
+`SENT`. Diese vier Fälle erklären die Rückstände einzelner Geräte von 100 bis 140 s (lauf1: Doras
+Gerät ab t=188; lauf4: Doras Zweitgerät ab t=152).
+
+**Befund 3 — die Fehlschläge hängen zusammen.** Gescheiterte Aufbauten treffen oft dasselbe Ziel von
+zwei Geräten zur selben Zeit (lauf3 t=43, lauf4 t=124 und 125, lauf5 dreimal dasselbe Ziel). Drei
+Sendungen hintereinander ohne Quittung sind bei 5 % Verlust je Paket unwahrscheinlich, wenn die
+Verluste unabhängig sind. Naheliegend ist ein voller Kanal oder ein Ziel, das gerade selbst lange
+sendet; die Laufzeit der Links reichte bis 15 s. Gemessen ist das nicht.
+
+**Befund 4 — die Cloud als Messplatz.** Der Ablauf trug: Prüfung des Commits, Patch, Installation
+von `rns 1.5.4`, fünf Läufe ohne Wiederholung, Ausgabe im Chat. Ein Widerspruch fiel auf:
+`AGENTS.md` §5 verlangt einen Commit, der Auftrag keinen; die Sitzung folgte nach §1 dem Auftrag.
+
+**Beschluss 1 — O104 bleibt offen, enger gefasst.** Offen ist, warum eine Anfrage auf einem lokal
+aktiven Link dreimal ohne Quittung bleibt und warum Aufbauten gehäuft scheitern. Das wird vor den
+T-Beams nicht weiter verfolgt: der simulierte Kanal modelliert weder Halbduplex noch Kollisionen,
+und ob der Befund auf echtem LoRa besteht, zeigen erst die T-Beams.
+
+**Beschluss 2 — Messungen über die Cloud.** Läufe, die lange dauern und nichts entscheiden, gehen
+als Messpaket an Claude Code in der Cloud, mit Bündel statt GitHub. Das Paket nennt den Commit,
+wendet nur Diagnosezeilen an und gibt seine Auswertung unverändert zurück; gedeutet wird hier. Ein
+Messauftrag sagt ausdrücklich, dass `AGENTS.md` §5 für ihn nicht gilt.
+
+**Beschluss 3 — was folgt.** Die T-Beams (O97, Schritt 5) mit Olis Entscheidung zu O102. Vorher die
+Grenzen der Sendezeit auf 868 MHz nach ETSI (D609).
+
+**Geändert.** `07-decisions.md`.

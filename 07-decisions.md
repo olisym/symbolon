@@ -27879,3 +27879,151 @@ erzwungenem Fall und Entscheidungsregel vor der Messung, und den Rundruf als nä
 `sitzungsstart-00cy.md` geht nach `archiv/` (D314).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00cz.md`, `archiv/sitzungsstart-00cy.md`.
+
+### D635 — O103: wo die Bytes liegen; der Rundruf an der Quelle gemessen, ein Drittel der Sendezeit
+
+**Anlass.** D634 Beschluss 1, D630 Beschluss 4. Vorher gesucht (D527) mit Rundruf, `PLAIN`,
+schieben und Sendezeit: D584, D617, D622, D629, D630. Gelesen auf `e40cfef`:
+`symbolon/bote/draht.py`, `kern.py`, `reticulum.py`, der Ablauf in `rbsr.py`, `tools/funk.py`.
+Gemessen im Klon des Supervisors mit `rns 1.5.4`: `--wahlgang --funk`, sechs Geräte, 1200 bit/s,
+5 % Verlust. Der Kanal schrieb eine Zeile je Paket, der Bote je Anfrage die Kennung des Links und
+den Pfad; die Auswertung verbindet beides über die Kennung des Links.
+
+**Befund 1 — die Anteile auf `main`.** Ein Lauf, 956 s, fünfmal gleicher Stand, 109,6 kB in 573
+Paketen. `abgleich` 48,0 % (Antworten 32,6 %, Anfragen 15,4 %); `paket` 33,6 % (Antworten 12,6 %,
+Resources 13,4 %, Anfragen 6,7 %, Quittungen 0,9 %); Aufbau der Links 9,5 %; Ankündigungen 8,9 %.
+Antworten zusammen 45,2 %, Anfragen 22,1 %, nah an D630 Befund 5; die Zuordnung trägt. Sendezeit je
+Gerät 71 bis 176 s.
+
+**Befund 2 — die Einheit der Kosten ist ein Holen je Eintrag je Gerät.** 42 Holen, 40 brachten
+etwas, 2 endeten getrennt; 35 brachten genau einen Eintrag. Ein Holen brauchte 2 Runden Abgleich
+(22-mal), 3 (17-mal) oder 4 (2-mal), je Runde rund 450 Byte auf dem Kanal (Anfrage im Mittel 139,
+Antwort 311), dazu `paket` mit rund 160 Byte Anfrage und 450 Byte Antwort. Ein Claim von rund
+300 Byte kostet so je Gerät rund 2 kB, und jedes der fünf anderen Geräte zahlt das einzeln.
+
+**Befund 3 — drei Wege, an dieser Einheit gemessen.** (a) Weniger Runden im Abgleich: bestenfalls
+3 auf 2, rund 450 von 2000 Byte je Holen; geschätzt, nicht gemessen. (b) Der Rundruf als Antwort
+auf `paket` (D622): dort ein Viertel bis ein Drittel der Bytes, in der Form (c) aus D622 kaum
+etwas. Er entsteht erst, nachdem der erste Nachbar Abgleich und Link bezahlt hat, und die anderen
+fragen daneben. (c) Der Rundruf an der Quelle: wer einen Eintrag erzeugt, sendet ihn einmal; wer
+ihn hört, hat danach denselben Stand und holt nicht. D634 Beschluss 1 fragte nach (a) und (b); die
+Frage war zu eng geschnitten.
+
+**Beschluss 1 — die Regel vor der Messung.** Oli erlaubt, (c) zu messen, obwohl es D584
+Beschluss 2 berührt. Gebaut wird nur bei Lebendigkeit in jedem Lauf und einer Sendezeit des
+aktivsten Geräts unter der Hälfte von `main` über die Takte 0 bis 4; sonst bleibt O103 vertagt. Die
+Hochrechnung davor (drei Pakete statt rund 15 Holen in Takt 0) unterstellte, dass fünf von sechs
+Geräten jeden Rundruf hören.
+
+**Befund 4 — der Prototyp.** Der Bote sendet, was im eigenen Knoten neu entstand, einmal als
+`PLAIN`-Paket mit Adresse, Signatur und Bündel; angenommen wird von einem Nachbarn aus `quellen`,
+der nicht gesperrt ist und dessen Signatur gilt. Zwei Läufe, je bis zum fünften gleichen Stand:
+35,4 kB in 171 Paketen nach 553 s und 27,8 kB in 136 Paketen nach 382 s. Sendezeit des aktivsten
+Geräts 53,5 s und 47,1 s gegen 176 s auf `main`. 10 und 8 Holen statt 42. Je Lauf 15 Rundrufe mit
+6,3 kB, darüber 35 und 37 Zustellungen; 35 und 33 Rundrufe gesperrter Absender verwarfen die Geräte
+während der Spaltung. Kein Stillstand. Die Regel aus Beschluss 1 ist erfüllt.
+
+**Befund 5 — der Kaltstart.** Vor der ersten Ankündigung kennt ein Gerät den Schlüssel des
+Absenders nicht (`RNS.Identity.recall` gibt nichts). Im ersten Versuch waren darum alle Rundrufe
+aus Takt 0 verloren; dieser Lauf zählt nicht. Der Prototyp hält solche Rundrufe und prüft sie, wenn
+die Ankündigung kommt (18 und 17 gehaltene je Lauf).
+
+**Befund 6 — was die Messung nicht zeigt.** Zwei Einträge je Lauf passten nicht in ein Paket (503
+und 504 Byte gegen 464) und gingen über das Holen. Der Kanal kennt keine Kollisionen (D630
+Beschluss 5), und ein Rundruf hat keine Quittung. Alle sechs Geräte hören einander; `PLAIN` geht
+einen Sprung (D629 Befund 11). `main` ist ein Lauf und bis 956 s gezählt, nicht bis zum fünften
+gleichen Stand geschnitten; bei diesem Abstand nicht wiederholt (D630 Befund 4 mass 51 bis 178 s).
+Rundruf und IFAC zusammen sind nicht gemessen.
+
+**Befund 7 — Olis Frage nach `GROUP`.** `GROUP` beantwortet, wer mitliest; das hat D629 mit IFAC
+entschieden, und IFAC maskiert auch ein `PLAIN`-Paket. Ob ein Bote ungefragt sendet, entscheidet
+MaR, nicht Reticulum. Ein Claim mit der Signatur des Boten passt nicht in ein `GROUP`-Paket (D622
+Befund 2).
+
+**Befund 8 — eine Berichtigung im Gespräch.** Die Zahlen der Zustellungen und Holen, die der
+Supervisor Oli zuerst nannte (42 und 45, 14 Holen), waren über den ganzen Lauf gezählt, nicht bis
+zum Schnitt. Es gelten die Zahlen aus Befund 4.
+
+**Beschluss 2 — gebaut wird der Rundruf an der Quelle.** Olis Entscheidung. Die Prüfung des
+Absenders deckt Fremde und Wiederholtes; gegen den erlaubten Absender selbst braucht es eine Grenze
+je Absender. Regel, Form und Auftrag stehen in D636.
+
+**Geändert.** `07-decisions.md`.
+
+### D636 — Der Rundruf an der Quelle: Regel, Form, Annahme, Grenze; ändert D584 Beschluss 2
+
+**Anlass.** D635 Beschluss 2. Der Bau ist im Klon des Supervisors als Prototyp in der Form des
+Auftrags entstanden, mit den Tests in der Fassung des Auftrags, und über Funk gemessen.
+
+**Befund 1 — die Grenze, gemessen.** In den beiden Läufen aus D635 Befund 4 sendete ein Gerät
+höchstens 3 Rundrufe in 60 s, 6 in 300 s und 7 in 600 s.
+
+**Befund 2 — getrennt entstanden.** Entsteht ein Eintrag, während der eigene Knoten getrennt ist,
+liest der Bote den Bestand nicht. Im ersten Entwurf ging der Eintrag dann erst mit dem nächsten
+eigenen hinaus, nachdem der Nachbar ihn schon geholt hatte; `test_zwei_boten` zeigte es.
+
+**Befund 3 — die Auftragsfassung über Funk.** Ein Lauf, `--wahlgang --funk`, 1200 bit/s, bis zum
+fünften gleichen Stand nach 461 s: 36,8 kB in 169 Paketen, Sendezeit des aktivsten Geräts 61,8 s,
+15 Rundrufe mit 6,3 kB, 35 Zustellungen darüber, 9 Holen, kein Stillstand. Die Rundrufe aus Takt 0
+kamen 40 s nach dem Takt an, mit der ersten Ankündigung: das Halten und Nachholen greift im Lauf.
+
+**Befund 4 — die Tests.** Zwölf neue Tests in `tests/bote/test_rundruf.py`, `test_zwei_boten`
+erweitert; die Testreihe des Prototyps mit 1553 bestanden, Lint grün. 22 Rücknahmeproben gegen die
+Tests in der Fassung des Auftrags, jede an einem Test rot.
+
+**Beschluss 1 — die Regel.** Der Bote sendet, was im eigenen Knoten neu entstand, einmal an alle,
+als Paket an das Ziel `symbolon.rundruf` vom Typ `PLAIN`. Alles andere holt er wie bisher; Abgleich,
+`paket` und Trickle bleiben unverändert und reparieren, was ein Rundruf nicht erreicht. Das ändert
+D584 Beschluss 2: ein Bestand ändert sich weiter nur über den eigenen Boten, aber der nimmt jetzt
+auch an, was er nicht angefragt hat, und sendet Eigenes ungefragt, einmal und in begrenzter Zahl.
+Es ist eine Regel des Boten; keine Layer-Datei ändert sich.
+
+**Beschluss 2 — was eigen und neu ist.** Neu ist ein Eintrag, der im Bestand des Knotens steht, im
+zuletzt gelesenen Bestand nicht stand und nicht über diesen Boten eingeliefert wurde, geholt oder
+gehört. Der erste gelesene Bestand ist nicht neu. Ein neuer eigener Stand ist der Anlass; ist der
+Knoten getrennt, bleibt der Anlass stehen, bis der Bestand lesbar ist (Befund 2). Gehörtes und
+Geholtes sendet der Bote nicht weiter; über mehr als einen Sprung trägt das Holen.
+
+**Beschluss 3 — die Form.** Die Adresse des sendenden Boten (16 Byte), eine Signatur seiner
+Identität (64 Byte) über die Marke `symbolon-rundruf-1` und das Bündel, dann das Bündel in der Form
+aus D614. Für das Bündel bleiben 384 Byte (`PLAIN_MDU` 464 weniger 80). Passt alles Neue in ein
+Bündel, geht eines; sonst je Eintrag eines, Objekte vor Claims. Ein Eintrag, der allein nicht
+passt, wird nicht gesendet; ihn bringt das Holen (D635 Befund 6).
+
+**Beschluss 4 — die Annahme.** Angenommen wird nur von einer Adresse aus `quellen`, die nicht
+gesperrt ist (D594 Beschluss 3; bei formwidriger Sperrliste von niemandem), mit einer Signatur, die
+gegen den Schlüssel gilt, den Reticulum aus der Ankündigung dieser Adresse kennt. Ist der Schlüssel
+noch nicht bekannt, wird der Rundruf gehalten, höchstens 16 im ganzen, und bei der nächsten
+Ankündigung des Absenders geprüft (D635 Befund 5). Alles andere wird still verworfen, auch ein
+formwidriges Bündel. Was angenommen ist, wird eingeliefert wie ein geholtes Bündel; über den
+einzelnen Eintrag urteilt der Knoten (D614).
+
+**Beschluss 5 — die Grenze je Absender.** Höchstens 16 Rundrufe je Absender in jedem Fenster von
+zehnmal `imin`, bei 1200 bit/s 600 s; das Doppelte des gemessenen Höchstwerts (Befund 1). Sie gilt
+beim Empfang nach der Prüfung der Signatur und für den Sender selbst; was darüber liegt, bringt das
+Holen. Die Prüfung des Absenders hält Fremde fern, die Grenze den erlaubten Absender: ohne sie
+bestimmte er, wie schnell sich die Speicher der anderen füllen (D622 Befund 1). Gegen belegte
+Sendezeit hilft keine Regel im Boten; das kann jeder Störsender.
+
+**Beschluss 6 — verworfen.** (a) Der Rundruf als Antwort auf `paket`: D622, D635 Befund 3.
+(b) Weniger Runden im Abgleich: der kleinere Hebel, D635 Befund 3; nicht ausgeschlossen, aber ohne
+Anlass. (c) `GROUP` statt `PLAIN`: D635 Befund 7. (d) Ohne Signatur des Boten: jeder im Netz
+könnte unter fremder Adresse senden und Sperre und Grenze umgehen. (e) Gehörtes weitersenden: eine
+Flut ohne Ende (L8), und das Holen trägt es schon. (f) Die Signatur nur über das Bündel: sie gälte
+dann auch für anderes, das dieselbe Identität je signiert.
+
+**Beschluss 7 — bekannt und so gelassen.** Ein wiederholt abgespielter Rundruf trägt eine gültige
+Signatur und zählt gegen die Grenze seines Absenders; im schlimmsten Fall holen die Geräte wieder
+wie vor diesem Eintrag. Ein schon bekannter Eintrag zählt in der Zeile als geholt, weil der Knoten
+ihn annimmt. Dass der Hörer der Ankündigungen das Nachholen ruft, prüft kein Test; es zeigt der
+Lauf über Funk in Takt 0 (Befund 3), und die Abnahme fährt ihn. Rundruf und IFAC
+zusammen werden mit den T-Beams gemessen. Kollisionen kennt der Kanal nicht (D630 Beschluss 5).
+
+**Beschluss 8 — O103.** Der Posten bleibt offen bis zur Abnahme; seine Bedingung (D622
+Beschluss 2, D630 Beschluss 4) ist eingetreten, die Form ist eine andere als dort genannt.
+
+**Beschluss 9 — Auftrag `p51-rundruf`.** Der Rundruf ohne Transport in `symbolon/bote/kern.py`,
+die Bindung in `symbolon/bote/reticulum.py`, die Tests als Diff. Vor der Abnahme fährt der
+Supervisor den Lauf aus Befund 3 auf dem Branch.
+
+**Geändert.** `07-decisions.md`.

@@ -280,13 +280,16 @@ def _gut(dauer: float = 0.05) -> _Quittung:
 
 
 def _nachbar(link: _Folge, zeit: Zeiten | None = None) -> reticulum.RnsNachbar:
+    """Ein Nachbar, dessen Link schon einmal geantwortet hat (D631 Beschluss 1)."""
     nachbar = reticulum.RnsNachbar(bytes(16), zeit)
     nachbar._link = link
+    nachbar._beantwortet = link
     return nachbar
 
 
 def test_erneut_nach_verlust(monkeypatch) -> None:
-    """Bleibt eine Anfrage unzugestellt, geht sie erneut, auf demselben Link (D591)."""
+    """Bleibt eine Anfrage unzugestellt, geht sie erneut; auf einem Link, der schon geantwortet
+    hat, auf demselben (D591, D631)."""
     monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
     link = _Folge([_verloren(), _gut()])
     begun = time.monotonic()
@@ -379,3 +382,117 @@ def test_geschlossener_link_sofort_getrennt(monkeypatch) -> None:
     with pytest.raises(Getrennt):
         nachbar.bestand()
     assert time.monotonic() - begun < 1.0
+
+
+def _frisch(link: _Folge, zeit: Zeiten | None = None) -> reticulum.RnsNachbar:
+    """Ein Nachbar, dessen Link noch nie geantwortet hat (D631 Beschluss 1)."""
+    nachbar = reticulum.RnsNachbar(bytes(16), zeit)
+    nachbar._link = link
+    return nachbar
+
+
+def _aufbau(monkeypatch, links: list) -> None:
+    """``RNS.Link(ziel)`` liefert der Reihe nach die gegebenen Links, ohne RNS."""
+
+    class _Fabrik:
+        ACTIVE = RNS.Link.ACTIVE
+        CLOSED = RNS.Link.CLOSED
+
+        def __new__(cls, _ziel):
+            return links.pop(0)
+
+    monkeypatch.setattr(reticulum.RNS.Transport, "has_path", lambda _ziel: True)
+    monkeypatch.setattr(reticulum.RNS.Identity, "recall", lambda _ziel: object())
+    monkeypatch.setattr(reticulum.RNS, "Destination", _Ausgang)
+    monkeypatch.setattr(reticulum.RNS, "Link", _Fabrik)
+
+
+def test_frischer_link_ohne_antwort_neu(monkeypatch) -> None:
+    """Bleibt die Anfrage auf einem Link ohne Antwort, der noch nie geantwortet hat, wird er
+    abgebaut, und sie geht über einen neuen (D631 Beschluss 1)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    erster = _Folge([_verloren(), _verloren(), _verloren()])
+    zweiter = _Folge([_gut()])
+    uebrig = [zweiter]
+    _aufbau(monkeypatch, uebrig)
+    nachbar = _frisch(erster)
+    begun = time.monotonic()
+    assert nachbar.bestand() == ([], [])
+    assert time.monotonic() - begun < 1.0
+    assert erster.anfragen == 1
+    assert erster.abgebaut
+    assert zweiter.anfragen == 1
+    assert not zweiter.abgebaut
+    assert nachbar._link is zweiter
+    assert uebrig == []
+
+
+def test_link_mit_antwort_wiederholt_auf_demselben(monkeypatch) -> None:
+    """Hat ein Link einmal geantwortet, geht eine unzugestellte Anfrage auf ihm erneut; kein
+    neuer Link wird aufgebaut (D591, D631 Beschluss 1)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    link = _Folge([_gut(), _verloren(), _gut()])
+    ersatz = _Folge([_gut()])
+    uebrig = [ersatz]
+    _aufbau(monkeypatch, uebrig)
+    nachbar = _frisch(link)
+    assert nachbar.bestand() == ([], [])
+    assert nachbar.bestand() == ([], [])
+    assert link.anfragen == 3
+    assert not link.abgebaut
+    assert ersatz.anfragen == 0
+    assert uebrig == [ersatz]
+
+
+def test_neuer_link_ist_wieder_frisch(monkeypatch) -> None:
+    """Auch der neue Link hat noch nie geantwortet: bleibt er ohne Antwort, folgt ein dritter
+    (D631 Beschluss 1)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    erster = _Folge([_verloren(), _verloren(), _verloren()])
+    zweiter = _Folge([_verloren(), _verloren()])
+    dritter = _Folge([_gut()])
+    _aufbau(monkeypatch, [zweiter, dritter])
+    nachbar = _frisch(erster)
+    assert nachbar.bestand() == ([], [])
+    assert (erster.anfragen, zweiter.anfragen, dritter.anfragen) == (1, 1, 1)
+    assert erster.abgebaut and zweiter.abgebaut and not dritter.abgebaut
+    assert nachbar._link is dritter
+
+
+def test_frist_ab_erster_anfrage_ueber_neue_links(monkeypatch) -> None:
+    """Die Antwortfrist läuft ab der ersten Anfrage, auch wenn die späteren über neue Links
+    gehen; höchstens ``_VERSUCHE`` Anfragen, dann getrennt (D625, D631 Beschluss 2)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    links = [_Folge([_verloren() for _ in range(5)]) for _ in range(5)]
+    erster = links.pop(0)
+    spaetere = list(links)
+    _aufbau(monkeypatch, links)
+    nachbar = _frisch(erster, Zeiten(10.0, 0.3, 10.0))
+    begun = time.monotonic()
+    with pytest.raises(Getrennt):
+        nachbar.bestand()
+    dauer = time.monotonic() - begun
+    assert 0.3 <= dauer < 0.45
+    assert [link.anfragen for link in [erster] + spaetere] == [1, 1, 1, 0, 0]
+    assert spaetere[1].abgebaut
+    assert nachbar._link is None
+
+
+def test_neuer_link_scheitert_getrennt(monkeypatch) -> None:
+    """Scheitert der Aufbau des neuen Links, ist der Nachbar getrennt und hält keinen Link
+    (D625 Beschluss 1, D631 Beschluss 2)."""
+    monkeypatch.setattr(reticulum, "_ZUSTELL_MIN", 0.1)
+    erster = _Folge([_verloren(), _verloren(), _verloren()])
+
+    class _Zu:
+        status = RNS.Link.CLOSED
+
+    _aufbau(monkeypatch, [_Zu()])
+    nachbar = _frisch(erster, Zeiten(5.0, 1.5, 10.0))
+    begun = time.monotonic()
+    with pytest.raises(Getrennt):
+        nachbar.bestand()
+    assert time.monotonic() - begun < 1.0
+    assert erster.anfragen == 1
+    assert erster.abgebaut
+    assert nachbar._link is None

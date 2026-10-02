@@ -92,6 +92,7 @@ class RnsNachbar:
         self.ziel = ziel
         self.zeit = zeiten(None) if zeit is None else zeit
         self._link: RNS.Link | None = None
+        self._beantwortet: RNS.Link | None = None
 
     def _verbinden(self) -> RNS.Link:
         if self._link is not None and self._link.status == RNS.Link.ACTIVE:
@@ -119,9 +120,11 @@ class RnsNachbar:
         """Ohne Fortschritt über die Frist wird der Link abgebaut: getrennt (D586 Beschluss 2).
 
         Bleibt eine Anfrage über die Zustellfrist unzugestellt, geht sie auf demselben Link erneut,
-        bis zu ``_VERSUCHE`` Anfragen (D591 Beschluss 1). Ein erneutes Senden ist kein Fortschritt;
-        die Frist läuft ab der ersten Anfrage (D625 Beschluss 3). Eine doppelte Anfrage schadet
-        nicht, weil der Bote nur liest (D584 Beschluss 2).
+        wenn er zuletzt geantwortet hat; sonst wird er abgebaut und sie geht über einen neuen
+        (D591 Beschluss 1, D631 Beschluss 1). Höchstens ``_VERSUCHE`` Anfragen. Ein erneutes Senden
+        ist kein Fortschritt; die Frist läuft ab der ersten Anfrage, auch über neue Links
+        (D625 Beschluss 3, D631 Beschluss 2). Eine doppelte Anfrage schadet nicht, weil der Bote
+        nur liest (D584 Beschluss 2).
         """
         link = self._verbinden()
         receipt = link.request(pfad, data)
@@ -137,6 +140,12 @@ class RnsNachbar:
                 and receipt.get_status() == RNS.RequestReceipt.SENT
                 and time.monotonic() - gesendet > _zustellfrist(link, self.zeit.antwort)
             ):
+                # Identität, nicht der Zustand: nur der Link, der zuletzt geantwortet hat, bleibt
+                # (D631 Beschluss 1).
+                if link is not self._beantwortet:
+                    link.teardown()
+                    self._link = None
+                    link = self._verbinden()
                 receipt = link.request(pfad, data)
                 if not receipt:
                     raise Getrennt()
@@ -155,6 +164,7 @@ class RnsNachbar:
             time.sleep(_WARTEN)
         if receipt.get_status() != RNS.RequestReceipt.READY:
             raise Getrennt()
+        self._beantwortet = link
         return lesen(pfad, receipt.get_response())
 
     def bestand(self) -> tuple[list[bytes], list[bytes]]:

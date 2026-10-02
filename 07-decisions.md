@@ -28259,3 +28259,89 @@ Beschluss 3); eine verdeckte Wahl kostete eine zweite Runde je Wahlgang (D638).
 Durchlauf. Kein Bau davor (D490). Der Strang läuft unter O101.
 
 **Geändert.** `07-decisions.md`.
+
+### D641 — Gründung Schritt 1: der Weg im Knoten; Vorlage und Probelauf; Auftrag `p52-gruenden`
+
+**Anlass.** Olis Durchlauf des Bildes zur Gründung zu dritt am Tisch (D640 Beschluss 7): acht
+Bildschirme als Standbild, vom fehlenden Schlüssel bis „Der Verein besteht“. Sein Urteil: so
+erst einmal gut, keine Arbeit an Kleinigkeiten; der Scan des Bildschirms des anderen ist die
+Geste, die er will, „ein bisschen wie die Münze zusammen brechen“. Das Bild ist kein Bau und
+ersetzt keinen Durchlauf der Seite (D490).
+
+**Befund 1 — dieselben Gründer, zwei Vereine, ein Vereinsleben.** Die Satzung des Vereinslebens
+trägt keinen Namen und das Genesis keine Zeit. Gründen dieselben drei zwei Vereine, haben beide
+Vereinsleben dasselbe Genesis und sind ein Scope. Gemessen am Prototyp: ohne Key `8` ist
+`test_vereinsleben_gehoert_zu_seinem_verein` rot.
+
+**Befund 2 — was die Schwellen der Vorlage bei drei Mitgliedern verlangen.** Gemessen über die
+Schnittstelle, nach der Gründung und drei Bestätigungen: ein Satzungsfeld braucht 3 von 3, ein
+Sachantrag 2 von 3, eine Aufnahme 2 von 3. Zwei Drittel sind strikt (`04 §3.2`); zu dritt heisst
+das Einstimmigkeit für den Text der Satzung. Den Beitrag ändert ein Sachantrag mit zwei Ja.
+
+**Befund 3 — der Vektor.** ANNA, BRUNO und CHRIS aus `example-nucleus.md`, Felder `name`
+„Laufgruppe“, `sitz` „Ort“, `zweck` „Gemeinsam laufen“:
+
+- Verein `2123c787f89cf0a6722c4cfa5cbe35a0fc9e751234569cd997fe8833af7808e6`
+- Vereinsleben `5b44c03ed4685593a902efd53a21e3e005678181aaf7bf136108ed972f918fab`
+- Satzung `88a9e73c451c3afe6a556ab3a29bf6263ff9b8e6ad5723f4b86eca42b06e25b6`
+
+Der Test baut die vier Objekte von Hand und vergleicht; er tippt keinen Hash.
+
+**Beschluss 1 — vier Schritte (Oli).** (1) Der Weg der Gründung im Knoten; (2) die Bildschirme
+auf einem Knoten, die Mitgründer aus dem Adressbuch; (3) der Scan mit Schlüssel und Adresse im
+Netz, dazu der Knoten am Telefon; (4) der Knoten hält nur eigene Scopes (D640 Befund 8). Das Netz
+am Tisch macht Reticulum (D617 Beschluss 1), der Scan sagt, wessen Schlüssel es ist. NFC als
+zweite Geste: nicht jetzt.
+
+**Beschluss 2 — die Vorlage liegt im Code.** `VORLAGEN` in `symbolon/node/gruendung.py`, heute
+nur `verein`. Ein Dateiformat entsteht mit der zweiten Vorlage, nicht vorher (D639 Beschluss 3).
+Eine Vorlage ist eine Regel des Knotens, nicht der Norm (D489): mindestens drei Gründer; Felder
+`name`, `sitz`, `zweck` als Pflicht und `beitrag`, alle Text; Schwellen `ordinary` und
+`membership` `[1,2]`, `amendment` `[2,3]`; unwiderruflich im Verein `obligation@1`, `ratify@1`,
+`vote@1`, im Vereinsleben `obligation@1`; `amendment_rule` 2; `trust_params` wie im
+Beispielverein, `{0: 100, 1: 1, 2: 2, 3: 100}`. Die zwei Drittel stammen aus dem Bild; ihre Folge
+steht in Befund 2. Wie fest: die Vorlage ändert ein Auftrag, einen gegründeten Verein nichts.
+
+**Beschluss 3 — was eine Gründung erzeugt.** Vier Objekte, jede Satzung vor ihrem Genesis
+(D640 Befund 5). Alle Gründer stehen sortiert in `participants`, `root_keys`, `anchor_set` und
+`arbitrators` beider Scopes (D640 Beschluss 1). `key_mode`, `weight_mode` und `vote_mode` sind 0.
+Das Genesis des Vereinslebens nennt den Verein als `parent_scope` (`00 §4.1`): das trennt die
+Vereinsleben aus Befund 1 und behauptet die Zugehörigkeit, ohne mechanische Folge. Eine
+Unterschrift trägt die Gründung nicht; ein Genesis hat keine. Gegründet haben die drei mit ihrer
+`accept-rules`, wie bisher.
+
+**Beschluss 4 — die Route.** `POST /gruenden` mit `vorlage`, `gruender` (Liste von Schlüsseln
+als Hex) und `felder` (Feldname auf Text). Antwort: `verein`, `vereinsleben`, `constitution`.
+Erst rechnen und prüfen, dann einliefern: eine Abweisung schreibt nichts. Dieselbe Gründung
+zweimal gibt dieselbe Antwort und denselben Bestand. Abweisungen mit Status 400 und Namen:
+`UNKNOWN_TEMPLATE`; `INVALID_FOUNDERS` (keine Liste, kein Hex, nicht 32 Byte, doppelt);
+`TOO_FEW_FOUNDERS`; `INVALID_FIELDS` (keine Abbildung, ein Wert ist kein Text);
+`UNKNOWN_FIELD`; `MISSING_FIELD` (ein Pflichtfeld fehlt oder ist leer); `UNSOUND_TEMPLATE`.
+
+**Beschluss 5 — der Probelauf.** Vor der Rückgabe, in einem leeren Bestand im Speicher: der
+Verein hat eine Sicht ohne Vermerk, jeder Gründer steht auf `GRANT_ONLY`, und je ein Antrag auf
+ein Satzungsfeld, auf eine Aufnahme und ein Sachantrag stehen auf `PENDING` ohne Vermerk; das
+Vereinsleben hat eine Sicht ohne Vermerk. Sonst `UNSOUND_TEMPLATE`. Das fängt den totgeborenen
+Verein aus D640 Befund 4 an der Vorlage; `/objects` bleibt, wie es ist (D640 Beschluss 4). Im
+Bestand des Knotens hinterlässt der Probelauf nichts.
+
+**Beschluss 6 — Feldtypen nicht in diesem Schritt; Position.** Schritt 1 nimmt Text. Ein Typ
+(ein Betrag, eine Auswahl) gehört zur Vorlage und zur Seite und erzeugt genau einen Text; die
+Norm bleibt unberührt, und zwei Schreibweisen desselben Betrags werden ein Antrag (D496). Das
+kommt mit Schritt 2 und ist bis dahin nicht entschieden.
+
+**Beschluss 7 — für später, ohne Auftrag.** NFC-Tags mit eigenem Schlüsselpaar und Siegelschleife
+als Zeugen einer Anwesenheit (Olis Gedanke zum Orakel-Problem): sie beweisen, dass der Chip dabei
+und sein Siegel heil war, nicht, dass eine Aussage stimmt; Anlass ist das zweite Beispiel
+(D640 Beschluss 3). Nachgeschlagen ist nur der NTAG 424 DNA TagTamper, der mit AES rechnet, also
+mit einem geteilten Geheimnis. Vor Schritt 3 ein Versuch, ob der Knoten in Termux auf Android
+startet und die Seite dort die Kamera bekommt. Bauaufträge gehen nicht in die Cloud; D627
+Beschluss 2 gilt für Messungen.
+
+**Prototyp und Proben.** Im Supervisor-Klon auf `0b5584f`: `symbolon/node/gruendung.py`, die
+Route in `api.py`, `tests/node/test_gruendung.py` mit 28 Tests in der Fassung des Auftrags. Zehn
+Rücknahmeproben, jede rot: kein Probelauf; kein `parent_scope`; Gründer unsortiert; Doppelte
+erlaubt; keine Mindestzahl; fremdes Feld erlaubt; ein Wert, der kein Text ist; leeres
+Pflichtfeld; ein Objekt des Probelaufs im Bestand des Knotens; Genesis vor der Satzung.
+
+**Geändert.** `07-decisions.md`.

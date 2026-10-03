@@ -1,4 +1,169 @@
 {
+  "betrag": [
+    {
+      "cent": 2400,
+      "faelligkeit": "Jahr",
+      "gilt": true,
+      "text": "24,00 EUR im Jahr"
+    },
+    {
+      "cent": 50,
+      "faelligkeit": "Monat",
+      "gilt": true,
+      "text": "0,50 EUR im Monat"
+    },
+    {
+      "cent": 999999999,
+      "faelligkeit": "Jahr",
+      "gilt": true,
+      "text": "9999999,99 EUR im Jahr"
+    },
+    {
+      "cent": 705,
+      "faelligkeit": "Monat",
+      "gilt": true,
+      "text": "7,05 EUR im Monat"
+    },
+    {
+      "gilt": false,
+      "text": "0,00 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "024,00 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24.00 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24,0 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24,00 EUR im Quartal"
+    },
+    {
+      "gilt": false,
+      "text": "24,00 Euro im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "10000000,00 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24,00 EUR im Jahr "
+    },
+    {
+      "gilt": false,
+      "text": "24,00 EUR im Jahr\n"
+    },
+    {
+      "gilt": false,
+      "text": "2\u0664,00 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "24,0\u0664 EUR im Jahr"
+    },
+    {
+      "gilt": false,
+      "text": "x24,00 EUR im Jahr"
+    }
+  ],
+  "betrag_eingabe": [
+    {
+      "eingabe": "24",
+      "faelligkeit": "Jahr",
+      "text": "24,00 EUR im Jahr"
+    },
+    {
+      "eingabe": "24,5",
+      "faelligkeit": "Monat",
+      "text": "24,50 EUR im Monat"
+    },
+    {
+      "eingabe": "24.5",
+      "faelligkeit": "Monat",
+      "text": "24,50 EUR im Monat"
+    },
+    {
+      "eingabe": " 7.05 ",
+      "faelligkeit": "Jahr",
+      "text": "7,05 EUR im Jahr"
+    },
+    {
+      "eingabe": "0,5",
+      "faelligkeit": "Jahr",
+      "text": "0,50 EUR im Jahr"
+    },
+    {
+      "eingabe": "9999999,99",
+      "faelligkeit": "Jahr",
+      "text": "9999999,99 EUR im Jahr"
+    },
+    {
+      "eingabe": "0",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "0,00",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "024",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "24,555",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "10000000",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "1e3",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "-5",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "2\u0664",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "24,",
+      "faelligkeit": "Jahr",
+      "text": null
+    },
+    {
+      "eingabe": "24",
+      "faelligkeit": "Quartal",
+      "text": null
+    }
+  ],
   "cases": [
     {
       "I": "7827979a6a533b282d162710e0fc840a5fea38731b3fd39240daf7415798cb09",
@@ -153,5 +318,39 @@
   "key": {
     "pkcs8": "302e020100300506032b657004220420e1aa9aad81a1f5c1e88facc7175ace92cadd691ab9038d9744723769be212f8f",
     "public": "7827979a6a533b282d162710e0fc840a5fea38731b3fd39240daf7415798cb09"
-  }
+  },
+  "text_eingabe": [
+    {
+      "eingabe": "Laufgruppe",
+      "text": "Laufgruppe"
+    },
+    {
+      "eingabe": "  Laufgruppe am Kanal \t",
+      "text": "Laufgruppe am Kanal"
+    },
+    {
+      "eingabe": "Cafe\u0301",
+      "text": "Caf\u00e9"
+    },
+    {
+      "eingabe": "",
+      "text": null
+    },
+    {
+      "eingabe": "   ",
+      "text": null
+    },
+    {
+      "eingabe": "a\nb",
+      "text": null
+    },
+    {
+      "eingabe": "a\tb",
+      "text": null
+    },
+    {
+      "eingabe": "a\u0000b",
+      "text": null
+    }
+  ]
 }

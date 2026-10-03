@@ -27,7 +27,18 @@ import {
   antragMarke,
   antragTitel,
   aufzaehlung,
+  beitragInWorten,
   betrag,
+  betragLesen,
+  betragText,
+  gruendungSatz,
+  gruendungStand,
+  nachNamen,
+  noetigeStimmen,
+  satzungZeilen,
+  schwelleInWorten,
+  schwellenSaetze,
+  textFeld,
   centAus,
   fassungSatz,
   feststellungPunkte,
@@ -1259,6 +1270,201 @@ function wahlgangFaelle() {
   return results;
 }
 
+// Die Gründung: Eingaben je Typ an den gemeinsamen Vektoren, die Schwellen als Sätze, die Satzung
+// in Zeilen, der Stand der Gründung und ihre Sätze (D651 Beschluss 3 bis 5, D648 Beschluss 5 und 6).
+function gruendungFaelle(vectors) {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  for (const fall of vectors.betrag) {
+    gleich(
+      `betragLesen: ${JSON.stringify(fall.text)}`,
+      betragLesen(fall.text),
+      fall.gilt ? { cent: fall.cent, faelligkeit: fall.faelligkeit } : null,
+    );
+  }
+  for (const fall of vectors.betrag_eingabe) {
+    gleich(
+      `betragText: ${JSON.stringify(fall.eingabe)} im ${fall.faelligkeit}`,
+      betragText(fall.eingabe, fall.faelligkeit),
+      fall.text,
+    );
+  }
+  for (const fall of vectors.text_eingabe) {
+    gleich(`textFeld: ${JSON.stringify(fall.eingabe)}`, textFeld(fall.eingabe), fall.text);
+  }
+  gleich("betragText: keine Zeichenkette", betragText(24, "Jahr"), null);
+  gleich("textFeld: keine Zeichenkette", textFeld(null), null);
+  gleich("betragLesen: keine Zeichenkette", betragLesen(2400), null);
+  gleich("beitragInWorten: im Jahr", beitragInWorten("24,00 EUR im Jahr"), "24,00 € im Jahr");
+  gleich("beitragInWorten: im Monat", beitragInWorten("0,50 EUR im Monat"), "0,50 € im Monat");
+  gleich("beitragInWorten: nicht lesbar, roh", beitragInWorten("24 Euro"), "24 Euro");
+  gleich("beitragInWorten: kein Text", beitragInWorten(7), "–");
+
+  gleich("schwelleInWorten: die Hälfte", schwelleInWorten([1, 2]), "mehr als die Hälfte");
+  gleich("schwelleInWorten: zwei Drittel", schwelleInWorten([2, 3]), "mehr als zwei Drittel");
+  gleich("schwelleInWorten: sonst", schwelleInWorten([3, 4]), "mehr als 3 von 4 Teilen");
+  // Strikt: k * den > num * n (04 §3.2, D640 Befund 10, D641 Befund 2).
+  gleich("noetigeStimmen: Hälfte von 3", noetigeStimmen([1, 2], 3), 2);
+  gleich("noetigeStimmen: Hälfte von 4", noetigeStimmen([1, 2], 4), 3);
+  gleich("noetigeStimmen: zwei Drittel von 3", noetigeStimmen([2, 3], 3), 3);
+  gleich("noetigeStimmen: zwei Drittel von 4", noetigeStimmen([2, 3], 4), 3);
+  gleich("noetigeStimmen: zwei Drittel von 30", noetigeStimmen([2, 3], 30), 21);
+  const schwellen = { ordinary: [1, 2], membership: [1, 2], amendment: [2, 3] };
+  gleich("schwellenSaetze: zu dritt", schwellenSaetze(schwellen, 3), [
+    "Aufnehmen und ausschließen: mehr als die Hälfte muss Ja sagen. Bei 3 Mitgliedern sind das 2.",
+    "Sitz und Beitrag ändern: mehr als die Hälfte. Bei 3 Mitgliedern sind das 2.",
+    "Name, Zweck und alles Übrige der Satzung ändern: mehr als zwei Drittel. Bei 3 Mitgliedern sind das alle.",
+  ]);
+  gleich("schwellenSaetze: zu viert", schwellenSaetze(schwellen, 4), [
+    "Aufnehmen und ausschließen: mehr als die Hälfte muss Ja sagen. Bei 4 Mitgliedern sind das 3.",
+    "Sitz und Beitrag ändern: mehr als die Hälfte. Bei 4 Mitgliedern sind das 3.",
+    "Name, Zweck und alles Übrige der Satzung ändern: mehr als zwei Drittel. Bei 4 Mitgliedern sind das 3.",
+  ]);
+  // Jede Art liest ihre eigene Schwelle (D651 Beschluss 5).
+  gleich(
+    "schwellenSaetze: drei verschiedene Schwellen",
+    schwellenSaetze({ membership: [1, 2], ordinary: [2, 3], amendment: [3, 4] }, 9),
+    [
+      "Aufnehmen und ausschließen: mehr als die Hälfte muss Ja sagen. Bei 9 Mitgliedern sind das 5.",
+      "Sitz und Beitrag ändern: mehr als zwei Drittel. Bei 9 Mitgliedern sind das 7.",
+      "Name, Zweck und alles Übrige der Satzung ändern: mehr als 3 von 4 Teilen. Bei 9 Mitgliedern sind das 7.",
+    ],
+  );
+
+  gleich(
+    "satzungZeilen: vier Felder in fester Reihenfolge, ohne Vorlage und Regelfelder",
+    satzungZeilen({
+      zweck: "Gemeinsam laufen",
+      vorlage: "verein@1",
+      beitrag: "24,00 EUR im Jahr",
+      sitz: "Ort",
+      name: "Laufgruppe",
+      thresholds: {},
+    }),
+    ["Name: Laufgruppe", "Sitz: Ort", "Zweck: Gemeinsam laufen", "Beitrag: 24,00 € im Jahr"],
+  );
+  gleich("satzungZeilen: ohne Beitrag", satzungZeilen({ name: "A", sitz: "B", zweck: "C" }), [
+    "Name: A",
+    "Sitz: B",
+    "Zweck: C",
+  ]);
+  gleich("satzungZeilen: ohne Stand", satzungZeilen(undefined), []);
+
+  const sicht = (index, staende) => ({
+    state: { epoch: { index } },
+    verein: { membership: staende.map(([wer, state]) => [wer, { state }]) },
+  });
+  const laeuft = sicht(1, [["cc", "GRANT_ONLY"], ["aa", "MEMBER"], ["bb", "GRANT_ONLY"]]);
+  gleich("gruendungStand: einer von drei hat bestätigt", gruendungStand(laeuft), {
+    gruender: ["cc", "aa", "bb"],
+    bestaetigt: ["aa"],
+    offen: ["cc", "bb"],
+    besteht: false,
+  });
+  const fertig = sicht(1, [["aa", "MEMBER"], ["bb", "MEMBER"], ["cc", "MEMBER"]]);
+  gleich("gruendungStand: alle haben bestätigt", gruendungStand(fertig).besteht, true);
+  gleich(
+    "gruendungStand: zweite Fassung ist keine Gründung",
+    gruendungStand(sicht(2, [["aa", "GRANT_ONLY"], ["bb", "MEMBER"]])),
+    null,
+  );
+  gleich("gruendungStand: kein Verein", gruendungStand({ state: { epoch: { index: 1 } } }), null);
+  gleich("gruendungStand: keine Sicht", gruendungStand(null), null);
+  const namen = new Map([
+    ["aa", "Anna"],
+    ["bb", "Bruno"],
+    ["cc", "Chris"],
+  ]);
+  gleich(
+    "gruendungSatz: für eine, die fehlt",
+    gruendungSatz(gruendungStand(laeuft), namen, "cc"),
+    "Der Verein ist in Gründung. Bestätigt: Anna. Noch offen: du und Bruno.",
+  );
+  gleich(
+    "gruendungSatz: für die, die bestätigt hat",
+    gruendungSatz(gruendungStand(laeuft), namen, "aa"),
+    "Der Verein ist in Gründung. Bestätigt: du. Noch offen: Bruno und Chris.",
+  );
+  gleich(
+    "gruendungSatz: ohne eigene Identität, noch niemand",
+    gruendungSatz(gruendungStand(sicht(1, [["cc", "GRANT_ONLY"], ["aa", "GRANT_ONLY"]])), namen),
+    "Der Verein ist in Gründung. Bestätigt: niemand. Noch offen: Anna und Chris.",
+  );
+  gleich(
+    "gruendungSatz: besteht",
+    gruendungSatz(gruendungStand(fertig), namen, "aa"),
+    "Der Verein besteht. Alle Gründer haben die Satzung bestätigt.",
+  );
+  gleich("nachNamen", nachNamen(["Chris", "Ärmel", "Anna", "bruno"]), ["Anna", "Ärmel", "bruno", "Chris"]);
+
+  const gruendung = { verein: "Laufgruppe", andere: ["Bruno", "Chris"], fehlen: ["Chris"], alle: ["du", "Bruno", "Chris"] };
+  gleich(
+    "absichtSatz: accept-rules in der Gründung",
+    absichtSatz("accept-rules", { geltend: true, gruendung }),
+    "Du gründest mit Bruno und Chris den Verein „Laufgruppe“ und bestätigst seine Satzung.",
+  );
+  gleich(
+    "absichtSatz: accept-rules, frühere Fassung trotz Gründung",
+    absichtSatz("accept-rules", { geltend: false, gruendung }),
+    "Du bestätigst eine frühere Fassung der Satzung.",
+  );
+  gleich(
+    "folgeZeilen: accept-rules in der Gründung, einer fehlt",
+    folgeZeilen("accept-rules", { membership: "MEMBER" }, { geltend: true, gruendung }),
+    [
+      "Danach: Der Verein besteht, sobald auch Chris bestätigt hat.",
+      "Für immer fest steht, wer gegründet hat: du, Bruno und Chris. Satzung und Mitgliederliste ändert ihr später per Abstimmung.",
+    ],
+  );
+  gleich(
+    "folgeZeilen: accept-rules in der Gründung, zwei fehlen",
+    folgeZeilen("accept-rules", { membership: "MEMBER" }, { geltend: true, gruendung: { ...gruendung, fehlen: ["Bruno", "Chris"] } })[0],
+    "Danach: Der Verein besteht, sobald auch Bruno und Chris bestätigt haben.",
+  );
+  gleich(
+    "folgeZeilen: accept-rules in der Gründung, die letzte",
+    folgeZeilen("accept-rules", { membership: "MEMBER" }, { geltend: true, gruendung: { ...gruendung, fehlen: [] } })[0],
+    "Danach: Der Verein besteht.",
+  );
+  gleich(
+    "folgeZeilen: accept-rules ohne Gründung bleibt",
+    folgeZeilen("accept-rules", { membership: "MEMBER" }, { geltend: true }),
+    ["Danach: Du bist Mitglied."],
+  );
+  gleich(
+    "standSaetze: ohne Vorlage, der Beitrag in Worten",
+    standSaetze(1, { stand_obj: { name: "Laufgruppe", beitrag: "24,00 EUR im Jahr", vorlage: "verein@1" } }),
+    ["Es gilt die 1. Fassung der Satzung.", "Es gilt zu name: „Laufgruppe“", "Es gilt zu beitrag: „24,00 € im Jahr“"],
+  );
+  gleich(
+    "standSaetze: ein Beitrag, der sich nicht lesen lässt, roh",
+    standSaetze(1, { stand_obj: { beitrag: "24 Euro" } }),
+    ["Es gilt die 1. Fassung der Satzung.", "Es gilt zu beitrag: „24 Euro“"],
+  );
+  gleich(
+    "abweisungInWorten: INVALID_VALUE",
+    abweisungInWorten("INVALID_VALUE"),
+    "Ein Wert hat nicht die Form, die die Vorlage des Vereins verlangt.",
+  );
+  gleich(
+    "abweisungInWorten: MISSING_FIELD",
+    abweisungInWorten("MISSING_FIELD"),
+    "Name, Sitz und Zweck braucht jeder Verein. Eines davon fehlt.",
+  );
+  gleich(
+    "abweisungInWorten: TOO_FEW_FOUNDERS",
+    abweisungInWorten("TOO_FEW_FOUNDERS"),
+    "Ein Verein braucht mindestens drei Gründer.",
+  );
+  gleich(
+    "abweisungInWorten: NOT_FOUNDING",
+    abweisungInWorten("NOT_FOUNDING"),
+    "Dieser Verein besteht schon. Verwerfen lässt sich nur eine Gründung.",
+  );
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1268,6 +1474,7 @@ export async function run(vectors, subtle) {
   results.push(...feinschliffFaelle());
   results.push(...sachantragFaelle());
   results.push(...wahlgangFaelle());
+  results.push(...gruendungFaelle(vectors));
   return results;
 }
 

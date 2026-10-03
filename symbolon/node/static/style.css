@@ -229,6 +229,39 @@ p {
   padding-top: 0.75rem;
 }
 
+.aufgabe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Beschriftungen in einer Flucht: die erste Spalte trägt den Namen, das Feld die zweite
+   (D651 Beschluss 3). */
+label.feld {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+label.feld input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.auswahl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+label.wahl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .frage {
   border: 2px solid var(--rand-frage);
   max-width: 48rem;

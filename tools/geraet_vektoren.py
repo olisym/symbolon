@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives.serialization import (
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, core_map, id_genesis_anchor, sign
 from symbolon.domains import DOM_CID, DOM_ID_GEN, DOM_SIG
+from symbolon.node.gruendung import wert_gueltig
 
 ZIEL = Path(__file__).resolve().parent.parent / "symbolon" / "node" / "static" / "vektoren.json"
 _SEED = b"p5-geraet"
@@ -88,6 +89,71 @@ def _accept(sk: Ed25519PrivateKey, claim: Claim, tip: bytes) -> dict[str, str]:
 
 def _reject(core: bytes, author: bytes, tip: bytes, expect: str) -> dict[str, str]:
     return {"I": author.hex(), "core": core.hex(), "expect": expect, "tip": tip.hex()}
+
+
+# Texte eines Beitrags; ob einer gilt, sagt ``wert_gueltig`` (D648 Beschluss 6, D651 Beschluss 3).
+_BETRAEGE = (
+    "24,00 EUR im Jahr",
+    "0,50 EUR im Monat",
+    "9999999,99 EUR im Jahr",
+    "7,05 EUR im Monat",
+    "0,00 EUR im Jahr",
+    "024,00 EUR im Jahr",
+    "24.00 EUR im Jahr",
+    "24,0 EUR im Jahr",
+    "24 EUR im Jahr",
+    "24,00 EUR im Quartal",
+    "24,00 Euro im Jahr",
+    "10000000,00 EUR im Jahr",
+    "24,00 EUR im Jahr ",
+    "24,00 EUR im Jahr\n",
+    "2\u0664,00 EUR im Jahr",
+    "24,0\u0664 EUR im Jahr",
+    "x24,00 EUR im Jahr",
+)
+
+# Was ein Mensch in das Feld „Euro“ tippt, die Fälligkeit, und der eine Text daraus oder ``None``
+# (D648 Beschluss 6, D496).
+_BETRAG_EINGABEN = (
+    ("24", "Jahr", "24,00 EUR im Jahr"),
+    ("24,5", "Monat", "24,50 EUR im Monat"),
+    ("24.5", "Monat", "24,50 EUR im Monat"),
+    (" 7.05 ", "Jahr", "7,05 EUR im Jahr"),
+    ("0,5", "Jahr", "0,50 EUR im Jahr"),
+    ("9999999,99", "Jahr", "9999999,99 EUR im Jahr"),
+    ("0", "Jahr", None),
+    ("0,00", "Jahr", None),
+    ("024", "Jahr", None),
+    ("24,555", "Jahr", None),
+    ("10000000", "Jahr", None),
+    ("1e3", "Jahr", None),
+    ("-5", "Jahr", None),
+    ("", "Jahr", None),
+    ("2\u0664", "Jahr", None),
+    ("24,", "Jahr", None),
+    ("24", "Quartal", None),
+)
+
+# Eine Eingabe in ein Textfeld und der eine Text daraus oder ``None`` (D648 Beschluss 6).
+_TEXT_EINGABEN = (
+    ("Laufgruppe", "Laufgruppe"),
+    ("  Laufgruppe am Kanal \t", "Laufgruppe am Kanal"),
+    ("Cafe\u0301", "Caf\u00e9"),
+    ("", None),
+    ("   ", None),
+    ("a\nb", None),
+    ("a\tb", None),
+    ("a\u0000b", None),
+)
+
+
+def _betrag(text: str) -> dict[str, object]:
+    fall: dict[str, object] = {"text": text, "gilt": wert_gueltig("betrag", text)}
+    if fall["gilt"]:
+        euro, rest = text.split(",", 1)
+        fall["cent"] = int(euro) * 100 + int(rest[:2])
+        fall["faelligkeit"] = text.rsplit(" ", 1)[1]
+    return fall
 
 
 def build() -> dict[str, object]:
@@ -172,6 +238,12 @@ def build() -> dict[str, object]:
             "pkcs8": sk.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption()).hex(),
             "public": author.hex(),
         },
+        "betrag": [_betrag(text) for text in _BETRAEGE],
+        "betrag_eingabe": [
+            {"eingabe": eingabe, "faelligkeit": wann, "text": text}
+            for eingabe, wann, text in _BETRAG_EINGABEN
+        ],
+        "text_eingabe": [{"eingabe": eingabe, "text": text} for eingabe, text in _TEXT_EINGABEN],
     }
 
 

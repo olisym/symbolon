@@ -29,6 +29,7 @@ from symbolon.governance.tally import (
     vote_root,
 )
 from symbolon.index import classify_all
+from symbolon.node import gruendung as gruendung_modul
 from symbolon.node.gruendung import Abgewiesen, feld_abweisung, gruenden, vorlage_der_satzung
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
@@ -726,7 +727,11 @@ def _sim_tip(store: SqliteStore, body: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 def _gruenden(store: SqliteStore, body: Mapping[str, Any]) -> dict[str, bytes]:
-    """Prüft zuerst und liefert die vier Objekte danach ein (D641 Beschluss 4, 00 §4, 00 §5)."""
+    """Prüft zuerst und liefert die vier Objekte danach ein (D641 Beschluss 4, 00 §4, 00 §5).
+
+    Danach zeigt der Knoten Verein und Vereinsleben wieder, auch wenn sie verworfen waren
+    (D651 Beschluss 6, D641 Beschluss 4).
+    """
     try:
         gebaut = gruenden(
             _require(body, "vorlage"),
@@ -737,11 +742,62 @@ def _gruenden(store: SqliteStore, body: Mapping[str, Any]) -> dict[str, bytes]:
         raise _Named(exc.name) from None
     for art, daten in gebaut.objekte:
         store.submit_object(art, daten)
+    store.wieder_zeigen(gebaut.verein)
+    store.wieder_zeigen(gebaut.vereinsleben)
     return {
         "verein": gebaut.verein,
         "vereinsleben": gebaut.vereinsleben,
         "constitution": gebaut.constitution,
     }
+
+
+def _vorlagen() -> dict[str, dict[str, object]]:
+    """Je Vorlage, was die Seite braucht, bei jedem Aufruf aus ``VORLAGEN`` (D651 Beschluss 2).
+
+    Tupel werden zu Listen. ``VORLAGEN`` wird hier gelesen, nicht beim Import.
+    """
+    antwort: dict[str, dict[str, object]] = {}
+    for name, muster in gruendung_modul.VORLAGEN.items():
+        antwort[name] = {
+            "fassung": muster["fassung"],
+            "mindestens": muster["mindestens"],
+            "felder": list(muster["felder"]),
+            "pflicht": list(muster["pflicht"]),
+            "geschuetzt": list(muster["geschuetzt"]),
+            "typen": dict(muster["typen"]),
+            "thresholds": {art: list(paar) for art, paar in muster["thresholds"].items()},
+        }
+    return antwort
+
+
+def _verwerfen(store: SqliteStore, body: Mapping[str, Any], now: int) -> dict[str, object]:
+    """Merkt eine Gründung als nicht mehr gezeigt (D651 Beschluss 6, 00 §4.1).
+
+    Fehlt ``scope`` oder ist es formwidrig, gilt die Abweisung der übrigen Routen. Steht unter
+    dem Scope kein Genesis, ist er nicht gefunden. Hat die Sicht keinen Verein, ist die Fassung
+    nicht die erste, oder steht jeder Eintrag der Mitgliedschaft auf ``MEMBER``, ist es
+    ``NOT_FOUNDING`` und nichts ändert sich. Sonst der Scope und jeder, dessen Genesis ihn unter
+    Key ``8`` nennt. Kein Objekt und kein Claim wird entfernt.
+    """
+    scope = _hex(_require(body, "scope"), 32)
+    if scope not in store.all_genesis():
+        raise _Missing()
+    view = scope_view(store, scope, now)
+    in_gruendung = (
+        view.verein is not None
+        and view.state.epoch.index == 1
+        and any(
+            ergebnis.state is not MembershipState.MEMBER
+            for _wer, ergebnis in view.verein.membership
+        )
+    )
+    if not in_gruendung:
+        raise _Named("NOT_FOUNDING")
+    store.verwerfen(scope)
+    for anderer, genesis in store.all_genesis().items():
+        if genesis.get(8) == scope:
+            store.verwerfen(anderer)
+    return {}
 
 
 class _Forked(Exception):
@@ -872,7 +928,10 @@ def _handler(
                 self._send_file(found)
                 return
             if not post and path == "/scopes":
-                self._send(200, sorted(store.all_genesis()))
+                verborgen = store.verworfene()
+                self._send(
+                    200, sorted(scope for scope in store.all_genesis() if scope not in verborgen)
+                )
                 return
             if not post and path.startswith("/scopes/"):
                 scope = _hex(path[len("/scopes/") :], 32)
@@ -903,7 +962,13 @@ def _handler(
                 return
             if not post and path.startswith("/tasks/"):
                 identity = _hex(path[len("/tasks/") :], 32)
-                self._send(200, [_task_json(t) for t in tasks_view(store, identity, clock())])
+                verborgen = store.verworfene()
+                aufgaben = [
+                    task
+                    for task in tasks_view(store, identity, clock())
+                    if task.scope not in verborgen
+                ]
+                self._send(200, [_task_json(task) for task in aufgaben])
                 return
             if not post and path.startswith("/tips/"):
                 identity = _hex(path[len("/tips/") :], 32)
@@ -933,6 +998,12 @@ def _handler(
                 if found is None:
                     raise _Missing()
                 self._send(200, {"kind": found[0], "data": found[1]})
+                return
+            if not post and path == "/vorlagen":
+                self._send(200, _vorlagen())
+                return
+            if post and path == "/verwerfen":
+                self._send(200, _verwerfen(store, self._json_body(), clock()))
                 return
             if post and path == "/gruenden":
                 self._send(200, _gruenden(store, self._json_body()))

@@ -2,7 +2,8 @@
 // darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
 // Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
 // neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
-// D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6).
+// D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
+// D651 Beschluss 2 bis 6).
 
 import {
   ablauf,
@@ -26,6 +27,7 @@ import {
   aufzaehlung,
   auszaehlungInWorten,
   betrag,
+  betragText,
   centAus,
   erfolgSatz,
   feststellungPunkte,
@@ -35,20 +37,26 @@ import {
   geraeteSatz,
   gesperrtSatz,
   geschichte,
+  gruendungSatz,
+  gruendungStand,
   hinweisSatzungGeaendert,
   kassenZeilen,
   laufend,
   laufendeGruppen,
   mitgliedschaftInWorten,
   nachHandlung,
+  nachNamen,
   nameVon,
   personImSatz,
   regieReihenfolge,
+  satzungZeilen,
+  schwellenSaetze,
   standSaetze,
   standZeile,
   stimmenPunkte,
   tabTitel,
   tageAusKern,
+  textFeld,
   tilgungInWorten,
   vertrauenSatz,
   wertInWorten,
@@ -71,6 +79,17 @@ let geraetName;
 
 // Der Stand aus GET /stand, den das letzte Zeichnen gelesen hat (D518 Beschluss 5).
 let gezeichneterStand = null;
+
+// Die Antwort von GET /scopes beim letzten Zeichnen, für denselben Hinweis (D651 Befund 5).
+let gezeichneteScopes = null;
+
+// Der Weg der Gründung überdauert Zurück und Weiter, nicht ein Neuladen (D651 Beschluss 3).
+let gruendungSchritt = 0;
+let gruendungGewaehlt = new Set();
+let gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr" };
+
+// Nach dem Gründen die eigene accept-rules, ohne weiteren Klick (D651 Beschluss 3).
+let nachGruendung = null;
 
 function hex(bytes) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -291,7 +310,22 @@ async function felderAus(art, kern, kontext) {
   const v = gelesen && gelesen.name === "ACCEPT" ? gelesen.wert : null;
 
   if (art === "accept-rules") {
-    return { geltend: view ? ziel === view.state.epoch.constitution_hash : null };
+    const geltend = view ? ziel === view.state.epoch.constitution_hash : null;
+    const felder = { geltend };
+    // Gründung nur bei geltender Satzung, offener eigener Bestätigung und lesbarem Namen
+    // (D651 Beschluss 4).
+    const stand = geltend && view ? gruendungStand(view) : null;
+    const vereinsname = view?.stand?.stand_obj?.name;
+    if (stand && stand.offen.includes(kontext.identitaet) && typeof vereinsname === "string" && vereinsname !== "") {
+      const andereSchluessel = stand.gruender.filter((wer) => wer !== kontext.identitaet);
+      const nameEines = (wer) => nameVon(kontext.namen, wer);
+      const andere = nachNamen(andereSchluessel.map(nameEines));
+      const fehlen = nachNamen(
+        andereSchluessel.filter((wer) => stand.offen.includes(wer)).map(nameEines),
+      );
+      felder.gruendung = { verein: vereinsname, andere, fehlen, alle: ["du", ...andere] };
+    }
+    return felder;
   }
   if (art === "propose") return scope === null ? {} : neuerAntrag(ziel, scope, kontext.namen);
   if (art === "vote" || art === "ratify") {
@@ -614,7 +648,8 @@ function regieBereich(namen, simuliert, record, schritte, getrennt) {
     );
   }
   regie.append(zeile("Die Seite links zeigt, was die gewählte Person sieht, und handelt als sie."));
-  if (!geraetName && !schritte.every((schritt) => schritt.getan)) {
+  // Die Geschichte nur, wo eine simulierte Person vorkommt (D651 Beschluss 4, D643 Beschluss 3).
+  if (!geraetName && simuliert.length > 0 && !schritte.every((schritt) => schritt.getan)) {
     regie.append(geschichteBereich(schritte));
   }
   regie.append(element("div", "marke", "Personen"));
@@ -681,8 +716,8 @@ function anlegenFormular() {
   return abschnitt;
 }
 
-// Links oben, verborgen, bis GET /stand vom gezeichneten Stand abweicht; die Seite zeichnet nicht
-// von selbst neu (D518 Beschluss 5, D502).
+// Links oben, verborgen, bis GET /stand oder GET /scopes vom letzten Zeichnen abweicht; die Seite
+// zeichnet nicht von selbst neu (D518 Beschluss 5, D651 Befund 5, D502).
 function neuesBereich() {
   const bereich = element("section", "karte");
   bereich.id = "neues";
@@ -705,7 +740,11 @@ async function standPruefen() {
   if (!hinweis || gezeichneterStand === null) return;
   try {
     const stand = await holen("/stand");
-    hinweis.hidden = stand === gezeichneterStand;
+    let scopesAnders = false;
+    if (gezeichneteScopes !== null) {
+      scopesAnders = JSON.stringify(await holen("/scopes")) !== gezeichneteScopes;
+    }
+    hinweis.hidden = stand === gezeichneterStand && !scopesAnders;
   } catch {
     // Ein Fehler der Abfrage wird übergangen (D518 Beschluss 5).
   }
@@ -771,8 +810,9 @@ function namenAufgabe(identitaet) {
 }
 
 // „Jetzt zu tun“: die Aufgaben der Person in Sätzen, jede mit ihrem Knopf (D494 Beschluss 1,
-// D492 Beschluss 5, D484 Beschluss 1).
-function jetztBereich(tasks, kontext, handeln) {
+// D492 Beschluss 5, D484 Beschluss 1). ``lage`` ist die Gründung, solange sie nicht besteht
+// (D651 Beschluss 4 und 6).
+function jetztBereich(tasks, kontext, handeln, lage) {
   const bereich = element("section", "karte jetzt");
   bereich.id = "jetzt";
   bereich.append(marke("Jetzt zu tun"));
@@ -780,22 +820,60 @@ function jetztBereich(tasks, kontext, handeln) {
   const ohneName = handelnAls === "geraet" && !namen.get(kontext.identitaet);
   if (ohneName) bereich.append(namenAufgabe(kontext.identitaet));
   if (tasks.length === 0 && !ohneName) {
-    bereich.append(zeile("Nichts. Sobald etwas ansteht, steht es hier."));
+    if (lage && lage.stand.bestaetigt.includes(kontext.identitaet)) {
+      bereich.append(
+        zeile("Die Gründung wartet auf die anderen. Kommt sie nicht zustande, kannst du sie verwerfen."),
+        knopfReihe(
+          knopf("Gründung verwerfen …", () =>
+            void verwerfenAusfuehren(lage.view.stand?.stand_obj?.name, lage.scope),
+          ),
+        ),
+      );
+    } else {
+      bereich.append(zeile("Nichts. Sobald etwas ansteht, steht es hier."));
+    }
     return bereich;
   }
   for (const aufgabe of tasks) {
     const block = element("div", "aufgabe");
     if (aufgabe.art === "CONFIRM_RULES") {
-      block.append(
-        element("div", "satz", "Die Satzung hat sich geändert. Bestätige die geltende Fassung."),
-        zeile("Wer nicht neu bestätigt, bleibt stimmberechtigt, ist aber an die neue Fassung nicht gebunden."),
-        knopfReihe(
-          knopf("Satzung bestätigen …", () =>
-            handeln("accept-rules", { scope: aufgabe.scope, constitution: aufgabe.constitution }),
-            "haupt",
+      const geltende = lage?.view?.state?.epoch?.constitution_hash;
+      if (lage && aufgabe.scope === lage.scope && aufgabe.constitution === geltende) {
+        const andere = nachNamen(
+          lage.stand.gruender
+            .filter((wer) => wer !== kontext.identitaet)
+            .map((wer) => nameVon(namen, wer)),
+        );
+        const verb = andere.length === 1 ? "gründet" : "gründen";
+        const satzung = lage.view.stand?.stand_obj ?? {};
+        block.append(
+          marke("Gründung"),
+          element("div", "satz", `${aufzaehlung(andere)} ${verb} mit dir einen Verein.`),
+          marke("Die Satzung"),
+          liste(satzungZeilen(satzung)),
+          marke("Abstimmungen"),
+          liste(schwellenSaetze(satzung.thresholds, lage.stand.gruender.length)),
+          knopfReihe(
+            knopf(
+              "Satzung bestätigen …",
+              () => handeln("accept-rules", { scope: aufgabe.scope, constitution: aufgabe.constitution }),
+              "haupt",
+            ),
+            knopf("Nicht mitgründen …", () => void verwerfenAusfuehren(satzung.name, lage.scope)),
           ),
-        ),
-      );
+        );
+      } else {
+        block.append(
+          element("div", "satz", "Die Satzung hat sich geändert. Bestätige die geltende Fassung."),
+          zeile("Wer nicht neu bestätigt, bleibt stimmberechtigt, ist aber an die neue Fassung nicht gebunden."),
+          knopfReihe(
+            knopf("Satzung bestätigen …", () =>
+              handeln("accept-rules", { scope: aufgabe.scope, constitution: aufgabe.constitution }),
+              "haupt",
+            ),
+          ),
+        );
+      }
     } else if (aufgabe.art === "VOTE" || aufgabe.art === "RATIFY") {
       const antrag = antraege.find((eintrag) => eintrag.proposal === aufgabe.proposal);
       if (!antrag) continue;
@@ -957,14 +1035,20 @@ function vereinGerade(view, kontext) {
   const saetze = standSaetze(view.state.epoch.index, view.stand);
   const mitglieder = view.verein.membership;
   saetze.push(`Auf der Mitgliederliste: ${aufzaehlung(mitglieder.map(([s]) => nameVon(namen, s)))}.`);
-  const bestaetigt = mitglieder.filter(([, ergebnis]) => ergebnis.state === "MEMBER").length;
-  saetze.push(
-    bestaetigt === mitglieder.length
-      ? "Alle haben die geltende Satzung bestätigt."
-      : `${bestaetigt} von ${mitglieder.length} haben die geltende Satzung bestätigt.`,
-  );
-  const hinweis = hinweisSatzungGeaendert(mitglieder);
-  if (hinweis) saetze.push(hinweis);
+  // In der ersten Fassung der eine Satz der Gründung, später wie bisher (D651 Beschluss 4).
+  const stand = gruendungStand(view);
+  if (stand) {
+    saetze.push(gruendungSatz(stand, namen, kontext.identitaet));
+  } else {
+    const bestaetigt = mitglieder.filter(([, ergebnis]) => ergebnis.state === "MEMBER").length;
+    saetze.push(
+      bestaetigt === mitglieder.length
+        ? "Alle haben die geltende Satzung bestätigt."
+        : `${bestaetigt} von ${mitglieder.length} haben die geltende Satzung bestätigt.`,
+    );
+    const hinweis = hinweisSatzungGeaendert(mitglieder);
+    if (hinweis) saetze.push(hinweis);
+  }
   // Offen und angenommen nur aus der laufenden Abstimmung; davor der Satz, wenn eine vorbei ist
   // (04 §4.7, D605 Beschluss 2 und 3).
   const offen = antraege.filter((antrag) => laufend(antrag) && antrag.state === "PENDING");
@@ -1307,6 +1391,250 @@ function mitgliederAbschnitt(view, namen) {
   return abschnitt;
 }
 
+function gruendungLeeren() {
+  gruendungSchritt = 0;
+  gruendungGewaehlt = new Set();
+  gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr" };
+}
+
+function textEingabe(wert, beiAenderung) {
+  const field = element("input");
+  field.type = "text";
+  field.value = wert;
+  field.addEventListener("input", () => beiAenderung(field.value));
+  return field;
+}
+
+function feldBeschriftung(text, ...knoten) {
+  const label = element("label", "feld");
+  label.append(element("span", null, text), ...knoten);
+  return label;
+}
+
+// Dieselbe Frage für „Nicht mitgründen …“ und „Gründung verwerfen …“ (D651 Beschluss 6).
+function verwerfenFragen(name) {
+  const satz =
+    typeof name === "string" && name !== ""
+      ? `Dieses Gerät zeigt den Verein „${name}“ dann nicht mehr.`
+      : "Dieses Gerät zeigt diesen Verein dann nicht mehr.";
+  const teile = [
+    marke("Gründung verwerfen"),
+    element("div", "satz", satz),
+    zeile("Das gilt für alle, die dieses Gerät benutzen. Danach kann hier neu gegründet werden."),
+    zeile(
+      "Unterschrieben wird dabei nichts. Wer schon bestätigt hat, dessen Unterschrift bleibt in seiner Kette.",
+    ),
+  ];
+  return new Promise((resolve) => {
+    teile.push(
+      knopfReihe(
+        knopf("Verwerfen", () => {
+          frageSchliessen();
+          resolve(true);
+        }),
+        knopf(
+          "Nicht verwerfen",
+          () => {
+            frageSchliessen();
+            resolve(false);
+          },
+          "haupt",
+        ),
+      ),
+    );
+    frageOeffnen(teile);
+  });
+}
+
+async function verwerfenAusfuehren(name, scope) {
+  if (!(await verwerfenFragen(name))) return;
+  try {
+    await senden("/verwerfen", { scope });
+    meldung("Die Gründung ist verworfen. Dieses Gerät zeigt den Verein nicht mehr.", true);
+  } catch (error) {
+    meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+  }
+  await zeichnen();
+}
+
+function abbrechenKnopf() {
+  return knopf("Abbrechen", () => {
+    gruendungLeeren();
+    void zeichnen();
+  });
+}
+
+// Ohne Verein und ohne Vereinsleben, an der Stelle von „Jetzt zu tun“ (D651 Beschluss 3).
+function gruendungBereich(vorlage, namenListe, namen, identitaet) {
+  const bereich = element("section", "karte jetzt");
+  bereich.id = "jetzt";
+  const block = element("div", "aufgabe");
+  if (gruendungSchritt === 0) {
+    bereich.append(marke("Jetzt zu tun"));
+    block.append(
+      element("div", "satz", "Du gehörst noch zu keinem Verein."),
+      zeile("Gründen kannst du mit Menschen, die dieses Gerät schon kennt."),
+      knopfReihe(
+        knopf(
+          "Einen Verein gründen",
+          () => {
+            gruendungSchritt = 1;
+            void zeichnen();
+          },
+          "haupt",
+        ),
+      ),
+    );
+  } else if (gruendungSchritt === 1) {
+    bereich.append(marke("Gründen · Schritt 1 von 2"));
+    block.append(
+      element("div", "satz", "Wer gründet mit?"),
+      zeile(
+        `Du und mindestens ${vorlage.mindestens - 1} weitere. Ab drei könnt ihr abstimmen.`,
+      ),
+    );
+    const andere = namenListe.filter((eintrag) => eintrag.I !== identitaet);
+    const weiter = knopf(
+      "Weiter zur Satzung",
+      () => {
+        gruendungSchritt = 2;
+        void zeichnen();
+      },
+      "haupt",
+    );
+    const sperre = () => {
+      weiter.disabled = gruendungGewaehlt.size + 1 < vorlage.mindestens;
+    };
+    if (andere.length === 0) {
+      block.append(zeile("Dieses Gerät kennt noch niemanden außer dir."));
+    } else {
+      const auswahl = element("div", "auswahl");
+      for (const eintrag of andere) {
+        const haken = element("input");
+        haken.type = "checkbox";
+        haken.checked = gruendungGewaehlt.has(eintrag.I);
+        haken.addEventListener("change", () => {
+          if (haken.checked) gruendungGewaehlt.add(eintrag.I);
+          else gruendungGewaehlt.delete(eintrag.I);
+          sperre();
+        });
+        const label = element("label", "wahl");
+        label.append(haken, element("span", null, eintrag.name ?? kurz(eintrag.I)));
+        auswahl.append(label);
+      }
+      block.append(auswahl);
+    }
+    sperre();
+    block.append(
+      zeile("Wer gründet, steht für immer fest. Wer später dazukommt, wird aufgenommen.", "leise"),
+      knopfReihe(weiter, abbrechenKnopf()),
+    );
+  } else {
+    bereich.append(marke("Gründen · Schritt 2 von 2"));
+    const name = textEingabe(gruendungFelder.name, (wert) => {
+      gruendungFelder.name = wert;
+    });
+    const sitz = textEingabe(gruendungFelder.sitz, (wert) => {
+      gruendungFelder.sitz = wert;
+    });
+    const zweck = textEingabe(gruendungFelder.zweck, (wert) => {
+      gruendungFelder.zweck = wert;
+    });
+    const beitrag = textEingabe(gruendungFelder.beitrag, (wert) => {
+      gruendungFelder.beitrag = wert;
+    });
+    beitrag.placeholder = "kein Beitrag";
+    const faellig = element("select");
+    for (const [wert, text] of [
+      ["Jahr", "im Jahr"],
+      ["Monat", "im Monat"],
+    ]) {
+      const option = element("option", null, text);
+      option.value = wert;
+      faellig.append(option);
+    }
+    faellig.value = gruendungFelder.faelligkeit;
+    faellig.addEventListener("change", () => {
+      gruendungFelder.faelligkeit = faellig.value;
+    });
+    const namenGewaehlt = nachNamen(
+      [...gruendungGewaehlt].map((schluessel) => namen.get(schluessel) || nameVon(namen, schluessel)),
+    );
+    block.append(
+      element("div", "satz", "Die Satzung"),
+      feldBeschriftung("Name des Vereins", name),
+      feldBeschriftung("Sitz", sitz),
+      feldBeschriftung("Zweck", zweck),
+      feldBeschriftung("Beitrag in Euro", beitrag, faellig),
+      marke("Abstimmungen"),
+      liste(schwellenSaetze(vorlage.thresholds, gruendungGewaehlt.size + 1)),
+      zeile("Diese Regeln stehen fest. Ändern könnt ihr sie später wie die Satzung.", "leise"),
+      zeile(`Es gründen: ${aufzaehlung(["du", ...namenGewaehlt])}.`),
+      knopfReihe(
+        knopf(
+          "Gründen …",
+          async () => {
+            const nameText = textFeld(name.value);
+            const sitzText = textFeld(sitz.value);
+            const zweckText = textFeld(zweck.value);
+            if (nameText === null) {
+              meldung("Der Name fehlt.");
+              await meldungZeigen();
+              return;
+            }
+            if (sitzText === null) {
+              meldung("Der Sitz fehlt.");
+              await meldungZeigen();
+              return;
+            }
+            if (zweckText === null) {
+              meldung("Der Zweck fehlt.");
+              await meldungZeigen();
+              return;
+            }
+            const felder = { name: nameText, sitz: sitzText, zweck: zweckText };
+            if (beitrag.value !== "") {
+              const text = betragText(beitrag.value, faellig.value);
+              if (text === null) {
+                meldung(
+                  "Der Beitrag geht nur in Euro, größer als null, mit höchstens zwei Stellen nach dem Komma.",
+                );
+                await meldungZeigen();
+                return;
+              }
+              felder.beitrag = text;
+            }
+            const gesperrt = sperren();
+            try {
+              const antwort = await senden("/gruenden", {
+                vorlage: "verein",
+                gruender: [identitaet, ...gruendungGewaehlt],
+                felder,
+              });
+              gruendungLeeren();
+              nachGruendung = { scope: antwort.verein, constitution: antwort.constitution };
+              await zeichnen();
+            } catch (error) {
+              meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+              await meldungZeigen();
+            } finally {
+              entsperren(gesperrt);
+            }
+          },
+          "haupt",
+        ),
+        knopf("Zurück", () => {
+          gruendungSchritt = 1;
+          void zeichnen();
+        }),
+        abbrechenKnopf(),
+      ),
+    );
+  }
+  bereich.append(block);
+  return bereich;
+}
+
 function findeScope(sichten, teil) {
   for (const [scope, view] of sichten) {
     if (view[teil]) return scope;
@@ -1385,6 +1713,7 @@ async function zeichnenInhalt() {
     );
     seite.replaceChildren(links, regie);
     gezeichneterStand = stand;
+    gezeichneteScopes = null;
     return;
   }
 
@@ -1473,21 +1802,41 @@ async function zeichnenInhalt() {
 
   // Kopf, Meldung, Frage und „Jetzt zu tun“ stehen immer oben, nie in einem Tab (D506
   // Beschluss 1); ein Widerspruch nur bei offener Abstimmung (D507 Beschluss 1). Die Seite nennt sich erst „Du bist <Name>“, wenn der Name eingetragen
-  // ist (D494 Beschluss 1).
-  const titel = namen.get(identitaet) ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
+  // ist (D494 Beschluss 1). Ohne Verein und ohne Vereinsleben keine Tabs und keine Zeile zur
+  // Mitgliedschaft; wer einen Namen hat, gründet (D651 Beschluss 3 und 4).
+  const ohneVerein = gov === null && res === null;
+  const hatNamen = Boolean(namen.get(identitaet));
+  const gruendungsStand = govView ? gruendungStand(govView) : null;
+  const inGruendung = gruendungsStand !== null && !gruendungsStand.besteht;
+  const titel = hatNamen ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
+  const kopfInfo = ohneVerein
+    ? null
+    : inGruendung
+      ? gruendungSatz(gruendungsStand, namen, identitaet)
+      : mitgliedschaftVon(govView, identitaet);
+  const vorlage = ohneVerein && hatNamen ? (await holen("/vorlagen")).verein : null;
   links.append(
     neuesBereich(),
-    kopfBereich(titel, mitgliedschaftVon(govView, identitaet)),
+    kopfBereich(titel, kopfInfo),
     ...getrenntBereich(getrennt),
     meldungKnoten(),
     frage,
-    jetztBereich(tasks, kontext, handeln),
-    ...oben,
-    leiste,
-    inhalt,
   );
+  if (ohneVerein && hatNamen) {
+    links.append(gruendungBereich(vorlage, namenListe, namen, identitaet));
+  } else {
+    const lage = inGruendung ? { stand: gruendungsStand, view: govView, scope: gov } : null;
+    links.append(jetztBereich(tasks, kontext, handeln, lage));
+  }
+  if (!ohneVerein) links.append(...oben, leiste, inhalt);
   seite.replaceChildren(links, regie);
   gezeichneterStand = stand;
+  gezeichneteScopes = JSON.stringify(scopes);
+  if (nachGruendung) {
+    const vorgabe = nachGruendung;
+    nachGruendung = null;
+    void handeln("accept-rules", { scope: vorgabe.scope, constitution: vorgabe.constitution });
+  }
 }
 
 // Scheitert das Laden, erscheint statt einer leeren Seite ein Satz mit einem Knopf, der es

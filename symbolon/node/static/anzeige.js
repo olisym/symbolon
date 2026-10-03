@@ -9,6 +9,8 @@
 // Widerspruch oben steht und was seine Karte sagt (D525 Beschluss 1 bis 3, D507 Beschluss 1), und
 // was die Seite über Stimmen einer Wurzel von mehreren Schlüsseln sagt (D542 Beschluss 6, D543),
 // und über Stimmen, die still nicht zählen: ein zweites Ja, ein gesperrtes Gerät (D556).
+// Die Gründung: Text und Betrag, die Schwellen als Sätze, der Stand und seine Sätze
+// (D651 Beschluss 3 bis 5, D648 Beschluss 2 und 5, 04 §3.2).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -195,6 +197,10 @@ const ABWEISUNGEN = new Map([
     "INCOHERENT_EXPIRY",
     "Die Dauer ist zu kurz: das Ende muss nach der Unterschrift liegen. Gib mindestens 1 Tag ein.",
   ],
+  ["INVALID_VALUE", "Ein Wert hat nicht die Form, die die Vorlage des Vereins verlangt."],
+  ["MISSING_FIELD", "Name, Sitz und Zweck braucht jeder Verein. Eines davon fehlt."],
+  ["TOO_FEW_FOUNDERS", "Ein Verein braucht mindestens drei Gründer."],
+  ["NOT_FOUNDING", "Dieser Verein besteht schon. Verwerfen lässt sich nur eine Gründung."],
 ]);
 
 // Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
@@ -529,6 +535,141 @@ export function personImSatz(namen, schluessel) {
   return { name: `eine Person ohne Namen (${nameVon(new Map(), schluessel)})`, ohneName: true };
 }
 
+// Unicode-Klasse Cc: die Steuerzeichen C0 und C1 (D651 Beschluss 3, D649 Befund 5).
+const _STEUER = /[\u0000-\u001F\u007F-\u009F]/;
+
+// Kein Text ergibt null; sonst Leerraum am Rand weg, dann NFC. Leer oder mit einem Steuerzeichen
+// ergibt null (D651 Beschluss 3, D648 Beschluss 2).
+export function textFeld(eingabe) {
+  if (typeof eingabe !== "string") return null;
+  const text = eingabe.trim().normalize("NFC");
+  if (text === "" || _STEUER.test(text)) return null;
+  return text;
+}
+
+// Euro als 0 oder ohne führende Null, höchstens sieben Stellen, wahlweise Komma oder Punkt und
+// eine oder zwei Ziffern; nur 0 bis 9. Null ergibt null. Sonst „24,00 EUR im Jahr“
+// (D651 Beschluss 3, D648 Beschluss 2, D496).
+export function betragText(eingabe, faelligkeit) {
+  if (faelligkeit !== "Monat" && faelligkeit !== "Jahr") return null;
+  if (typeof eingabe !== "string") return null;
+  const treffer = /^(0|[1-9][0-9]{0,6})(?:[.,]([0-9]{1,2}))?$/.exec(eingabe.trim());
+  if (treffer === null) return null;
+  const cent = (treffer[2] ?? "").padEnd(2, "0");
+  if (treffer[1] === "0" && cent === "00") return null;
+  return `${treffer[1]},${cent} EUR im ${faelligkeit}`;
+}
+
+// Genau die Form aus D648 Beschluss 2, grösser als null (D651 Beschluss 3).
+export function betragLesen(text) {
+  if (typeof text !== "string") return null;
+  const treffer = /^(0|[1-9][0-9]{0,6}),([0-9]{2}) EUR im (Monat|Jahr)$/.exec(text);
+  if (treffer === null) return null;
+  const cent = Number(treffer[1]) * 100 + Number(treffer[2]);
+  if (cent === 0) return null;
+  return { cent, faelligkeit: treffer[3] };
+}
+
+// Lesbar als „24,00 € im Jahr“ über betrag; sonst der Text roh, und „–“, wenn es kein Text ist
+// (D651 Beschluss 4, D648 Beschluss 2).
+export function beitragInWorten(text) {
+  if (typeof text !== "string") return "–";
+  const gelesen = betragLesen(text);
+  if (gelesen === null) return text;
+  return `${betrag(gelesen.cent, "EUR-Cent")} im ${gelesen.faelligkeit}`;
+}
+
+// Die festen Schwellen in Worten (D651 Beschluss 5, D648 Beschluss 5).
+export function schwelleInWorten(paar) {
+  if (paar[0] === 1 && paar[1] === 2) return "mehr als die Hälfte";
+  if (paar[0] === 2 && paar[1] === 3) return "mehr als zwei Drittel";
+  return `mehr als ${paar[0]} von ${paar[1]} Teilen`;
+}
+
+// Die kleinste Zahl k mit k * den > num * n (04 §3.2, D651 Beschluss 5).
+export function noetigeStimmen(paar, n) {
+  const num = paar[0];
+  const den = paar[1];
+  let k = 0;
+  while (k * den <= num * n) k += 1;
+  return k;
+}
+
+// Drei Sätze, fest membership, ordinary, amendment. Steht k nicht unter n, endet der Satz mit
+// „sind das alle.“ (D651 Beschluss 5, D641 Befund 2).
+export function schwellenSaetze(thresholds, n) {
+  const arten = [
+    ["membership", "Aufnehmen und ausschließen", true],
+    ["ordinary", "Sitz und Beitrag ändern", false],
+    ["amendment", "Name, Zweck und alles Übrige der Satzung ändern", false],
+  ];
+  return arten.map(([art, anfang, mussJa]) => {
+    const paar = thresholds[art];
+    const schwelle = schwelleInWorten(paar);
+    const k = noetigeStimmen(paar, n);
+    const zahl = k < n ? String(k) : "alle";
+    const kern = mussJa ? `${schwelle} muss Ja sagen` : schwelle;
+    return `${anfang}: ${kern}. Bei ${n} Mitgliedern sind das ${zahl}.`;
+  });
+}
+
+// name, sitz, zweck, beitrag, nur Textwerte; der Beitrag über beitragInWorten
+// (D651 Beschluss 4).
+export function satzungZeilen(stand) {
+  if (stand === null || stand === undefined || typeof stand !== "object") return [];
+  const felder = [
+    ["name", "Name"],
+    ["sitz", "Sitz"],
+    ["zweck", "Zweck"],
+    ["beitrag", "Beitrag"],
+  ];
+  const zeilen = [];
+  for (const [feld, label] of felder) {
+    const wert = stand[feld];
+    if (typeof wert !== "string") continue;
+    const gezeigt = feld === "beitrag" ? beitragInWorten(wert) : wert;
+    zeilen.push(`${label}: ${gezeigt}`);
+  }
+  return zeilen;
+}
+
+// null ohne Verein oder wenn die Fassung nicht die erste ist (D651 Beschluss 4).
+export function gruendungStand(view) {
+  if (!view?.verein || view.state?.epoch?.index !== 1) return null;
+  const membership = view.verein.membership;
+  const gruender = membership.map(([wer]) => wer);
+  const bestaetigt = membership.filter(([, ergebnis]) => ergebnis.state === "MEMBER").map(([wer]) => wer);
+  const offen = membership.filter(([, ergebnis]) => ergebnis.state !== "MEMBER").map(([wer]) => wer);
+  return {
+    gruender,
+    bestaetigt,
+    offen,
+    besteht: membership.every(([, ergebnis]) => ergebnis.state === "MEMBER"),
+  };
+}
+
+// Eine sortierte Kopie, deutsch (D651 Beschluss 4).
+export function nachNamen(namen) {
+  return [...namen].sort((links, rechts) => links.localeCompare(rechts, "de"));
+}
+
+function reiheDerGruendung(schluessel, namen, ich) {
+  const dabei = ich !== null && ich !== undefined && schluessel.includes(ich);
+  const uebrige = nachNamen(
+    schluessel.filter((wer) => wer !== ich).map((wer) => namen.get(wer) ?? wer),
+  );
+  return aufzaehlung(dabei ? ["du", ...uebrige] : uebrige);
+}
+
+// Die eigene Identität heisst „du“ und steht vorn, die übrigen nach nachNamen
+// (D651 Beschluss 4, D605).
+export function gruendungSatz(stand, namen, ich = null) {
+  if (stand.besteht) return "Der Verein besteht. Alle Gründer haben die Satzung bestätigt.";
+  const bestaetigt = reiheDerGruendung(stand.bestaetigt, namen, ich);
+  const offen = reiheDerGruendung(stand.offen, namen, ich);
+  return `Der Verein ist in Gründung. Bestätigt: ${bestaetigt}. Noch offen: ${offen}.`;
+}
+
 function vorhanden(felder, ...namen) {
   return namen.every((name) => felder[name] !== null && felder[name] !== undefined && felder[name] !== "");
 }
@@ -538,6 +679,14 @@ export function absichtSatz(art, felder) {
   switch (art) {
     case "accept-rules":
       if (typeof felder.geltend !== "boolean") return null;
+      // In der Gründung der Satz mit Verein und den übrigen Gründern (D651 Beschluss 5).
+      if (felder.geltend && felder.gruendung) {
+        const { verein, andere } = felder.gruendung;
+        return (
+          `Du gründest mit ${aufzaehlung(andere)} den Verein „${verein}“ ` +
+          "und bestätigst seine Satzung."
+        );
+      }
       return felder.geltend
         ? "Du bestätigst die geltende Satzung des Vereins."
         : "Du bestätigst eine frühere Fassung der Satzung.";
@@ -631,7 +780,20 @@ export function folgeZeilen(art, effect, felder) {
       zeilen.push(`${fassungSatz(effect.epoch)} Alle müssen die neue Satzung bestätigen.`);
     }
   } else if (art === "accept-rules") {
-    if (felder.geltend === true && effect.membership === "MEMBER") {
+    // In der Gründung die zwei Zeilen aus fehlen und alle (D651 Beschluss 5).
+    if (felder.geltend === true && effect.membership === "MEMBER" && felder.gruendung) {
+      const fehlen = felder.gruendung.fehlen;
+      if (fehlen.length === 0) zeilen.push("Der Verein besteht.");
+      else if (fehlen.length === 1) {
+        zeilen.push(`Der Verein besteht, sobald auch ${fehlen[0]} bestätigt hat.`);
+      } else {
+        zeilen.push(`Der Verein besteht, sobald auch ${aufzaehlung(fehlen)} bestätigt haben.`);
+      }
+      zeilen.push(
+        `Für immer fest steht, wer gegründet hat: ${aufzaehlung(felder.gruendung.alle)}. ` +
+          "Satzung und Mitgliederliste ändert ihr später per Abstimmung.",
+      );
+    } else if (felder.geltend === true && effect.membership === "MEMBER") {
       zeilen.push("Du bist Mitglied.");
     } else if (felder.geltend === true && effect.membership === "APPLICANT") {
       zeilen.push("Du hast die Satzung bestätigt, stehst aber nicht auf der Mitgliederliste.");
@@ -714,7 +876,10 @@ export function standSaetze(index, stand) {
   if (angewandt === 1) saetze.push("Dazu gilt 1 Sachbeschluss.");
   else if (angewandt > 1) saetze.push(`Dazu gelten ${angewandt} Sachbeschlüsse.`);
   for (const [feld, wert] of Object.entries(stand?.stand_obj ?? {})) {
-    if (typeof wert === "string") saetze.push(`Es gilt zu ${feld}: „${wert}“`);
+    // vorlage bekommt keinen Satz; der Beitrag in Worten (D651 Beschluss 4).
+    if (feld === "vorlage" || typeof wert !== "string") continue;
+    const gezeigt = feld === "beitrag" ? beitragInWorten(wert) : wert;
+    saetze.push(`Es gilt zu ${feld}: „${gezeigt}“`);
   }
   return saetze;
 }

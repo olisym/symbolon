@@ -58,6 +58,9 @@ class SqliteStore:
                 pub BLOB PRIMARY KEY,
                 name TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS verworfen (
+                scope BLOB PRIMARY KEY
+            );
             """
         )
         self._db.commit()
@@ -260,6 +263,24 @@ class SqliteStore:
         """Namen des Adressbuchs, Abbildung vom Schlüssel auf den Namen (D479 Beschluss 5)."""
         rows = self._db.execute("SELECT pub, name FROM names").fetchall()
         return {row[0]: row[1] for row in rows}
+
+    def verwerfen(self, scope: bytes) -> None:
+        """Merkt den Scope, auch wiederholt, und schreibt fest (D651 Beschluss 6)."""
+        self._db.execute(
+            "INSERT INTO verworfen (scope) VALUES (?) ON CONFLICT(scope) DO NOTHING",
+            (scope,),
+        )
+        self._db.commit()
+
+    def wieder_zeigen(self, scope: bytes) -> None:
+        """Nimmt den Scope heraus, auch wenn er nicht darin steht (D651 Beschluss 6)."""
+        self._db.execute("DELETE FROM verworfen WHERE scope = ?", (scope,))
+        self._db.commit()
+
+    def verworfene(self) -> set[bytes]:
+        """Die Scopes, die der Knoten nicht mehr zeigt (D651 Beschluss 6)."""
+        rows = self._db.execute("SELECT scope FROM verworfen").fetchall()
+        return {bytes(row[0]) for row in rows}
 
     def object_hashes(self) -> list[bytes]:
         """Hashes aller gehaltenen Objekte, sortiert (D516 Beschluss 2, D514 Beschluss 2)."""

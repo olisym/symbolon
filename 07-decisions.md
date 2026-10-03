@@ -28481,3 +28481,139 @@ von Chrome oder Brave; die Container aus D643 Beschluss 2 entfallen. Der Supervi
 Seite vorher in Chromium und in Firefox.
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00db.md` ersetzt.
+
+### D645 — Vereinsrecht als Prüfliste; Rangfolge der Gründe; zwei von drei ändern den Zweck
+
+**Anlass.** Oli schlägt vor, das deutsche Vereinsrecht als Vorlage für den Verein zu nehmen, und
+legt BGB, Grundgesetz, Vereinsgesetz und Vereinsregisterverordnung in den Projektspeicher (BGB
+zuletzt geändert am 23.7.2026). Vor den Feldern mit Typ (D644 Beschluss 1) steht damit ein
+Abgleich. Gelesen auf `6f45d5a`: `04-governance.md` ganz, `symbolon/node/gruendung.py`, D236,
+D496, D641, D644 und der Austritt in `03-profiles.md`; aus dem BGB die Vorschriften 21 bis 59 im
+Wortlaut. Das Register schreibt „BGB 33“ ohne Paragrafenzeichen.
+
+**Befund 1 — der Abgleich.** Je Vorschrift, was MaR dazu hat.
+
+- **Abgebildet:** BGB 25 (die Satzung bestimmt die Verfassung; `04 §1`). BGB 57 (Zweck, Name,
+  Sitz; Pflichtfelder der Vorlage). BGB 58 Nr. 1 (Eintritt; Vorschlag der Klasse `membership` und
+  eigene Annahme, `04 §6`). BGB 58 Nr. 2 (Beiträge; Feld `beitrag`, dazu Schuld und Quittung,
+  `szenario-verein.md`). BGB 58 Nr. 4 (Beurkundung; `ratify@1` nennt die zählenden Ja). BGB 32
+  Absatz 3 (Beschluss ohne Versammlung; in MaR der Normalfall, mit Schwelle statt Zustimmung
+  aller). BGB 38 (nicht übertragbar; ein Mitglied ist ein Schlüssel, soweit prüfbar). BGB 39
+  (Austritt; Widerruf der eigenen Annahme, mit dem Rest aus Befund 3). BGB 56 und 73 (nie unter
+  drei; `mindestens` 3 in der Vorlage).
+- **Bewusst nicht:** BGB 32 Absatz 1 und 36 (Versammlung, Berufung, Mehrheit der abgegebenen
+  Stimmen; D100, `04 §3.2`). BGB 34 (Stimmverbot in eigener Sache; D236 Beschluss 1). BGB 37
+  (eine Minderheit erzwingt die Versammlung; in MaR beantragt jedes Mitglied jederzeit). BGB 26
+  bis 31b (Vorstand, Vertretung, Haftung; kein Aussenverhältnis, D644 Beschluss 2, Anlass O89).
+  BGB 29, 37 Absatz 2 und 73 (das Amtsgericht; keine Instanz, `04 §8`). Register, Insolvenz und
+  Liquidation.
+- **Offen:** BGB 33 Satz 2 (Zweckänderung braucht alle; Befund 2). BGB 41 (Auflösung; MaR kennt
+  keinen Akt, ein Verein endet nie).
+
+Das Gesetz sortiert selbst in drei Klassen: BGB 40 nennt, was die Satzung ändern darf (darunter
+32, 33, 38); was dort fehlt, ist fest (34, 37, 39); BGB 58 nennt den Soll-Inhalt.
+
+**Befund 2 — zwei von drei ändern den Zweck (gemessen).** Im Supervisor-Klon über die
+Schnittstelle: `POST /gruenden` mit der Vorlage `verein`, drei Bestätigungen, dann zwei
+Sachanträge von Anna, je mit dem Ja von Anna und Bruno und einer Feststellung. Der erste setzt
+`zweck` von „Gemeinsam laufen“ auf „Gewinn erzielen“, der zweite entfernt `name`. Beide Folgen
+nennen `needed` 2 bei `n` 3 und `passes` wahr; der Stand trägt danach den neuen Zweck und keinen
+Namen, ohne Vermerk, in Epoche 1. Der Grund liegt in der Norm: jedes Feld ausser den sechs
+Regelfeldern ist ein Sachfeld, und ein Sachantrag zählt als `ordinary` (`04 §1.1`, `04 §3.4`,
+D565 Beschluss 2). Die Schwelle `amendment` schützt die Regeln, nicht den Text der Satzung. D641
+Befund 2 nannte das für den Beitrag, nicht für Zweck und Name. Auch ein Pflichtfeld der Vorlage
+lässt sich so entfernen; die Vorlage prüft nur die Gründung.
+
+**Befund 3 — der Austritt lässt einen Rest (Normtext, nicht gemessen).** Wer seine Annahme
+widerruft, steht weiter in `participants` und zählt im Nenner, bis ein Vorschlag ihn streicht
+(`04 §6.3`).
+
+**Befund 4 — das BGB fügt kein Feld hinzu.** Der Umfang aus D644 Beschluss 2 hält: `name`,
+`sitz`, `zweck` als Text und Pflicht (BGB 57); `beitrag` als Betrag mit Fälligkeit, ohne Pflicht
+(BGB 58 Nr. 2, in der Form von `obligation@1`); die Schwellen als Auswahl bei der Gründung.
+Vorstand und Versammlung stehen im Gesetz für Vertretung nach aussen und für einen Termin; beides
+hat MaR nicht.
+
+**Befund 5 — nachgeschlagen.** Gelesen sind Auszüge und Zusammenfassungen, kein Primärtext ganz.
+
+- **Ebenen von Regeln.** Kiser und Ostrom (1982) trennen Regeln des Alltags, Regeln über
+  Beschlüsse und Regeln der Verfassung; jede Ebene sagt, wie die darunter entsteht. Ostrom führt
+  die oberste auf Buchanan und Tullock (1962) zurück.
+- **Die Höhe der Schwelle.** Buchanan und Tullock: die beste Mehrheit ist die, bei der die Kosten
+  für den Überstimmten und die Kosten der Einigung zusammen am kleinsten sind; je mehr ein
+  Beschluss den Überstimmten kostet, desto höher. Spätere Arbeiten zeigen, dass das Optimum von
+  der Form beider Kosten abhängt und nicht eindeutig sein muss.
+- **Beteiligung.** In der Schweiz lag die Beteiligung an Volksabstimmungen im Mittel der fünf
+  Jahre bis März 2024 bei 49,7 %, von 1981 bis 1999 bei 40 %; wenig beachtete Vorlagen bleiben
+  unter 30 %, umstrittene über 60 %. Dahinter steht selektive Teilnahme: rund 90 % stimmten 2016
+  innerhalb von vier Jahren mindestens einmal ab, weniger als ein Fünftel nie. Wer eine Vorlage
+  für wichtig hält, stimmt eher ab (Goldberg, Sciarini).
+- **Belohnung.** Deci, Koestner und Ryan (1999), 128 Experimente: greifbare Belohnungen mindern
+  die innere Motivation, anerkennende Rückmeldung stärkt sie. Eine spätere Auswertung von 142
+  Experimenten bestätigt das am Verhalten nach dem Ende der Belohnung, nicht an der Selbstauskunft.
+- **Nicht nachgeschlagen, aus dem Gedächtnis:** Zugehörigkeit als Grundbedürfnis (Baumeister,
+  Leary), die Kritik an Maslows Stufenfolge, Olson zur Beteiligung in Gruppen, der Zusammenhang
+  von erlebter Wirksamkeit und Beteiligung, Konformität und Kaskaden bei offenen Stimmen, die
+  Nachprüfungen zu Ostroms Bauprinzipien.
+
+**Befund 6 — drei eigene Aussagen berichtigt.** Vor dem Lesen nannte ich die Bezugsgrösse der
+Mehrheit einen offenen Fork; sie ist seit D100 entschieden. Ich nannte BGB 34 eine Lücke; D236
+hat das Stimmverbot verworfen. Und ich hielt Oli die Schweiz entgegen: je Abstimmung stimmt
+weniger als die Hälfte, das hält; die selektive Teilnahme stützt aber seinen Satz, dass Menschen
+abstimmen, wo es sie betrifft. Kandidat für eine Prüfregel: wer eine Lücke nennt, sucht vorher im
+Register, ob sie eine Entscheidung ist (Schwester von D514 und D527).
+
+**Beschluss 1 — Vorbild, nicht Tauglichkeit (Oli).** Die Vorlage `verein` ist wie ein Verein
+gebaut; ob ihre Satzung vor dem Gesetz taugen muss, wird später angesehen. Weitere Gesetze
+kommen je Strang, nicht auf Vorrat (D639 Beschluss 3).
+
+**Beschluss 2 — die Rangfolge der Gründe (Oli; Fassung des Supervisors).**
+
+1. Zuerst die Invarianten von MaR: keine Uhr, keine Instanz, Stimmen wachsen nur, Widersprüche
+   werden sichtbar statt unmöglich (`08 §2.2`).
+2. Unter dem, was die Bauform zulässt, entscheidet, was über das Verhalten von Menschen in
+   Gruppen belegt ist. Ein Eintrag nennt die Art des Belegs: Feldstudie, wiederholtes Experiment,
+   Deutung.
+3. Ein Gesetz ist Fundgrube und Prüfliste. Es zeigt Fälle und begründet nichts. Wogegen MaR sich
+   mit Grund entschieden hat, das bleibt.
+
+Olis Satz dazu: Menschen setzen sich ein, wo es spürbar wirkt und Ansehen bringt; MaR arbeitet
+damit, schützt vor Missbrauch und muss für die ehrliche Mehrheit Sinn ergeben. Dass alle
+mitmachen, ist keine Voraussetzung: MaR muss dem Verein nützen, in dem wenige handeln.
+
+**Beschluss 3 — vier Folgen; Position.**
+
+1. Das Tun ist die Hauptfläche, nicht das Abstimmen. Olis Beispiel, jemand übernimmt eine Aufgabe
+   und ein anderer bestätigt sie, hat die Form von Schuld und Quittung (`03 §3.3`); ein Kandidat
+   neben der Verabredung zu zweit (D640 Beschluss 3), kein Auftrag.
+2. Alltägliches fällt leicht, Grundlegendes schwer (Befund 5, Ebenen und Schwelle).
+3. Schweigen soll einen Verein nicht lähmen; offen, siehe Beschluss 6.
+4. Die Seite baut nichts, das auf Wiederkommen zielt. Anerkennung kommt von einem bestimmten
+   Menschen für eine bestimmte Sache, nicht als Zähler (Befund 5, Belohnung).
+
+**Beschluss 4 — geschützte Felder; Position, kein Normtext.** Die Satzung nennt Sachfelder, die
+ein Sachantrag nur mit der Schwelle `amendment` ändert; für die Vorlage `verein` sind das `zweck`
+und `name`. Ein Mensch sieht beim Antrag auf den Zweck dann „braucht 3 von 3“ statt „2 von 3“.
+Die Beweise aus `04 §4.4` gelten für jede Klasse, die `04 §3.5` durchlässt. Vor dem Normtext
+steht ein Prototyp (D599, D601), und er klärt: wo die Liste steht (ein siebtes Regelfeld), ob das
+Entfernen eines geschützten Felds mitzählt, und was die Sperre aus `04 §3.4` dazu sagt.
+Verworfen: `ordinary` in der Vorlage auf zwei Drittel heben; zu dritt wäre dann alles
+einstimmig, gegen Folge 2. Rückfall, wenn der Prototyp nicht trägt: die Lage als getragene Grenze
+in `04 §8` benennen. „Alle Mitglieder“ wie in BGB 33 leistet kein Weg über drei Personen hinaus;
+eine Schwelle `[1, 1]` kommt nie durch (`04 §4.7`).
+
+**Beschluss 5 — die Felder.** Der Umfang aus Befund 4, von Oli gesehen und nicht beanstandet.
+Die Runde zu den Typen (Kandidat CDDL, D641 Beschluss 6) steht noch aus und folgt nach Beschluss
+4, weil beides sagt, was eine Vorlage über ihre Felder nach der Gründung festhält.
+
+**Beschluss 6 — ohne Auftrag.** Die Beteiligung: der Nenner ist `|P|`, und je Abstimmung stimmt
+nach Befund 5 oft weniger als die Hälfte; zu dritt ohne Folge, bei dreissig steht ein Verein
+still (`04 §8`, D100, O38). Offene Stimmen nacheinander und Mitläufer (D640 Beschluss 6). Der
+Rest beim Austritt (Befund 3). Die Auflösung (BGB 41). Für später genannt und nicht gelesen: die
+Mustersatzung in der Abgabenordnung und das Genossenschaftsgesetz; für die Verabredung zu zweit
+die Gesellschaft ab BGB 705.
+
+**Nächster Schritt.** Der Prototyp zu Beschluss 4 im Supervisor-Klon, gemessen an der Gründung
+zu dritt aus Befund 2; danach Normtext und Auftrag, dann die Felder mit Typ.
+
+**Geändert.** `07-decisions.md`.

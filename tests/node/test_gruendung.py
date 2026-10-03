@@ -10,7 +10,7 @@ import pytest
 from symbolon import cbor_canon
 from symbolon.genesis import genesis_scope
 from symbolon.node import gruendung as modul
-from symbolon.node.gruendung import Abgewiesen, gruenden
+from symbolon.node.gruendung import Abgewiesen, gruenden, vorlage_der_satzung, wert_gueltig
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.policy import constitution_hash
 from tests.node.test_api import _call, _seed, _start, _stop
@@ -32,12 +32,13 @@ def test_gruendung_ist_bestimmt() -> None:
         "name": "Laufgruppe",
         "sitz": "Ort",
         "zweck": "Gemeinsam laufen",
-        "beitrag": "24 Euro im Jahr",
+        "beitrag": "24,00 EUR im Jahr",
+        "vorlage": "verein@1",
         "irrevocable_predicates": ["obligation@1", "ratify@1", "vote@1"],
         "thresholds": thresholds,
         "arbitration": {"arbitrators": keys},
         "participants": keys,
-        "protected_fields": ["name", "zweck"],
+        "protected_fields": ["name", "vorlage", "zweck"],
     }
     leben = {
         "irrevocable_predicates": ["obligation@1"],
@@ -58,7 +59,7 @@ def test_gruendung_ist_bestimmt() -> None:
         8: verein,
         9: {0: 100, 1: 1, 2: 2, 3: 100},
     }
-    got = gruenden("verein", _drei(), {**FELDER, "beitrag": "24 Euro im Jahr"})
+    got = gruenden("verein", _drei(), {**FELDER, "beitrag": "24,00 EUR im Jahr"})
     assert got.verein == verein
     assert got.vereinsleben == genesis_scope(genesis_leben)
     assert got.constitution == constitution_hash(satzung)
@@ -69,7 +70,7 @@ def test_gruendung_ist_bestimmt() -> None:
         (ObjectKind.GENESIS, cbor_canon.encode(genesis_leben)),
     )
     # Die Reihenfolge der Gründer in der Eingabe ändert nichts.
-    assert gruenden("verein", _drei()[::-1], {**FELDER, "beitrag": "24 Euro im Jahr"}) == got
+    assert gruenden("verein", _drei()[::-1], {**FELDER, "beitrag": "24,00 EUR im Jahr"}) == got
 
 
 def test_vereinsleben_gehoert_zu_seinem_verein() -> None:
@@ -102,6 +103,12 @@ def test_vereinsleben_gehoert_zu_seinem_verein() -> None:
         ("verein", "drei", {**FELDER, "thresholds": "x"}, "UNKNOWN_FIELD"),
         ("verein", "drei", {"name": "Laufgruppe", "sitz": "Ort"}, "MISSING_FIELD"),
         ("verein", "drei", {**FELDER, "name": ""}, "MISSING_FIELD"),
+        ("verein", "drei", {**FELDER, "vorlage": "verein@1"}, "UNKNOWN_FIELD"),
+        ("verein", "drei", {**FELDER, "name": " Laufgruppe"}, "INVALID_VALUE"),
+        ("verein", "drei", {**FELDER, "sitz": "Ort\nAnderswo"}, "INVALID_VALUE"),
+        ("verein", "drei", {**FELDER, "zweck": "Cho\u0308re"}, "INVALID_VALUE"),
+        ("verein", "drei", {**FELDER, "beitrag": ""}, "INVALID_VALUE"),
+        ("verein", "drei", {**FELDER, "beitrag": "24 Euro im Jahr"}, "INVALID_VALUE"),
     ],
 )
 def test_abweisungen(vorlage, gruender, felder, name) -> None:
@@ -140,11 +147,70 @@ def test_probelauf_weist_eine_vorlage_ab_die_nicht_handeln_kann(
     assert caught.value.name == "UNSOUND_TEMPLATE"
 
 
+@pytest.mark.parametrize(
+    ("typ", "wert", "gilt"),
+    [
+        ("text", "Laufgruppe", True),
+        ("text", "Chöre e. V.", True),
+        ("text", "", False),
+        ("text", " Laufgruppe", False),
+        ("text", "Laufgruppe ", False),
+        ("text", "Lauf\ngruppe", False),
+        ("text", "Lauf\rgruppe", False),
+        ("text", "Cho\u0308re", False),
+        ("text", 24, False),
+        ("text", None, False),
+        ("betrag", "24,00 EUR im Jahr", True),
+        ("betrag", "1,00 EUR im Monat", True),
+        ("betrag", "0,01 EUR im Jahr", True),
+        ("betrag", "9999999,99 EUR im Jahr", True),
+        ("betrag", "0,00 EUR im Jahr", False),
+        ("betrag", "24 EUR im Jahr", False),
+        ("betrag", "24,0 EUR im Jahr", False),
+        ("betrag", "24.00 EUR im Jahr", False),
+        ("betrag", "024,00 EUR im Jahr", False),
+        ("betrag", "10000000,00 EUR im Jahr", False),
+        ("betrag", "24,00 Euro im Jahr", False),
+        ("betrag", "24,00 EUR im Quartal", False),
+        ("betrag", "24,00 EUR im Jahr, fällig im Januar", False),
+        ("betrag", "24,00 EUR im Jahr ", False),
+        ("betrag", "2\u0664,00 EUR im Jahr", False),
+        ("betrag", "24,0\u0660 EUR im Jahr", False),
+        ("betrag", "-24,00 EUR im Jahr", False),
+        ("betrag", 2400, False),
+        ("zahl", "24", False),
+        (None, "24", False),
+    ],
+)
+def test_wert_gueltig(typ, wert, gilt) -> None:
+    """Je Typ genau ein Text für denselben Inhalt (D648 Beschluss 2, D496)."""
+    assert wert_gueltig(typ, wert) is gilt
+
+
+def test_die_satzung_nennt_ihre_vorlage() -> None:
+    """``vorlage`` steht in der Satzung des Vereins und führt zur Vorlage zurück (D648
+    Beschluss 3)."""
+    got = gruenden("verein", _drei(), FELDER)
+    satzung = cbor_canon.decode(got.objekte[0][1])
+    assert satzung["vorlage"] == "verein@1"
+    assert "vorlage" not in cbor_canon.decode(got.objekte[2][1])
+    assert vorlage_der_satzung(satzung) is modul.VORLAGEN["verein"]
+    for fremd in ("verein@2", "verein", "verein@", "firma@1", 7, None):
+        assert vorlage_der_satzung({**satzung, "vorlage": fremd}) is None, fremd
+    assert vorlage_der_satzung({}) is None
+    assert vorlage_der_satzung(None) is None
+    assert vorlage_der_satzung([]) is None
+
+
 def test_vorlage_nennt_die_geschuetzten_felder(monkeypatch) -> None:
     """Die Liste steht sortiert in der Satzung des Vereins, nicht im Vereinsleben; ohne
     Eintrag der Vorlage fehlt das Feld (D646 Beschluss 5, 04 §1.1)."""
     got = gruenden("verein", _drei(), FELDER)
-    assert cbor_canon.decode(got.objekte[0][1])["protected_fields"] == ["name", "zweck"]
+    assert cbor_canon.decode(got.objekte[0][1])["protected_fields"] == [
+        "name",
+        "vorlage",
+        "zweck",
+    ]
     assert "protected_fields" not in cbor_canon.decode(got.objekte[2][1])
     ohne = copy.deepcopy(modul.VORLAGEN["verein"])
     del ohne["geschuetzt"]
@@ -153,7 +219,7 @@ def test_vorlage_nennt_die_geschuetzten_felder(monkeypatch) -> None:
     assert "protected_fields" not in cbor_canon.decode(frei.objekte[0][1])
     assert frei.verein != got.verein
     gedreht = copy.deepcopy(modul.VORLAGEN["verein"])
-    gedreht["geschuetzt"] = ("zweck", "name")
+    gedreht["geschuetzt"] = ("zweck", "vorlage", "name")
     monkeypatch.setitem(modul.VORLAGEN, "verein", gedreht)
     assert gruenden("verein", _drei(), FELDER) == got
 
@@ -272,7 +338,7 @@ def test_route_schuetzt_zweck_und_name(tmp_path) -> None:
         return folge["effect"]["passes"]
 
     try:
-        felder = {**FELDER, "beitrag": "24"}
+        felder = {**FELDER, "beitrag": "24,00 EUR im Jahr"}
         status, antwort = _json(
             server, "POST", "/gruenden", {"vorlage": "verein", "gruender": _drei(), "felder": felder}
         )
@@ -280,7 +346,7 @@ def test_route_schuetzt_zweck_und_name(tmp_path) -> None:
         verein = antwort["verein"]
         for person in (anna, bruno, chris):
             assert absicht(person, {"art": "accept-rules", "scope": verein})[0] == 200
-        for motion in ({"zweck": "Gewinn erzielen"}, {"name": None}, {"name": "Chor", "farbe": "blau"}):
+        for motion in ({"zweck": "Gewinn erzielen"}, {"name": "Chor"}, {"name": "Rat", "farbe": "blau"}):
             antrag, folge = sachantrag(motion)
             assert folge == {"needed": 3, "n": 3}
             assert ja(anna, antrag) is False
@@ -288,7 +354,7 @@ def test_route_schuetzt_zweck_und_name(tmp_path) -> None:
             assert absicht(anna, {"art": "ratify", "proposal": antrag}) == (400, "NOT_PASSED")
         zweck = _json(server, "GET", f"/proposals/{verein}")[1]
         assert _json(server, "GET", f"/scopes/{verein}")[1]["stand"]["ratified"] == []
-        for motion in ({"sitz": "Anderswo"}, {"beitrag": "30"}):
+        for motion in ({"sitz": "Anderswo"}, {"beitrag": "30,00 EUR im Jahr"}):
             antrag, folge = sachantrag(motion)
             assert folge == {"needed": 2, "n": 3}
             assert ja(anna, antrag) is False
@@ -299,8 +365,62 @@ def test_route_schuetzt_zweck_und_name(tmp_path) -> None:
         assert stand["stand_obj"]["zweck"] == "Gemeinsam laufen"
         assert stand["stand_obj"]["name"] == "Laufgruppe"
         assert stand["stand_obj"]["sitz"] == "Anderswo"
-        assert stand["stand_obj"]["beitrag"] == "30"
+        assert stand["stand_obj"]["beitrag"] == "30,00 EUR im Jahr"
         assert len(zweck) == 3
+    finally:
+        _stop(server)
+
+
+def test_route_prueft_die_typen_an_beiden_wegen(tmp_path) -> None:
+    """Sachantrag und Satzungsantrag: ein Wert in falscher Form, ein entferntes Pflichtfeld und
+    das Feld ``vorlage`` werden abgewiesen, und nichts wird geschrieben (D648 Beschluss 4)."""
+    _path, server, (anna, bruno, chris, _dora) = _knoten(tmp_path)
+
+    def antrag(rumpf):
+        return _json(
+            server, "POST", "/sim/intent", {"I": anna.pub.hex(), "art": "propose", **rumpf}
+        )
+
+    try:
+        felder = {**FELDER, "beitrag": "24,00 EUR im Jahr"}
+        status, antwort = _json(
+            server, "POST", "/gruenden", {"vorlage": "verein", "gruender": _drei(), "felder": felder}
+        )
+        assert status == 200
+        verein = antwort["verein"]
+        for person in (anna, bruno, chris):
+            rumpf = {"I": person.pub.hex(), "art": "accept-rules", "scope": verein}
+            assert _json(server, "POST", "/sim/intent", rumpf)[0] == 200
+        abgewiesen = [
+            ({"beitrag": "30"}, "INVALID_VALUE"),
+            ({"beitrag": "30,00 EUR im Jahr "}, "INVALID_VALUE"),
+            ({"name": " Chor"}, "INVALID_VALUE"),
+            ({"sitz": None}, "MISSING_FIELD"),
+            ({"zweck": None}, "MISSING_FIELD"),
+            ({"vorlage": "verein@2"}, "RESERVED_FIELD"),
+            ({"vorlage": None}, "RESERVED_FIELD"),
+            ({"farbe": "blau", "beitrag": "30"}, "INVALID_VALUE"),
+        ]
+        for motion, name in abgewiesen:
+            assert antrag({"scope": verein, "motion": motion}) == (400, name), motion
+        for feld, text, name in (
+            ("beitrag", "30", "INVALID_VALUE"),
+            ("sitz", "Ort ", "INVALID_VALUE"),
+            ("vorlage", "verein@2", "RESERVED_FIELD"),
+        ):
+            rumpf = {"scope": verein, "change": {"set": {"field": feld, "text": text}}}
+            assert antrag(rumpf) == (400, name), feld
+        assert _json(server, "GET", f"/proposals/{verein}")[1] == []
+        angenommen = [
+            {"beitrag": "30,00 EUR im Monat"},
+            {"beitrag": None},
+            {"farbe": " blau "},
+        ]
+        for motion in angenommen:
+            assert antrag({"scope": verein, "motion": motion})[0] == 200, motion
+        rumpf = {"scope": verein, "change": {"set": {"field": "sitz", "text": "Anderswo"}}}
+        assert antrag(rumpf)[0] == 200
+        assert len(_json(server, "GET", f"/proposals/{verein}")[1]) == 4
     finally:
         _stop(server)
 

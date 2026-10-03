@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -21,7 +23,9 @@ VORLAGEN: dict[str, dict[str, object]] = {
         "mindestens": 3,
         "felder": ("name", "sitz", "zweck", "beitrag"),
         "pflicht": ("name", "sitz", "zweck"),
-        "geschuetzt": ("name", "zweck"),
+        "geschuetzt": ("name", "vorlage", "zweck"),
+        "fassung": 1,
+        "typen": {"name": "text", "sitz": "text", "zweck": "text", "beitrag": "betrag"},
         "thresholds": {
             "ordinary": [1, 2],
             "membership": [1, 2],
@@ -33,6 +37,73 @@ VORLAGEN: dict[str, dict[str, object]] = {
         "trust_params": {0: 100, 1: 1, 2: 2, 3: 100},
     },
 }
+
+
+# Ziffern 0 bis 9, nicht die Unicode-Klasse \d (D648 Beschluss 2, D648 Befund 4).
+_BETRAG = re.compile(r"(0|[1-9][0-9]{0,6}),[0-9]{2} EUR im (Monat|Jahr)")
+
+
+def wert_gueltig(typ: object, wert: object) -> bool:
+    """Ob ``wert`` zum Typ der Vorlage passt (D648 Beschluss 2, D496).
+
+    Falsch, wenn ``wert`` kein Text ist, leer ist, Leerraum am Rand oder einen Zeilenumbruch
+    trägt oder nicht in NFC steht. ``text`` ist sonst wahr, ``betrag`` nur in der Form
+    ``(0|[1-9][0-9]{0,6}),[0-9]{2} EUR im (Monat|Jahr)`` und nicht ``0,00``. Jeder andere Typ
+    ist falsch. Kein Wert und kein Typ wirft.
+    """
+    if not isinstance(wert, str) or wert == "" or wert != wert.strip():
+        return False
+    if "\n" in wert or "\r" in wert:
+        return False
+    if not unicodedata.is_normalized("NFC", wert):
+        return False
+    if typ == "text":
+        return True
+    if typ != "betrag":
+        return False
+    if _BETRAG.fullmatch(wert) is None or wert.startswith("0,00"):
+        return False
+    return True
+
+
+def vorlage_der_satzung(stand: object) -> dict[str, object] | None:
+    """Der Eintrag von ``VORLAGEN``, den ``stand`` als ``<name>@<fassung>`` nennt, sonst
+    ``None`` (D648 Beschluss 3).
+
+    ``VORLAGEN`` wird bei jedem Aufruf gelesen. Kein Wert wirft.
+    """
+    if not isinstance(stand, Mapping):
+        return None
+    try:
+        genannt = stand.get("vorlage")
+    except Exception:
+        return None
+    if not isinstance(genannt, str):
+        return None
+    for name, eintrag in VORLAGEN.items():
+        if genannt == f"{name}@{eintrag['fassung']}":
+            return eintrag
+    return None
+
+
+def feld_abweisung(muster: Mapping[str, object], feld: str, wert: str | None) -> str | None:
+    """Abweisung eines Sachfelds gegen die Vorlage, sonst ``None`` (D648 Beschluss 4).
+
+    ``wert`` ``None`` heisst entfernen. ``vorlage`` ist bei jedem Wert ``RESERVED_FIELD``.
+    Ein Feld ohne Eintrag in ``typen`` bleibt ungeprüft.
+    """
+    if feld == "vorlage":
+        return "RESERVED_FIELD"
+    typen = muster["typen"]
+    if feld not in typen:
+        return None
+    if wert is None:
+        if feld in muster["pflicht"]:
+            return "MISSING_FIELD"
+        return None
+    if not wert_gueltig(typen[feld], wert):
+        return "INVALID_VALUE"
+    return None
 
 
 class Abgewiesen(Exception):
@@ -58,7 +129,8 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
 
     Führt die Vorlage ``geschuetzt`` und ist es nicht leer, steht ``protected_fields`` nach den
     Bytes der UTF-8-Kodierung sortiert in der Satzung des Vereins, nie im Vereinsleben
-    (04 §1.1, D646).
+    (04 §1.1, D646). Jeder gereichte Wert muss zu seinem Typ passen, sonst ``INVALID_VALUE``;
+    die Satzung des Vereins nennt ``vorlage`` als ``<vorlage>@<fassung>`` (D648).
     """
     if not isinstance(vorlage, str) or vorlage not in VORLAGEN:
         raise Abgewiesen("UNKNOWN_TEMPLATE")
@@ -95,6 +167,10 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
     for name in pflicht:
         if name not in werte or werte[name] == "":
             raise Abgewiesen("MISSING_FIELD")
+    typen = muster["typen"]
+    for name, wert in werte.items():
+        if not wert_gueltig(typen[name], wert):
+            raise Abgewiesen("INVALID_VALUE")
     schwellen = {
         name: list(paar) for name, paar in muster["thresholds"].items()
     }
@@ -107,6 +183,7 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
         satzung["protected_fields"] = sorted(
             muster["geschuetzt"], key=lambda name: name.encode("utf-8")
         )
+    satzung["vorlage"] = f"{vorlage}@{muster['fassung']}"
     leben: dict[str, object] = {
         "irrevocable_predicates": list(muster["irrevocable_vereinsleben"]),
         "thresholds": {name: list(paar) for name, paar in schwellen.items()},

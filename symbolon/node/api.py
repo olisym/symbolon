@@ -29,7 +29,7 @@ from symbolon.governance.tally import (
     vote_root,
 )
 from symbolon.index import classify_all
-from symbolon.node.gruendung import Abgewiesen, gruenden
+from symbolon.node.gruendung import Abgewiesen, feld_abweisung, gruenden, vorlage_der_satzung
 from symbolon.node.store import ObjectKind, SqliteStore
 from symbolon.node.view import (
     ScopeView,
@@ -287,6 +287,7 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
 
     Feld 3 nennt die festgestellten Sachanträge der Epoche und fehlt ohne sie (D577 Beschluss 3).
     Feld 4 nennt den geltenden Wahlgang und fehlt bei 0 (04 §2.4, 04 §4.7, D603 Beschluss 1).
+    Im Zweig ``set`` prüft die Vorlage des Stands den Wert, bevor gesetzt wird (D648 Beschluss 4).
     """
     if not isinstance(change, dict) or len(change) != 1 or not set(change) <= {"add", "remove", "set"}:
         raise _Named("INVALID_CHANGE")
@@ -316,6 +317,11 @@ def _change(store: SqliteStore, scope: bytes, change: object, now: int) -> bytes
         text = _text(spec["text"], "text")
         if field in _RESERVED:
             raise _Named("RESERVED_FIELD")
+        muster = vorlage_der_satzung(constitution)
+        if muster is not None:
+            name = feld_abweisung(muster, field, text)
+            if name is not None:
+                raise _Named(name)
         current = constitution.get(field)
         if current is not None and not isinstance(current, str):
             raise _Named("RESERVED_FIELD")
@@ -335,7 +341,8 @@ def _motion(store: SqliteStore, scope: bytes, spec: object, now: int) -> bytes:
     """Sachantrag aus dem Stand der geltenden Epoche (04 §2.5, 04 §4.6, D577 Beschluss 5).
 
     ``spec`` bildet den Feldnamen auf einen Text oder ``None`` für „entfernen“ ab; der alte Wert
-    kommt aus dem Stand.
+    kommt aus dem Stand. Kennt der Stand eine Vorlage, weist ``feld_abweisung`` je Feld ab, nach
+    den beiden Prüfungen auf ``RESERVED_FIELD`` (D648 Beschluss 4).
     """
     if not isinstance(spec, dict) or not spec:
         raise _Named("INVALID_CHANGE")
@@ -345,12 +352,17 @@ def _motion(store: SqliteStore, scope: bytes, spec: object, now: int) -> bytes:
     stand = view.stand.stand_obj
     if not isinstance(stand, dict):
         raise _Named("INVALID_CHANGE")
+    muster = vorlage_der_satzung(stand)
     changes: dict[str, list[list[str]]] = {}
     for field, text in spec.items():
         if field in _RESERVED:
             raise _Named("RESERVED_FIELD")
         if field in stand and not isinstance(stand[field], str):
             raise _Named("RESERVED_FIELD")
+        if muster is not None:
+            name = feld_abweisung(muster, field, text)
+            if name is not None:
+                raise _Named(name)
         alt = [stand[field]] if field in stand else []
         neu = [text] if text is not None else []
         if alt == neu:

@@ -28900,3 +28900,121 @@ Befund 3. Zwei davon sind zum zweiten oder dritten Mal belegt.
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00dc.md` neu, `sitzungsstart-00db.md` nach
 `archiv/`.
+
+### D651 — Gründung Schritt 2: die Bildschirme auf einem Knoten; eine Gründung verwerfen; `p55`
+
+**Anlass.** D649 Beschluss 2, D650 Beschluss 1. Gelesen sind die Seite ganz (`app.js`,
+`anzeige.js`, `geraet.js`, `selbsttest.js`, `style.css`, die beiden Tests dazu) und das Bild der
+acht Bildschirme. Danach der Prototyp im Supervisor-Klon auf `4e651a1` gegen den echten Knoten,
+und Olis Entscheidung zum Verwerfen.
+
+**Befund 1 — heute sagt die Seite in einer Gründung zwei falsche Sätze.** Nach `POST /gruenden`
+stehen alle Gründer auf `GRANT_ONLY`. Die Aufgabe heisst dann „Die Satzung hat sich geändert.
+Bestätige die geltende Fassung.“, und „Im Verein“ wiederholt es. Geändert hat sich nichts; es
+gibt nur die erste Fassung.
+
+**Befund 2 — „Nicht mitgründen“ hat keinen Akt.** Das Bild zeigt den Knopf, das Protokoll kennt
+nichts dazu: ein Genesis trägt keine Unterschrift (D641 Beschluss 3), und wer nicht bestätigt,
+schweigt. Lehnt einer ab, bleibt der Verein für immer in Gründung. Weil die Seite den ersten
+Verein nimmt (D640 Befund 8) und das Gründen nur ohne Verein anbietet, wäre der Knoten danach
+für jede weitere Gründung gesperrt.
+
+**Befund 3 — drei Wege zum Verwerfen.** (a) Der Knoten löscht die vier Objekte: der Abgleich mit
+einem Nachbarn holte sie wieder, und eine `accept-rules`, die schon unterschrieben ist, bleibt
+ohnehin in der Kette ihres Autors. (b) Die Seite kennt mehrere Vereine: das ist Schritt 4 und
+ein Umbau von `findeScope` bis in jeden Tab. (c) Der Knoten merkt sich, was er nicht mehr zeigt.
+Gewählt ist (c): es entfernt nichts, lässt sich zurücknehmen und ist der Anfang der Regel aus
+D640 Beschluss 4, dass ein Knoten nur hält, was sein Mensch will.
+
+**Befund 4 — dieselbe Gründung hat dieselben Hashes.** Gründen dieselben mit denselben Feldern
+noch einmal, entstehen dieselben Scopes (D641 Beschluss 4); sie wären nach dem Verwerfen
+unsichtbar. Also zeigt `POST /gruenden` beide Scopes wieder. Eine frühere Bestätigung gilt dann
+wieder, ohne neue Frage; gemessen im Test.
+
+**Befund 5 — `/stand` bleibt der Fingerabdruck des Bestands.** Bote und Lab vergleichen ihn
+zwischen Knoten (D518 Beschluss 4); eine lokale Regel darf ihn nicht ändern. Die Seite vergleicht
+für „Es ist Neues angekommen.“ deshalb zusätzlich die Antwort von `GET /scopes`. Gesehen im
+Browser: nach Brunos Verwerfen erscheint der Hinweis bei Anna.
+
+**Befund 6 — `vektoren.json` ist die Ausgabe eines Werkzeugs.** Mein erster Wurf schrieb die
+neuen Vektoren in die Datei; `test_vektoren_bytegleich` hätte sie abgewiesen, bemerkt beim Lesen
+von `tools/geraet_vektoren.py`. Die Eingaben stehen jetzt dort, und ob ein Betrag gilt, rechnet
+das Werkzeug mit `wert_gueltig`: der Knoten sagt es, die Seite wird daran gemessen.
+
+**Befund 7 — der Prototyp.** `store.py`, `api.py`, `anzeige.js`, `app.js`, `style.css`; die
+Tests in der Fassung des Auftrags: `tests/node/test_verwerfen.py` neu mit 8 Tests, der Selbsttest
+wächst von 241 auf 326 Fälle. Die ganze Reihe: 1661 bestanden, Status 0; Lint und die vier
+Markdown-Ziele mit Status 0. 13 Rücknahmeproben am Knoten und 16 an `anzeige.js`, jede rot am
+benannten Test oder Fall. Am Knoten: `/scopes` filtert nicht; Aufgaben filtern nicht; das
+Vereinsleben bleibt; `/gruenden` zeigt nicht wieder, oder nur den Verein; ohne Prüfung der
+Fassung; ohne Prüfung, ob alle bestätigt haben; `any` statt `all`; ohne `commit`; `/stand`
+ändert sich; die Vorlagen ohne Schwellen; die Vorlagen nur einmal gelesen; Objekte gelöscht.
+An der Seite: der Betrag nur mit Komma, mit null, mit führender Null; Text ohne NFC, mit
+Steuerzeichen; Lesen ohne Ende, mit null; die Schwelle nicht strikt; zwei Schwellen vertauscht;
+„alle“ erst über n; die Gründung ohne Prüfung der Fassung; ohne „du“; die Vorlage im Stand; der
+Satz der Gründung bei einer früheren Fassung; Namen ohne Ordnung; die Folge der Gründung fehlt.
+
+**Befund 8 — im Browser gefahren.** Playwright mit drei Contexts, Chromium 141 und Firefox 142,
+ohne Fehler der Seite: Anna gründet und unterschreibt zuerst nicht, bestätigt dann; Bruno
+verwirft; Anna sieht den Hinweis und gründet neu mit anderem Namen; alle drei bestätigen; „Der
+Verein besteht.“ Dazu der Beispielverein mit simulierten Personen: unverändert, mit Geschichte.
+`app.js` fährt weiter kein Test; die Abnahme wiederholt den Durchlauf, danach Oli (D490).
+
+**Beschluss 1 — zwei Aufträge.** `p55-gruenden-seite` bringt die Gründung auf die Seite und das
+Verwerfen. Die Eingabe je Typ bei späteren Anträgen und der Satz, warum ein Antrag auf Zweck
+oder Name mehr Stimmen braucht (D646 Befund 3), kommen danach als eigener Auftrag.
+
+**Beschluss 2 — `GET /vorlagen`.** Der Knoten nennt je Vorlage `fassung`, `mindestens`, `felder`,
+`pflicht`, `geschuetzt`, `typen` und `thresholds`, bei jedem Aufruf aus `VORLAGEN` gelesen. Die
+Seite führt keine zweite Liste. Verworfen: die Felder in JavaScript wiederholen (Drift, D537).
+
+**Beschluss 3 — der Weg auf der Seite.** Ohne Verein und ohne Vereinsleben stehen keine Tabs da.
+Wer einen Namen hat, sieht „Du gehörst noch zu keinem Verein.“ und „Einen Verein gründen“. Zwei
+Schritte: die Mitgründer als Haken über dem Adressbuch, weiter erst ab der Mindestzahl; dann die
+Satzung mit Name, Sitz und Zweck als Text und dem Beitrag als Feld „Euro“ mit „im Jahr“ oder „im
+Monat“, leer heisst kein Beitrag. `textFeld`, `betragText` und `betragLesen` bauen den einen Text
+und lesen ihn zurück; Komma oder Punkt gilt gleich (D496). Die Seite ist bei Text strenger als
+der Knoten: sie weist jedes Steuerzeichen ab (D649 Befund 5). Gemeinsame Vektoren nach Befund 6.
+„Gründen …“ ruft `/gruenden` und legt im selben Zug die eigene `accept-rules` vor. Die Vorlage
+wird nicht gewählt, solange es eine gibt (D639 Beschluss 3). Der Scan ist Schritt 3.
+
+**Beschluss 4 — „in Gründung“ ist eine Regel der Seite.** Ein Verein ist in Gründung, solange
+die erste Fassung gilt und nicht jeder auf der Liste `MEMBER` ist; danach „Der Verein besteht.
+Alle Gründer haben die Satzung bestätigt.“, bis eine zweite Fassung gilt (D643 Beschluss 3). In
+der Gründung sagt der Kopf, wer bestätigt hat und wer offen ist, die eigene Identität als „du“
+(D605). Die Aufgabe nennt die Mitgründer, die Satzung in Zeilen und die Schwellen, keinen
+Einladenden (D643 Befund 3). Namen stehen nach dem Alphabet, nicht nach Schlüssel. „Im Verein“
+nennt das Feld `vorlage` nicht und den Beitrag als „24,00 € im Jahr“. „Die Geschichte“ steht nur,
+wo es simulierte Personen gibt.
+
+**Beschluss 5 — die Sätze.** Absicht: „Du gründest mit Bruno und Chris den Verein „Laufgruppe“
+und bestätigst seine Satzung.“ Folge: „Der Verein besteht, sobald auch Chris bestätigt hat.“,
+für die letzte „Der Verein besteht.“, dazu „Für immer fest steht, wer gegründet hat: …“. Die
+festen Schwellen (D648 Beschluss 5) als drei Sätze, je mit der Zahl bei n Mitgliedern, strikt
+gerechnet (`04 §3.2`): Aufnehmen und ausschliessen; Sitz und Beitrag; Name, Zweck und alles
+Übrige der Satzung. Zu dritt endet der dritte mit „sind das alle“ (D641 Befund 2).
+`INVALID_VALUE`, `MISSING_FIELD`, `TOO_FEW_FOUNDERS` und `NOT_FOUNDING` bekommen Worte.
+
+**Beschluss 6 — eine Gründung verwerfen (Oli).** Eine Regel des Knotens, nicht der Norm (D489).
+`POST /verwerfen` mit `scope`: der Scope muss ein Verein in der ersten Fassung sein, den nicht
+alle auf der Liste bestätigt haben, sonst `NOT_FOUNDING`; ein unbekannter Scope ist nicht
+gefunden. Der Knoten merkt sich den Verein und jeden Scope, der ihn als `parent_scope` nennt, in
+seinem Bestand, über einen Neustart hinweg. `GET /scopes` und `GET /tasks` lassen sie aus. Kein
+Objekt und kein Claim wird entfernt; `/stand`, `/peer` und `GET /scopes/<scope>` bleiben.
+`POST /gruenden` zeigt wieder (Befund 4). Auf der Seite: „Nicht mitgründen …“ neben „Satzung
+bestätigen …“, und für die, die schon bestätigt hat, „Gründung verwerfen …“ unter „Jetzt zu
+tun“; davor eine Frage ohne Unterschrift, die sagt, dass es für alle an diesem Gerät gilt und
+dass eine Unterschrift in ihrer Kette bleibt. Ein bestehender Verein lässt sich nicht verwerfen.
+
+**Beschluss 7 — getragen und offen.** Verwerfen ist keine Nachricht: Mitgründer an anderen
+Knoten erfahren nichts und sehen den Verein weiter in Gründung; das gehört zu Schritt 3 und 4.
+Die Regel „in Gründung“ steht zweimal, in `anzeige.js` und in `api.py`. Ein verworfener Scope
+wird über `/peer` weiter ausgeliefert. Die übrigen Abweisungen von `/gruenden` erscheinen mit
+ihrem Namen (D486 Beschluss 3); über die Seite entstehen sie nicht. Der Satz der Regie „Die
+Seite links zeigt, was die gewählte Person sieht“ steht auch ohne simulierte Personen (O101).
+
+**Auftrag.** `p55-gruenden-seite`, Basis ist der Commit dieses Eintrags. Nicht-Ziele: die Norm,
+`symbolon/governance/`, `gruendung.py`, typisierte Anträge nach der Gründung, der Scan, mehrere
+Vereine auf der Seite, Playwright in `make check`.
+
+**Geändert.** `07-decisions.md`.

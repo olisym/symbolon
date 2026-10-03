@@ -28828,3 +28828,49 @@ für die Vorlage vor D646.
 `symbolon/governance/`, weitere Typen, Typen für freie Felder.
 
 **Geändert.** `07-decisions.md`.
+
+### D649 — Abnahme `p54-typen`: angenommen im ersten Durchgang
+
+**Anlass.** Der Lauf zu D648: Commit `348cb1e` auf `9fe18e3`. Gelesen ist der Diff aus dem
+Spiegel, in einem frischen Arbeitsbaum auf dem Commit (D647 Befund 5).
+
+**Befund 1 — der Umfang.** Drei Dateien, wie verlangt. Der Diff der Testdatei ist byte-gleich
+mit dem gelieferten (derselbe SHA-256, `54e8d119…`). Das Register der Basis trägt den Hash aus
+dem Auftrag.
+
+**Befund 2 — der Bau.** `wert_gueltig`, `vorlage_der_satzung` und `feld_abweisung` stehen in
+`symbolon/node/gruendung.py`, wie der Auftrag sie beschreibt; `gruenden` prüft jeden Wert und
+trägt `vorlage` nur in die Satzung des Vereins ein. `_motion` fragt die Vorlage nach den beiden
+Prüfungen auf `RESERVED_FIELD`.
+
+**Befund 3 — eine Abweichung in `_change`, aus meinem Wortlaut.** Im Zweig `set` stehen zwei
+Prüfungen auf `RESERVED_FIELD`; der Auftrag sagte „nach der bestehenden Prüfung“, in der Einzahl.
+Das Werkzeug fragt die Vorlage nach der ersten und vor der zweiten, mein Prototyp nach beiden.
+Die Folge: trägt ein typisiertes Feld im Stand einen Wert, der kein Text ist, und ist der neue
+Wert formwidrig, heisst die Abweisung `INVALID_VALUE` statt `RESERVED_FIELD`. Abgewiesen wird in
+beiden Fassungen, und über einen ehrlichen Knoten entsteht die Lage nicht. Kein Nachtrag; die
+Abweichung steht hier (D618 Befund 2). Zum dritten Mal belegt: wer einen Satz über eine Stelle
+schreibt, zählt, wie oft es sie gibt (D544, D545).
+
+**Befund 4 — was der Supervisor fuhr.** Auf `348cb1e`: 411 Tests (Gründung, Schnittstelle,
+Sachanträge am Knoten, Lesen, Vorschau, Governance, Registerindex), Lint und die vier
+Markdown-Ziele, alle mit Status 0. Dazu elf Proben, die der Auftrag nicht verlangte, in der Form
+des Werkzeugs: ohne NFC; Leerraum am Rand erlaubt; null erlaubt; `vorlage` änderbar; `match`
+statt `fullmatch`; die Fassung ungelesen; Zeilenumbruch erlaubt; `vorlage` ungeschützt; freie
+Felder als Text geprüft; ein unbekannter Typ gilt; `vorlage` auch im Vereinsleben. Jede rot am
+erwarteten Test. Die ganze Reihe mit 1653 Tests meldet der Bericht mit Status 0, wie mein
+Prototyp; auf dem Branch habe ich sie nicht wiederholt.
+
+**Befund 5 — ohne Auftrag.** „Eine Zeile“ schliesst nur die beiden Zeichen für den
+Zeilenumbruch aus; ein Tabulator oder ein anderes Steuerzeichen im Inneren eines Texts gilt. Das
+gehört zu den Funktionen der Seite, die den Text bauen (D648 Beschluss 6).
+
+**Beschluss 1 — angenommen.** `p54-typen` geht nach `main`.
+
+**Beschluss 2 — der nächste Schritt.** Die Bildschirme der Gründung auf einem Knoten (D641
+Beschluss 1, Schritt 2; D643 Beschluss 3 und 4). Sie brauchen jetzt: die Eingabe je Typ und die
+Funktionen, die den einen Text bauen und zurücklesen, mit gemeinsamen Vektoren für Python und
+JavaScript (D648 Beschluss 6); die festen Schwellen als Sätze (D648 Beschluss 5); und den Satz,
+warum ein Antrag auf Zweck oder Name mehr Stimmen braucht (D646 Befund 3).
+
+**Geändert.** `07-decisions.md`.

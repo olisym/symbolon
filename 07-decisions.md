@@ -29084,3 +29084,37 @@ er es soll, ist eine Frage an die Norm und bleibt offen.
 den formwidrigen Fall (D474), und der Supervisor führt ihn vor dem Auftrag am Prototyp vor.
 
 **Geändert.** `07-decisions.md`.
+
+### D653 — Abnahme `p55-gruenden-seite`, zweiter Durchgang: angenommen
+
+**Anlass.** Der Bericht des Werkzeugs zum Nachtrag, Commit `ed20537` auf `ad3dd17` (D652):
+`make check` mit Status 0, 1661 Tests, 340 Fälle, fünf Rücknahmeproben, keine Rückfrage.
+
+**Befund 1 — was der Supervisor fuhr.** In einem frischen Arbeitsbaum auf `ed20537`, `HEAD`
+geprüft und sauber: `selbsttest.js` und `test_selbsttest.py` bytegleich zum Diff der Tests; die
+ganze Reihe allein, ohne anderen Prozess daneben, mit 1661 Tests; Lint und die vier
+Markdown-Ziele; alles mit Status 0. Der Diff gegen `ad3dd17` ist gelesen: `noetigeStimmen` ohne
+Schleife, `schwellenSaetze` mit leerer Liste, `nameVon` im Satz der Gründung, die Warnung in der
+Aufgabe, das Feld Euro mit `trim`.
+
+**Befund 2 — im Browser.** Der Durchlauf aus D651 Befund 8 in Chromium 141 und Firefox 142, ohne
+Fehler der Seite. Die Satzung mit einem Nenner von null aus D652 Befund 2: die Seite zeichnet,
+zeigt die Warnung und nur „Nicht mitgründen …“, und die Gründer ohne Namen stehen gekürzt. Der
+Beispielverein mit simulierten Personen: unverändert, mit Geschichte.
+
+**Befund 3 — die fünfte Probe bricht ab, statt einen Fall zu nennen.** Ohne die Prüfung der
+drei Arten wirft `schwelleInWorten`, und der Selbsttest endet ohne Fallzeile. Der Auftrag liess
+das zu. Ein Selbsttest, der an einem Wurf endet, nennt den Fall nicht; ein Fänger je Fall wäre
+ein eigener, kleiner Auftrag.
+
+**Beschluss 1 — angenommen.** `p55-gruenden-seite` geht nach `main`. Schritt 2 der Gründung ist
+gebaut; es fehlt Olis Durchlauf in drei Profilen (D490, D644 Beschluss 3).
+
+**Beschluss 2 — offen, ohne Auftrag.** Der Knoten nimmt eine Satzung mit unlesbaren Schwellen
+ohne Vermerk an (D652 Beschluss 2). „Gründung verwerfen …“ steht nur, wenn sonst keine Aufgabe
+ansteht (D652 Befund 5). Verwerfen erreicht keinen anderen Knoten, und ein verworfener Scope
+geht über `/peer` weiter hinaus (D651 Beschluss 7). Die Regel „in Gründung“ steht in `anzeige.js`
+und in `api.py`. `app.js` fährt kein Test. Der zweite Auftrag aus D651 Beschluss 1 steht aus:
+Typen bei Anträgen nach der Gründung und der Satz zu Zweck und Name.
+
+**Geändert.** `07-decisions.md`.

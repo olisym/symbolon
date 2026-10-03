@@ -31,12 +31,13 @@ Stimmmodus (`00 §4`). Der Genesis ändert sich nie; wer ihn ändern will, grün
 Nukleus.
 
 **Verfassung (versioniert).** Die inhaltlichen Regeln, content-adressiert. Sie trägt in dieser
-Schicht zwei zusätzliche Felder gegenüber `00 §5`:
+Schicht drei zusätzliche Felder gegenüber `00 §5`:
 
 | Feld | Typ | Pflicht | Bedeutung |
 |---|---|---|---|
 | `participants` | array of bstr (32 B), sortiert, duplikatfrei | optional | Die stimmberechtigte Menge `P` der Epoche |
 | `thresholds` | map text zu `[num, den]` | Pflicht | Schwellen je Klasse, exakte Integer |
+| `protected_fields` | array of text, sortiert, duplikatfrei, nicht leer | optional | Die geschützten Sachfelder |
 
 `participants` ist **optional**, damit das kanonische Beispiel aus `00 §3.1` es weglässt und `N`
 byte-identisch bleibt. Ein Nukleus ohne deklariertes `participants` ist nicht auszählbar (`§3.5`).
@@ -63,12 +64,26 @@ Die Aufnahme von `vote@1` widerspricht D58 nicht. Die Negativliste dort nennt `v
 Kriterium lautet, ob Fortbestehen die konservative Lesart ist. Eine Stimme gewährt keine
 fortdauernde Autorität; sie ist ein einmaliger Akt an einem einzelnen Objekt (D97).
 
-**Regelfelder und Sachfelder** (D565). Sechs Felder einer Verfassung sind **Regelfelder**:
-`participants` und `thresholds` aus der Tabelle oben, `irrevocable_predicates`, `arbitration`,
-`enforcement_policy` und `nucleus_keys` aus `00 §5`. Jedes andere Feld ist ein **Sachfeld**. Die
+**Regelfelder und Sachfelder** (D565, D646). Sieben Felder einer Verfassung sind **Regelfelder**:
+`participants`, `thresholds` und `protected_fields` aus der Tabelle oben,
+`irrevocable_predicates`, `arbitration`, `enforcement_policy` und `nucleus_keys` aus `00 §5`.
+Jedes andere Feld ist ein **Sachfeld**. Die
 Liste ist Protokoll, nicht Verfassungsinhalt: ein Feld, das eine Auswertung liest, steht auf ihr,
 und es aufzunehmen ändert dieses Dokument. Regelfelder ändert nur ein Vorschlag (`§2.4`), Sachfelder
 auch ein Sachantrag (`§2.5`).
+
+**Geschützte Sachfelder** (D646). `protected_fields` nennt Sachfelder, die ein Sachantrag nur mit
+der Schwelle einer Verfassungsänderung ändert (`§3.4`). Das Feld ist **optional**: fehlt es, ist
+kein Sachfeld geschützt, und jede Verfassung ohne es behält ihren Hash. Es ist eine Liste von
+Texten, aufsteigend sortiert nach den Bytes ihrer UTF-8-Kodierung, duplikatfrei und nicht leer;
+kein Eintrag ist ein Regelfeld. Eine leere Liste ist formwidrig, weil sie dasselbe sagte wie das
+fehlende Feld, unter einem anderen Hash.
+
+- Der Schutz hängt am **Namen**, nicht am Wert. Geschützt ist auch, das Feld anzulegen oder zu
+  entfernen, und ein Eintrag darf ein Feld nennen, das die Verfassung nicht führt.
+- Die Liste ist selbst ein Regelfeld. Sie ändert nur ein Vorschlag, und der fällt in die Klasse
+  `amendment` (`§3.4`); wer ein Feld aus dem Schutz nimmt, braucht die Schwelle, die es schützt.
+- Gelesen wird die Liste nur bei der Auszählung eines Sachantrags (`§3.5`).
 
 **Epoche (abgeleitet).** Kein Objekt, sondern eine Identität:
 
@@ -430,7 +445,8 @@ abgeleitet, nicht vom Vorschlagenden gewählt:
 
 | Antrag | Klasse |
 |---|---|
-| ein Sachantrag (`§2.5`) | `ordinary` |
+| ein Sachantrag (`§2.5`), der kein geschütztes Feld berührt | `ordinary` |
+| ein Sachantrag, der ein geschütztes Feld berührt (`§1.1`) | `amendment` (Index aus `genesis[5]`) |
 | ein Vorschlag, Unterschied ausschließlich in `participants` | `membership` |
 | ein Vorschlag, alles andere | `amendment` (Index aus `genesis[5]`) |
 
@@ -441,8 +457,17 @@ Sachbeschluss eine Änderung der Klasse `amendment`, denn die neue Verfassung tr
 und die alte nicht. Trägt der Vorschlag, ist dieser Stand der, mit dem die Epoche endet (`§4.4`,
 B5); vorher ist er der, den der Vorschlag voraussetzt. Ohne `S` ist er die Verfassung der Epoche.
 
-`ordinary` ist die Klasse der Sachanträge (D565). Die Protokollschicht kennt keine weitere
-nicht-verfassungsbezogene Entscheidung.
+`ordinary` ist die Klasse der Sachanträge (D565), soweit sie kein geschütztes Feld berühren. Die
+Protokollschicht kennt keine weitere nicht-verfassungsbezogene Entscheidung.
+
+**Ein Sachantrag berührt ein geschütztes Feld,** wenn ein Feldname in `changes` in
+`protected_fields` der Verfassung der Epoche steht (D646). Dann gilt für den ganzen Sachantrag die
+Klasse, die `genesis[5]` nennt, dieselbe wie für einen Vorschlag, der mehr ändert als
+`participants`. Ein Sachantrag wirkt ganz oder gar nicht (`§2.5`); bündelt er ein geschütztes Feld
+mit anderen, zählt er ganz mit der höheren Schwelle. Die Liste ist ein Regelfeld und steht für die
+Dauer der Epoche fest (`§1.2`): die Klasse hängt am Objekt und an der Verfassung der Epoche, und
+alle Beobachter rechnen dieselbe. Ohne die Liste ändert die Schwelle `ordinary` jedes Sachfeld,
+auch eines, dessentwegen jemand die Verfassung angenommen hat (D645 Befund 2).
 
 **Die Reihenfolge der Klassen ist normativ** und bindet `genesis[5]` an einen Namen in
 `thresholds`:
@@ -548,6 +573,7 @@ zurückweist.
 | `participants` formwidrig: kein Array, leer, Eintrag nicht 32 B, unsortiert, Duplikate | `MALFORMED_PARTICIPANTS` |
 | `irrevocable_predicates` führt `vote@1` nicht | `VOTE_REVOCABLE` |
 | `irrevocable_predicates` führt `ratify@1` nicht | `RATIFY_REVOCABLE` |
+| bei einem Sachantrag: `protected_fields` formwidrig nach `§1.1` | `MALFORMED_PROTECTED_FIELDS` |
 | `genesis[6]` ist nicht der uint `0` (Gewichtungsmodus nicht Kopfzahl) | `UNSUPPORTED_WEIGHT_MODE` |
 | `genesis[5] > 2`, Schwellenklasse fehlt, oder Schwelle nicht wohlgeformt | `MALFORMED_THRESHOLD` |
 
@@ -566,6 +592,13 @@ aus `00 §10` (D429).
 sonst durch; mit `n = 0` wäre jeder Vorschlag sofort `FAILED`, und die Diagnose sagte „abgelehnt",
 wo „niemand konnte abstimmen" gemeint ist.
 
+**Eine formwidrige Liste der geschützten Felder sperrt die Sachanträge, nicht die Vorschläge**
+(D646). Ohne die Liste steht die Klasse eines Sachantrags nicht fest, und die niedrigere
+anzunehmen wäre die Über-Ratifizierungsrichtung; jeder Sachantrag der Epoche ist dann
+`UNEVALUABLE`, Subjekt der Hash der Verfassung der Epoche. Ein Vorschlag liest die Liste nicht und
+bleibt auszählbar: über ihn wird sie berichtigt. `§4.1` Bedingung 6 prüft die Liste an der
+Zielverfassung nicht; eine Epoche mit formwidriger Liste ist erreichbar, und sie führt hinaus.
+
 **Wohlgeformtheit einer Schwelle** (D108). Sei `[num, den]` die Schwelle der **angewandten**
 Klasse, in beiden Verfassungen geprüft:
 
@@ -574,7 +607,7 @@ den >= 1     0 <= num <= den     2 * num >= den
 ```
 
 Geprüft wird auf den **Rohwerten** beider Verfassungen, bevor irgendeine Umwandlung stattfindet. Bei
-einem Sachantrag gibt es nur eine: geprüft wird `ordinary` in der Verfassung der Epoche.
+einem Sachantrag gibt es nur eine: geprüft wird seine Klasse in der Verfassung der Epoche.
 Eine Schwelle mit Textwerten muss `MALFORMED_THRESHOLD` ergeben und darf den Aufruf nicht
 abreißen (D112).
 
@@ -1312,6 +1345,14 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
   (`00 §5.2`) hinaus die Menge Policy ist und Policy änderbar sein muss (`08 §3`). Sichtbar ist die
   Änderung vor jedem `accept-rules@1` am Vergleich der beiden Verfassungsobjekte; das Ventil ist
   die `amendment`-Schwelle und Austritt (D424).
+
+- **Geschützt ist ein Sachfeld nur, wo die Verfassung es nennt.** Ohne `protected_fields` ändert
+  die Schwelle `ordinary` jedes Sachfeld (D645 Befund 2). Der Schutz hebt die Schwelle, er verlangt
+  nicht alle: eine Schwelle `[1,1]` kommt nie durch (`§4.7`). Wer einem Sachantrag zustimmt, der
+  ein geschütztes Feld mit einem anderen bündelt, kann einem zweiten Sachantrag mit derselben
+  Vorbedingung nicht mehr zustimmen (`§4.4`, Regel 2), auch wenn der erste nie durchkommt. Ein
+  Knoten, der `protected_fields` nicht kennt, zählt einen solchen Sachantrag als `ordinary` und
+  sieht ihn früher durchkommen (D646).
 
 - **Kein Rechtsweg gegen die eigene Mehrheit.** Wer in `P` überstimmt wird, hat innerhalb des
   Nukleus keine Instanz über sich. Das Ventil ist Austritt und, wenn die Verfassung es vorsieht,

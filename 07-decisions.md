@@ -28617,3 +28617,87 @@ die Gesellschaft ab BGB 705.
 zu dritt aus Befund 2; danach Normtext und Auftrag, dann die Felder mit Typ.
 
 **Geändert.** `07-decisions.md`.
+
+### D646 — Geschützte Sachfelder: Liste in der Satzung, Klasse des Sachantrags; `p53-geschuetzt`
+
+**Anlass.** D645 Befund 2 und Beschluss 4: zwei von drei ändern den Zweck, weil jeder Sachantrag
+als `ordinary` zählt. Die Position dort war ein Regelfeld mit geschützten Sachfeldern, gemessen
+vor dem Normtext (D599, D601). Olis Entscheidung zur Vorlage: geschützt sind Zweck und Name, nicht
+der Sitz. Prototyp im Supervisor-Klon auf `77065f2`.
+
+**Befund 1 — der Prototyp trägt (gemessen).** Über die Schnittstelle, Gründung zu dritt aus der
+Vorlage, drei Bestätigungen, Sachanträge von Anna. Auf `zweck`, auf das Entfernen von `name` und
+auf ein Bündel aus `name` und einem neuen Feld nennt die Folge `needed` 3 bei `n` 3; nach dem Ja
+von Anna und Bruno ist `passes` falsch, und die Feststellung wird mit Status 400 als
+`NOT_PASSED` abgewiesen. Auf `sitz` und auf `beitrag` nennt sie `needed` 2, und zwei Ja tragen
+die Feststellung. Im ersten Prototyp, der noch alle drei Pflichtfelder schützte, wurde der Antrag
+auf `zweck` mit dem dritten Ja festgestellt. Ein Sachantrag auf die Liste selbst ist an der
+Schnittstelle `RESERVED_FIELD`.
+
+**Befund 2 — ein Bündel bindet seine Ja.** Mein erster Test stellte nach einem hängenden Bündel
+aus `name` und `beitrag` einen Sachantrag auf `beitrag` allein; Annas und Brunos Ja fielen, weil
+beide Anträge die Vorbedingung des Beitrags teilen (`04 §4.4`, Regel 2). Das ist die geltende
+Norm. Der Schutz macht die Lage häufiger: ein geschützter Antrag hängt länger. `04 §8` nennt sie.
+
+**Befund 3 — die Seite.** Aus `app.js` und `anzeige.js` gelesen, nicht im Browser gesehen: die
+Karte eines Antrags sagt „Angenommen ist der Antrag mit 3 von 3 Ja-Stimmen.“ aus `needed` der
+Auszählung, und der Stand zeigt nur Textfelder; die Liste erscheint nicht. Warum ein Antrag drei
+braucht und der nächste zwei, sagt die Seite nicht. Das gehört zu den Bildschirmen (D641
+Beschluss 1, Schritt 2).
+
+**Beschluss 1 — ein siebtes Regelfeld.** `protected_fields` in der Verfassung: eine Liste von
+Texten, sortiert nach den Bytes der UTF-8-Kodierung, duplikatfrei, nicht leer, kein Eintrag ein
+Regelfeld; optional, fehlend heisst leer, und jede Verfassung ohne das Feld behält ihren Hash
+(`04 §1.1`). Der Schutz hängt am Namen: auch Anlegen und Entfernen sind geschützt. Die Liste
+ändert nur ein Vorschlag, in der Klasse `amendment`.
+
+**Beschluss 2 — die Klasse.** Ein Sachantrag, dessen `changes` einen Namen aus der Liste der
+Verfassung der Epoche führt, zählt mit der Klasse aus `genesis[5]`, sonst mit `ordinary`
+(`04 §3.4`). Ein Bündel zählt ganz mit der höheren. Die Beweise aus `04 §4.4` gelten für jede
+Klasse, die `04 §3.5` durchlässt; sie bleiben, wie sie sind. Die Sperre aus `04 §3.4` ist nicht
+berührt, ein Sachantrag ändert keine Schwelle.
+
+**Beschluss 3 — die formwidrige Liste.** Jeder Sachantrag der Epoche ist dann `UNEVALUABLE`, mit
+dem neuen Vermerk `MALFORMED_PROTECTED_FIELDS`, Subjekt der Hash der Verfassung der Epoche; die
+Prüfung steht nach den vier Lagen der Regierbarkeit und vor `genesis[6]` (`04 §3.5`). Ein
+Vorschlag liest die Liste nicht und bleibt auszählbar: über ihn wird sie berichtigt. Verworfen:
+`MALFORMED_THRESHOLD` wiederverwenden; der Vermerk schickte den Beobachter an das falsche Feld
+(D198). Verworfen: auch Vorschläge sperren; dann führte kein Weg aus der Epoche. `04 §4.1`
+Bedingung 6 prüft die Liste nicht; eine Epoche mit formwidriger Liste bleibt erreichbar.
+
+**Beschluss 4 — verworfen, mit Grund.** Eine Abbildung von Feld auf Klasse: allgemeiner, ohne
+Anlass (D639 Beschluss 3). Schutz am Wert statt am Namen: ein entferntes Feld wäre frei. Die
+Liste im Genesis: unveränderlich, und was dort steht, kann kein Mensch bei der Gründung
+beurteilen (D640 Befund 6). `ordinary` in der Vorlage heben: D645 Beschluss 4.
+
+**Beschluss 5 — die Vorlage (Oli).** `verein` bekommt `geschuetzt` mit `name` und `zweck`;
+`gruenden` trägt die Liste sortiert in die Satzung des Vereins ein, nicht in das Vereinsleben.
+Der Sitz bleibt frei: ein Umzug braucht zu dritt zwei Ja, und mit zwei Ja lässt sich der Sitz
+auch entfernen. Wie fest: die Vorlage ändert ein Auftrag; ein gegründeter Verein ändert seine
+Liste mit der Schwelle `amendment`. Vereine, die vor diesem Eintrag gegründet wurden, haben keine
+Liste. Die Hashes aus D641 Befund 3 gelten für die Vorlage ohne Liste.
+
+**Beschluss 6 — getragen.** Ein Knoten, der die Liste nicht kennt, zählt einen geschützten
+Sachantrag als `ordinary` und sieht ihn früher durchkommen; Knoten verschiedener Fassung sehen
+dann verschiedene Stände, wie in D547 Befund 6.
+
+**Vektoren.** `GV-104` bis `GV-121` in `04-golden-anchors.md §12`, je in Epoche 1 eines eigenen
+Genesis mit vier Teilnehmern: drei Ja erreichen `[1,2]` und `[2,3]`, nicht `[3,4]`.
+
+**Prototyp und Proben.** `symbolon/governance/objects.py`, `tally.py`, `findings.py` und
+`symbolon/node/gruendung.py`; `tests/governance/test_geschuetzt.py` mit 29 Tests und vier neue
+Fälle in `tests/node/test_gruendung.py`, in der Fassung des Auftrags. Die ganze Reihe bestand
+mit 1605 Tests, bevor zehn Fälle zu fremdem Inhalt der Liste dazukamen (D474); der Auftrag nennt
+1615.
+Vierzehn Rücknahmeproben, jede rot am benannten Test: die Klasse immer `ordinary`; `amendment`
+fest statt `genesis[5]` (nur `GV-111`); die formwidrige Liste gilt als leer; die Liste auch beim
+Vorschlag geprüft (nur `GV-120`); die Liste kein Regelfeld (nur `GV-121`); die Liste vor der
+Regierbarkeit; Doppelte erlaubt; die leere Liste erlaubt; unsortiert erlaubt; ein Regelfeld als
+Eintrag erlaubt; die Vorlage trägt keine Liste ein; die Vorlage sortiert nicht; die Vorlage
+schützt auch den Sitz; Anlegen ungeschützt (nur `GV-107`); Schutz nur, wenn alle Felder des
+Antrags geschützt sind (`GV-108` und der Test der Route).
+
+**Auftrag.** `p53-geschuetzt`, Basis ist der Commit dieses Eintrags. Nicht-Ziele: die Seite, die
+Typen der Felder (D644), `04 §4.1` Bedingung 6, die Lage aus Befund 2.
+
+**Geändert.** `07-decisions.md`, `04-governance.md`, `04-golden-anchors.md`.

@@ -619,3 +619,53 @@ mit `[1,1]` gilt `4 * 1 <= 1 * 4`, und ohne Bedingung 1 stünde jeder Wahlgang i
 nach dem geltenden endete nicht (D599 Befund 2). `GV-94` und `GV-95` sind das Paar um eine freie
 Wurzel: dieselben Stimmen bis auf CAROL, einmal kein Patt, einmal Patt. Die Hashes von `GB`, `GD`
 und der Vorschläge in `GV-99` bis `GV-101` rechnet der Test aus den Objekten.
+
+## 12. Geschützte Sachfelder (`04 §1.1`, `04 §3.4`, `04 §3.5`)
+
+Jeder Vektor steht in Epoche 1 eines **eigenen Genesis**: `GENESIS_D` aus `§2.3` mit dem Hash
+seiner Verfassung in Feld 4, der Scope ist dessen Hash (D145). Die Verfassung `CP` ist `C1` mit
+`name: "Gartenverein"` und `protected_fields: ["name", "zweck"]`; `n = 4`, `P1`. Drei Ja erreichen
+`ordinary` `[1,2]` (`6 > 4`) und `membership` `[2,3]` (`9 > 8`), nicht `amendment` `[3,4]`
+(`12` gegen `12`); vier erreichen auch sie. Die Hashes der Sachanträge rechnet der Test aus den
+Objekten. Ja heißt hier ALICE, BOB und CAROL.
+
+### 12.1 Die Klasse eines Sachantrags
+
+| Vektor | Verfassung, Sachantrag | Ja | Klasse, Zustand |
+|---|---|---|---|
+| `GV-104` | `CP`, `name: [["Gartenverein"], ["Laufgruppe"]]` | drei | `amendment` `[3,4]`, `PENDING` |
+| `GV-105` | wie `GV-104` | dazu DAVE | `PASSED`, kein Vermerk |
+| `GV-106` | `CP`, `name: [["Gartenverein"], []]` | drei | `[3,4]`, `PENDING`: Entfernen ist geschützt |
+| `GV-107` | `CP`, `zweck: [[], ["Gemeinsam laufen"]]` | drei | `[3,4]`, `PENDING`: Anlegen ist geschützt |
+| `GV-108` | `CP`, `beitrag` wie `M1` und `name` wie `GV-104` | drei | `[3,4]`, `PENDING`: das Bündel zählt ganz |
+| `GV-109` | `CP`, `beitrag: [[], ["30 EUR"]]` | drei | `ordinary` `[1,2]`, `PASSED` |
+| `GV-110` | `CP` ohne `protected_fields`, Sachantrag wie `GV-104` | drei | `ordinary` `[1,2]`, `PASSED` |
+| `GV-111` | `CP`, Genesis mit `[5] = 1`, Sachantrag wie `GV-104` | drei | `membership` `[2,3]`, `PASSED` |
+| `GV-112` | wie `GV-104`, ein `ratify@1` mit den drei Ja | drei | stellt nicht fest, `UNSUPPORTED_RATIFICATION` |
+| `GV-113` | wie `GV-105`, ein `ratify@1` mit den vier Ja | vier | stellt fest, kein Vermerk |
+
+`GV-110` ist der Fall, den die Regel ohne die Liste träfe: derselbe Sachantrag kommt mit drei Ja
+durch (D569). `GV-111` zeigt, dass die Klasse aus `genesis[5]` kommt; ein Lauf, der `amendment`
+fest verdrahtet, liefert dort `[3,4]` und `PENDING`. `GV-109` neben `GV-108` zeigt, dass ein
+einziges geschütztes Feld genügt.
+
+### 12.2 Formwidrigkeit
+
+Der Sachantrag ist in `GV-114` bis `GV-119` der aus `GV-109`: ein Feld, das in keiner Lesart der
+Liste geschützt wäre.
+
+| Vektor | `protected_fields` | Erwartet |
+|---|---|---|
+| `GV-114` | `[]` | `UNEVALUABLE`, `MALFORMED_PROTECTED_FIELDS`, Subjekt der Hash der Verfassung |
+| `GV-115` | `["zweck", "name"]`, unsortiert | ebenso |
+| `GV-116` | `["name", "name"]` | ebenso |
+| `GV-117` | `["name", 7]` | ebenso |
+| `GV-118` | `["participants"]`, ein Regelfeld | ebenso |
+| `GV-119` | der Text `"name"` statt einer Liste | ebenso |
+| `GV-120` | wie `GV-114`; ein Vorschlag, der die Liste entfernt, drei Ja | `amendment` `[3,4]`, `PENDING`, kein Vermerk; ein Vorschlag, der nur `participants` ändert, ist `membership` und nicht `UNEVALUABLE` |
+| `GV-121` | `CP`, Sachantrag auf `protected_fields` | `UNEVALUABLE`, `MALFORMED_MOTION`, sein `motion_hash` |
+
+Sortiert wird nach den Bytes der UTF-8-Kodierung: `["Zweck", "name"]` ist wohlgeformt,
+`["name", "Zweck"]` nicht. Die Prüfung der Liste steht nach den vier Lagen der Regierbarkeit
+(`04 §3.5`): eine Verfassung mit leerer Liste und ohne `vote@1` in `irrevocable_predicates` trägt
+`VOTE_REVOCABLE` und nicht `MALFORMED_PROTECTED_FIELDS`.

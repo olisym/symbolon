@@ -29018,3 +29018,69 @@ Seite links zeigt, was die gewählte Person sieht“ steht auch ohne simulierte 
 Vereine auf der Seite, Playwright in `make check`.
 
 **Geändert.** `07-decisions.md`.
+
+### D652 — Abnahme `p55-gruenden-seite`, erster Durchgang: zwei Defekte; Nachtrag
+
+**Anlass.** Der Bericht des Werkzeugs zu `p55-gruenden-seite`, Commit `74a41f1`: `make check`
+mit Status 0, 1661 Tests, fünfzehn Rücknahmeproben, keine Rückfrage. Gelesen ist der Diff gegen
+`1c3cef6`, verglichen mit dem Prototyp aus D651.
+
+**Befund 1 — was der Supervisor fuhr.** In einem frischen Arbeitsbaum auf `74a41f1`, `HEAD`
+geprüft und sauber: die fünf Dateien aus dem Diff der Tests bytegleich; die ganze Reihe mit 1661
+Tests, Lint und die vier Markdown-Ziele, alle mit Status 0. Der Durchlauf aus D651 Befund 8 mit
+drei Contexts in Chromium 141 und Firefox 142, ohne Fehler der Seite. Ein erster Lauf der Reihe
+zählt nicht: mein Aufräumskript beendete Knoten, die die Tests selbst gestartet hatten (D623).
+
+**Befund 2 — die Seite hängt an einer formwidrigen Satzung.** Gemessen: eine Satzung ohne
+`thresholds`, mit einem Nenner von null oder unter null, mit einem Text statt der Abbildung oder
+ohne eine der drei Arten ergibt jedes Mal einen Verein in der ersten Fassung ohne Vermerk, und
+jeder auf der Liste bekommt die Aufgabe `CONFIRM_RULES`. Die Aufgabe ruft `schwellenSaetze`. Auf
+dem Branch: bei einem Nenner von null endet die Schleife in `noetigeStimmen` nicht, der Tab
+antwortet nicht mehr (gesehen in Chromium); ohne `thresholds` wirft die Seite und zeigt „Der
+S-Node antwortet nicht.“ Ein Nachbar kann eine solche Gründung über `/peer/objects` einliefern
+(D640 Befund 8). Die Ursache liegt in meinem Auftrag: er nannte den formwidrigen Fall nicht, zum
+vierten Mal (D474, D526, D572). Mein Prototyp rechnete ohne Schleife und hätte nicht gehangen,
+aber ebenso geworfen.
+
+**Befund 3 — ein voller Schlüssel im Kopf.** `gruendungSatz` schreibt für einen Gründer ohne
+Namen alle 64 Zeichen des Schlüssels; Kennungen stehen sonst nur hinter „Einzelheiten“ (D492
+Beschluss 5). Der Auftrag sagte „nach `nachNamen`“ und nicht `nameVon`, und kein Fall hatte
+einen Gründer ohne Namen.
+
+**Befund 4 — der Selbsttest sieht `Infinity` nicht.** `gleich` vergleicht über
+`JSON.stringify`; `Infinity` und `NaN` werden dort zu `null`. Ein Fall, der `null` erwartet,
+blieb in der Probe grün, als die Prüfung des Nenners fehlte. Der Fall vergleicht jetzt streng.
+Kandidat für eine Prüfregel: ein Fall, der `null` erwartet, vergleicht mit `=== null`.
+
+**Befund 5 — Abweichungen ohne Nachtrag.** „Gründung verwerfen …“ steht nur, wenn sonst keine
+Aufgabe ansteht; das ist der Wortlaut des Auftrags („statt Nichts“), mein Prototyp zeigte es
+immer. Der Schritt des Wegs bleibt stehen, wenn ein Verein von anderswo erscheint, und gilt
+wieder, sobald keiner mehr da ist. Beides ist getragen. Der Kopfkommentar von `selbsttest.js`
+nennt D651 nicht: Abschnitt 5.4 des Auftrags widersprach Abschnitt 3; das Werkzeug hat es
+gemeldet, der Nachtrag trägt die Zeile im Diff der Tests. Die Flucht der Felder ist besser als
+im Prototyp.
+
+**Befund 6 — der Nachtrag als Prototyp.** Auf `74a41f1`: der Selbsttest wächst von 326 auf 340
+Fälle. Sechs Rücknahmeproben, jede rot am benannten Fall oder mit Abbruch: ohne Prüfung des
+Nenners; ohne Länge; ohne Prüfung von n; ein Zähler unter null; die drei Arten ungeprüft; der
+volle Schlüssel. Im Browser mit einer Satzung mit Nenner null: die Warnung, kein Knopf zum
+Bestätigen, kein Fehler der Seite.
+
+**Beschluss 1 — nicht angenommen; ein Nachtrag auf demselben Branch.** Dieser Eintrag steht auf
+dem Branch (D544, D545).
+
+**Beschluss 2 — Schwellen sind fremder Inhalt.** `noetigeStimmen` ergibt `null`, wenn die
+Schwelle kein Paar ganzer Zahlen mit `0 <= num < den` ist oder n keine ganze Zahl über null, und
+endet für jede Eingabe. `schwellenSaetze` ergibt dann keinen Satz. Die Aufgabe der Gründung
+zeigt in diesem Fall eine Warnung und bietet nur „Nicht mitgründen …“: ohne lesbare Regeln keine
+Bestätigung über die Seite (D492 Beschluss 1). Der Knoten prüft die Schwellen weiter nicht; ob
+er es soll, ist eine Frage an die Norm und bleibt offen.
+
+**Beschluss 3 — ein Gründer ohne Namen** steht mit gekürztem Schlüssel im Satz (`nameVon`).
+
+**Beschluss 4 — ein Feld Euro mit nur Leerraum** heisst kein Beitrag (D496).
+
+**Beschluss 5 — zur Übernahme vorgeschlagen.** Nimmt Code fremden Inhalt an, nennt der Auftrag
+den formwidrigen Fall (D474), und der Supervisor führt ihn vor dem Auftrag am Prototyp vor.
+
+**Geändert.** `07-decisions.md`.

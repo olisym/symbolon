@@ -21,6 +21,7 @@ VORLAGEN: dict[str, dict[str, object]] = {
         "mindestens": 3,
         "felder": ("name", "sitz", "zweck", "beitrag"),
         "pflicht": ("name", "sitz", "zweck"),
+        "geschuetzt": ("name", "zweck"),
         "thresholds": {
             "ordinary": [1, 2],
             "membership": [1, 2],
@@ -53,7 +54,12 @@ class Gruendung:
 
 
 def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
-    """Vier Objekte, jede Satzung vor ihrem Genesis (D641 Beschluss 3, 00 §4, 00 §4.1, 00 §5)."""
+    """Vier Objekte, jede Satzung vor ihrem Genesis (D641 Beschluss 3, 00 §4, 00 §4.1, 00 §5).
+
+    Führt die Vorlage ``geschuetzt`` und ist es nicht leer, steht ``protected_fields`` nach den
+    Bytes der UTF-8-Kodierung sortiert in der Satzung des Vereins, nie im Vereinsleben
+    (04 §1.1, D646).
+    """
     if not isinstance(vorlage, str) or vorlage not in VORLAGEN:
         raise Abgewiesen("UNKNOWN_TEMPLATE")
     muster = VORLAGEN[vorlage]
@@ -97,6 +103,10 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
     satzung["thresholds"] = schwellen
     satzung["arbitration"] = {"arbitrators": list(schluessel)}
     satzung["participants"] = list(schluessel)
+    if "geschuetzt" in muster and muster["geschuetzt"]:
+        satzung["protected_fields"] = sorted(
+            muster["geschuetzt"], key=lambda name: name.encode("utf-8")
+        )
     leben: dict[str, object] = {
         "irrevocable_predicates": list(muster["irrevocable_vereinsleben"]),
         "thresholds": {name: list(paar) for name, paar in schwellen.items()},

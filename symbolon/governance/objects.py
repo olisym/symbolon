@@ -8,17 +8,45 @@ from dataclasses import dataclass
 from symbolon import cbor_canon
 from symbolon.domains import DOM_NUC_EPOCH, DOM_NUC_MOTION, DOM_NUC_PROPOSAL
 
-# Die Regelfelder einer Verfassung; jedes andere Feld ist ein Sachfeld (04 §1.1, D565).
+# Die Regelfelder einer Verfassung; jedes andere Feld ist ein Sachfeld (04 §1.1, D565, D646).
 RULE_FIELDS = frozenset(
     {
         "participants",
         "thresholds",
+        "protected_fields",
         "irrevocable_predicates",
         "arbitration",
         "enforcement_policy",
         "nucleus_keys",
     }
 )
+
+
+def protected_fields(constitution_obj: dict) -> frozenset[str] | None:
+    """Die geschützten Sachfelder (04 §1.1, D646).
+
+    Fehlt das Feld, die leere Menge. Wohlgeformt die Menge seiner Einträge, sonst ``None``.
+    Wohlgeformt heisst: eine Liste, nicht leer, jeder Eintrag ein Text, keiner in
+    ``RULE_FIELDS``, streng aufsteigend nach den Bytes der UTF-8-Kodierung. Kein Wert des
+    Felds wirft.
+    """
+    if "protected_fields" not in constitution_obj:
+        return frozenset()
+    liste = constitution_obj["protected_fields"]
+    if not isinstance(liste, list) or not liste:
+        return None
+    kodiert: list[bytes] = []
+    for eintrag in liste:
+        if not isinstance(eintrag, str) or eintrag in RULE_FIELDS:
+            return None
+        try:
+            roh = eintrag.encode("utf-8")
+        except UnicodeEncodeError:
+            return None
+        kodiert.append(roh)
+    if any(vorher >= nachher for vorher, nachher in zip(kodiert, kodiert[1:])):
+        return None
+    return frozenset(liste)
 
 
 def epoch_id(scope: bytes, index: int, constitution_hash: bytes) -> bytes:

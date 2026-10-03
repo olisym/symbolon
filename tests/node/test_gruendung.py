@@ -37,6 +37,7 @@ def test_gruendung_ist_bestimmt() -> None:
         "thresholds": thresholds,
         "arbitration": {"arbitrators": keys},
         "participants": keys,
+        "protected_fields": ["name", "zweck"],
     }
     leben = {
         "irrevocable_predicates": ["obligation@1"],
@@ -122,6 +123,8 @@ def test_abweisungen(vorlage, gruender, felder, name) -> None:
         ("thresholds", {"ordinary": [1, 2], "membership": [1, 2]}),
         ("thresholds", {"ordinary": [1, 2], "amendment": [2, 3]}),
         ("trust_params", {0: 100, 1: 3, 2: 2, 3: 100}),
+        ("geschuetzt", ("name", "participants")),
+        ("geschuetzt", ("name", "name")),
     ],
 )
 def test_probelauf_weist_eine_vorlage_ab_die_nicht_handeln_kann(
@@ -135,6 +138,24 @@ def test_probelauf_weist_eine_vorlage_ab_die_nicht_handeln_kann(
     with pytest.raises(Abgewiesen) as caught:
         gruenden("verein", _drei(), FELDER)
     assert caught.value.name == "UNSOUND_TEMPLATE"
+
+
+def test_vorlage_nennt_die_geschuetzten_felder(monkeypatch) -> None:
+    """Die Liste steht sortiert in der Satzung des Vereins, nicht im Vereinsleben; ohne
+    Eintrag der Vorlage fehlt das Feld (D646 Beschluss 5, 04 §1.1)."""
+    got = gruenden("verein", _drei(), FELDER)
+    assert cbor_canon.decode(got.objekte[0][1])["protected_fields"] == ["name", "zweck"]
+    assert "protected_fields" not in cbor_canon.decode(got.objekte[2][1])
+    ohne = copy.deepcopy(modul.VORLAGEN["verein"])
+    del ohne["geschuetzt"]
+    monkeypatch.setitem(modul.VORLAGEN, "verein", ohne)
+    frei = gruenden("verein", _drei(), FELDER)
+    assert "protected_fields" not in cbor_canon.decode(frei.objekte[0][1])
+    assert frei.verein != got.verein
+    gedreht = copy.deepcopy(modul.VORLAGEN["verein"])
+    gedreht["geschuetzt"] = ("zweck", "name")
+    monkeypatch.setitem(modul.VORLAGEN, "verein", gedreht)
+    assert gruenden("verein", _drei(), FELDER) == got
 
 
 def _knoten(tmp_path):
@@ -221,6 +242,65 @@ def test_route_gruendet_und_der_verein_traegt(tmp_path) -> None:
         )
         assert status == 200
         assert folge["effect"] == {"used": 50, "D": 100}
+    finally:
+        _stop(server)
+
+
+def test_route_schuetzt_zweck_und_name(tmp_path) -> None:
+    """Zu dritt: Zweck und Name brauchen drei Ja, Sitz und Beitrag zwei (D646 Beschluss 5,
+    D645 Befund 2, 04 §3.4)."""
+    _path, server, (anna, bruno, chris, _dora) = _knoten(tmp_path)
+
+    def absicht(person, rumpf):
+        return _json(server, "POST", "/sim/intent", {"I": person.pub.hex(), **rumpf})
+
+    def sachantrag(motion):
+        vorher = {zeile["proposal"] for zeile in _json(server, "GET", f"/proposals/{verein}")[1]}
+        status, folge = absicht(anna, {"art": "propose", "scope": verein, "motion": motion})
+        assert status == 200
+        neu = [
+            zeile["proposal"]
+            for zeile in _json(server, "GET", f"/proposals/{verein}")[1]
+            if zeile["proposal"] not in vorher
+        ]
+        assert len(neu) == 1
+        return neu[0], folge["effect"]
+
+    def ja(person, antrag):
+        status, folge = absicht(person, {"art": "vote", "proposal": antrag, "choice": "yes"})
+        assert status == 200
+        return folge["effect"]["passes"]
+
+    try:
+        felder = {**FELDER, "beitrag": "24"}
+        status, antwort = _json(
+            server, "POST", "/gruenden", {"vorlage": "verein", "gruender": _drei(), "felder": felder}
+        )
+        assert status == 200
+        verein = antwort["verein"]
+        for person in (anna, bruno, chris):
+            assert absicht(person, {"art": "accept-rules", "scope": verein})[0] == 200
+        for motion in ({"zweck": "Gewinn erzielen"}, {"name": None}, {"name": "Chor", "farbe": "blau"}):
+            antrag, folge = sachantrag(motion)
+            assert folge == {"needed": 3, "n": 3}
+            assert ja(anna, antrag) is False
+            assert ja(bruno, antrag) is False
+            assert absicht(anna, {"art": "ratify", "proposal": antrag}) == (400, "NOT_PASSED")
+        zweck = _json(server, "GET", f"/proposals/{verein}")[1]
+        assert _json(server, "GET", f"/scopes/{verein}")[1]["stand"]["ratified"] == []
+        for motion in ({"sitz": "Anderswo"}, {"beitrag": "30"}):
+            antrag, folge = sachantrag(motion)
+            assert folge == {"needed": 2, "n": 3}
+            assert ja(anna, antrag) is False
+            assert ja(bruno, antrag) is True
+            assert absicht(chris, {"art": "ratify", "proposal": antrag})[0] == 200
+        stand = _json(server, "GET", f"/scopes/{verein}")[1]["stand"]
+        assert len(stand["ratified"]) == 2 and stand["findings"] == []
+        assert stand["stand_obj"]["zweck"] == "Gemeinsam laufen"
+        assert stand["stand_obj"]["name"] == "Laufgruppe"
+        assert stand["stand_obj"]["sitz"] == "Anderswo"
+        assert stand["stand_obj"]["beitrag"] == "30"
+        assert len(zweck) == 3
     finally:
         _stop(server)
 

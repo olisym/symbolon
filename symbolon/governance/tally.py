@@ -24,6 +24,7 @@ from symbolon.governance.objects import (
     motion_list,
     motion_wellformed,
     preconditions,
+    protected_fields,
 )
 from symbolon.index import classify_all
 from symbolon.policy import NucleusPolicy, constitution_hash, participants_wellformed
@@ -339,9 +340,11 @@ def _decide(
     Vor der Zusammenfassung fällt je Wurzel jede Stimme heraus, die eine andere nennt; ein
     formwidriger Key 1 zählt, als fehlte er (04 §3.1, D547, D548 Beschluss 3 und 4).
 
-    Ein Sachantrag hat kein Zielobjekt, seine Form steht vor dem Scope, seine Klasse ist
-    ``ordinary`` in der Verfassung der Epoche; die Klasse eines Vorschlags misst den Stand aus
-    der Verfassung der Epoche und ``S`` (04 §3.4, 04 §3.5).
+    Ein Sachantrag hat kein Zielobjekt, seine Form steht vor dem Scope. Berührt er ein Feld aus
+    ``protected_fields``, ist seine Klasse die aus ``genesis[5]``, sonst ``ordinary``; eine
+    formwidrige Liste endet ``UNEVALUABLE`` nach der Regierbarkeit und vor ``genesis[6]``. Ein
+    Vorschlag liest die Liste nicht. Seine Klasse misst den Stand aus der Verfassung der Epoche
+    und ``S`` (04 §3.4, 04 §3.5, D646).
 
     Ohne den Wahlgang aus 04 §3.2; formwidriges Feld 4 ist ``MALFORMED_PROPOSAL`` neben Feld 3
     (04 §2.4, 04 §3.5, D600 Beschluss 1, D601 Beschluss 1).
@@ -459,6 +462,19 @@ def _decide(
             epoch=epoch,
             object_hash=object_hash,
         )
+    # Nach der Regierbarkeit, vor genesis[6]; ein Vorschlag liest die Liste nicht
+    # (04 §3.5, D646).
+    beruehrt = False
+    if is_motion:
+        geschuetzt = protected_fields(constitution_obj)
+        if geschuetzt is None:
+            return _unevaluable(
+                GovernanceFinding.MALFORMED_PROTECTED_FIELDS,
+                epoch.constitution_hash,
+                epoch=epoch,
+                object_hash=object_hash,
+            )
+        beruehrt = any(name in geschuetzt for name in proposal.changes)
     weight_mode = genesis_obj.get(6)
     if type(weight_mode) is not int or weight_mode != 0:
         return _unevaluable(
@@ -476,7 +492,7 @@ def _decide(
             object_hash=object_hash,
         )
     if is_motion:
-        klass = "ordinary"
+        klass = _CLASS_BY_INDEX[idx] if beruehrt else "ordinary"
         checked = ((constitution_obj, epoch.constitution_hash),)
         target_obj = constitution_obj
     else:
@@ -690,6 +706,10 @@ def decide(
 ) -> TallyResult:
     """Die Auszählung nach ``_decide`` und bei einem Vorschlag der Wahlgang aus 04 §3.2
     (04 §4.7, D600 Beschluss 2, D601 Beschluss 1 und Befund 2).
+
+    Ein Sachantrag zählt mit der Klasse aus ``genesis[5]``, wenn ``changes`` ein Feld aus
+    ``protected_fields`` nennt, sonst mit ``ordinary``. Eine formwidrige Liste ist
+    ``MALFORMED_PROTECTED_FIELDS`` (04 §3.4, 04 §3.5, D646).
 
     Kommt ein Vorschlag durch, ist ``current_ballot`` der geltende Wahlgang; ist sein Wahlgang
     ein anderer, bleibt er ``PENDING`` mit ``BALLOT_NOT_CURRENT``. Ohne ``known_constitutions``

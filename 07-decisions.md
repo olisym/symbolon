@@ -28701,3 +28701,51 @@ Antrags geschützt sind (`GV-108` und der Test der Route).
 Typen der Felder (D644), `04 §4.1` Bedingung 6, die Lage aus Befund 2.
 
 **Geändert.** `07-decisions.md`, `04-governance.md`, `04-golden-anchors.md`.
+
+### D647 — Abnahme `p53-geschuetzt`: angenommen im ersten Durchgang
+
+**Anlass.** Der Lauf zu D646: Commit `01fb737` auf `af04149`. Gelesen ist der Diff aus dem
+Spiegel, nicht der Bericht.
+
+**Befund 1 — der Umfang.** Sechs Dateien, wie verlangt. Der Diff der beiden Testdateien ist
+byte-gleich mit dem gelieferten (derselbe SHA-256, `4f414510…`). Die drei Normdateien der Basis
+tragen die Hashes aus dem Auftrag.
+
+**Befund 2 — der Bau.** `protected_fields` in `objects.py` nimmt nur eine `list`, kein Tupel, und
+fängt einen Text, der sich nicht als UTF-8 kodieren lässt; beides ist enger als mein Prototyp und
+deckt sich mit `04 §1.1`. Die Prüfung in `_decide` steht nach der Regierbarkeit und vor
+`genesis[6]`, nur bei einem Sachantrag; die Klasse kommt aus `_CLASS_BY_INDEX`. `gruenden` trägt
+die Liste nur in die Satzung des Vereins ein.
+
+**Befund 3 — `GV-105` sieht die Klasse nicht (Meldung des Werkzeugs, zutreffend).** Die Zeile
+prüft `PASSED` nach dem vierten Ja; das gälte auch bei `ordinary`. Die Klasse zeigt `GV-104` in
+derselben Welt. `GV-105` zeigt, dass ein geschützter Sachantrag durchkommen kann. Kein Nachtrag.
+
+**Befund 4 — mein Auftrag nannte für Probe 3 sechs rote Fälle, es sind acht.** Gilt die
+formwidrige Liste als leer, bleibt auch der Sachantrag des Probelaufs `PENDING`, und zwei Fälle
+in `test_gruendung.py` werden rot. Meine eigene Probe hatte „8 rot“ gedruckt; die Namen standen
+hinter einer Kürzung der Ausgabe, und ich schrieb ab, was sichtbar war. Zum zweiten Mal: eine
+Zahl im Auftrag wird gegen die Ausgabe nachgerechnet (`00cy`).
+
+**Befund 5 — meine erste Abnahme lief auf dem falschen Baum.** `git checkout` brach über den
+Resten des Prototyps ab, die Kette lief weiter, und Tests und Lint prüften den Prototyp. Bemerkt
+an der Zeile „Aborting“ und an neun geänderten Dateien; wiederholt in einem frischen Arbeitsbaum
+auf `01fb737`. Kandidat für eine Prüfregel: eine Abnahme läuft in einem frischen Arbeitsbaum, und
+ihr erster Job prüft `HEAD` und einen sauberen Stand.
+
+**Befund 6 — was der Supervisor fuhr.** Auf `01fb737`: 352 Tests (Governance, Gründung,
+Sachanträge am Knoten, Schnittstelle, Registerindex), Lint und die vier Markdown-Ziele, alle mit
+Status 0. Dazu zehn Proben, die der Auftrag nicht verlangte, in der Form des Werkzeugs: die Liste
+kein Regelfeld, Doppelte erlaubt, die leere Liste erlaubt, unsortiert erlaubt, ein Regelfeld als
+Eintrag erlaubt, die Vorlage sortiert nicht, die Vorlage schützt auch den Sitz, Anlegen
+ungeschützt, Schutz nur bei lauter geschützten Feldern, die Liste auch im Vereinsleben; jede rot
+am erwarteten Test. Die ganze Reihe mit 1615 Tests meldet der Bericht; ich habe sie auf dem
+Branch nicht wiederholt.
+
+**Beschluss 1 — angenommen.** `p53-geschuetzt` geht nach `main`.
+
+**Beschluss 2 — der nächste Schritt.** Die Felder mit Typ (D644 Beschluss 1 und 2, D645
+Beschluss 5): nachschlagen, dann Position, Prototyp und Auftrag. Danach die Bildschirme; sie
+sagen auch, warum ein Antrag auf Zweck oder Name mehr Stimmen braucht (D646 Befund 3).
+
+**Geändert.** `07-decisions.md`.

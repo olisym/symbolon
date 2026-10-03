@@ -28749,3 +28749,82 @@ Beschluss 5): nachschlagen, dann Position, Prototyp und Auftrag. Danach die Bild
 sagen auch, warum ein Antrag auf Zweck oder Name mehr Stimmen braucht (D646 Befund 3).
 
 **Geändert.** `07-decisions.md`.
+
+### D648 — Felder mit Typ: eine Regel der Vorlage; die Satzung nennt sie; `p54-typen`
+
+**Anlass.** D644 Beschluss 1 und 2, D645 Beschluss 5, D647 Beschluss 2. Oli hat die Position
+gesehen und einen Punkt entschieden: die Schwellen bleiben fest.
+
+**Befund 1 — nachgeschlagen.** CDDL (RFC 8610) ist eine Notation für die Struktur von CBOR und
+JSON, mit Auswahl, Aufzählung und Kontrolloperatoren wie `.size`, `.le` und `.regexp`;
+Validatoren gibt es unter anderem in Rust. Gelesen sind Auszüge. Aus dem Gedächtnis, nicht
+nachgeschlagen: Formular-Werkzeuge wie JSON Forms trennen das Schema der Daten von der
+Beschreibung der Eingabe; Geld steht verbreitet als ganze Zahl der kleinsten Einheit mit Währung.
+CDDL prüft Formen und liefert weder ein Eingabefeld noch eine Lesart. Für vier Felder kommt kein
+Validator in Knoten und Seite; CDDL bleibt Kandidat, falls Felder strukturierte Werte tragen.
+
+**Befund 2 — was heute gilt.** Ein Sachfeld hält einen beliebigen Wert, Gleichheit ist
+Byte-Gleichheit (`04 §2.5`). Die Schnittstelle nimmt nur Text, die Seite zeigt nur Textfelder.
+Der Beispielverein und jeder Verein, der vor diesem Eintrag gegründet wurde, nennt keine Vorlage.
+
+**Befund 3 — der Prototyp.** Im Supervisor-Klon auf `8c7be2d`, `symbolon/node/gruendung.py` und
+`symbolon/node/api.py`, die Tests in der Fassung des Auftrags: `tests/node/test_gruendung.py`
+wächst von 32 auf 70 Tests. Die ganze Reihe: 1653 bestanden, Status 0. Fünfzehn Rücknahmeproben,
+jede rot am benannten Test: `gruenden` prüft die Werte nicht; der Sachantrag ungeprüft; der
+Satzungsantrag ungeprüft; Ziffern aller Schriften statt 0 bis 9; ohne NFC; Leerraum am Rand
+erlaubt; null erlaubt; die Satzung nennt die Vorlage nicht; ein Pflichtfeld entfernbar; `vorlage`
+änderbar; `match` statt `fullmatch`; die Fassung ungelesen; Zeilenumbruch erlaubt; `vorlage`
+ungeschützt; freie Felder als Text geprüft.
+
+**Befund 4 — eine Probe blieb zuerst grün.** Gegen die Ziffern aller Schriften stand ein Betrag
+mit zwei arabisch-indischen Ziffern; die erste Stelle prüft aber `[1-9]`, und der Vektor fiel
+dort, nicht an der Klasse. Jetzt steht die fremde Ziffer an zweiter Stelle und bei den Cent.
+Kandidat für eine Prüfregel: ein Vektor gegen eine Zeichenklasse steht an einer Stelle, die nur
+diese Klasse prüft (Schwester von D557).
+
+**Befund 5 — ein Test aus `p53` ändert sich.** `test_route_schuetzt_zweck_und_name` entfernte
+`name` per Sachantrag; das weist der Knoten jetzt ab. Der Test ändert den Namen stattdessen. Dass
+das Entfernen im Protokoll geschützt ist, zeigt weiter `GV-106`.
+
+**Beschluss 1 — der Typ ist eine Regel der Vorlage, nicht des Protokolls.** Die Norm bleibt,
+wie sie ist. Ein Typ in der Auszählung brächte keine Sicherung: eine Mehrheit setzt den Beitrag
+ohnehin auf jeden Betrag. Der Typ dient dem Menschen, der eintippt und liest (D489, D496).
+
+**Beschluss 2 — zwei Typen, je genau ein Text.**
+
+- `text`: nicht leer, in NFC, eine Zeile, kein Leerraum am Rand.
+- `betrag`: dazu die Form „24,00 EUR im Jahr“: Euro ohne führende Null und mit höchstens sieben
+  Stellen, ein Komma, zwei Stellen Cent, `EUR`, dann „im Monat“ oder „im Jahr“; nur die Ziffern
+  0 bis 9; grösser als null.
+
+Der Text ist lesbar gewählt: ein Knoten ohne die Vorlage zeigt ihn roh und sagt trotzdem etwas.
+Der Betrag in Cent lässt sich zurücklesen, passend zu `obligation@1` (`03 §3.3`). Kein Beitrag
+heisst: das Feld fehlt; ein Beitrag von null ist keiner (die Frage aus D503). Andere Währungen
+und andere Fälligkeiten kommen mit einem Anlass.
+
+**Beschluss 3 — die Satzung nennt ihre Vorlage.** Das Sachfeld `vorlage` trägt „verein@1“, Name
+und Fassung wie bei einem Prädikat; die Vorlage `verein` hat die Fassung 1. Das Feld steht in
+`protected_fields` neben `name` und `zweck`. Nennt eine Satzung keine oder eine unbekannte
+Vorlage, gelten für ihre Felder keine Typen.
+
+**Beschluss 4 — der Knoten prüft an drei Stellen.** Bei der Gründung, beim Sachantrag und beim
+Satzungsantrag über seine Schnittstelle: ein Wert in falscher Form ist `INVALID_VALUE`, das
+Entfernen eines Pflichtfelds `MISSING_FIELD`, jede Änderung an `vorlage` `RESERVED_FIELD`, und
+nichts wird geschrieben. Felder, die die Vorlage nicht kennt, bleiben frei. Damit entfernt über
+einen ehrlichen Knoten niemand den Sitz (D646 Beschluss 5). Ein fremder Knoten umgeht die
+Prüfung; die Seite zeigt dann den rohen Text. Das ist getragen.
+
+**Beschluss 5 — feste Schwellen (Oli).** Die Schwellen stehen in der Vorlage und werden bei der
+Gründung nicht gewählt; das ändert D644 Beschluss 2 in diesem Punkt. Niemand soll am Tisch
+wählen, was er nicht übersieht: zu dritt heissen zwei Drittel schon alle (D641 Befund 2). Der
+Bildschirm der Gründung nennt sie als Sätze. Ändern kann sie ein Verein per Satzungsänderung.
+
+**Beschluss 6 — nicht in diesem Schritt.** Die Funktionen der Seite, die den Text aus
+Eingabefeldern bauen und zurücklesen, und gemeinsame Vektoren für Python und JavaScript kommen
+mit den Bildschirmen, nicht auf Vorrat (D639 Beschluss 3). Die Hashes aus D641 Befund 3 gelten
+für die Vorlage vor D646.
+
+**Auftrag.** `p54-typen`, Basis ist der Commit dieses Eintrags. Nicht-Ziele: die Seite, die Norm,
+`symbolon/governance/`, weitere Typen, Typen für freie Felder.
+
+**Geändert.** `07-decisions.md`.

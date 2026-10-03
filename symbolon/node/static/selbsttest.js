@@ -3,7 +3,8 @@
 // D489 Beschluss 3, D492 Beschluss 1 bis 3, D494 Beschluss 3, 5 und 6, D496 Beschluss 1 bis 3,
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
 // D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, D509 Beschluss 3,
-// D525 Golden Numbers, D542 Beschluss 6, D543, 01 §4).
+// D525 Golden Numbers, D542 Beschluss 6, D543, D651 Beschluss 3 bis 5, D652 Beschluss 2 und 3,
+// 01 §4).
 
 import {
   artInWorten,
@@ -1395,6 +1396,30 @@ function gruendungFaelle(vectors) {
     "gruendungSatz: besteht",
     gruendungSatz(gruendungStand(fertig), namen, "aa"),
     "Der Verein besteht. Alle Gründer haben die Satzung bestätigt.",
+  );
+  // Die Satzung ist fremder Inhalt (D652 Beschluss 2 und 3, D474).
+  // Streng verglichen: JSON macht aus Infinity und NaN ebenfalls null (D652 Befund 4).
+  gleich("noetigeStimmen: Nenner null", noetigeStimmen([1, 0], 3) === null, true);
+  gleich("noetigeStimmen: Nenner unter null", noetigeStimmen([1, -2], 3), null);
+  gleich("noetigeStimmen: Zähler gleich Nenner", noetigeStimmen([2, 2], 3), null);
+  gleich("noetigeStimmen: Zähler unter null", noetigeStimmen([-1, 2], 3), null);
+  gleich("noetigeStimmen: Bruchzahl", noetigeStimmen([0.5, 2], 3), null);
+  gleich("noetigeStimmen: kein Paar", noetigeStimmen("ab", 3), null);
+  gleich("noetigeStimmen: drei Zahlen", noetigeStimmen([1, 2, 3], 3), null);
+  gleich("noetigeStimmen: ohne Mitglieder", noetigeStimmen([1, 2], 0), null);
+  gleich("noetigeStimmen: Schwelle null", noetigeStimmen([0, 1], 3), 1);
+  gleich("schwellenSaetze: ohne Schwellen", schwellenSaetze(undefined, 3), []);
+  gleich("schwellenSaetze: Schwellen als Text", schwellenSaetze("x", 3), []);
+  gleich("schwellenSaetze: eine Art fehlt", schwellenSaetze({ ordinary: [1, 2], amendment: [2, 3] }, 3), []);
+  gleich(
+    "schwellenSaetze: eine Art mit Nenner null",
+    schwellenSaetze({ ...schwellen, amendment: [2, 0] }, 3),
+    [],
+  );
+  gleich(
+    "gruendungSatz: ohne Namen der gekürzte Schlüssel",
+    gruendungSatz(gruendungStand(sicht(1, [["ab".repeat(32), "GRANT_ONLY"], ["aa", "MEMBER"]])), namen),
+    "Der Verein ist in Gründung. Bestätigt: Anna. Noch offen: ababab…ababab.",
   );
   gleich("nachNamen", nachNamen(["Chris", "Ärmel", "Anna", "bruno"]), ["Anna", "Ärmel", "bruno", "Chris"]);
 

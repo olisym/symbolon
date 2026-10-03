@@ -586,31 +586,37 @@ export function schwelleInWorten(paar) {
   return `mehr als ${paar[0]} von ${paar[1]} Teilen`;
 }
 
-// Die kleinste Zahl k mit k * den > num * n (04 §3.2, D651 Beschluss 5).
+// Die kleinste Zahl k mit k * den > num * n, oder null bei fremder Form. Gerechnet ohne
+// Schleife, damit jede Eingabe endet (04 §3.2, D651 Beschluss 5, D652 Beschluss 2).
 export function noetigeStimmen(paar, n) {
-  const num = paar[0];
-  const den = paar[1];
-  let k = 0;
-  while (k * den <= num * n) k += 1;
-  return k;
+  if (!Array.isArray(paar) || paar.length !== 2) return null;
+  const [num, den] = paar;
+  if (!Number.isInteger(num) || !Number.isInteger(den) || !Number.isInteger(n)) return null;
+  if (n <= 0) return null;
+  if (!(num >= 0 && num < den)) return null;
+  return Math.floor((num * n) / den) + 1;
 }
 
-// Drei Sätze, fest membership, ordinary, amendment. Steht k nicht unter n, endet der Satz mit
-// „sind das alle.“ (D651 Beschluss 5, D641 Befund 2).
+// Drei Sätze, fest membership, ordinary, amendment, oder die leere Liste, wenn eine Art nicht
+// lesbar ist. Steht k nicht unter n, endet der Satz mit „sind das alle.“
+// (D651 Beschluss 5, D652 Beschluss 2, D641 Befund 2).
 export function schwellenSaetze(thresholds, n) {
+  if (typeof thresholds !== "object" || thresholds === null) return [];
   const arten = [
     ["membership", "Aufnehmen und ausschließen", true],
     ["ordinary", "Sitz und Beitrag ändern", false],
     ["amendment", "Name, Zweck und alles Übrige der Satzung ändern", false],
   ];
-  return arten.map(([art, anfang, mussJa]) => {
-    const paar = thresholds[art];
-    const schwelle = schwelleInWorten(paar);
-    const k = noetigeStimmen(paar, n);
+  const saetze = [];
+  for (const [art, anfang, mussJa] of arten) {
+    const k = noetigeStimmen(thresholds[art], n);
+    if (k === null) return [];
+    const schwelle = schwelleInWorten(thresholds[art]);
     const zahl = k < n ? String(k) : "alle";
     const kern = mussJa ? `${schwelle} muss Ja sagen` : schwelle;
-    return `${anfang}: ${kern}. Bei ${n} Mitgliedern sind das ${zahl}.`;
-  });
+    saetze.push(`${anfang}: ${kern}. Bei ${n} Mitgliedern sind das ${zahl}.`);
+  }
+  return saetze;
 }
 
 // name, sitz, zweck, beitrag, nur Textwerte; der Beitrag über beitragInWorten
@@ -656,13 +662,13 @@ export function nachNamen(namen) {
 function reiheDerGruendung(schluessel, namen, ich) {
   const dabei = ich !== null && ich !== undefined && schluessel.includes(ich);
   const uebrige = nachNamen(
-    schluessel.filter((wer) => wer !== ich).map((wer) => namen.get(wer) ?? wer),
+    schluessel.filter((wer) => wer !== ich).map((wer) => nameVon(namen, wer)),
   );
   return aufzaehlung(dabei ? ["du", ...uebrige] : uebrige);
 }
 
-// Die eigene Identität heisst „du“ und steht vorn, die übrigen nach nachNamen
-// (D651 Beschluss 4, D605).
+// Die eigene Identität heisst „du“ und steht vorn, die übrigen nach nachNamen; ein Schlüssel
+// ohne Namen steht gekürzt (D651 Beschluss 4, D652 Beschluss 3, D492 Beschluss 5, D605).
 export function gruendungSatz(stand, namen, ich = null) {
   if (stand.besteht) return "Der Verein besteht. Alle Gründer haben die Satzung bestätigt.";
   const bestaetigt = reiheDerGruendung(stand.bestaetigt, namen, ich);

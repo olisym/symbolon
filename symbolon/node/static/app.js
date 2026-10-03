@@ -3,7 +3,7 @@
 // Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
 // neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
-// D651 Beschluss 2 bis 6).
+// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4).
 
 import {
   ablauf,
@@ -846,22 +846,37 @@ function jetztBereich(tasks, kontext, handeln, lage) {
         );
         const verb = andere.length === 1 ? "gründet" : "gründen";
         const satzung = lage.view.stand?.stand_obj ?? {};
-        block.append(
+        const schwellen = schwellenSaetze(satzung.thresholds, lage.stand.gruender.length);
+        const teile = [
           marke("Gründung"),
           element("div", "satz", `${aufzaehlung(andere)} ${verb} mit dir einen Verein.`),
           marke("Die Satzung"),
           liste(satzungZeilen(satzung)),
-          marke("Abstimmungen"),
-          liste(schwellenSaetze(satzung.thresholds, lage.stand.gruender.length)),
-          knopfReihe(
-            knopf(
-              "Satzung bestätigen …",
-              () => handeln("accept-rules", { scope: aufgabe.scope, constitution: aufgabe.constitution }),
-              "haupt",
+        ];
+        if (schwellen.length === 0) {
+          teile.push(
+            element(
+              "div",
+              "warnung",
+              "Die Regeln für Abstimmungen in dieser Satzung kann die Seite nicht lesen. Bestätigen kannst du sie hier nicht.",
             ),
-            knopf("Nicht mitgründen …", () => void verwerfenAusfuehren(satzung.name, lage.scope)),
-          ),
-        );
+            knopfReihe(knopf("Nicht mitgründen …", () => void verwerfenAusfuehren(satzung.name, lage.scope))),
+          );
+        } else {
+          teile.push(
+            marke("Abstimmungen"),
+            liste(schwellen),
+            knopfReihe(
+              knopf(
+                "Satzung bestätigen …",
+                () => handeln("accept-rules", { scope: aufgabe.scope, constitution: aufgabe.constitution }),
+                "haupt",
+              ),
+              knopf("Nicht mitgründen …", () => void verwerfenAusfuehren(satzung.name, lage.scope)),
+            ),
+          );
+        }
+        block.append(...teile);
       } else {
         block.append(
           element("div", "satz", "Die Satzung hat sich geändert. Bestätige die geltende Fassung."),
@@ -1593,7 +1608,7 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
               return;
             }
             const felder = { name: nameText, sitz: sitzText, zweck: zweckText };
-            if (beitrag.value !== "") {
+            if (beitrag.value.trim() !== "") {
               const text = betragText(beitrag.value, faellig.value);
               if (text === null) {
                 meldung(

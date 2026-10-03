@@ -28874,3 +28874,29 @@ JavaScript (D648 Beschluss 6); die festen Schwellen als Sätze (D648 Beschluss 5
 warum ein Antrag auf Zweck oder Name mehr Stimmen braucht (D646 Befund 3).
 
 **Geändert.** `07-decisions.md`.
+
+### D650 — Schluss der Sitzung `00db`: Vorlage `verein` mit Schutz und Typen; Schritt 2 als Nächstes
+
+**Anlass.** `p53-geschuetzt` und `p54-typen` sind auf `main` (D647, D649). Oli schliesst die
+Sitzung vor den Bildschirmen: sie brauchen die Seite ganz gelesen, einen Prototyp und einen
+Durchlauf in Playwright.
+
+**Befund 1 — was `00db` hinterlässt.** 1653 Tests, Register bis zu diesem Eintrag, eine Norm mit
+sieben Regelfeldern (`04 §1.1`), die Vektoren `GV-104` bis `GV-121`. Die Vorlage `verein` schützt
+Zweck, Name und `vorlage`, kennt die Typen Text und Betrag und nennt sich in der Satzung als
+„verein@1“. `offen.md` ist unverändert: 104 Posten, 17 offen; was die Sitzung offen liess, steht
+in D645 Beschluss 6, D646 Beschluss 3 und 6, D649 Befund 3 und 5 und im Sitzungsstart.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** nicht aus
+dem Gespräch. Erledigt und entfernt: die Feldtypen als offener Punkt aus `00cv` und `00da`.
+Geändert: die Frage nach dem Beitrag von null (D648 Beschluss 2).
+
+**Beschluss 1 — der nächste Schritt.** Schritt 2 der Gründung, die Bildschirme auf einem Knoten,
+wie in D649 Beschluss 2 und im Sitzungsstart beschrieben.
+
+**Beschluss 2 — Kandidaten für Prüfregeln, nicht übernommen.** Sechs aus dieser Sitzung stehen
+im Sitzungsstart: D645 Befund 6, D646 Befund 2, D647 Befund 4 und 5, D648 Befund 4, D649
+Befund 3. Zwei davon sind zum zweiten oder dritten Mal belegt.
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00dc.md` neu, `sitzungsstart-00db.md` nach
+`archiv/`.

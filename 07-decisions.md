@@ -29197,3 +29197,37 @@ entfernen kann die Seite weiter nicht (D581).
 Norm, der Titel eines Antrags, das Entfernen eines Felds, der Scan.
 
 **Geändert.** `07-decisions.md`.
+
+### D655 — Abnahme `p56-durchlauf`: angenommen im ersten Durchgang
+
+**Anlass.** Der Bericht des Werkzeugs zu `p56-durchlauf`, Commit `637a64b` auf `a0a244f` (D654):
+`make check` mit Status 0, 1661 Tests, 380 Fälle, neun Rücknahmeproben, keine Rückfrage.
+
+**Befund 1 — was der Supervisor fuhr.** In einem frischen Arbeitsbaum auf `637a64b`, `HEAD`
+geprüft und sauber: `selbsttest.js` und `test_selbsttest.py` bytegleich zum Diff der Tests; die
+ganze Reihe allein mit 1661 Tests, Lint und die vier Markdown-Ziele, alles mit Status 0. Der
+Diff gegen `a0a244f` ist gelesen und mit dem Prototyp aus D654 verglichen. Die reinen Funktionen
+prüfen fremden Inhalt strenger als der Prototyp: `namenEindeutig` nimmt auch eine Liste, die
+keine ist, `antragZitate` auch `changes` ohne `fields`.
+
+**Befund 2 — im Browser.** Drei Tabs unter `.localhost` in Chromium 141 und ein vierter unter
+`127.0.0.1` mit dem Namen „anna“: der Satz der Regie mit `bruno.localhost:8470`; nach Brunos
+Schlüssel der Hinweis auf Neues bei Anna; die Auswahl mit „anna (1d68f5…bd294c)“; der Satz zur
+Schwelle wechselt mit dem Feld; ein Antrag auf den Beitrag sagt „2 von 3“, einer auf den Namen
+„3 von 3“. Dazu der Durchlauf aus D651 Befund 8 in Chromium und Firefox 142, die Satzung mit
+Nenner null und der Beispielverein. Kein Fehler der Seite.
+
+**Befund 3 — über den Auftrag hinaus, getragen.** In der vollen Regie zeigen die Knöpfe der
+simulierten Personen jetzt `nameVon` über der Abbildung mit Kürzeln; bei eindeutigen Namen
+bleibt der Text. Das Werkzeug hat es gemeldet. Die Funktion `kurz` in `app.js` hatte danach
+keinen Aufrufer und ist entfernt.
+
+**Beschluss 1 — angenommen.** `p56-durchlauf` geht nach `main`.
+
+**Beschluss 2 — offen, ohne Auftrag.** Der Titel eines Antrags nennt das Feld klein („beitrag
+ändern“, D654 Befund 7). Ein Feld entfernen kann die Seite nicht (D581). Die freie Reihe mit
+„Als Satzungsantrag …“ und „Als Sachantrag …“ steht neben der neuen und nimmt jeden Text. Der
+Satz zur Schwelle nimmt für geschützte Felder `amendment` an (D654 Beschluss 4). Olis Blick auf
+die neue Reihe und die Regie steht aus (D490).
+
+**Geändert.** `07-decisions.md`.

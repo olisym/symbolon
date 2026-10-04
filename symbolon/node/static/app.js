@@ -3,7 +3,7 @@
 // Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
 // neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
-// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4).
+// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4).
 
 import {
   ablauf,
@@ -46,9 +46,14 @@ import {
   mitgliedschaftInWorten,
   nachHandlung,
   nachNamen,
+  namenEindeutig,
   nameVon,
   personImSatz,
+  regieHinweis,
   regieReihenfolge,
+  sachfeldName,
+  sachfeldSatz,
+  sachwert,
   satzungZeilen,
   schwellenSaetze,
   standSaetze,
@@ -59,6 +64,7 @@ import {
   textFeld,
   tilgungInWorten,
   vertrauenSatz,
+  vorlageDerSatzung,
   wertInWorten,
   widerspruchOben,
   widerspruchSatz,
@@ -83,6 +89,9 @@ let gezeichneterStand = null;
 // Die Antwort von GET /scopes beim letzten Zeichnen, für denselben Hinweis (D651 Befund 5).
 let gezeichneteScopes = null;
 
+// Die Antwort von GET /names beim letzten Zeichnen, für denselben Hinweis (D654 Beschluss 3).
+let gezeichneteNamen = null;
+
 // Der Weg der Gründung überdauert Zurück und Weiter, nicht ein Neuladen (D651 Beschluss 3).
 let gruendungSchritt = 0;
 let gruendungGewaehlt = new Set();
@@ -101,11 +110,6 @@ function bytesFromHex(text) {
     out[index] = Number.parseInt(text.slice(index * 2, index * 2 + 2), 16);
   }
   return out;
-}
-
-function kurz(text) {
-  if (text.length <= 12) return text;
-  return `${text.slice(0, 6)}…${text.slice(-6)}`;
 }
 
 function element(tag, klasse, text) {
@@ -637,6 +641,18 @@ function regieBereich(namen, simuliert, record, schritte, getrennt) {
   const regie = element("aside", "regie");
   const ich = record ? hex(record.pub) : null;
   regie.append(element("div", "marke", "Regie"));
+  // Ohne simulierte Person und ohne Gerät des Labs nur der Satz, Aktualisieren und der
+  // Selbsttest (D654 Beschluss 3).
+  if (!geraetName && simuliert.length === 0) {
+    const link = element("a", null, "Selbsttest");
+    link.href = "/app/selbsttest.html";
+    regie.append(
+      zeile(regieHinweis(location.hostname, location.port)),
+      knopf("Aktualisieren", () => void zeichnen(), "person"),
+      link,
+    );
+    return regie;
+  }
   if (geraetName) {
     regie.append(
       element("div", "satz", geraetName),
@@ -665,7 +681,7 @@ function regieBereich(namen, simuliert, record, schritte, getrennt) {
     ...geordnet.map((eintrag) =>
       eintrag.I === ich
         ? { wert: "geraet", text: `Ich · ${nameVon(namen, ich)}` }
-        : { wert: eintrag.I, text: eintrag.name ?? kurz(eintrag.I) },
+        : { wert: eintrag.I, text: nameVon(namen, eintrag.I) },
     ),
   ];
   const auswahl = element("div", "personen");
@@ -744,7 +760,11 @@ async function standPruefen() {
     if (gezeichneteScopes !== null) {
       scopesAnders = JSON.stringify(await holen("/scopes")) !== gezeichneteScopes;
     }
-    hinweis.hidden = stand === gezeichneterStand && !scopesAnders;
+    let namenAnders = false;
+    if (gezeichneteNamen !== null) {
+      namenAnders = JSON.stringify(await holen("/names")) !== gezeichneteNamen;
+    }
+    hinweis.hidden = stand === gezeichneterStand && !scopesAnders && !namenAnders;
   } catch {
     // Ein Fehler der Abfrage wird übergangen (D518 Beschluss 5).
   }
@@ -1132,11 +1152,11 @@ function knopfMitAuswahl(text, auswahlen, tun) {
   return button;
 }
 
-function auswahlNamen(namenListe, ausser = new Set()) {
+function auswahlNamen(namenListe, namen, ausser = new Set()) {
   const auswahl = personAuswahl();
   for (const eintrag of namenListe) {
     if (ausser.has(eintrag.I)) continue;
-    const option = element("option", null, eintrag.name ?? kurz(eintrag.I));
+    const option = element("option", null, nameVon(namen, eintrag.I));
     option.value = eintrag.I;
     auswahl.append(option);
   }
@@ -1144,14 +1164,83 @@ function auswahlNamen(namenListe, ausser = new Set()) {
 }
 
 // Die Formulare für Anträge nur für Handelnde auf der Liste (D494 Beschluss 2, 04 §2.1).
-function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) {
+function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln, vorlagen) {
   const form = element("div", "formular");
-  const teilnehmer = new Set(view?.state?.constitution_obj?.participants ?? []);
+  const constitution = view?.state?.constitution_obj;
+  const teilnehmer = new Set(constitution?.participants ?? []);
+  const anzahl = Array.isArray(constitution?.participants) ? constitution.participants.length : 0;
   if (!teilnehmer.has(identitaet)) {
     form.append(zeile("Anträge stellen kann nur, wer auf der Mitgliederliste steht."));
     return form;
   }
-  const aufnehmen = auswahlNamen(namenListe, teilnehmer);
+  // Kennt der Stand eine Vorlage des Knotens, die Reihe mit Typ und Schwelle
+  // (D654 Beschluss 4, D646 Beschluss 2).
+  const stand = view?.stand?.stand_obj ?? null;
+  const muster = vorlageDerSatzung(stand, vorlagen);
+  if (muster !== null) {
+    const felder = Array.isArray(muster.felder) ? muster.felder : [];
+    const typen = muster.typen !== null && typeof muster.typen === "object" ? muster.typen : {};
+    const auswahl = element("select");
+    for (const feld of felder) {
+      const option = element("option", null, sachfeldName(feld));
+      option.value = feld;
+      auswahl.append(option);
+    }
+    const eingabe = element("input");
+    eingabe.type = "text";
+    const faellig = element("select");
+    for (const [wert, text] of [
+      ["Jahr", "im Jahr"],
+      ["Monat", "im Monat"],
+    ]) {
+      const option = element("option", null, text);
+      option.value = wert;
+      faellig.append(option);
+    }
+    const schwelle = zeile("", "leise");
+    const fuellen = () => {
+      const feld = auswahl.value;
+      if (typen[feld] === "betrag") {
+        eingabe.value = "";
+        eingabe.placeholder = "Euro";
+        faellig.hidden = false;
+      } else {
+        const wert = stand?.[feld];
+        eingabe.value = typeof wert === "string" ? wert : "";
+        eingabe.placeholder = "";
+        faellig.hidden = true;
+      }
+      const satz = sachfeldSatz(feld, constitution, anzahl);
+      schwelle.textContent = satz === null ? "" : satz;
+    };
+    auswahl.addEventListener("change", fuellen);
+    fuellen();
+    form.append(
+      zeile("Die Satzung ändern:"),
+      knopfReihe(
+        auswahl,
+        eingabe,
+        faellig,
+        knopf("Änderung beantragen …", async () => {
+          const feld = auswahl.value;
+          const wert = sachwert(typen[feld], eingabe.value, faellig.value);
+          if (wert === null) {
+            meldung(
+              typen[feld] === "betrag"
+                ? "Der Beitrag geht nur in Euro, größer als null, mit höchstens zwei Stellen nach dem Komma."
+                : `${sachfeldName(feld)}: Der Text fehlt.`,
+            );
+            await meldungZeigen();
+            return;
+          }
+          handeln("propose", { scope: gov, motion: { [feld]: wert } });
+        }),
+      ),
+      schwelle,
+      zeile("Niemand muss danach neu bestätigen.", "leise"),
+    );
+  }
+  const aufnehmen = auswahlNamen(namenListe, namen, teilnehmer);
   const ausschliessen = personAuswahl();
   for (const schluessel of teilnehmer) {
     const option = element("option", null, nameVon(namen, schluessel));
@@ -1195,7 +1284,7 @@ function neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln) 
   return form;
 }
 
-function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, handeln) {
+function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, handeln, vorlagen) {
   const abschnitt = abschnittOffen(
     "Anträge",
     "Eine Änderung der Satzung gilt, wenn genug Ja-Stimmen da sind und jemand den Beschluss " +
@@ -1243,7 +1332,7 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, h
     }
     abschnitt.append(karte);
   }
-  abschnitt.append(neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln));
+  abschnitt.append(neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln, vorlagen));
   return abschnitt;
 }
 
@@ -1268,7 +1357,7 @@ function vertrauenAbschnitt(view, res, namenListe, namen, jetzt, handeln) {
     liste(personen.map((person) => vertrauenSatz(nameVon(namen, person.I), bfs.distance[person.I]))),
   );
 
-  const person = auswahlNamen(namenListe);
+  const person = auswahlNamen(namenListe, namen);
   const gewicht = element("input");
   gewicht.type = "number";
   gewicht.min = "1";
@@ -1325,7 +1414,7 @@ function beitraegeAbschnitt(obligationen, res, namenListe, namen, handeln) {
       ),
     );
   }
-  const glaeubiger = auswahlNamen(namenListe);
+  const glaeubiger = auswahlNamen(namenListe, namen);
   const euro = element("input");
   euro.type = "number";
   euro.min = "0";
@@ -1361,7 +1450,7 @@ function kasseAbschnitt(view, obligationen, namenListe, namen, identitaet, hande
     "Kasse",
     "Für einen Empfänger: wer zugesagt hat, wer quittiert ist, wer fehlt.",
   );
-  const auswahl = auswahlNamen(namenListe);
+  const auswahl = auswahlNamen(namenListe, namen);
   abschnitt.append(auswahl);
   const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
   const ul = element("ul");
@@ -1534,12 +1623,19 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
           sperre();
         });
         const label = element("label", "wahl");
-        label.append(haken, element("span", null, eintrag.name ?? kurz(eintrag.I)));
+        label.append(haken, element("span", null, nameVon(namen, eintrag.I)));
         auswahl.append(label);
       }
       block.append(auswahl);
     }
     sperre();
+    if (andere.length < vorlage.mindestens - 1) {
+      block.append(
+        zeile(
+          "Wer mitgründen soll, legt zuerst in einem eigenen Fenster seinen Schlüssel an. Wie das geht, steht rechts unter „Regie“.",
+        ),
+      );
+    }
     block.append(
       zeile("Wer gründet, steht für immer fest. Wer später dazukommt, wird aufgenommen.", "leise"),
       knopfReihe(weiter, abbrechenKnopf()),
@@ -1661,7 +1757,7 @@ async function zeichnenInhalt() {
   const seite = document.querySelector("#seite");
   const stand = await holen("/stand");
   const namenListe = await holen("/names");
-  const namen = new Map(namenListe.map((eintrag) => [eintrag.I, eintrag.name]));
+  const namen = namenEindeutig(namenListe);
   const simuliert = namenListe.filter((eintrag) => eintrag.simulated);
   const record = await lesen();
   const ich = record ? hex(record.pub) : null;
@@ -1729,8 +1825,11 @@ async function zeichnenInhalt() {
     seite.replaceChildren(links, regie);
     gezeichneterStand = stand;
     gezeichneteScopes = null;
+    gezeichneteNamen = JSON.stringify(namenListe);
     return;
   }
+
+  const vorlagen = await holen("/vorlagen");
 
   const jetzt = await holen("/now");
   const identitaet = handelnAls === "geraet" ? ich : handelnAls;
@@ -1774,7 +1873,7 @@ async function zeichnenInhalt() {
       "Anträge",
       // Nur PENDING in der laufenden Abstimmung (04 §4.7, D605 Beschluss 2).
       antraege.filter((antrag) => laufend(antrag) && antrag.state === "PENDING").length,
-      () => [antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln)],
+      () => [antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln, vorlagen)],
     ],
     ["Vertrauen", 0, () => [vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln)]],
     [
@@ -1823,13 +1922,14 @@ async function zeichnenInhalt() {
   const hatNamen = Boolean(namen.get(identitaet));
   const gruendungsStand = govView ? gruendungStand(govView) : null;
   const inGruendung = gruendungsStand !== null && !gruendungsStand.besteht;
-  const titel = hatNamen ? `Du bist ${namen.get(identitaet)}` : "Dein Name fehlt noch";
+  const eigener = namenListe.find((eintrag) => eintrag.I === identitaet);
+  const titel = hatNamen ? `Du bist ${eigener.name}` : "Dein Name fehlt noch";
   const kopfInfo = ohneVerein
     ? null
     : inGruendung
       ? gruendungSatz(gruendungsStand, namen, identitaet)
       : mitgliedschaftVon(govView, identitaet);
-  const vorlage = ohneVerein && hatNamen ? (await holen("/vorlagen")).verein : null;
+  const vorlage = ohneVerein && hatNamen ? vorlagen.verein : null;
   links.append(
     neuesBereich(),
     kopfBereich(titel, kopfInfo),
@@ -1847,6 +1947,7 @@ async function zeichnenInhalt() {
   seite.replaceChildren(links, regie);
   gezeichneterStand = stand;
   gezeichneteScopes = JSON.stringify(scopes);
+  gezeichneteNamen = JSON.stringify(namenListe);
   if (nachGruendung) {
     const vorgabe = nachGruendung;
     nachGruendung = null;

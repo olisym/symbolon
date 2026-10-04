@@ -4,7 +4,7 @@
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
 // D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, D509 Beschluss 3,
 // D525 Golden Numbers, D542 Beschluss 6, D543, D651 Beschluss 3 bis 5, D652 Beschluss 2 und 3,
-// 01 §4).
+// D654 Beschluss 2 bis 4, 01 §4).
 
 import {
   artInWorten,
@@ -27,12 +27,19 @@ import {
   aenderungen,
   antragMarke,
   antragTitel,
+  antragZitate,
   aufzaehlung,
   beitragInWorten,
   betrag,
   betragLesen,
   betragText,
   gruendungSatz,
+  namenEindeutig,
+  regieHinweis,
+  sachfeldName,
+  sachfeldSatz,
+  sachwert,
+  vorlageDerSatzung,
   gruendungStand,
   nachNamen,
   noetigeStimmen,
@@ -1490,6 +1497,129 @@ function gruendungFaelle(vectors) {
   return results;
 }
 
+// Gleiche Namen, die Regie ohne simulierte Personen, Sachfelder mit Typ und Schwelle
+// (D654 Beschluss 2 bis 4).
+function durchlaufFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  const a1 = "a1".repeat(32);
+  const a2 = "a2".repeat(32);
+  const b1 = "b1".repeat(32);
+  const liste = [
+    { I: a1, name: "Anna" },
+    { I: b1, name: "Bruno" },
+    { I: a2, name: " anna " },
+    { I: "c1".repeat(32), name: null },
+    { I: "d1".repeat(32), name: "  " },
+  ];
+  gleich("namenEindeutig: gleiche Namen mit Kürzel, andere ohne, ohne Namen kein Eintrag", [...namenEindeutig(liste)], [
+    [a1, "Anna (a1a1a1…a1a1a1)"],
+    [b1, "Bruno"],
+    [a2, "anna (a2a2a2…a2a2a2)"],
+  ]);
+  gleich("namenEindeutig: ein Name allein bleibt", [...namenEindeutig([liste[0], liste[1]])], [
+    [a1, "Anna"],
+    [b1, "Bruno"],
+  ]);
+  gleich(
+    "namenEindeutig: zerlegte und zusammengesetzte Form sind derselbe Name",
+    [...namenEindeutig([{ I: a1, name: "Cafe\u0301" }, { I: a2, name: "Caf\u00e9" }]).values()].map((name) => name.includes("(")),
+    [true, true],
+  );
+  gleich("namenEindeutig: leere Liste", [...namenEindeutig([])], []);
+
+  gleich(
+    "regieHinweis: unter anna.localhost",
+    regieHinweis("anna.localhost", "8470"),
+    "Dieses Fenster ist eine Person. Eine weitere bekommt einen eigenen Tab unter eigener Adresse, etwa http://bruno.localhost:8470/.",
+  );
+  gleich(
+    "regieHinweis: unter bruno.localhost ein anderer Name",
+    regieHinweis("bruno.localhost", "8470"),
+    "Dieses Fenster ist eine Person. Eine weitere bekommt einen eigenen Tab unter eigener Adresse, etwa http://chris.localhost:8470/.",
+  );
+  gleich(
+    "regieHinweis: unter 127.0.0.1, ohne Port",
+    regieHinweis("127.0.0.1", ""),
+    "Dieses Fenster ist eine Person. Eine weitere bekommt einen eigenen Tab unter eigener Adresse, etwa http://bruno.localhost/.",
+  );
+  gleich("regieHinweis: unter localhost", regieHinweis("localhost", "8470").includes("bruno.localhost:8470"), true);
+  const fern = "Dieses Fenster ist eine Person. Eine weitere braucht ein eigenes Gerät oder ein eigenes Profil im Browser.";
+  gleich("regieHinweis: eine Adresse im Netz", regieHinweis("192.168.1.20", "8470"), fern);
+  gleich("regieHinweis: ein Name, der nur so endet", regieHinweis("nichtlocalhost", "8470"), fern);
+  gleich("regieHinweis: kein Text", regieHinweis(undefined, "8470"), fern);
+
+  gleich("sachfeldName: bekannt", ["name", "sitz", "zweck", "beitrag"].map(sachfeldName), ["Name", "Sitz", "Zweck", "Beitrag"]);
+  gleich("sachfeldName: unbekannt", sachfeldName("motto"), "„motto“");
+
+  const vorlagen = { verein: { fassung: 1, felder: ["name"] }, runde: { fassung: 2, felder: [] } };
+  gleich("vorlageDerSatzung: verein@1", vorlageDerSatzung({ vorlage: "verein@1" }, vorlagen), vorlagen.verein);
+  gleich("vorlageDerSatzung: runde@2", vorlageDerSatzung({ vorlage: "runde@2" }, vorlagen), vorlagen.runde);
+  gleich("vorlageDerSatzung: andere Fassung", vorlageDerSatzung({ vorlage: "verein@2" }, vorlagen) === null, true);
+  gleich("vorlageDerSatzung: ohne Fassung", vorlageDerSatzung({ vorlage: "verein" }, vorlagen) === null, true);
+  gleich("vorlageDerSatzung: keine Vorlage genannt", vorlageDerSatzung({ name: "A" }, vorlagen) === null, true);
+  gleich("vorlageDerSatzung: kein Text", vorlageDerSatzung({ vorlage: 1 }, vorlagen) === null, true);
+  gleich("vorlageDerSatzung: ohne Satzung", vorlageDerSatzung(undefined, vorlagen) === null, true);
+  gleich("vorlageDerSatzung: ohne Vorlagen", vorlageDerSatzung({ vorlage: "verein@1" }, null) === null, true);
+  gleich("vorlageDerSatzung: ein Eintrag ohne Inhalt", vorlageDerSatzung({ vorlage: "x@1" }, { x: null }) === null, true);
+
+  gleich("sachwert: Text", sachwert("text", "  Duisburg ", "Jahr"), "Duisburg");
+  gleich("sachwert: Text leer", sachwert("text", "  ", "Jahr") === null, true);
+  gleich("sachwert: Betrag", sachwert("betrag", "30,5", "Monat"), "30,50 EUR im Monat");
+  gleich("sachwert: Betrag in falscher Form", sachwert("betrag", "abc", "Jahr") === null, true);
+  gleich("sachwert: ein Betrag ist kein Text", sachwert("betrag", "Duisburg", "Jahr") === null, true);
+  gleich("sachwert: unbekannter Typ", sachwert("datum", "1.1.2027", "Jahr") === null, true);
+
+  const satzung = {
+    thresholds: { ordinary: [1, 2], membership: [1, 2], amendment: [2, 3] },
+    protected_fields: ["name", "vorlage", "zweck"],
+  };
+  gleich(
+    "sachfeldSatz: geschützt, zu dritt",
+    sachfeldSatz("name", satzung, 3),
+    "Name ist geschützt: Ein Antrag darauf braucht mehr als zwei Drittel, wie eine Änderung der Satzung. Bei 3 Mitgliedern sind das alle.",
+  );
+  gleich(
+    "sachfeldSatz: geschützt, zu viert",
+    sachfeldSatz("zweck", satzung, 4),
+    "Zweck ist geschützt: Ein Antrag darauf braucht mehr als zwei Drittel, wie eine Änderung der Satzung. Bei 4 Mitgliedern sind das 3.",
+  );
+  gleich(
+    "sachfeldSatz: frei",
+    sachfeldSatz("beitrag", satzung, 3),
+    "Ein Antrag auf Beitrag braucht mehr als die Hälfte. Bei 3 Mitgliedern sind das 2.",
+  );
+  gleich(
+    "sachfeldSatz: ohne Liste ist jedes Feld frei",
+    sachfeldSatz("name", { thresholds: satzung.thresholds }, 3),
+    "Ein Antrag auf Name braucht mehr als die Hälfte. Bei 3 Mitgliedern sind das 2.",
+  );
+  gleich(
+    "sachfeldSatz: eine Liste, die keine ist",
+    sachfeldSatz("name", { thresholds: satzung.thresholds, protected_fields: "name" }, 3),
+    "Ein Antrag auf Name braucht mehr als die Hälfte. Bei 3 Mitgliedern sind das 2.",
+  );
+  gleich("sachfeldSatz: ohne Schwellen", sachfeldSatz("name", { protected_fields: ["name"] }, 3) === null, true);
+  gleich("sachfeldSatz: ohne Satzung", sachfeldSatz("name", undefined, 3) === null, true);
+  gleich(
+    "sachfeldSatz: die Schwelle der Klasse nicht lesbar",
+    sachfeldSatz("name", { ...satzung, thresholds: { ...satzung.thresholds, amendment: [2, 0] } }, 3) === null,
+    true,
+  );
+  gleich(
+    "sachfeldSatz: die andere Schwelle nicht lesbar stört nicht",
+    sachfeldSatz("sitz", { ...satzung, thresholds: { ...satzung.thresholds, amendment: [2, 0] } }, 3),
+    "Ein Antrag auf Sitz braucht mehr als die Hälfte. Bei 3 Mitgliedern sind das 2.",
+  );
+
+  const feld = (field, neu) => ({ added: [], removed: [], fields: [{ field, old: "x", new: neu }] });
+  gleich("antragZitate: der Beitrag in Worten", antragZitate(feld("beitrag", "30,50 EUR im Monat")), ["„30,50 € im Monat“"]);
+  gleich("antragZitate: ein Beitrag, der sich nicht lesen lässt, roh", antragZitate(feld("beitrag", "30 Euro")), ["„30 Euro“"]);
+  gleich("antragZitate: ein anderes Feld wörtlich", antragZitate(feld("sitz", "30,50 EUR im Monat")), ["„30,50 EUR im Monat“"]);
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1500,6 +1630,7 @@ export async function run(vectors, subtle) {
   results.push(...sachantragFaelle());
   results.push(...wahlgangFaelle());
   results.push(...gruendungFaelle(vectors));
+  results.push(...durchlaufFaelle());
   return results;
 }
 

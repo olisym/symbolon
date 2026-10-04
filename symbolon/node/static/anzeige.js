@@ -10,7 +10,8 @@
 // was die Seite über Stimmen einer Wurzel von mehreren Schlüsseln sagt (D542 Beschluss 6, D543),
 // und über Stimmen, die still nicht zählen: ein zweites Ja, ein gesperrtes Gerät (D556).
 // Die Gründung: Text und Betrag, die Schwellen als Sätze, der Stand und seine Sätze
-// (D651 Beschluss 3 bis 5, D648 Beschluss 2 und 5, 04 §3.2).
+// (D651 Beschluss 3 bis 5, D648 Beschluss 2 und 5, 04 §3.2). Gleiche Namen, die Regie ohne
+// simulierte Personen, Sachfelder mit Typ (D654 Beschluss 2 bis 4).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -37,6 +38,33 @@ export function nameVon(namen, schluessel) {
   if (gefunden) return gefunden;
   if (schluessel.length <= 12) return schluessel;
   return `${schluessel.slice(0, 6)}…${schluessel.slice(-6)}`;
+}
+
+// Schlüssel auf den Namen zum Anzeigen, in der Reihenfolge der Liste. Gleich heisst ohne
+// Leerraum am Rand, in NFC und ohne Gross und Klein; kommt ein Name mehr als einmal vor,
+// trägt jeder „Name (Kürzel)“ (D654 Beschluss 2, D492 Beschluss 5).
+export function namenEindeutig(liste) {
+  const abbildung = new Map();
+  if (!Array.isArray(liste)) return abbildung;
+  const eintraege = [];
+  for (const eintrag of liste) {
+    if (eintrag === null || typeof eintrag !== "object") continue;
+    const name = eintrag.name;
+    const schluessel = eintrag.I;
+    if (typeof name !== "string" || typeof schluessel !== "string") continue;
+    if (name.trim() === "") continue;
+    eintraege.push({ schluessel, name, form: name.trim().normalize("NFC").toLowerCase() });
+  }
+  const zahlen = new Map();
+  for (const eintrag of eintraege) zahlen.set(eintrag.form, (zahlen.get(eintrag.form) ?? 0) + 1);
+  for (const eintrag of eintraege) {
+    const gezeigt =
+      zahlen.get(eintrag.form) > 1
+        ? `${eintrag.name.trim()} (${nameVon(new Map(), eintrag.schluessel)})`
+        : eintrag.name;
+    abbildung.set(eintrag.schluessel, gezeigt);
+  }
+  return abbildung;
 }
 
 // Ein Feldwert in Worten: Text wörtlich, sonst als JSON (D487 Beschluss 4).
@@ -417,11 +445,13 @@ export function antragMarke(kind) {
   return kind === "motion" ? "Sachantrag" : "Satzungsantrag";
 }
 
-// Der neue Wortlaut jedes Textfelds, als Zitat unter dem Titel (D492 Beschluss 3).
+// Der neue Wortlaut jedes Textfelds, als Zitat unter dem Titel. Der Beitrag in Worten, jedes
+// andere Feld wörtlich (D492 Beschluss 3, D654 Beschluss 4).
 export function antragZitate(changes) {
+  if (!Array.isArray(changes?.fields)) return [];
   return changes.fields
-    .filter((feld) => typeof feld.new === "string")
-    .map((feld) => `„${feld.new}“`);
+    .filter((feld) => typeof feld?.new === "string")
+    .map((feld) => `„${feld.field === "beitrag" ? beitragInWorten(feld.new) : feld.new}“`);
 }
 
 function hexVon(bytes) {
@@ -584,6 +614,78 @@ export function schwelleInWorten(paar) {
   if (paar[0] === 1 && paar[1] === 2) return "mehr als die Hälfte";
   if (paar[0] === 2 && paar[1] === 3) return "mehr als zwei Drittel";
   return `mehr als ${paar[0]} von ${paar[1]} Teilen`;
+}
+
+// „Name“, „Sitz“, „Zweck“, „Beitrag“; jedes andere Feld in den Anführungszeichen der Seite
+// (D654 Beschluss 4).
+export function sachfeldName(feld) {
+  if (feld === "name") return "Name";
+  if (feld === "sitz") return "Sitz";
+  if (feld === "zweck") return "Zweck";
+  if (feld === "beitrag") return "Beitrag";
+  return `„${feld}“`;
+}
+
+// Der Eintrag aus GET /vorlagen, dessen Name und Fassung als „name@fassung“ genau
+// ``satzung.vorlage`` gleichen; sonst null (D654 Beschluss 4, D648 Beschluss 3).
+export function vorlageDerSatzung(satzung, vorlagen) {
+  if (satzung === null || typeof satzung !== "object") return null;
+  if (vorlagen === null || typeof vorlagen !== "object") return null;
+  const genannt = satzung.vorlage;
+  if (typeof genannt !== "string") return null;
+  for (const [name, eintrag] of Object.entries(vorlagen)) {
+    if (eintrag === null || typeof eintrag !== "object") continue;
+    if (`${name}@${eintrag.fassung}` === genannt) return eintrag;
+  }
+  return null;
+}
+
+// Text über textFeld, Betrag über betragText, jeder andere Typ null
+// (D654 Beschluss 4, D648 Beschluss 2).
+export function sachwert(typ, eingabe, faelligkeit) {
+  if (typ === "text") return textFeld(eingabe);
+  if (typ === "betrag") return betragText(eingabe, faelligkeit);
+  return null;
+}
+
+// Geschützt zählt amendment, sonst ordinary. Keine Liste heisst kein Schutz. Ohne lesbare
+// Schwelle der zählenden Klasse null (D654 Beschluss 4, D646 Beschluss 2, D652 Beschluss 2).
+export function sachfeldSatz(feld, satzung, n) {
+  if (satzung === null || typeof satzung !== "object") return null;
+  const thresholds = satzung.thresholds;
+  if (thresholds === null || typeof thresholds !== "object") return null;
+  const liste = satzung.protected_fields;
+  const geschuetzt = liste != null && Array.isArray(liste) && liste.includes(feld);
+  const paar = geschuetzt ? thresholds.amendment : thresholds.ordinary;
+  const k = noetigeStimmen(paar, n);
+  if (k === null) return null;
+  const schwelle = schwelleInWorten(paar);
+  const zahl = k < n ? String(k) : "alle";
+  const name = sachfeldName(feld);
+  if (geschuetzt) {
+    return (
+      `${name} ist geschützt: Ein Antrag darauf braucht ${schwelle}, wie eine Änderung der Satzung. ` +
+      `Bei ${n} Mitgliedern sind das ${zahl}.`
+    );
+  }
+  return `Ein Antrag auf ${name} braucht ${schwelle}. Bei ${n} Mitgliedern sind das ${zahl}.`;
+}
+
+// Lokal ist localhost, 127.0.0.1 und jeder Name auf „.localhost“. Das Beispiel ist der erste
+// der Namen bruno, chris, anna, der nicht die eigene Adresse ist (D654 Beschluss 3).
+export function regieHinweis(hostname, port) {
+  const fern =
+    "Dieses Fenster ist eine Person. Eine weitere braucht ein eigenes Gerät oder ein eigenes Profil im Browser.";
+  const lokal =
+    hostname === "localhost" || hostname === "127.0.0.1" ||
+    (typeof hostname === "string" && hostname.endsWith(".localhost"));
+  if (!lokal) return fern;
+  const beispiel = ["bruno", "chris", "anna"].find((name) => `${name}.localhost` !== hostname);
+  const mitPort = typeof port === "string" && port !== "" ? `:${port}` : "";
+  return (
+    "Dieses Fenster ist eine Person. Eine weitere bekommt einen eigenen Tab unter eigener Adresse, etwa " +
+    `http://${beispiel}.localhost${mitPort}/.`
+  );
 }
 
 // Die kleinste Zahl k mit k * den > num * n, oder null bei fremder Form. Gerechnet ohne

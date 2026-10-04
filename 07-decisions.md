@@ -29118,3 +29118,82 @@ und in `api.py`. `app.js` fährt kein Test. Der zweite Auftrag aus D651 Beschlus
 Typen bei Anträgen nach der Gründung und der Satz zu Zweck und Name.
 
 **Geändert.** `07-decisions.md`.
+
+### D654 — Olis Durchlauf zu Schritt 2: drei Tabs, gleiche Namen, die Regie; Auftrag `p56`
+
+**Anlass.** D653 Beschluss 1: Olis Durchlauf der Gründung auf `main` (`11b7112`).
+
+**Befund 1 — der Durchlauf.** Oli gründete zu dritt, verwarf einmal und bestätigte; der Weg lief
+wie gedacht, und das Verwerfen war bei allen sofort weg. Sein Urteil: er versteht, was getestet
+wird, „aber der Maschine scheinen noch Teile zu fehlen“; ihm kam komisch vor, woher der Knoten
+weiss, wer zum Mitgründen angehakt werden kann. Die Antwort steht im Register: das Adressbuch
+ist der Platzhalter für den Scan (D640 Befund 9, D641 Beschluss 1), und es fehlen Schritt 3,
+Schritt 4 und die Einladung aus der Ferne (D640 Beschluss 2).
+
+**Befund 2 — mehrere Personen in einem Browser.** Drei Profile oder zwei Browser waren Oli zu
+umständlich; ein privates Fenster teilt seinen Speicher mit jedem anderen privaten. Der Browser
+trennt IndexedDB nach Adresse, und jeder Name unter `.localhost` zeigt auf den eigenen Rechner:
+drei Tabs unter `anna.localhost:8470`, `bruno.localhost:8470` und `chris.localhost:8470` sind
+drei Personen. Gemessen in Chromium 141 in einem Context, von Oli so gefahren. Das ersetzt für
+den Durchlauf die drei Profile aus D644 Beschluss 3. Mein Startblock brach beim zweiten Start
+still ab, weil er `test ! -e` vor dem Knoten trug.
+
+**Befund 3 — gleiche Namen sind nicht zu unterscheiden.** Aus dem privaten Fenster stand ein
+vierter Schlüssel namens Anna im Adressbuch. Er wurde als Gründer gewählt und bestätigt nie:
+der Verein blieb in Gründung, „Noch offen: Anna“, und „Anna ist Anker des Vereins.“ stand
+zweimal. Die Rechnung stimmt; die Seite zeigt zwei Menschen als einen.
+
+**Befund 4 — die Regie verspricht eine Wahl, die es nicht gibt.** Ohne simulierte Personen sagt
+sie „was die gewählte Person sieht“ und bietet nur „Ich · Anna“. Schritt 1 sagt mit „Dieses
+Gerät kennt noch niemanden außer dir.“ nicht, wie jemand dazukommt.
+
+**Befund 5 — Olis Gedanke zur Gründung ohne gemeinsamen Ort.** Einer unterschreibt die Absicht
+zu gründen und schickt eine Einladung. Dazu eine Überlegung, kein Beschluss: die Unterschrift
+gibt es schon, es ist die `accept-rules` der ersten Gründerin; eine Einladung wäre Genesis,
+Satzung und diese Bestätigung. Es fehlen der Weg zum Eingeladenen (Scan oder ein einmaliges
+Geheimnis, D640) und die Regel, wann ein Knoten eine Gründung zeigt, die seinen Menschen nennt
+(D640 Beschluss 4, D652 Befund 2). Das gehört zu Schritt 3 und 4.
+
+**Befund 6 — der Prototyp.** Auf `11b7112`, nur `anzeige.js` und `app.js`: der Selbsttest wächst
+von 340 auf 380 Fälle; die ganze Reihe allein mit 1661 Tests und Lint, Status 0; dreizehn
+Rücknahmeproben an `anzeige.js`, jede rot am benannten Fall. Im Browser, drei Tabs unter
+`.localhost` in Chromium und ein vierter unter `127.0.0.1` mit dem Namen „anna“: der Satz der
+Regie; nach Brunos Schlüssel erscheint bei Anna „Es ist Neues angekommen.“; die Auswahl nennt
+„anna (4f73d1…89e3a9)“; ein Antrag auf den Beitrag sagt „2 von 3“, einer auf den Namen „3 von
+3“, und der Satz darüber sagt vorher, warum. Dazu der Durchlauf aus D651 Befund 8 in Chromium
+und Firefox, die Satzung mit Nenner null und der Beispielverein: ohne Fehler der Seite.
+
+**Befund 7 — der Titel eines Antrags bleibt klein.** „beitrag ändern“ als „Beitrag ändern“ zu
+schreiben hätte 21 bestehende Fälle des Selbsttests geändert, bis in die Geschichte der
+Demonstration. Geändert ist nur das Zitat: „30,50 € im Monat“.
+
+**Beschluss 1 — erst aufräumen, dann Schritt 3 (Oli).**
+
+**Beschluss 2 — gleiche Namen bekommen ihr Kürzel.** Tragen zwei Schlüssel im Adressbuch
+denselben Namen, verglichen ohne Leerraum am Rand, in NFC und ohne Gross und Klein, heisst jeder
+„Anna (a1a1a1…a1a1a1)“, überall, wo die Seite Namen zeigt. Der eigene Titel bleibt ohne Kürzel.
+Das Kürzel steht sonst nur hinter „Einzelheiten“ (D492 Beschluss 5); hier ist es die einzige
+Unterscheidung. Verworfen: gleiche Namen beim Anlegen abweisen; Namen sind lokal und reisen
+nicht, zwei Annas in einem Verein sind der gewöhnliche Fall.
+
+**Beschluss 3 — die Regie ohne simulierte Personen.** Statt der Wahl ein Satz: „Dieses Fenster
+ist eine Person. Eine weitere bekommt einen eigenen Tab unter eigener Adresse, etwa
+http://bruno.localhost:8470/.“; ausserhalb von `localhost` „… braucht ein eigenes Gerät oder ein
+eigenes Profil im Browser.“ Schritt 1 verweist darauf, solange zu wenige zur Wahl stehen. Der
+Hinweis auf Neues erscheint auch, wenn sich das Adressbuch ändert.
+
+**Beschluss 4 — Sachfelder mit Typ.** Nennt die Satzung eine Vorlage, die der Knoten kennt,
+steht bei den Anträgen „Die Satzung ändern:“ mit der Wahl des Felds, der Eingabe seines Typs
+und dem Satz zur Schwelle: ein geschütztes Feld „braucht mehr als zwei Drittel, wie eine
+Änderung der Satzung“ (D646 Befund 3). Der Antrag geht als Sachantrag. Der Satz nimmt für
+geschützte Felder die Schwelle `amendment`; die Norm nennt die Klasse aus `genesis[5]` (D646
+Beschluss 2), für die Vorlage `verein` ist es dieselbe. Die freie Reihe bleibt daneben. Ein Feld
+entfernen kann die Seite weiter nicht (D581).
+
+**Beschluss 5 — die Demo.** Ein Durchlauf mit mehreren Personen läuft in Tabs unter
+`.localhost`; ein Block, der einen Knoten wieder startet, trägt kein `test ! -e`.
+
+**Auftrag.** `p56-durchlauf`, Basis ist der Commit dieses Eintrags. Nicht-Ziele: der Knoten, die
+Norm, der Titel eines Antrags, das Entfernen eines Felds, der Scan.
+
+**Geändert.** `07-decisions.md`.

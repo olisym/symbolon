@@ -29231,3 +29231,38 @@ Satz zur Schwelle nimmt für geschützte Felder `amendment` an (D654 Beschluss 4
 die neue Reihe und die Regie steht aus (D490).
 
 **Geändert.** `07-decisions.md`.
+
+### D656 — Schluss der Sitzung `00dc`: Schritt 2 der Gründung gebaut; Schritt 3 als Nächstes
+
+**Anlass.** `p55-gruenden-seite` und `p56-durchlauf` sind auf `main` (D653, D655). Oli schliesst
+die Sitzung; Schritt 3 beginnt in einer frischen.
+
+**Befund 1 — was `00dc` hinterlässt.** 1661 Tests, der Selbsttest mit 380 Fällen, Register bis
+zu diesem Eintrag. Die Seite gründet einen Verein aus der Vorlage in zwei Schritten, zeigt die
+Gründung bis zur letzten Bestätigung und kann sie verwerfen; der Knoten kennt `GET /vorlagen`
+und `POST /verwerfen`. Gleiche Namen tragen ihr Kürzel, die Regie sagt ohne simulierte Personen,
+wie eine weitere dazukommt, und ein Antrag auf ein Feld der Vorlage hat die Eingabe seines Typs
+und den Satz zur Schwelle. `offen.md` ist unverändert: 104 Posten, 17 offen; was die Sitzung
+offen liess, steht in D651 Beschluss 7, D652 Beschluss 2, D653 Beschluss 2, D655 Beschluss 2
+und im Sitzungsstart.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** über ein
+Skript mit Paaren aus altem und neuem Text. Ersetzt: Stand, die Sitzung, der nächste Schritt.
+Ergänzt: zwei Punkte der Richtung, vier der Arbeitsweise, die Gründung über die Seite unter
+„Die Demo starten“, sieben Werkzeugnotizen, acht Kandidaten für Prüfregeln, der Absatz „Aus
+`00dc`“. Geändert: die drei Profile für Olis Durchlauf sind die drei Tabs unter `.localhost`.
+
+**Befund 3 — ein Verweis, erst nachträglich geöffnet.** D652 Befund 3 nannte D492 Beschluss 5
+für „Kennungen stehen nur hinter Einzelheiten“. Der Satz steht dort, am Ende des Beschlusses;
+geöffnet habe ich ihn erst beim Schreiben von D654 (Prüfregel 27).
+
+**Beschluss 1 — der nächste Schritt.** Schritt 3 der Gründung, der Scan mit Schlüssel und
+Adresse und der Knoten am Telefon (D641 Beschluss 1), beginnend mit einer Bestandsaufnahme, wie
+im Sitzungsstart beschrieben.
+
+**Beschluss 2 — Kandidaten für Prüfregeln, nicht übernommen.** Acht aus dieser Sitzung stehen im
+Sitzungsstart; der zum fremden Inhalt ist zum vierten Mal verletzt und zur Übernahme
+vorgeschlagen (D652 Beschluss 5).
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00dd.md` neu, `sitzungsstart-00dc.md` nach
+`archiv/`.

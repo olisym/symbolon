@@ -29266,3 +29266,101 @@ vorgeschlagen (D652 Beschluss 5).
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00dd.md` neu, `sitzungsstart-00dc.md` nach
 `archiv/`.
+
+### D657 — Bestandsaufnahme zu Schritt 3: Knoten und Bote am Telefon gemessen, kein Multicast
+
+**Anlass.** D656 Beschluss 1 und D641 Beschluss 7: vor Schritt 3 eine Bestandsaufnahme und der
+Versuch, ob der Knoten in Termux auf Android startet. Gelesen: D640 ganz, D641 Beschluss 1 und
+7, D481 Befund 3, D583 L2, L3 und L10, D584 Beschluss 1 und 2, D654 Befund 5; im Code `POST
+/names` in `api.py`, `geraet.js`, `symbolon/bote/__main__.py`, `laufen` in `reticulum.py` und
+`trickle.py`. Gemessen an Olis Pixel 7a mit Termux, Python 3.13 und Chrome, am 5.10.2026.
+
+**Befund 1 — was der Code heute trägt.** Der Schlüssel entsteht im Browser, nicht exportierbar,
+in IndexedDB. Ein Name kommt über `POST /names` ohne Prüfung ins Adressbuch und gilt nur an
+diesem Knoten. Die Adresse im Netz sind 16 Byte, der Hash der Destination des Boten; Nachbarn
+stehen nur als `--nachbar` beim Start fest. Der Knoten kennt weder die Adresse seines Boten noch
+die eines Nachbarn (D584 Beschluss 1), und er bindet fest an `127.0.0.1`.
+
+**Befund 2 — der Knoten läuft am Telefon.** `pip install cbor2` scheiterte in Termux am Bau des
+Rads. Mit `CBOR2_BUILD_C_EXTENSION=0` und der Schranke `cbor2>=5.6,<6` kam 5.9.0 als reines
+Python-Rad; welche der beiden Angaben trug, ist nicht getrennt gemessen. Danach startet
+`python -m symbolon.node`, Chrome zeigt die Seite unter `http://127.0.0.1:8470/`, legt den
+Schlüssel an und hält ihn über ein Neuladen. Nach zwei Minuten mit dunklem Bildschirm
+antwortete der Knoten weiter. Länger und ohne Strom am Kabel ist nicht gemessen.
+
+**Befund 3 — der Scan geht über die Kamera-App.** Ein Code mit dem Inhalt
+`http://127.0.0.1:8470/#versuch`, am Rechner gezeigt und mit der Kamera-App des Telefons
+gelesen, öffnet die eigene Seite in Chrome, mit Olis Namen im Kopf. Die Seite braucht dafür
+weder die Kamera noch einen Leser, nur das Zeichnen eines Codes. Gemessen an einem Telefon, auf
+dem Chrome der Standardbrowser ist; ein anderer Standardbrowser hätte den Schlüssel nicht.
+Nachgeschlagen bei MDN: die Kamera gibt ein Browser nur in einem sicheren Kontext frei, und
+eine Seite von `127.0.0.1` ist einer; das deckt sich mit D481 Befund 3.
+
+**Befund 4 — Reticulum startet in Termux, Multicast ist gesperrt.** `rns 1.5.4` lässt sich
+installieren, der Bote druckt seine Adresse. Das `AutoInterface` meldet bei jedem Versuch
+`[Errno 1] Operation not permitted` an `wlan0` und danach, es höre kein eigenes Echo.
+Nachgeschlagen: derselbe Fehler ist für andere Programme mit Multicast in Termux berichtet,
+dort lief es nur mit Root. Zwei Telefone mit Termux finden sich im WLAN also nicht von selbst.
+Das betrifft D583 L2: die Entdeckung über das Netz entfällt auf diesem Weg.
+
+**Befund 5 — eine gezielte Verbindung trägt im Klon.** Zwei Knoten und zwei Boten, der eine mit
+`TCPServerInterface` auf Port 4242, der andere mit `TCPClientInterface`, beide mit
+`share_instance = No`: der Client holte 23 Einträge, und nur er kannte die Adresse des anderen.
+Dasselbe, wenn der Server später startet als der Client, und wenn der Server bei laufendem
+Client endet und mit einem neuen Bestand wiederkommt; das Wiederverbinden meldet RNS nicht.
+
+**Befund 6 — am Telefon ist dieselbe Verbindung nicht bestätigt.** Über Olis WLAN erreichten
+sich Telefon und Rechner in keiner Richtung: `ssh` vom Rechner zum Telefon blieb ohne Meldung
+stehen, und der Bote am Telefon meldete zum Rechner `timed out`. Die Ursache ist nicht
+untersucht (getrennte Netze, getrennte Geräte im WLAN oder eine Firewall am Rechner). Über das
+Kabel mit `adb reverse tcp:4242 tcp:4242` kam die Verbindung ohne Fehler zustande, der Knoten
+am Rechner antwortete, und `ss` zeigte eine Verbindung auf dem Port; eine Zeile mit `geholt=`
+kam in den Minuten bis zum Abbruch nicht. Ob sie später kam, ist nicht festgehalten.
+
+**Befund 7 — wer spät dazukommt, wartet bis zu 640 s.** Ein Bote holt erst, wenn er eine
+Ankündigung seines Nachbarn hört. Der Nachbar kündigt nach Trickle an, ohne Bitrate zwischen
+10 s und 640 s (`Zeiten(10.0, 15.0, 10.0)`, sechs Verdoppelungen), und setzt sein Intervall nur
+zurück, wenn der Hörende bei ihm selbst als Quelle steht. Der Bote am Rechner lief bei der
+Messung aus Befund 6 seit über einer halben Stunde. Im Klon waren beide Boten frisch, deshalb
+kam die Zeile dort sofort. Ich hatte das vor der Messung nicht bedacht.
+
+**Befund 8 — Termux ist ein Weg für das Lab.** Oli: auf der Konsole am Telefon zu arbeiten ist
+ihm zu unkomfortabel, so vergehe ihm die Lust. Es trägt `sshd` in Termux mit `adb forward
+tcp:8022 tcp:8022` und `ssh -p 8022 127.0.0.1` vom Rechner. Das Einfügen mehrerer Zeilen in
+Termux verrutschte zweimal; eine Prüfzeile von mir rief `cbor2.__version__`, das es nicht gibt,
+und `git log` als Prüfung des Verzeichnisses antwortete auch aus dem Paketordner.
+
+**Beschluss 1 — der Knoten am Telefon ist machbar, nicht benutzbar.** Schritt 3 wird für einen
+Knoten gebaut, der am Telefon unter `127.0.0.1` läuft; der Weg über TLS im Heimnetz entfällt.
+Termux bleibt der Weg der Messung. Wie ein Mensch ohne Konsole zu einem Knoten kommt, ist eine
+eigene Frage und nicht Teil von Schritt 3.
+
+**Beschluss 2 — der Code ist eine Adresse der eigenen Seite (Position).** Er trägt
+`http://127.0.0.1:8470/` und hinter `#`, was reist; wer scannt, nimmt die Kamera-App. Was
+hinter `#` steht, erreicht den Knoten nicht von selbst, die Seite liest es. Verworfen, solange
+Befund 3 trägt: ein Leser in der Seite, der die erste fremde Bibliothek in `static/` wäre.
+
+**Beschluss 3 — der Code muss sagen, wo, nicht nur, wer (Position).** Nach Befund 4 reichen
+Schlüssel, Name und die Adresse des Boten nicht: ohne Entdeckung braucht ein Bote einen Weg zum
+anderen. Welcher das am Tisch ist, entscheidet Oli, sobald Befund 6 geklärt ist: jedes Telefon
+als Server mit seiner IP im Code, oder ein Gerät für alle.
+
+**Beschluss 4 — gegenseitig scannen (Position).** Der Bote holt und schiebt nicht (D584
+Beschluss 2); damit Bruno Annas Genesis bekommt, muss sein Bote Annas Adresse haben. Aus dem
+Transport, wie er gebaut ist, folgt der Scan in beide Richtungen. Es reist nur Öffentliches;
+der Blick auf den Bildschirm des anderen ist der Kanal, dem man traut. Briar (D640 Befund 11)
+handelt beim Scan aus dem Gedächtnis einen gemeinsamen Schlüssel aus, den MaR hier nicht
+braucht; die Quelle ist weiter nur in Auszügen gelesen.
+
+**Beschluss 5 — drei Lücken für den Auftrag, noch ohne Auftrag.** Der Knoten erfährt die
+Adresse seines Boten nicht und kann sie nicht in einen Code legen. Der Bote nimmt zur Laufzeit
+keinen Nachbarn auf. Nach dem Eintragen eines Nachbarn fragt er nicht, er wartet auf dessen
+nächste Ankündigung (Befund 7); am Tisch wären das bis zu zehn Minuten ohne Zeichen.
+
+**Beschluss 6 — offen.** Ob der Bote am Telefon über eine gezielte Verbindung holt (Befund 6);
+der nächste Anlauf startet beide Boten frisch, zuerst den Server. Warum sich Telefon und
+Rechner in Olis WLAN nicht erreichen. Ob RNS ein Interface zur Laufzeit aufnimmt. Ein Telefon
+mit anderem Standardbrowser, und iOS, wo es kein Termux gibt. Der Knoten über Stunden im
+Hintergrund.
+
+**Geändert.** `07-decisions.md`.

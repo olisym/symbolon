@@ -29706,3 +29706,97 @@ Sitzungsstart (aus D659, D660, D662, D663).
 
 **Geändert.** `sitzungsstart-00de.md` (neu), `sitzungsstart-00dd.md` nach `archiv/`,
 `07-decisions.md`.
+
+### D666 — Geheime Abstimmung nachgeschlagen: erst mischen, dann offen abstimmen; O106
+
+**Anlass.** D665 Beschluss 1, O105 Punkt 2. Olis Beispiel: die Wahl des Vorstands im Verein ist
+geheim, „das muss schon gehen“.
+
+**Befund 1 — die Lage im Bestand.** Jede Stimme ist ein unterschriebener Claim (`04 §2.2`) und wird
+je Wurzel zusammengefasst (`04 §3.1`, `02 §2.1`). Die Regeln 1 bis 3 aus `04 §4.4` sind
+sicherheitstragend: aus ihnen folgt, dass zwei Nachfolger derselben Epoche unmöglich sind. Es gibt
+keinen Abschluss und keine Frist (`04 §3.3`, D100); eine Doppelstimme fällt auf, weil sie vom
+Urheber selbst stammt (`08 §2.2`).
+
+**Befund 2 — erste Runde, Verfahren für Wahlen (Abstracts und Teile der Primärtexte).**
+
+- Blinde Signaturen (Chaum, FOO) brauchen einen Aussteller, Mix-Netze und homomorphe Auszählung
+  (Helios) Mixer oder Treuhänder. Beides ist eine Instanz.
+- Selbstauszählende Verfahren (Kiayias und Yung; das Open Vote Network von Hao, Ryan und
+  Zieliński) brauchen die Beiträge aller. Wer schweigt, blockiert; das ist ein Abschluss, den D100
+  ausschliesst, und die letzte Stimme kennt das Ergebnis.
+- Commit-Reveal ist verdeckt, nicht geheim, und braucht einen Auslöser (D640 Beschluss 6).
+- Verknüpfbare Ringsignaturen (Liu, Wei und Wong 2004) kommen ohne Gruppenverwalter aus. Die
+  rückverfolgbaren von Fujisaki und Suzuki (PKC 2007) legen den Signierer offen, wenn er unter
+  demselben Tag Verschiedenes signiert. Beide brauchen ein Objekt ohne `I` und ohne Ed25519-σ,
+  also eine Änderung am Atom (`01`). Der Tag müsste die ganze Epoche umfassen, sonst fallen die
+  Regeln aus `04 §4.4`. Grösse auf Ed25519, abgeleitet, nicht im Paper: Fujisaki und Suzuki
+  32 + 64n Byte, bei n = 50 3232 Byte, rund 21,5 s Sendezeit bei 1200 bit/s; LSAG 64 + 32n Byte,
+  bei n = 50 1664 Byte, rund 11,1 s. Heute 64 Byte.
+
+**Befund 3 — Oli will das Atom dafür nicht erweitern.** Die Ringsignaturen fallen damit weg
+(Beschluss 4).
+
+**Befund 4 — zweite Runde, Mischen unter Gleichen.** CoinShuffle (Ruffing, Moreno-Sanchez und Kate,
+PETS 2014): jeder Teilnehmer verschlüsselt einen frischen Schlüssel schichtweise an die übrigen,
+die Liste geht reihum, jeder nimmt eine Schicht ab, legt seinen dazu und mischt. Am Ende prüft
+jeder, ob sein Schlüssel in der Liste steht, und unterschreibt sie offen; fehlt einer, findet eine
+Schuldphase den Störer durch Nachrechnen oder durch seine eigenen widersprüchlichen Unterschriften,
+und die Runde läuft ohne ihn neu. Keine dritte Partei; Unverknüpfbarkeit braucht mindestens zwei
+ehrliche Teilnehmer. Gemessen dort: 50 Teilnehmer in rund 40 s im LAN. Dissent (Corrigan-Gibbs und
+Ford) trägt dasselbe für kleine geschlossene Gruppen bis 44 Knoten und nennt Stimmzettel als
+Anwendung; DiceMix (Ruffing und andere, 2016) braucht vier Runden, mit f Störern 4 + 2f.
+
+Daraus die Richtung: nach der Mischrunde ist jede Stimme ein gewöhnliches `vote@1`, unterschrieben
+mit einem frischen Schlüssel aus der bestätigten Liste. Atom, Ed25519, `04 §3.1`, `04 §4.4` und das
+Ersetzen (D547) bleiben; der frische Schlüssel steht für die Abstimmung an der Stelle der Wurzel.
+Die Schichten brauchen X25519 und AEAD; beides hat `cryptography`, das schon Abhängigkeit ist.
+
+**Befund 5 — was kein Verfahren ohne Instanz leistet** (Juels, Catalano und Jakobsson 2005).
+Quittungsfreiheit braucht Kanäle, die niemand abhört, oder Treuhänder; wer will, zeigt seinen
+frischen Schlüssel vor, Kauf und Zwang bleiben möglich. Ein anonymer Kanal ist das Minimum gegen
+Zwang; am Tisch und am Funk sieht, wer zusieht, wer eine Stimme abschickt, und damit auch, wer
+nicht abstimmt. Die laufende Auszählung verrät über die Zeit, wer gerade abgestimmt hat. Zu dritt
+verrät ein einstimmiges Ergebnis alles.
+
+**Befund 6 — offen und geheim in derselben Epoche.** Ein frischer Schlüssel ist mit der Wurzel
+seines Menschen nicht verknüpfbar. Stimmt jemand in derselben Epoche offen Ja auf einen Antrag und
+geheim Ja auf einen anderen, zählen beide, und die Regeln aus `04 §4.4` greifen nicht. Ob eine
+Liste eine ganze Epoche geheim macht oder eine einzelne Wahl, die nicht unter `04 §4.4` fällt,
+entscheidet das Szenario.
+
+**Befund 7 — das Recht, aus einer Sekundärquelle.** Das BGB verlangt keine geheime Abstimmung; das
+Verfahren regelt die Satzung, sonst die Versammlung. Die Quelle stützt eine Pflicht bei gefährdeter
+Freiheit auf BGB 47, das ist die Liquidation; der Beleg trägt nicht. Der Normtext ist nicht
+gelesen, der Projektspeicher war im Klon nicht eingebunden.
+
+**Befund 8 — eine eigene Aussage zurückgenommen.** In der ersten Runde nannte ich Ringsignaturen
+die einzige Familie, die passt. Gesucht hatte ich nur in der Literatur über Wahlen; die über
+anonymes Mischen hatte den Weg ohne Änderung am Atom. Kandidat für eine Prüfregel: wer „das
+einzige Verfahren“ sagt, hat in mehr als einer Literatur gesucht (Schwester von D640).
+
+**Beschluss 1 — das Ziel (Oli).** Geheime Abstimmungen werden generell möglich, das erste Beispiel
+ist die Wahl des Vorstands im Verein. Das Atom wird dafür nicht erweitert.
+
+**Beschluss 2 — die Kosten für Menschen (Oli).** Eine geheime Abstimmung braucht eine Versammlung,
+in der alle Teilnehmenden für die Mischrunde zugleich online sind; danach geht es ohne Zeitdruck
+weiter wie heute.
+
+**Beschluss 3 — wo was liegt, als Position.** Die Mischrunde ist ein Gespräch zwischen Knoten, wie
+der Bote. Die Regel, nach der eine Stimme eines Schlüssels aus der Liste zählt, gehört nach `04`:
+ein Beobachter ohne sie sähe `NON_MEMBER_VOTE`, und zwei Knoten zählten verschieden. Liste und
+Bestätigungen sind gewöhnliche Claims. Die Form der Regel ist offen, etwa: eine Liste zählt, wenn
+jedes Mitglied, das an ihr teilnimmt, sie bestätigt hat und sie so viele Schlüssel trägt wie
+Bestätigungen. Befund 5 wird in `04 §8` getragen, nicht versprochen.
+
+**Beschluss 4 — Ringsignaturen ruhen.** Sie ändern das Atom (Befund 3, D467 Beschluss 3).
+
+**Beschluss 5 — der nächste Schritt.** Ein Prototyp der Mischrunde im Supervisor-Klon, zu dritt und
+zu fünft, mit einem Störer für die Schuldphase. Gemessen werden Runden, Bytes je Teilnehmer und
+ob jeder seinen Schlüssel findet. Danach das Szenario der Vorstandswahl mit Befund 6 und der Frage,
+welches Amt die Wahl füllt (O105 Punkt 1); dann eine Position zum Normtext. Funk ist nicht Teil
+des ersten Schritts.
+
+**Beschluss 6 — O106 neu,** der Strang über mehr als eine Sitzung (D412).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

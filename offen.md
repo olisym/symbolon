@@ -502,3 +502,10 @@ Strang, wenn ein Szenario ihn braucht; vorher wird nachgeschlagen (D640):
 5. **Verzeihen und Vergessen.** Ohne Layer 05 kein Ort, an dem Altes weniger zählt (`05 §4`).
 6. **Schlichtung auf der Seite.** In der Bibliothek gebaut (`03 §2`), für Menschen nicht
    erreichbar.
+
+### O106 Geheime Abstimmung
+
+Jede Stimme ist ein unterschriebener Claim (O105 Punkt 2). Richtung nach D666: eine Mischrunde
+unter den Teilnehmenden ergibt eine Liste frischer Schlüssel, mit denen nach `04 §3` abgestimmt
+wird; das Atom bleibt. Offen: der Prototyp der Mischrunde, die Zählregel in `04`, offene und
+geheime Stimmen in derselben Epoche (D666 Befund 6) und was die Vorstandswahl füllt (O105 Punkt 1).

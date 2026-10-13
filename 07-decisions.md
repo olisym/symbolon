@@ -29680,3 +29680,29 @@ fünf Lücken aus O105 folgen, wenn ein Szenario sie braucht oder Oli sie vorzie
 Beschluss 2).
 
 **Geändert.** `ROADMAP.md`, `07-decisions.md`.
+
+### D665 — Schluss der Sitzung `00dd`: die Texte auf dem Stand; als Nächstes die geheime Wahl
+
+**Anlass.** D664 ist auf `main` (`a7011f8`). Oli schliesst die Sitzung; die geheime Wahl beginnt
+in einer frischen.
+
+**Befund 1 — was `00dd` hinterlässt.** Am 5. bis 7.10. die Bestandsaufnahme zu Schritt 3 der
+Gründung (D657). Am 13.10. eine Textrunde: `LAGE.md` neu (D658), `VISION.md` neu gefasst (D659,
+D660), die Querprüfung der Bausteine mit O105 (D661), die README neu (D662, D663), `ROADMAP.md`
+fortgeschrieben (D664). Kein Code geändert; die Blöcke prüften Markdown (D480). `offen.md` führt
+105 Posten, 18 offen.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** über ein
+Skript mit Paaren aus altem und neuem Text und dem Ersatz ganzer Abschnitte (D656 Befund 2).
+Ersetzt: Stand, die Sitzung, der nächste Schritt. Ergänzt: zwei Punkte der Richtung, fünf der
+Arbeitsweise, drei Werkzeugnotizen, vier Kandidaten für Prüfregeln, der Absatz „Aus `00dd`“ und
+O105 bei den offenen Posten. Geändert: Schritt 3 der Gründung steht nach der geheimen Wahl.
+
+**Beschluss 1 — der nächste Schritt.** Die geheime Wahl als eigener Strang (O105 Punkt 2, D664
+Beschluss 3), beginnend mit Nachschlagen, wie im Sitzungsstart beschrieben.
+
+**Beschluss 2 — Kandidaten für Prüfregeln, nicht übernommen.** Vier aus dieser Sitzung stehen im
+Sitzungsstart (aus D659, D660, D662, D663).
+
+**Geändert.** `sitzungsstart-00de.md` (neu), `sitzungsstart-00dd.md` nach `archiv/`,
+`07-decisions.md`.

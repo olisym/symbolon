@@ -29364,3 +29364,60 @@ mit anderem Standardbrowser, und iOS, wo es kein Termux gibt. Der Knoten über S
 Hintergrund.
 
 **Geändert.** `07-decisions.md`.
+
+### D658 — `LAGE.md`, ein Lagebild mit Verweisen; Durchsicht eines Gesprächs mit Gemini
+
+**Anlass.** Oli brachte ein Gespräch mit einem anderen Sprachmodell (Gemini) über Darknet-Märkte
+und Reputation mit und fragte, was davon MaR verbessert. Die Durchsicht gegen `02 §1`, `08 §2` bis
+`§6`, D18, D25, D23 und D467 ergab: fast alles dort ist hier schon geprüft und mit Grund verworfen.
+Olis Folgerung: er ist selbst nicht auf dem aktuellen Stand und kann anderen nicht erklären, was
+gelöst ist und warum. README und ROADMAP stammen vom 19. und 24.9., davor liegen rund 190
+Einträge (D468 bis D657).
+
+**Befund 1 — die Durchsicht.** Das Gespräch schlug vor: ein Ruf-Konto mit logarithmischem
+Wachstum, Verfall und multiplikativem Slashing; Ruf, der Stimmgewicht, Takt und „komplexe
+Operationen“ freischaltet; Pfand und Treuhand; Losverfahren über VRF; Reputation je Domäne;
+„Code als Naturgesetz“, das eine Lüge kryptografisch nachweist. Die Gründe dagegen stehen schon:
+ein Konto ist der Puffer aus D18, Freischalten ist Torwächterschaft (D25, `08 §3`), ein
+Stimmgewicht ist handelbar (`08 §4`), Pfand und Verwahrung D467, Losverfahren ist Policy und
+verschiebt Macht (`08 §3`, D23), Reputation je Domäne ist schwächer als Sicht je Seed (`02 §1`,
+`08 §5`), und eine Lüge ist nicht beweisbar, nur ein Widerspruch (`08 §2.1`, `08 §2.2`). Das
+Gespräch widerspricht sich auch selbst: es warnt vor Honigtöpfen und empfiehlt Slashing auf
+hinterlegte Kapazität. `08 §4` sagt voraus, dass solche Vorschläge gut begründet zurückkehren.
+
+**Befund 2 — die Prämisse „96 zu 4“.** Das Gespräch baute auf einer festen Quote von Menschen
+ohne Empathie. Ohne nachzuschlagen: die Zahl stammt aus einem populären Buch, und die Forschung
+zur Unehrlichkeit (Mazar, Amir, Ariely 2008) findet eher viele, die ein wenig schummeln, als
+wenige, die viel schummeln. `08 §6` braucht keine Quote: Sichtbarkeit, Rückzug, Durchsetzung
+gelten für jeden Anteil. Der Text bleibt, wie er ist.
+
+**Befund 3 — `VISION.md` ist hinter dem Register.** `VISION §3` sagt, gutes Verhalten sammle
+Reputation; das widerspricht D18 und `02 §1`. `VISION §4`, `§5` und `§6` stützen Gleichgewicht,
+Dienste und Exit-Scam auf Bonds, die es seit D467 nicht mehr gibt; nur `§3` trägt einen Vorbehalt.
+Ein Leser von aussen, auch ein Sprachmodell, liest dort das Gegenteil der Entscheidung.
+
+**Befund 4 — zwei brauchbare Beobachtungen.** Der Exit-Scam als Endspiel: der Rückzug aus `08 §6`
+wirkt nur, solange jemand bleiben will; im Verein der Kassenwart, der mit offenen Pflichten
+austritt. Und die signierte Liste echter Adressen: am Tisch löst der Scan, woher eine Eingeladene
+weiss, dass sie dem echten Verein beitritt, aus der Ferne nicht. Beide stehen als Kandidaten in
+`LAGE §6`, nicht als Posten in `offen.md`.
+
+**Beschluss 1 — `LAGE.md` kommt in die Wurzel.** Non-normativ, Deutsch, mit einer Ankerzeile
+(Registerende und Commit), bis zu der sie stimmt. Sie beantwortet, was gelöst ist, was offen
+ist, wie die Teile ineinandergreifen und was verworfen wurde, jede Aussage mit Verweis. Sie
+nennt keine wachsenden Zahlen (D415). Gebunden ist sie über diesen Eintrag (`LAGE §1`, D314).
+Bei Konflikt gewinnt die Spezifikation (`LAGE §10`).
+
+**Beschluss 2 — sie wird neu geschrieben, nicht fortgeschrieben.** Ein Lagebild ist ein Schnitt;
+eine neue Fassung ersetzt die alte und setzt die Ankerzeile neu. Anlass ist ein Bedarf, etwa ein
+Antrag oder ein Text für Menschen von aussen, nicht der Kalender.
+
+**Beschluss 3 — Reihenfolge der Textrunde.** Erst `LAGE.md`, dann daraus `README.md`,
+`ROADMAP.md` und `VISION.md` nachziehen (Befund 3), erst danach Texte für Menschen ohne
+Fachwissen und ein Vergleich mit verwandten Projekten, der vorher nachgeschlagen wird (D640).
+Eine allgemeinverständliche Kurzfassung für Oli entsteht daneben, ausserhalb des Repositoriums.
+
+**Beschluss 4 — Sprache, bestätigt.** D329 gilt: Spezifikation und Register bleiben Deutsch.
+Englisch wächst nur in der Aussenschale, je Datei getrennt, nie gemischt in einer Datei.
+
+**Geändert.** `LAGE.md` (neu), `07-decisions.md`.

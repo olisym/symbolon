@@ -29421,3 +29421,50 @@ Eine allgemeinverständliche Kurzfassung für Oli entsteht daneben, ausserhalb d
 Englisch wächst nur in der Aussenschale, je Datei getrennt, nie gemischt in einer Datei.
 
 **Geändert.** `LAGE.md` (neu), `07-decisions.md`.
+
+### D659 — `VISION.md` neu gefasst: ohne Bond, ohne Ruf-Konto, mit der selektiven Stille in `§4`
+
+**Anlass.** D658 Befund 3 und Beschluss 3. Oli: die Datei ist stark veraltet; vielleicht ist sie
+obsolet, weil alles woanders schon steht.
+
+**Befund 1 — die Datei ist nicht obsolet.** Fünf Dateien zitieren sie mit Abschnitt: `01 §1` und
+`01 §6`, `06 §1`, `06 §2`, `06 §6`, `06 §11`, `ROADMAP §1`, `§4` und `§7`, `LAGE.md` und das
+Register. Sie ist der einzige Ort, an dem Bedeutung stehen darf, weil die Spezifikation
+bedeutungsblind bleibt (`VISION §7`). `LAGE.md` sagt, was steht; `VISION.md` sagt, wofür.
+
+**Befund 2 — ein Verweis auf einen Inhalt, den es nie gab.** `01 §1` führt die selektive Stille
+als non-normativen Leitsatz und schreibt: „Verankerung der Norm: `VISION.md`“, mit `§4`.
+`VISION.md` hat den Satz in keiner Fassung enthalten, weder in `2d8cf51` (15.7.2026, die erste)
+noch in `7cf1bc0` (D467). Der Verweis stand drei Monate grün, weil `check_specs` prüft, dass ein
+Abschnitt existiert, nicht, was er sagt (D229, Schwester von D233).
+
+**Befund 3 — was veraltet war.** `§3` stützte Versicherung, Schutzdienst und Dienste auf Bonds
+und sagte, gutes Verhalten sammle Reputation (gegen D10, D18). `§4` begründete das Gleichgewicht
+mit „Reputation + Bond“, `§5` nannte Dienste „gestakt und slashbar“, `§6` setzte Bonds gegen den
+Exit-Scam. `§5` beschrieb den Knoten als These, den es seit D471 gibt, und Reticulum als Pfad,
+über den seit D617 abgeglichen wird. `§7` nannte `00` bis `05` als normativ.
+
+**Beschluss 1 — neu gefasst, Abschnittsnummern unverändert.** Die sieben Abschnitte bleiben mit
+ihrer Nummer und ihrem Gegenstand, weil sie zitiert werden. Jede eingehende Stelle aus Befund 1
+ist gegen den neuen Text gelesen und trägt.
+
+**Beschluss 2 — die selektive Stille steht in `§4`.** Der Normalzustand ist kein Claim; MaR macht
+sichtbar, was ein Mensch erklärt, nicht was er tut; der Preis ist, dass Schweigen unwiderlegbar
+bleibt (`08 §2.2`). Damit trägt der Verweis aus `01 §1`. `01` bleibt unverändert. `§7` nennt die
+Ausnahme: eine Norm der Bedeutung, auf die eine Spezifikation verweist, steht hier.
+
+**Beschluss 3 — öffnet D467 Beschluss 5 für `VISION.md`.** Dort hiess es, die Texte mit Bond
+würden umgeschrieben, wenn ein Szenario sie anfasst. Für `VISION.md` geschieht es ohne Szenario,
+weil die Datei non-normativ ist und Lesern von aussen das Gegenteil der Entscheidung sagte (D658
+Befund 3). Für `02 §6.1`, `03 §2.3`, `05 §1` und `06 §7` gilt D467 Beschluss 5 weiter.
+
+**Beschluss 4 — was neu hinzukommt.** In `§3` der Verein als erste, gebaute Anwendung und ein
+Absatz „Ansehen, kein Konto“ nach `08 §4`, D10, D18 und D25. In `§4` die Natur des Menschen nach
+D645 und die Annahme ohne feste Quote nach D658 Befund 2. In `§6` drei Grenzen: Kollusion (D20),
+das Endspiel ohne Bond, und dass MaR nicht erreicht, wer es nicht benutzen will.
+
+**Kandidat für eine Prüfregel, nicht übernommen.** Ein Verweis, der eine Norm an eine andere
+Datei übergibt („Verankerung der Norm: …“), wird am Inhalt des Ziels geprüft, nicht an seiner
+Existenz (Schwester von D229 und D233).
+
+**Geändert.** `VISION.md`, `07-decisions.md`.

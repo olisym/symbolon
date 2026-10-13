@@ -29521,3 +29521,80 @@ Formen menschlicher Kooperation, als eigener Strang. Kandidat ist Fiskes Theorie
 relationalen Modelle, aus dem Gedächtnis, nicht nachgeschlagen; vor einer Position wird gelesen.
 
 **Geändert.** `VISION.md`, `07-decisions.md`.
+
+### D661 — Querprüfung der Bausteine gegen Fiske und Ostrom: was trägt, was fehlt; O105
+
+**Anlass.** D660 Befund 1 und Vorschlag. Oli: erst klären, ob die Bausteine reichen, dann README
+und ROADMAP. Die Frage aus `VISION §3`: Bilden Identität, Nukleus mit Verfassung, Bürgschaft,
+Schuld und Quittung, Anklage und Verdikt, Abstimmung über Epochen und Trust-Flow das ab, was
+Menschen in Gruppen tun und gewohnt sind?
+
+**Befund 1 — nachgeschlagen, mit Art des Belegs.**
+
+- **Fiske, Theorie der relationalen Modelle** (1991 Buch, 1992 Psychological Review, 2004 als
+  Version 2.0). Gelesen: der Artikel der Internet Encyclopedia of Philosophy und der
+  Wikipedia-Artikel, also Sekundärquellen. Vier Grundformen, je mit eigener Skala: Gemeinschaft
+  teilt (nominal: wer dazugehört, ist gleich), Rang ordnet (ordinal: Vorrang mit Schutzpflicht),
+  Gleiches gegen Gleiches (Intervall: eine Stimme, reihum, Ausgleich), Marktpreis (Verhältnis:
+  Preise, Anteile). Dazu die Nullbeziehung, Zwang ohne gemeinsames Prinzip. Formen verschachteln
+  sich: ein Richter misst eine Strafe nach Verhältnis innerhalb eines Rangs. Kontrollierte
+  Studien, auch kulturvergleichend, stützen die Formen in der Wahrnehmung (Haslam 2004, nur über
+  die Sekundärquelle). Kritik: Pinker hält den Marktpreis nicht für angeboren.
+- **Ostroms Bauprinzipien in der Fassung von Cox, Arnold und Villamayor-Tomás** (Ecology and
+  Society 15(4):38, 2010). Gelesen: das PDF über das Abrufwerkzeug, also eine Zusammenfassung,
+  nicht selbst ganz. 91 Studien, 77 kodierte Fälle; die Prinzipien sind insgesamt gut gestützt,
+  unvollständig und probabilistisch zu lesen. Am schwächsten gestützt sind 8 (verschachtelte
+  Ebenen), 7 (Anerkennung von aussen) und 1B (Grenzen der Ressource). Am häufigsten kritisiert ist
+  1: Grenzen seien zu starr. Ob die Prinzipien bei grösseren Einheiten tragen, nennen die Autoren
+  unsicher.
+- **Aus dem Gedächtnis, nicht nachgeschlagen:** dass offene Stimmen Konformität und Kaskaden
+  begünstigen (schon D645 Befund 5), Vergessen und Verjährung als Erwartung.
+
+**Befund 2 — Fiske gegen die Bausteine.**
+
+| Form | Getragen durch | Lücke |
+|---|---|---|
+| Gemeinschaft teilt | Nukleus, gegenseitige Mitgliedschaft (`03 §4`); Teilen ohne Rechnung braucht keinen Claim (`VISION §4`) | gemeinsames Vermögen nur als Identität mit einem Schlüssel; der Wechsel ist eine Schlüsselübergabe (O89) |
+| Rang ordnet | Verfassung, Schlüssel des Nukleus (`00 §6`), Schlichter, Amtsführung in Kette (D26) | Vertretung nach aussen (Vorstand) fehlt (D645 Befund 4); Delegation im Kern fehlt (`01 §1`), ausser für Geräte (D531); Stimmvollmacht ungeprüft |
+| Gleiches gegen Gleiches | Kopfzahl (D98), Schuld und Quittung (`03 §3`), Rückzug als Erwiderung (`08 §6`); Losverfahren und Rotation als Policy (D21) | geheime Wahl fehlt |
+| Marktpreis | Schuld mit eigener Einheit, preisblind (`03 §3`) | Wertschicht fehlt (`08 §3`), atomarer Tausch vertagt (`03 §3.4`), gewichtete Auszählung nicht in v1 |
+| Nullbeziehung | ausserhalb; Physisches tun Menschen (`05 §7`) | gewollt |
+
+Lesart: Gleiches gegen Gleiches trägt am besten, Gemeinschaft im Kern. Rang trägt die Ordnung,
+nicht die Vertretung. Der Marktpreis fehlt bewusst im Protokoll und ohne Ort darüber.
+
+**Befund 3 — Ostrom gegen die Bausteine.**
+
+| Prinzip | Stand |
+|---|---|
+| 1A Grenzen der Nutzer | getragen: Mitgliedschaft, `participants`, Trennung von Zugang (D13) |
+| 1B Grenzen der Ressource | Sache der Satzung; das Protokoll kennt keine Ressource (`08 §2.1`) |
+| 2A Regeln passen zum Ort | getragen: eigene Verfassung je Nukleus (`08 §5`) |
+| 2B Nutzen nach Beitrag | teilweise: Beitrag als Schuld; Verhältnis ist Marktpreis, also Lücke aus Befund 2 |
+| 3 Betroffene ändern die Regeln | getragen, am stärksten: der Loop aus `04` |
+| 4A Aufsicht über die Nutzer | getragen für Unterschriebenes (Sichtbarkeit, `08 §6`); für das Tun ist es Bezeugung durch Menschen |
+| 4B Aufsicht über die Ressource | Orakel; Sensoren und Bezeugung als Dienst (`06`) ungebaut |
+| 5 Abgestufte Sanktionen | teilweise: Rückzug ist abstufbar über `w`; `05 §3` als Entwurf, zurückgestellt (O40) |
+| 6 Schnelle, billige Schlichtung vor Ort | normiert und in der Bibliothek gebaut (`03 §2`); auf der Seite nicht vorhanden |
+| 7 Anerkennung von aussen | ausserhalb des Protokolls; Vereinsrecht als Prüfliste (D645) |
+| 8 Verschachtelte Ebenen | normiert als Föderation (`04 §7`), ungebaut; Grenze D234 bis D236 |
+
+**Befund 4 — Vergessen und Verzeihen.** Die Kette hängt nur an. `05 §4` denkt Verzeihen als
+„Cure“ mit Zeit und frischer Evidenz, gestützt auf die Beta-Reputation, die D237 zurückgestellt
+hat. Ohne sie gibt es heute keinen Ort, an dem Altes weniger zählt, ausser `t_exp` einer
+Bürgschaft und dem Rückzug selbst. `05 §4` warnt: ohne Rückweg entstehen dauerhaft Ausgestossene.
+
+**Befund 5 — Antwort auf D660 Befund 1.** Die Annahme aus `VISION §3` hält für den Kern einer
+Gruppe, die sich Regeln gibt und abstimmt: Gemeinschaft, Gleiches gegen Gleiches, Ostrom 1A, 2A,
+3 und 4A. Sie hält nicht ohne Neues für Vertretung, geheime Wahl, Marktpreis und verschachtelte
+Ebenen, und für Verzeihen gibt es keine Antwort ohne Layer 05. Das widerlegt die Annahme nicht;
+es sagt, welche Szenarien sie als Nächstes prüfen.
+
+**Beschluss 1 — O105 wird eröffnet,** mit den sechs Lücken aus Befund 2 bis 4 als Liste. Jede
+wird ein eigener Strang, wenn ein Szenario sie braucht oder Oli sie vorzieht; vorher wird je
+Lücke nachgeschlagen (D640). Keine Protokolländerung aus diesem Eintrag.
+
+**Beschluss 2 — `VISION §3` bleibt, wie D660 ihn gefasst hat.** Die Annahme ist dort als Annahme
+benannt; die vollständige Liste steht hier und in O105, nicht im Kontext-Dokument.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O105 neu).

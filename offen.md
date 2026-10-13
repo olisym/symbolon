@@ -486,3 +486,19 @@ hängt daran. Zuerst messen, woran (Aufbau des Links, Wiederholung, Frist), dann
 Gemessen in D630: jede Anfrage, die an der Antwortfrist scheitert, liegt auf einem Link, dessen
 `LRRTT` verloren ging. Repariert: ein Link ohne Antwort wird neu aufgebaut (D631, D632). Offen
 bleiben die gehäuft scheiternden Aufbauten (D627 Befund 3, D630 Befund 2).
+
+### O105 Was die Bausteine nicht abbilden
+
+Querprüfung gegen Fiskes vier Formen und Ostroms Bauprinzipien (D661). Sechs Lücken, je ein
+Strang, wenn ein Szenario ihn braucht; vorher wird nachgeschlagen (D640):
+
+1. **Vertretung nach aussen**, ein Vorstand, der für die Gruppe spricht (D645 Befund 4); dazu
+   Delegation im Kern (`01 §1`) und Stimmvollmacht.
+2. **Geheime Wahl.** Jede Stimme ist ein unterschriebener Claim.
+3. **Marktpreis und Tausch.** Die Wertschicht fehlt (`08 §3`), der atomare Tausch ist vertagt
+   (`03 §3.4`).
+4. **Verschachtelte Ebenen.** Föderation normiert (`04 §7`), ungebaut; auch empirisch das am
+   schwächsten gestützte Prinzip.
+5. **Verzeihen und Vergessen.** Ohne Layer 05 kein Ort, an dem Altes weniger zählt (`05 §4`).
+6. **Schlichtung auf der Seite.** In der Bibliothek gebaut (`03 §2`), für Menschen nicht
+   erreichbar.

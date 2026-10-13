@@ -29800,3 +29800,77 @@ des ersten Schritts.
 **Beschluss 6 — O106 neu,** der Strang über mehr als eine Sitzung (D412).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D667 — Die geheime Wahl als eigener Vorgang; die Mischrunde im Prototyp gemessen
+
+**Anlass.** D666 Beschluss 5: der Prototyp der Mischrunde, dann das Szenario der Vorstandswahl.
+
+**Befund 1 — die Mischrunde im Prototyp.** Nach CoinShuffle im Supervisor-Klon, ohne Netz: Schichten
+aus X25519, HKDF und ChaCha20-Poly1305 aus `cryptography` 50, je Schicht 48 Byte; Signaturen mit
+64 Byte gezählt, nicht gerechnet. Zwei Seeds, gleiches Ergebnis.
+
+| n | Schritte | Bytes je Teilnehmer | Summe | bei 1200 bit/s |
+|---|---|---|---|---|
+| 3 | 5 | 352 bis 416 | 1152 | rund 8 s |
+| 5 | 7 | 416 bis 640 | 2720 | rund 18 s |
+| 10 | 12 | 576 bis 1616 | 12240 | rund 82 s |
+| 20 | 22 | 896 bis 5376 | 75680 | rund 8 min |
+| 50 | 52 | 1856 bis 31056 | 1053200 | rund 2 h |
+
+Zu dritt und zu fünft störte jeder Teilnehmer ab dem zweiten einmal auf zwei Arten: einen fremden
+Schlüssel durch einen zweiten eigenen ersetzen oder einen fremden weglassen, zusammen 12 Fälle. In
+allen 12 bestätigt mindestens ein Mitglied die Liste nicht, und die Schuldphase benennt genau den
+Störer, auch den letzten, der die Liste im Klartext sieht. Auf ehrlichen Läufen zu dritt, fünft und
+zehnt benennt sie niemanden.
+
+**Befund 2 — die Bytes wachsen kubisch mit n.** Der k-te Schritt trägt k Chiffrate mit je n − k
+Schichten. Im LAN und am Tisch ohne Folge, am Funk ab etwa zehn Teilnehmern nicht mehr.
+
+**Befund 3 — eine Schuldphase legt die Zuordnung ihres Laufs offen.** Ein Lauf mit Schuldphase wird
+verworfen; im neuen erzeugt jeder einen neuen Schlüssel, wie bei CoinShuffle.
+
+**Befund 4 — nicht gezeigt:** Teilnehmer, die wegfallen, und Fristen dafür; widersprüchliche
+Unterschriften als zweiter Weg zur Schuld; das Netz.
+
+**Befund 5 — eine Vorstandswahl als Sachanträge hinge.** Jeder Kandidat als Sachantrag auf ein Feld
+`vorstand` nutzte Regel 2 aus `04 §4.4`. Sachanträge haben aber keinen Wahlgang (`04 §4.7`,
+`04 §8`, D600): ohne Mehrheit ist jeder an seinen Kandidaten gebunden bis zum Ende der Epoche, und
+Ersetzen wirkt nur auf denselben Antrag (D547). Das gilt auch offen.
+
+**Befund 6 — eine Liste, die nur an ein Feld gebunden ist, bricht B2 aus `04 §4.4`.** Zu dritt:
+Anna und Bruno stimmen offen Ja zur Aufnahme von Dora mit leerem `S` und geheim Ja zu einem
+Sachantrag „Vorstand Anna“. Wurzel und frischer Schlüssel sind nicht verknüpfbar, Regel 3 greift
+nicht, beide kommen durch, und Doras Epoche beginnt ohne das Ergebnis. Eine Liste, die erst nach
+offenen Stimmen gilt, entwertete diese, und neues Wissen senkte ein Ergebnis. Getragen hätte nur
+„geheim“ als Regelfeld für alle Abstimmungen einer Epoche; das kostete eine Mischrunde zu Beginn
+jeder Epoche, auch nach jeder Aufnahme. Oli: am Ziel vorbei, gewollt ist eine geheime Abstimmung.
+
+**Befund 7 — ein Missverständnis in meiner Darstellung.** „Geheime Fassung der Satzung“ las Oli als
+Verschlüsselung der Satzung. Gemeint war nur, dass niemand sieht, wer wie gestimmt hat. Ich habe es
+ohne Fachwörter neu erklärt; eine Frage an Oli nennt, was ein Mensch sieht, nicht den Mechanismus.
+
+**Beschluss 1 — die geheime Wahl ist ein eigener Vorgang, kein Antrag (Oli).** Eine Wahl nennt feste
+Kandidaten. Wahlberechtigt ist `P` der Epoche, die die Wahl nennt; dabei bleibt es, auch wenn die
+Epoche wechselt. Vor der Abstimmung läuft eine Mischrunde (D666 Beschluss 2), jeder stimmt mit
+seinem Schlüssel aus der Liste für einen Kandidaten. Gewählt ist, wer mehr als die Hälfte der
+Wahlberechtigten hat; sonst gilt ein nächster Wahlgang, sobald der Bestand beweist, dass niemand
+mehr die Hälfte erreichen kann, wie in `04 §4.7`. Eine Mischrunde reicht für alle Wahlgänge
+derselben Wahl.
+
+**Beschluss 2 — das Ergebnis ist eine Tatsache, kein Sachfeld (Oli).** „X ist gewählt“ steht nicht
+in der Satzung und ändert keinen Stand (`04 §4.6`). Die Wahl berührt keinen Antrag; Befund 6 und
+D666 Befund 6 entstehen deshalb nicht, und die Regeln aus `04 §4.4` bleiben, wie sie sind. Alle
+übrigen Abstimmungen bleiben offen. Was ein gewählter Vorstand darf, ist O105 Punkt 1.
+
+**Beschluss 3 — die Mehrheit, nicht die meisten Stimmen (Oli).** Wer die meisten hat, bestimmt nur
+ein Zeitpunkt der Zählung, und den schliesst D100 aus.
+
+**Beschluss 4 — Befund 5 bleibt offen,** als Frage an Wahlgänge für Sachanträge (D600), ohne
+Auftrag; die Wahl braucht sie nicht.
+
+**Beschluss 5 — der nächste Schritt.** Eine Position zur Norm der Wahl: das Objekt der Wahl, die
+Liste und ihre Bestätigung, welche Stimme zählt, das Patt je Wahlgang, zwei Listen für dieselbe
+Wahl als Widerspruch, und die getragenen Grenzen aus D666 Befund 5. Sie wird vor dem Normtext an
+einem Prototyp der Auszählung gemessen (D599, D601).
+
+**Geändert.** `07-decisions.md`.

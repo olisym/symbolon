@@ -669,3 +669,38 @@ Sortiert wird nach den Bytes der UTF-8-Kodierung: `["Zweck", "name"]` ist wohlge
 `["name", "Zweck"]` nicht. Die Prüfung der Liste steht nach den vier Lagen der Regierbarkeit
 (`04 §3.5`): eine Verfassung mit leerer Liste und ohne `vote@1` in `irrevocable_predicates` trägt
 `VOTE_REVOCABLE` und nicht `MALFORMED_PROTECTED_FIELDS`.
+
+## 13. Geheime Wahl (`04 §9`)
+
+Alle in Epoche 1 von Profil D: `n = 4`, `P1` mit ALICE, BOB, CAROL und DAVE, eine Verfassung wie
+`C1`, deren `irrevocable_predicates` zusätzlich `ballot-ack@1` und `ballot@1` führt. Die Wahl `EV`
+nennt diese Epoche, das Amt `"vorstand"`, die Bezeichnung `"Vorstand 2026"` und die Kandidaten
+ALICE und BOB. `K1` bis `K5` sind fünf weitere Identitäten, frisch gebaut (D464).
+
+Die Liste `LV` führt alle vier Wurzeln und `K1` bis `K4`; jede Wurzel und jeder Schlüssel hat sie
+bestätigt. `LV1` führt ALICE und BOB mit `K1` und `K2`, `LV2` CAROL und DAVE mit `K3` und `K4`,
+`LV3` BOB mit `K5`; jede ist von ihren Teilnehmern und Schlüsseln bestätigt. „`Ki` A“ heisst: ein
+`ballot@1` von `Ki` auf `EV` mit Kandidat ALICE im Wahlgang 0, „`Ki` A in 1“ im Wahlgang 1.
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `WV-1` | `LV`; `K1`, `K2`, `K3` A | `ELECTED` ALICE: `2 * 3 = 6 > 4` |
+| `WV-2` | `LV`; `K1`, `K2` A, `K3`, `K4` B | Wahlgang 0 im Patt: frei 0, je `2 * 2 = 4 <= 4`; `OPEN`, geltend 1 |
+| `WV-3` | `LV`; `K1`, `K2` A, `K3` B | kein Patt: frei 1, `2 * (2 + 1) = 6 > 4`; `OPEN`, geltend 0 |
+| `WV-4` | wie `WV-3`, aber die Liste ohne DAVE und `K4`, von den übrigen sechs bestätigt | kein Patt: DAVE ohne Liste ist frei, `2 * (2 + 1) = 6 > 4`; `OPEN`, geltend 0 |
+| `WV-5` | `LV`; `K1` A und B, `K2`, `K3` A | `K1` zählt nicht, `AMBIGUOUS_BALLOT`; `2 * 2 = 4`, nicht gewählt; kein Patt, geltend 0 |
+| `WV-6` | wie `WV-1`, aber ohne die Bestätigung von `K4` | `LV` trägt nicht, keine Stimme zählt; `OPEN`, geltend 0 |
+| `WV-7` | `LV1` und `LV2`; `K1`, `K2`, `K3` A | beide tragen; `ELECTED` ALICE |
+| `WV-8` | wie `WV-7`, dazu `LV3` | BOB hat `LV1` und `LV3` bestätigt: beide tragen nicht, `CONFLICTING_LIST_ACK`; `LV2` trägt; `OPEN`, geltend 0 |
+| `WV-9` | wie `WV-7`, dazu ein `ballot-ack@1` von BOB auf ein lokal unbekanntes Objekt | `LV1` trägt nicht, `UNKNOWN_LIST`; `OPEN`, geltend 0 |
+| `WV-10` | wie `WV-1`, aber die Verfassung ohne `ballot@1` in `irrevocable_predicates` | `UNEVALUABLE`, `BALLOT_REVOCABLE` |
+| `WV-11` | `LV`; `K1` für CAROL, `K2`, `K3` A, `K4` B | CAROL ist kein Kandidat, `UNKNOWN_CANDIDATE`; `K1` bindet: frei 0, Patt; `OPEN`, geltend 1 |
+| `WV-12` | wie `WV-2`, dazu `K1`, `K2`, `K3` A in 1 | geltend 1; `ELECTED` ALICE |
+| `WV-13` | wie `WV-3`, dazu `K1`, `K2`, `K3` A in 1 | geltend 0, denn Wahlgang 0 steht nicht im Patt; `OPEN` |
+
+`WV-3` und `WV-4` sind das Paar um eine Wurzel ohne Liste: zählte DAVE nicht als frei, stünde
+Wahlgang 0 in `WV-4` im Patt, mit `2 * 2 = 4 <= 4` (D668 Befund 2). `WV-11` ist der Vektor dafür,
+dass eine Stimme für einen fremden Kandidaten bindet: ohne das wäre `K1` frei, `2 * (2 + 1) = 6 >
+4`, und Wahlgang 0 gälte weiter. `WV-12` und `WV-13` sind das Paar um den geltenden Wahlgang:
+dieselben Stimmen in Wahlgang 1, einmal nach einem Patt, einmal ohne. Die Hashes der Wahl und der
+Listen rechnet der Test aus den Objekten.

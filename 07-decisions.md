@@ -29927,3 +29927,51 @@ Befund 5 als getragene Grenzen, und die Golden Anchors dazu aus dem Prototyp. Da
 die Bibliothek; die Mischrunde im Knoten und die Seite folgen.
 
 **Geändert.** `07-decisions.md`.
+
+### D669 — Normtext der geheimen Wahl: `04 §9`, Golden Anchors `WV-1` bis `WV-13`
+
+**Anlass.** D668 Beschluss 2: der Normtext der Wahl und die Golden Anchors dazu.
+
+**Befund 1 — D668 Befund 3 zurückgenommen: nicht in den Boden.** Der Boden steht in `00 §5.2`, in
+`symbolon/policy.py`, in sechs Tests von `tests/profiles/test_policy.py` und in
+`03-golden-anchors.md` („seit D535 sechselementig“). Ihn zu erweitern, fasste jede dieser
+Aufzählungen an (D537) und gäbe jedem Scope eine Wahl, nicht nur Vereinen.
+
+**Beschluss 1 — die Verfassung entscheidet (Oli).** Eine Wahl ist nur auszählbar, wenn
+`irrevocable_predicates` der Verfassung ihrer Epoche `ballot-ack@1` und `ballot@1` führt, wie
+`vote@1` in `04 §1.1`; sonst `BALLOT_REVOCABLE`. Ob ein Verein geheim wählen kann, steht in seiner
+Satzung, wie im Vereinsrecht das Verfahren. Die Vorlage `verein` führt beide Prädikate bei einer
+neuen Gründung; ein bestehender Verein ändert dafür einmal seine Satzung.
+
+**Beschluss 2 — `04 §9` neu,** angehängt, damit keine Nummer wandert. `§9.1` die Objekte Wahl und
+Liste mit eigenen Domänen und ihrer Formwidrigkeit; `§9.2` die Profile `election@1` (ungeschützt,
+wie `propose@1`), `ballot-ack@1` und `ballot@1`; `§9.3` wann eine Liste trägt; `§9.4` die
+Auszählung; `§9.5` die Begründungen; `§9.6` die getragenen Grenzen aus D666 Befund 5 und D668
+Beschluss 1. Inhaltlich die Position aus D668.
+
+**Beschluss 3 — Festlegungen im Normtext, die D668 nicht nannte.**
+
+- Die Schlüssel einer Liste sind sortiert: so verrät ihre Reihenfolge nichts über die Mischrunde,
+  und eine Liste hat einen Hash.
+- Eine Bestätigung auf ein lokal unbekanntes Objekt gilt als mögliche zweite Liste, die Richtung aus
+  `04 §4.4`; Vermerk `UNKNOWN_LIST`.
+- Eine Stimme für einen Kandidaten, der nicht in der Wahl steht, zählt nicht und bindet doch, wie
+  ein Ja in `04 §4.7` bindet; Vermerk `UNKNOWN_CANDIDATE`.
+- Kein Ersetzen in dieser Fassung; eine zweite verschiedene Stimme im selben Wahlgang entwertet
+  beide (`AMBIGUOUS_BALLOT`).
+- Kandidaten müssen nicht in `P` stehen. Wahlberechtigt bleibt `P` der Epoche aus der Wahl, auch
+  nach einem Wechsel der Epoche.
+
+**Befund 2 — die Golden Anchors aus einer Zählung nach dem Normtext.** `WV-1` bis `WV-13` in
+`04-golden-anchors.md` `§13` sind die Ausgabe eines kleinen Zählers im Supervisor-Klon, der `§9.3`
+und `§9.4` über abstrakte Bestände rechnet, nicht abgeschrieben (D457). Drei Paare tragen je eine
+Regel: `WV-3` und `WV-4` die Wurzel ohne Liste als frei, `WV-11` die bindende Stimme für einen
+fremden Kandidaten, `WV-12` und `WV-13` den geltenden Wahlgang.
+
+**Beschluss 4 — der nächste Schritt.** Ein Prototyp der Auszählung in der Bibliothek im
+Supervisor-Klon, mit den Vektoren als Tests in der Fassung des Auftrags und den Rücknahmeproben
+gegen sie; dann der Auftrag. Nicht darin: die Mischrunde im Knoten, die Seite und die Vorlage
+`verein`. Vor der Vorlage ist zu prüfen, welche Vektoren und Fälle des Selbsttests ihren Hash
+tragen.
+
+**Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.

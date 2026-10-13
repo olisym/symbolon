@@ -1360,3 +1360,196 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
 
 - **Vertagt und ausdrücklich nicht in v1:** gewichtete Auszählung (D98), Zweck-Tag am Vouch
   (D56, `02d`), Kettenbindung von Ämtern nach VR-04.1 (D26), das Zeugenquorum für Fristen (D100).
+
+---
+
+## 9. Geheime Wahl
+
+Eine Wahl bestimmt, wer ein Amt übernimmt, ohne dass jemand sieht, wer wen gewählt hat (D666 bis
+D669). Sie ist ein eigener Vorgang neben dem Loop aus `§3` und `§4`: sie ändert keine Verfassung
+und keinen Stand (`§4.6`), und ihre Stimmen berühren keine Regel aus `§4.4`. Ihr Ergebnis ist eine
+Tatsache, „X ist gewählt“; was das Amt erlaubt, regelt diese Schicht nicht.
+
+Die Geheimhaltung kommt aus einer **Liste**: die Teilnehmer einer Mischrunde stehen offen darin,
+ihre frischen Schlüssel gemischt. Gestimmt wird mit diesen Schlüsseln, in gewöhnlichen Claims. Wie
+die Liste entsteht, ist nicht Norm; diese Schicht prüft nur, ob sie trägt. Eine Liste, die ohne
+Mischen entstand, trägt genauso und ist nur nicht geheim.
+
+### 9.1 Die Objekte
+
+Beide content-adressiert, keine Claims, wie der Sachantrag (`§2.5`).
+
+```
+DOM_NUC_ELECTION    = "claim-atom/v1/nucleus-election"
+DOM_NUC_BALLOT_LIST = "claim-atom/v1/nucleus-ballot-list"
+
+election = {
+  0 scope      : N
+  1 epoch      : epoch_id der Epoche, deren P wahlberechtigt ist
+  2 office     : text, das Amt
+  3 candidates : [ bstr(32), ... ]
+  4 label      : text, die Bezeichnung
+}
+election_hash = SHA-256( DOM_NUC_ELECTION || cbor_deterministic(election) )
+
+ballot_list = {
+  0 election : election_hash
+  1 members  : [ bstr(32), ... ]
+  2 keys     : [ bstr(32), ... ]
+}
+list_hash = SHA-256( DOM_NUC_BALLOT_LIST || cbor_deterministic(ballot_list) )
+```
+
+`candidates` sind Identitäten; sie müssen nicht in `P` stehen. `members` sind Wurzeln, `keys` die
+Schlüssel, mit denen gestimmt wird. `label` unterscheidet zwei Wahlen desselben Amts in derselben
+Epoche; zwei Objekte mit gleichem Inhalt sind dieselbe Wahl.
+
+**Formwidrig** ist eine Wahl, wenn sie Schlüssel ausser `0` bis `4` führt, `scope` oder `epoch` kein
+Bytestring der Länge 32 ist, `office` oder `label` kein Text ist, oder `candidates` keine Liste ist,
+leer ist, einen Eintrag führt, der kein Bytestring der Länge 32 ist, oder nicht aufsteigend nach
+Bytes sortiert und duplikatfrei ist. **Formwidrig** ist eine Liste, wenn sie Schlüssel ausser `0`
+bis `2` führt, `election` kein Bytestring der Länge 32 ist, oder `members` oder `keys` keine Liste
+ist, leer ist, einen Eintrag führt, der kein Bytestring der Länge 32 ist, nicht aufsteigend sortiert
+und duplikatfrei ist, oder `members` und `keys` verschieden lang sind. Die Gründe sind die aus
+`§2.5`: ein unbekannter Schlüssel würde von älteren Knoten mit anderer Bedeutung gelesen, und eine
+Liste in zwei Reihenfolgen hätte zwei Hashes. Sortiert sind die Schlüssel auch, damit ihre
+Reihenfolge nichts über die Mischrunde verrät.
+
+### 9.2 Profile
+
+| Profil | `I` | `J` | `v` |
+|---|---|---|---|
+| `nuc:N/election@1` | beliebig | `[object-hash, election_hash]` | `{}` |
+| `nuc:N/ballot-ack@1` | ein Teilnehmer oder ein Schlüssel der Liste | `[object-hash, list_hash]` | `{}` |
+| `nuc:N/ballot@1` | ein Schlüssel aus einer Liste | `[object-hash, election_hash]` | `{0: candidate, 1: round}` |
+
+`election@1` dient der Auffindbarkeit wie `propose@1` (`§1.1`): ungeschützt und von keiner Prüfung
+gelesen. `ballot-ack@1` bestätigt eine Liste; von einem Teilnehmer heisst es „ich stehe darin, und
+mein Schlüssel ist darin“, von einem Schlüssel „ich halte diesen Schlüssel“. `ballot@1` ist die
+Stimme: `candidate` ist ein Bytestring der Länge 32, `round` ein `uint`, der Wahlgang. Weitere Keys
+in `v` sind reserviert und werden ignoriert.
+
+**Beide geschützt, wie `vote@1`.** Eine Wahl ist nur auszählbar, wenn `irrevocable_predicates` der
+Verfassung ihrer Epoche `ballot-ack@1` und `ballot@1` führt. Ohne den Schutz nähme ein Widerruf
+einer Stimme oder Bestätigung die Wirkung, und die Auszählung wäre nicht monoton (`§1.1`). Ob ein
+Nukleus geheim wählen kann, steht damit in seiner Verfassung (D669); der Boden (`00 §5.2`) bleibt.
+
+### 9.3 Wann eine Liste trägt
+
+Sei `E` eine Wahl, `P` die Teilnehmer der Epoche `E.epoch`. Eine Bestätigung ist ein `ballot-ack@1`
+mit `N == scope`, im Zustand `ACTIVE` nach `classify_all` unter der scope-lokalen Policy und ohne
+`t_exp`. Eine Liste `L` trägt für `E`, wenn alle Bedingungen gelten:
+
+1. `L` ist nicht formwidrig und `L.election == election_hash(E)`;
+2. jeder Eintrag in `L.members` ist Element von `P`;
+3. für jeden Eintrag `m` in `L.members` gibt es eine Bestätigung mit `J == (3, list_hash(L))` und
+   `wurzel == m` nach `02 §2.1`;
+4. für jeden Eintrag `k` in `L.keys` gibt es eine Bestätigung mit `J == (3, list_hash(L))` und
+   `I == k`;
+5. keine Identität aus `L.members` oder `L.keys` hat eine Bestätigung auf ein anderes Objekt, das
+   eine Liste für `E` oder lokal unbekannt ist. Für Teilnehmer zählt die Wurzel, für Schlüssel `I`.
+
+Bedingung 4 ist der Nachweis, dass der Inhaber den Schlüssel hält. Ohne ihn könnte ein Mitglied
+einen fremden Schlüssel aus einer veröffentlichten Liste in eine eigene kopieren und mit Bedingung 5
+beide Listen entwerten (D668 Befund 2).
+
+Bedingung 5 ist die Doppelbestätigung. Wer zwei Listen derselben Wahl bestätigt, ob als Wurzel oder
+als Schlüssel, könnte zwei Schlüssel halten; beide Listen tragen nicht. Vermerk
+`CONFLICTING_LIST_ACK`, Subjekt alle beteiligten `claim_id`. Die Wurzel steht mit Namen dabei, wie
+bei der Doppelstimme (`§3.1`). Ein Objekt, das lokal unbekannt ist, kann eine solche Liste sein: die
+Richtung ist die aus `§4.4`, Vermerk `UNKNOWN_LIST`, Subjekt die `claim_id` der Bestätigung.
+Geheilt wird der Fall, indem jemand das Objekt nachreicht.
+
+Mehrere Listen mit verschiedenen Teilnehmern tragen nebeneinander. Wer bei der Mischrunde fehlt,
+kann mit anderen eine eigene bilden; geheim ist seine Stimme dann nur unter ihnen (D668
+Beschluss 1).
+
+### 9.4 Die Auszählung
+
+Sei `n = |P|`, `K` die Vereinigung der Schlüssel aller tragenden Listen für `E` und `T` die
+Vereinigung ihrer Teilnehmer.
+
+**Welche Stimme bindet.** Ein `ballot@1` `B` **bindet** den Schlüssel `B.I` im Wahlgang `w`, wenn
+`B.N == scope`, `B.J == (3, election_hash(E))`, `B.I` in `K`, `B` im Zustand `ACTIVE` ohne
+`t_exp`, `v` kanonisch kodiert, `v[1] == w` ein `uint` und `v[0]` ein Bytestring der Länge 32 ist.
+`gebunden(w)` ist die Menge der Schlüssel mit einer bindenden Stimme in `w`. Eine Stimme, deren
+`v` nicht lesbar ist, bindet nicht und zählt nicht; Vermerk `MALFORMED_BALLOT`, Subjekt ihre
+`claim_id`.
+
+**Welche Stimme zählt.** Ein Schlüssel zählt in `w` für den Kandidaten `c`, wenn alle seine
+bindenden Stimmen in `w` denselben Kandidaten nennen und `c` in `E.candidates` steht. Nennen sie
+verschiedene, zählt keine; Vermerk `AMBIGUOUS_BALLOT`, Subjekt alle beteiligten `claim_id`. Nennt
+sie einen Kandidaten, der nicht in `E.candidates` steht, zählt sie nicht und bindet doch; Vermerk
+`UNKNOWN_CANDIDATE`. `Y(c, w)` ist die Menge der Schlüssel, die in `w` für `c` zählen.
+
+Ein Ersetzen wie in `§3.1` gibt es hier nicht. Wer in einem Wahlgang ein zweites Mal verschieden
+stimmt, nimmt beiden Stimmen die Wirkung.
+
+**Frei** sind im Wahlgang `w` die Schlüssel aus `K` ohne bindende Stimme in `w` und die Wurzeln aus
+`P`, die nicht in `T` stehen: `frei(w) = |K ∖ gebunden(w)| + |P ∖ T|`. Eine Wurzel ohne Liste kann
+noch eine bekommen.
+
+**Das Patt.** Ein Wahlgang `w` steht im Patt, wenn
+
+1. `gebunden(w)` nicht leer ist, und
+2. für jeden Kandidaten `c`: `2 * (|Y(c, w)| + frei(w)) <= n`.
+
+**Der geltende Wahlgang** ist der kleinste, der nicht im Patt steht. Es gibt ihn immer: ein
+Wahlgang ohne bindende Stimme steht nach Bedingung 1 nie im Patt.
+
+**Gewählt** ist `c`, wenn im geltenden Wahlgang `w` gilt: `2 * |Y(c, w)| > n`. Der Nenner ist
+`|P|`, nicht die Zahl der Abstimmenden, wie in `§3.2`; wer nicht stimmt, wirkt gegen jeden
+Kandidaten.
+
+| Zustand | Bedingung |
+|---|---|
+| `ELECTED` | ein Kandidat ist gewählt; das Ergebnis nennt ihn |
+| `OPEN` | keiner ist gewählt; das Ergebnis nennt den geltenden Wahlgang |
+| `UNEVALUABLE` | die Auszählung kann nicht laufen |
+
+**Wann die Auszählung nicht läuft**, in dieser Reihenfolge:
+
+| Lage | Vermerk |
+|---|---|
+| die Wahl ist formwidrig | `MALFORMED_ELECTION`, Subjekt `election_hash` |
+| `E.scope` ist nicht der Scope | **`ValueError`**, wie in `§3.5` |
+| die Epoche `E.epoch` ist lokal nicht aufgelöst, oder ihre Verfassung fehlt | `CONSTITUTION_UNAVAILABLE` |
+| die Verfassung ist nicht regierbar nach `§3.5` | der Vermerk aus `§3.5` |
+| `irrevocable_predicates` führt `ballot-ack@1` oder `ballot@1` nicht | `BALLOT_REVOCABLE` |
+
+### 9.5 Warum das trägt
+
+**Höchstens ein Gewählter.** In einem Wahlgang zählt jeder Schlüssel für höchstens einen
+Kandidaten; zwei Gewählte bräuchten zwei disjunkte Mengen mit je mehr als `n/2` Schlüsseln, und
+`|K| <= n`, denn jede tragende Liste hat so viele Schlüssel wie Teilnehmer aus `P`, und nach
+Bedingung 5 steht keine Wurzel in zwei. Über Wahlgänge hinweg zählt nur der geltende; ist dort `c`
+gewählt, verletzt `c` Bedingung 2 des Patts, und kein späterer Wahlgang gilt.
+
+**Monoton im Wissen.** Eine Stimme bewegt einen Schlüssel von frei nach gebunden; `|Y(c, w)| +
+frei(w)` wächst dabei für kein `c`. Eine neue tragende Liste mit `j` Teilnehmern bringt `j`
+Schlüssel ohne Stimme und nimmt `j` Wurzeln aus `P ∖ T`; `frei(w)` bleibt gleich. Ein Patt bleibt
+also, ein Gewählter auch. Ohne die Wurzeln ohne Liste in `frei` höbe eine neue Liste ein Patt auf
+(D668 Befund 2).
+
+**Die Ausnahmen sind benannt**, alle mit sichtbarem Anlass und abwärts: eine zweite Stimme desselben
+Schlüssels im selben Wahlgang (`AMBIGUOUS_BALLOT`) und eine Bestätigung einer zweiten Liste
+(`CONFLICTING_LIST_ACK`). Sie nehmen Stimmen oder ganze Listen heraus; ein Gewählter kann dadurch
+fallen, wie ein `PASSED` in `§3.2`. Wahlberechtigt bleibt `P` der Epoche aus der Wahl, auch wenn die
+Epoche inzwischen gewechselt hat; wer danach aufgenommen wird, wählt in dieser Wahl nicht.
+
+### 9.6 Bewusst getragene Grenzen
+
+- **Keine Quittungsfreiheit.** Wer will, zeigt seinen Schlüssel vor und beweist seine Stimme. Kauf
+  und Zwang bleiben möglich; ohne Kanäle, die niemand abhört, oder Treuhänder lässt sich das nicht
+  verhindern (D666 Befund 5).
+- **Wer zusieht, sieht den Absender.** Am Tisch und am Funk ist sichtbar, wessen Gerät eine Stimme
+  schickt, und damit auch, wer nicht stimmt. Die Auszählung läuft ohne Abschluss mit (`§3.3`);
+  wer weiss, wann wer gestimmt hat, kennt die Stimme.
+- **Klein heisst erkennbar.** Eine Liste verbirgt nur unter ihren Teilnehmern; eine Liste mit einem
+  Teilnehmer verbirgt nichts. Zu dritt verrät ein einstimmiges Ergebnis jede Stimme.
+- **Kein Ersetzen.** Wer seine Meinung ändert, kann seine Stimme nicht verlegen, nur entwerten.
+- **Eine Bestätigung zu viel entwertet eine Liste.** Ein Mitglied, das zwei Listen bestätigt, nimmt
+  allen ihren Teilnehmern die Stimme. Es steht dabei mit Namen; die Wahl beginnt mit einer neuen
+  Mischrunde.
+- **Ohne Abschluss keine relative Mehrheit.** Gewählt ist nur, wer mehr als die Hälfte von `P` hat;
+  die meisten Stimmen bestimmte nur ein Zeitpunkt der Zählung (D667 Beschluss 3, D100).

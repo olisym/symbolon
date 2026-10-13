@@ -29975,3 +29975,28 @@ gegen sie; dann der Auftrag. Nicht darin: die Mischrunde im Knoten, die Seite un
 tragen.
 
 **Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.
+
+### D670 — Schluss der Sitzung `00de`: die geheime Wahl normiert; als Nächstes ihre Auszählung
+
+**Anlass.** D669 ist auf `main` (`5026cf7`). Oli schliesst die Sitzung.
+
+**Befund 1 — was `00de` hinterlässt.** Am 13. und 14.10. der Strang zur geheimen Wahl: zwei Runden
+Nachschlagen (D666), die Wahl als eigener Vorgang und die Mischrunde im Prototyp (D667), die
+Position zur Auszählung, an einem Prototyp gemessen (D668), der Normtext `04 §9` mit den Golden
+Anchors `WV-1` bis `WV-13` (D669). Kein Code geändert; die Blöcke prüften Markdown (D480).
+`offen.md` führt 106 Posten, 19 offen; neu ist O106.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** über ein
+Skript mit Paaren aus altem und neuem Text und dem Ersatz ganzer Abschnitte (D656 Befund 2).
+Ersetzt: Stand, die Sitzung, der nächste Schritt. Ergänzt: ein Punkt der Richtung, vier Kandidaten
+für Prüfregeln, der Absatz „Aus `00de`“ und O106 bei den offenen Posten.
+
+**Beschluss 1 — der nächste Schritt.** Die Auszählung der Wahl in der Bibliothek: erst der Prototyp
+im Supervisor-Klon mit den Vektoren als Tests und den Rücknahmeproben, dann der Auftrag (D669
+Beschluss 4).
+
+**Beschluss 2 — Kandidaten für Prüfregeln, nicht übernommen.** Vier aus dieser Sitzung stehen im
+Sitzungsstart (aus D666, D667 und D669).
+
+**Geändert.** `sitzungsstart-00df.md` (neu), `sitzungsstart-00de.md` nach `archiv/`,
+`07-decisions.md`.

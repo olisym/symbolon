@@ -29598,3 +29598,32 @@ Lücke nachgeschlagen (D640). Keine Protokolländerung aus diesem Eintrag.
 benannt; die vollständige Liste steht hier und in O105, nicht im Kontext-Dokument.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O105 neu).
+
+### D662 — README neu geschrieben: die Idee, was geht, was offen ist, und ein Weg zum Ausprobieren
+
+**Anlass.** D658 Beschluss 3 und Olis Frage, ob die README vor oder nach einer Recherche zu den
+Lücken aus O105 entsteht. Antwort: jetzt, aber so gebaut, dass eine geschlossene Lücke sie nicht
+ändert. Sie nennt Arten offener Fragen und verweist auf `offen.md`, wie sie seit D415 schon keine
+Zahlen nennt. Eine Idee zu einer Lücke kommt nicht hinein, bevor sie nachgeschlagen ist.
+
+**Befund 1 — `pip install -e .` scheitert im frischen Klon.** Setuptools findet mehrere Pakete in
+der Wurzel (`go`, `hs`, `rs`, `archiv`, `symbolon`) und bricht ab. Das Projekt hat seine Umgebung
+nie dokumentiert; `arbeitsweise.md` setzt `.venv` voraus. Getragen hat, im Klon gefahren: ein
+`venv`, die beiden Abhängigkeiten aus `pyproject.toml` direkt installiert, dann `python -m
+symbolon.node` mit einer neuen Datei; die Seite antwortet mit 200, `GET /vorlagen` nennt
+`verein`. Ebenso `python -m tools.netz` mit fünf Adressen und dem Ablauf. Die Oberfläche ist
+Deutsch; die README sagt das.
+
+**Beschluss 1 — Aufbau.** Die Frage; die Idee in drei Sätzen; was MaR bewusst nicht tut (keine
+Wahrheit, keine Überwachung, kein Ruf-Konto, keine Verwahrung); was heute geht; was offen ist,
+nach Art; ausprobieren; wo man zu lesen beginnt (`LAGE.md`, `VISION.md`, `08`, `ROADMAP.md`,
+Register); Aufbau des Repositoriums; Lizenz; Mitmachen.
+
+**Beschluss 2 — der Weg zum Ausprobieren steht in der README, nicht im Paket.** Die Paketierung
+(eigenes Paketverzeichnis oder `packages` in `pyproject.toml`) ist eine Änderung am Bau und kommt
+als Auftrag, wenn jemand sie braucht; bis dahin tragen die drei Befehle.
+
+**Kandidat für eine Prüfregel, nicht übernommen.** Ein Befehl, der in einer öffentlichen Datei
+steht, wird vorher in einem frischen Klon gefahren (Schwester von D518).
+
+**Geändert.** `README.md`, `07-decisions.md`.

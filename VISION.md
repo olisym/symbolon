@@ -14,9 +14,11 @@ Was heute gelöst, gebaut und offen ist, steht in `LAGE.md`. Dieses Dokument sag
 ## 1. Was das ist
 
 Ein **Substrat**, kein System. Ein Protokoll, auf dem Menschen freiwillig, föderiert und lokal
-koordinieren, ohne Herrschaftsmonopol. Es erzwingt keine Ordnung; es macht Handeln
-**nachprüfbar und nicht-abstreitbar** und überlässt die Regeln den Menschen, die sich freiwillig
-auf sie einigen.
+koordinieren, ohne Herrschaftsmonopol. Es erzwingt keine Ordnung; es macht **Aussagen**
+**nachprüfbar und nicht-abstreitbar**, also wer was erklärt, zugesagt oder beschlossen hat, und
+überlässt die Regeln den Menschen, die sich freiwillig auf sie einigen. Ob eine Aussage zu dem
+passt, was jemand tatsächlich getan hat, kann es nicht prüfen; das bleibt eine Frage an Menschen
+(§6, das Orakel-Problem).
 
 Der Kern beweist nur eines: *Ich kenne ein Geheimnis und binde mich damit nachprüfbar an eine
 Aussage, in einer Reihenfolge, die ich nicht nachträglich ändern kann.* Selbstbesitz ist hier
@@ -52,17 +54,23 @@ Wichtig: **Keine dieser Anwendungen soll neues Protokoll brauchen.** Alle sind K
 den bestehenden Bausteinen: Identität, Nukleus mit Verfassung, Bürgschaft (`vouch@1`), Schuld und
 Quittung (`obligation@1`, `receipt@1`), Anklage und Verdikt, Abstimmung über Epochen und
 Trust-Flow. Braucht eine Anwendung doch etwas Neues, ist das ein Befund und kommt ins Register
-(`ROADMAP §1`). Seit D467 gibt es keinen Bond mehr: kein Mechanismus baut auf einer Stelle, die
-fremden Wert verwahrt oder einzieht. Was der Bond lösen sollte, beantwortet jedes Szenario für
-sich.
+(`ROADMAP §1`). Das ist eine **Annahme**, geprüft bisher an einer Anwendung, dem Verein. Stellen,
+an denen sie absehbar nicht trägt, sind benannt: eine geheime Wahl gibt es nicht, weil jede Stimme
+unterschrieben ist; Preise und Tausch brauchen eine Wertschicht, die es nicht gibt (`08 §3`).
+
+Seit D467 gibt es keinen Bond mehr: kein Mechanismus baut auf einer Stelle, die fremden Wert
+verwahrt oder einzieht. Was der Bond lösen sollte, beantwortet jedes Szenario für sich.
 
 - **Der Verein.** Die erste Anwendung, und gebaut: drei gründen am Tisch, Mitglieder treten bei,
   Satzung und Sachanträge werden abgestimmt, der Beitrag ist eine Schuld, die Quittung der Kasse
   tilgt sie, und eine Doppelstimme ist für alle als Beweis sichtbar (`szenario-verein.md`, D468
   bis D655). Er ist das Modell jeder Gruppe, die sich auf Regeln einigt und zielgerichtet handelt.
 - **Risikoteilung statt Versicherungskonzern.** Eine kleine Gruppe teilt Risiken unter sich, wie
-  ein Broodfonds mit 20 bis 50 Personen (D467). Ob es einen gemeinsamen Topf gibt, wer ihn
-  verwahrt und wer die Fälle prüft, entscheidet das Versicherungsszenario. Das Protokoll stellt
+  ein Broodfonds mit 20 bis 50 Personen (D467). Klein ist sie nicht aus technischen Gründen,
+  sondern weil Menschen, die einander kennen, Missbrauch selbst bemerken. Größere Risiken tragen
+  viele solcher Gruppen gemeinsam, nicht eine große; wie sie sich zusammenschließen, ist offen
+  (`04 §7`). Ob es einen gemeinsamen Topf gibt, wer ihn verwahrt und wer die Fälle prüft,
+  entscheidet das Versicherungsszenario. Das Protokoll stellt
   nicht fest, ob ein Fall eingetreten ist; das tun Menschen, deren Aussagen zurechenbar sind
   (`08 §2.1`).
 - **Schlichtung als Dienst.** Schiedsstellen konkurrieren. Ein Urteil bindet nur, wer sich der
@@ -77,7 +85,11 @@ sich.
   nicht übertragbar, nicht ansparbar und kein Stimmgewicht. Durch gutes Verhalten wächst keine
   Zahl; wer ehrlich ist, bleibt jemand, für den andere bürgen, und wer Vertrauen bricht, verliert
   seine Bürgen (D10, D18). Gehört-werden ist unbegrenzt, Torwächterschaft knapp (D25). Es gibt
-  kein Reputations-Monopol: jeder rechnet von seinem eigenen Ausgangspunkt.
+  kein Reputations-Monopol: jeder rechnet von seinem eigenen Ausgangspunkt. Bewertungen gibt es
+  trotzdem, als unterschriebene Meinung eines Menschen über einen anderen; jeder Leser gewichtet
+  sie über sein eigenes Netz, und eine Bewertung von gefälschten Identitäten erreicht ihn nicht
+  (`05 §5`, `02 §4`). Ob das unter Fremden so gut trägt wie ein Marktplatz mit zentraler
+  Bewertung, ist ungemessen; das prüft ein Szenario mit einem Markt.
 - **Freier Markt der Währungen.** Jeder kann eine Recheneinheit erstellen, wie jeder eine
   Identität erstellen kann: eine `obligation@1` mit eigener Einheit, wertlos, bis jemand sie
   annimmt (`03 §3`, D467). Das Protokoll ist preisblind; Wert entsteht am Markt. Währung ist
@@ -100,8 +112,10 @@ Diese Annahmen sind bewusst gemacht und gehören offengelegt. Sie prägen das De
   ein wenig, wenige viel, und dieselbe Rangfolge der Abwehr gilt für beide (D658 Befund 2).
 - **Mit der Natur des Menschen, nicht gegen sie.** Menschen setzen sich ein, wo es lokal spürbar
   wirkt und Ansehen bringt: dazugehören, anerkannt werden, eine Aufgabe haben (D645). Das Tun ist
-  die Hauptfläche; Alltägliches fällt leicht, Grundlegendes schwer; Schweigen soll nicht lähmen;
-  nichts ist darauf gebaut, Menschen zum Wiederkommen zu bewegen (D645 Beschluss 3).
+  die Hauptfläche; Alltägliches fällt leicht, Grundlegendes schwer; Schweigen soll nicht lähmen
+  (D645 Beschluss 3). Die Oberfläche lockt nicht: keine Serien, Abzeichen, roten Punkte oder
+  endlosen Listen, die Menschen zurückholen sollen. Man kommt, wenn es etwas zu tun gibt, und geht
+  wieder.
 - **Selektive Stille.** Das Atom ist ein Mechanismus, kein Gebot zu signieren. Der Normalzustand
   ist **kein Claim**: unterschrieben wird, wo der Einsatz es rechtfertigt, nicht bei jeder
   Alltagshandlung. Für ein Brötchen braucht niemand einen Vertrag. Das Protokoll kann Schweigen
@@ -111,21 +125,21 @@ Diese Annahmen sind bewusst gemacht und gehören offengelegt. Sie prägen das De
   unwiderlegbar (`08 §2.2`).
 - **Legibilität ist der eigentliche Hebel.** Der Mehrwert gegenüber bestehenden Ordnungen ist
   nicht Zwang, sondern **Sichtbarkeit**: Widerspruch wird beweisbar und nicht-abstreitbar.
-  Ausschluss als gewaltfreies Mittel funktioniert nur, wenn der Defektor als solcher erkennbar
-  ist. In heutigen Ordnungen ist er es oft nicht; plausible Abstreitbarkeit ist dort die
-  Schutzschicht verdeckter Defektion. Das ist die Lücke, die dieses Protokoll schließt, für alle,
-  die es benutzen.
+  Rückzug als gewaltfreies Mittel funktioniert nur, wenn erkennbar ist, wer was zugesagt und wer
+  sich widersprochen hat. In heutigen Ordnungen ist das oft nicht so; plausible Abstreitbarkeit
+  ist dort die Schutzschicht verdeckter Defektion. Das ist die Lücke, die dieses Protokoll
+  schließt, für alle, die es benutzen.
 - **Transparenz gegen verdeckte Machtkonzentration.** Eine nicht-abstreitbare, nicht-löschbare
   Folge unterschriebener Entscheidungen ist die erste Abwehr gegen *verdeckten* Missbrauch an
   Koordinationspositionen. Macht, die sich nicht verstecken kann, lässt sich schwerer kapern.
 - **Ziel-Gleichgewicht.** Ehrliches Verhalten soll die naheliegende Strategie sein, weil
-  Defektion auffällt und Rückzug kostet: Bürgen widerrufen, Kapazität versiegt, ohne dass eine
-  Strafinstanz entscheidet (`08 §6`). Ehrlich: das ist ein *Gleichgewichts-Argument*, keine
-  Garantie. Behauptet ist nicht, dass Defektion für den Einzelnen irrational sei, sondern dass sie
-  nicht verallgemeinerbar ist und mit der Sichtbarkeit ihren Vorteil verliert. Unter extremen
-  Machtasymmetrien kann es kippen (§6).
+  Defektion auffällt, sobald sie mit Unterschriebenem kollidiert, und Rückzug kostet: Bürgen
+  widerrufen, Kapazität versiegt, ohne dass eine Strafinstanz entscheidet (`08 §6`). Ehrlich:
+  das ist ein *Gleichgewichts-Argument*, keine Garantie. Behauptet ist nicht, dass Defektion für
+  den Einzelnen irrational sei, sondern dass sie nicht verallgemeinerbar ist und mit der
+  Sichtbarkeit ihren Vorteil verliert. Unter extremen Machtasymmetrien kann es kippen (§6).
 
-## 5. Wo es läuft — Lebensraum, Knoten, zweite Compute-Revolution
+## 5. Wo es läuft — Lebensraum und Knoten
 
 Jedes Atom braucht einen **Lebensraum**, um zu existieren, so wie ein Mensch einen. Dieser
 Lebensraum ist ein **Knoten**. Seit Phase 2 gibt es ihn: ein kleines Programm, das den Bestand
@@ -136,8 +150,8 @@ Identität, die einen Dienst anbietet (`06 §2`).
 - **Selbstbestimmte Identität verlangt selbst-gehosteten Speicher und Compute.** Jeder Mensch
   besitzt ein digitales Identitäts- und Datenset, das unter eigener Kontrolle stehen sollte. Das
   braucht eigenen Speicher und damit einen eigenen Rechner.
-- **Zweite Compute-Revolution.** Nach dem Personal Computer der Personal Server, *Server at
-  Home*. Local AI macht das zunehmend zwingend, aber der Bedarf besteht schon jetzt.
+- **Ein Server zu Hause.** So wie früher der eigene Rechner liegt heute ein kleiner eigener
+  Server nahe; lokale KI verstärkt das, aber der Bedarf besteht schon jetzt.
 - **Freier Markt der Knoten-Hoster.** Wer nicht selbst hosten will, mietet Lebensraum. Der eigene
   Knoten ist nicht umsonst, aber Souveränität und Wohlstand, der in der eigenen Gemeinschaft
   bleibt, machen ihn seinen Preis wert.

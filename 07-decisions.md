@@ -29468,3 +29468,56 @@ Datei übergibt („Verankerung der Norm: …“), wird am Inhalt des Ziels gepr
 Existenz (Schwester von D229 und D233).
 
 **Geändert.** `VISION.md`, `07-decisions.md`.
+
+### D660 — Nachtrag zu D659: Aussagen statt Handeln, die Annahme benannt, Bewertungen, Skalierung
+
+**Anlass.** Olis Lesen der Fassung aus D659, in zwei Durchgängen. Der erste Hinweis kam, bevor
+D659 eingesetzt war; eingesetzt wurde die Fassung ohne ihn (`20b9537`). Dieser Eintrag trägt ihn
+nach, zusammen mit dem zweiten Durchgang.
+
+**Beschluss 1 — Aussagen, nicht Handeln (Oli).** `§1` sagte seit der ersten Fassung, das
+Protokoll mache *Handeln* nachprüfbar. Oli: eine Aussage mit einer Handlung zu verbinden ist das
+Orakel. Richtig ist: nachprüfbar und nicht-abstreitbar sind Aussagen, wer was erklärt, zugesagt
+oder beschlossen hat (`08 §2.1`); ob sie zum Tun passen, sagen Menschen (`VISION §6`). `§4` zieht
+zwei Sätze nach: erkennbar ist ein Widerspruch zu Unterschriebenem, nicht der Defektor als
+solcher. In der Kurzfassung für Oli (ausserhalb des Repositoriums) heisst es entsprechend „Wer
+sich widerspricht, fällt auf“ statt „Wer lügt, fällt auf“.
+
+**Befund 1 — die Bausteine sind nie quer geprüft worden (Oli fragte).** `§3` sagt, keine
+Anwendung solle neues Protokoll brauchen. Geprüft ist das an einer Anwendung, dem Verein, und
+in Teilen an Schlichtung und Risikoteilung (D327, D333). Eine Prüfung gegen eine Ordnung der
+Formen menschlicher Kooperation gab es nicht; das Register kennt keine. Zwei Stellen, an denen
+die Annahme absehbar nicht trägt, sind im Bestand belegt: eine geheime Wahl gibt es nicht, weder
+in `04` noch im Register, weil jede Stimme ein unterschriebener Claim ist; Preise und Tausch
+brauchen die Wertschicht, die es nicht gibt (`08 §3`). Weiter ungeprüft, aus dem Gedächtnis:
+Stimmvollmacht, Vergessen und Verjährung.
+
+**Beschluss 2 — `§3` nennt die Annahme als Annahme,** mit den zwei belegten Stellen.
+
+**Befund 2 — Skalierung.** Die Grösse von 20 bis 50 bei der Risikoteilung kommt aus der
+Recherche zu D467 (Broodfonds), nicht aus dem Protokoll. Sie ist sozial begründet: wer einander
+kennt, bemerkt Missbrauch selbst. Das Protokoll rechnet je Scope und je Beobachter, ohne
+gemeinsamen Zustand; es wächst über viele Kreise, nicht über einen grossen. Trust-Flow dämpft mit
+der Entfernung (`02 §3`), ein grosser anonymer Kreis hat also wenig Vertrauen, und das ist
+gewollt. Was Grösse braucht, wie ein Risikopool, entsteht aus dem Zusammenschluss kleiner Kreise;
+die Föderation (`04 §7`) ist dafür vorgesehen und ungebaut, und D234 bis D236 haben dort eine
+Grenze gefunden. `§3` sagt das jetzt bei der Risikoteilung.
+
+**Befund 3 — Ansehen unter Fremden.** Ein Darknet-Marktplatz löst Vertrauen unter Fremden über
+eine Mitte: Treuhand und eine öffentliche Bewertung je Händler. MaR verzichtet auf die Mitte.
+Bewertungen gibt es trotzdem, als unterschriebene, zugerechnete Meinung (`05 §5`); jeder Leser
+gewichtet sie über sein eigenes Netz, und Bewertungen aus einer Region gefälschter Identitäten
+tragen keinen Fluss (`02 §4`). Ob das unter Fremden so gut trägt wie eine zentrale Bewertung, ist
+ungemessen; D333 zeigt nur, dass die Reputationsschiene strukturell trägt. `§3` sagt das jetzt
+und verweist auf ein Szenario mit einem Markt.
+
+**Beschluss 3 — zwei Wörter.** „Zweite Compute-Revolution“ fällt aus `§5` und der Überschrift
+(Oli: so müssen es andere nennen). „Nichts ist darauf gebaut, Menschen zum Wiederkommen zu
+bewegen“ (D645 Beschluss 3) war missverständlich und heisst jetzt: keine Serien, Abzeichen, roten
+Punkte oder endlosen Listen; man kommt, wenn es etwas zu tun gibt.
+
+**Vorschlag, nicht beschlossen.** Eine Querprüfung der Bausteine gegen eine belegte Ordnung der
+Formen menschlicher Kooperation, als eigener Strang. Kandidat ist Fiskes Theorie der vier
+relationalen Modelle, aus dem Gedächtnis, nicht nachgeschlagen; vor einer Position wird gelesen.
+
+**Geändert.** `VISION.md`, `07-decisions.md`.

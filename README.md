@@ -1,90 +1,85 @@
 # Mensch als Republik (MaR)
 
-*Symbolon: A Self-Verifying Trust Layer for Local-First Networks*
+*Symbolon: a self-verifying trust layer for local-first networks*
 
-**Can a group make binding agreements, vote, and keep its books without anyone in the middle
-whom everyone has to trust — no platform, no admin key, no court?**
+MaR is a coordination protocol with a reference implementation in Python. It investigates whether
+a group can make binding agreements, take decisions by vote and keep shared accounts without a
+trusted central party such as a platform operator, an administrator or a court. The approach is
+empirical: the protocol is specified, implemented and tested against concrete scenarios.
 
-Mensch als Republik ("the human as a republic") is a protocol and a Python reference
-implementation that tries to answer that question by building the thing and measuring what
-breaks, rather than arguing about it in the abstract.
+The name of the repository refers to the ancient Greek *symbolon*, a token broken in two whose
+matching halves later served as proof of an agreement. The protocol follows the same principle:
+a statement is verifiable not because it is signed, but because it can be checked for
+consistency against other signed statements (D317).
 
-The repository and package are called `symbolon`. In ancient Greece a *symbolon* was a token
-broken in two; years later, the two halves fitting together proved an agreement without
-witnesses or an office. That is the idea here: a statement becomes checkable not because it is
-signed, but because it can fit, or collide, with other signed statements (D317).
+The specification, the decision register and the working process are maintained in German
+(D329). This file, `CONTRIBUTING.md` and `docs/METHOD.md` are written in English.
 
-This file is the English entry point. The project's working language is German: the
-specifications, the decision register and the day-to-day process are written in German and will
-stay that way (D329). This file, `CONTRIBUTING.md` and `docs/METHOD.md` are written directly for
-English readers, not translated.
+## Principle
 
-## The idea
+Each participant signs statements with a personal key. The statements of one participant form a
+hash chain that cannot be altered retroactively. All participants receive the same signed
+statements and evaluate them locally; there is no central server and no global consensus. Two
+contradictory statements by the same author constitute proof of the contradiction, signed by the
+author, and can be verified by anyone who holds both.
 
-- **Everyone signs what they say**, with their own key, in a chain of their own that they cannot
-  rewrite afterwards.
-- **Everyone gets the same signatures and computes the result themselves.** There is no shared
-  server and no global consensus; nodes agree as far as their knowledge agrees.
-- **Whoever signs two contradictory statements has produced the proof against themselves.** As
-  soon as both reach anyone, the contradiction is there, signed by its author, and cannot be
-  denied.
+Group functions are composed from these statements: vouching, membership, recording obligations
+and their settlement, disputes and arbitration, and amendment of a group's own rules by vote.
 
-On top of that sit the things groups do: vouching for someone, joining, owing and settling dues,
-accusing and arbitrating, and amending their own rules by vote.
+## Scope and limitations
 
-Just as important is what it deliberately does **not** do:
+- **No verification of facts.** The protocol establishes who stated what, not whether a statement
+  is true. Whether an event occurred is a matter of human judgement.
+- **No observation of behaviour.** Only statements a participant chooses to sign become visible.
+  Signing is intended for decisions and commitments, not for routine activity.
+- **No reputation score.** Trust is computed by each participant from their own position in a
+  network of vouches. It cannot be accumulated, transferred or exchanged, and it confers no
+  additional voting weight.
+- **No custody.** No mechanism depends on a party holding funds on behalf of others (D467).
 
-- **It does not check whether a statement is true.** Whether something actually happened is for
-  people to judge; the protocol only makes sure everyone has to stand by what they signed.
-- **It does not watch anyone.** Only what someone chooses to sign becomes visible. Signing is the
-  exception, not the default; you don't need a contract to buy bread.
-- **It keeps no reputation score.** Trust is computed by each person from their own position in a
-  network of vouches. It cannot be saved up, transferred, or bought, and it gives no extra vote.
-- **It holds no one's money.** No mechanism relies on a party that keeps other people's funds
-  (D467).
+## Current state
 
-## What works today
-
-- **A club, end to end, in the browser.** Three people found it together from a template, others
-  join, members vote on amendments and motions, dues are recorded as debts and settled by
-  receipts, and a member who votes yes and no on the same question is shown to everyone, with
-  both signatures as proof.
-- **A layered specification** (files `00` to `08`): the claim atom, the community and its
-  constitution, trust as a flow, profiles for verdicts, debts and membership, governance by
-  epochs, and a scope document with the admission test every new mechanism has to pass.
-- **Trust as a flow.** How much trust reaches someone is a maximum flow through the network of
-  vouches, with a proven bound against mass-produced fake identities, and none against real
-  people who collude.
-- **Several devices per person**, each with its own key under one root.
-- **Sync over Reticulum**, including a simulated radio channel at 1200 bit/s and 5 % loss; a whole
-  vote fits through it.
-- **Time without trust in clocks.** A node without a clock can still prove a contradiction, but it
+- **Club scenario in the browser.** Founding by three members from a template, admission of
+  members, votes on amendments and motions, membership dues recorded as obligations and settled
+  by receipts. A member who votes both for and against the same proposal is shown to all
+  members, with both signatures as evidence.
+- **Layered specification** (files `00` to `08`): the signed statement, groups and their
+  constitutions, trust, verdicts, obligations and membership, governance, and a scope document
+  defining the admission criterion for new mechanisms.
+- **Trust as network flow.** Trust is computed as a maximum flow through the network of vouches,
+  with a proven bound on the trust that fabricated identities can obtain. The bound does not
+  apply to collusion between real participants.
+- **Multiple devices per person**, each with its own key, attributed to a single identity.
+- **Synchronisation over Reticulum**, including a simulated radio channel at 1200 bit/s with 5 %
+  packet loss, over which a complete vote can be conducted.
+- **Operation without a reliable clock.** A node without a clock can verify contradictions but
   cannot grant trust.
-- **Independent rebuilds** of parts of the specification in Go, Haskell and Rust, from frozen
-  copies of the text and without the Python code. One Haskell build turned out to have seen the
-  repository and is not counted as independent. Their main yield was lists of questions that
-  exposed ambiguities in the spec.
+- **Independent reimplementations** of parts of the specification in Go, Haskell and Rust, based
+  solely on frozen copies of the text. One Haskell implementation had access to the repository
+  and is not counted as independent. Their main result was a set of questions identifying
+  ambiguities in the specification.
 
-This file deliberately carries no counts of tests or decisions: a number nobody checks drifts
-(D415). The current state is what `make check` reports and what `LAGE.md` describes.
+Counts of tests and decisions are omitted, as such figures become outdated (D415). The current
+state is reported by `make check` and described in `LAGE.md`.
 
-## What is still open
+## Open questions
 
-- **No real group uses it yet.** Everything is tested against itself and with simulated people
-  (D237). This is the largest gap, and it is not a technical one.
-- **Known gaps in the building blocks.** A cross-check against Fiske's four relational models and
-  Ostrom's design principles for commons found what the current blocks cannot express without
-  something new: secret ballots, representing a group to the outside, prices and exchange,
-  nested groups, and forgiveness (D661). The list is item O105 in `offen.md`; each gap gets its
-  own research before anything is built.
-- **On phones**, the node runs, but two phones do not yet find each other on their own.
+- **No deployment.** The protocol has been tested only against itself and with simulated
+  participants (D237).
+- **Gaps in the building blocks.** A comparison with Fiske's relational models theory and
+  Ostrom's design principles for common-pool resources identified functions that the current
+  building blocks cannot express: secret ballots, representation of a group towards third
+  parties, prices and exchange, nested groups, and forgiveness (D661). These are tracked as item
+  O105 in `offen.md`; each will be researched before any change is made.
+- **Mobile devices.** The node runs on Android; automatic discovery between phones is not yet
+  available.
 
-Open questions live in `offen.md`, decisions in `07-decisions.md`. This file names only kinds of
-questions, so that it does not have to change every time one is answered.
+Open questions are tracked in `offen.md`, decisions in `07-decisions.md`. This section lists
+categories only and is not updated for individual items.
 
-## Try it
+## Running the demonstration
 
-You need Python 3.11 or newer. The user interface is in German.
+Requires Python 3.11 or later. The user interface is in German.
 
 ```sh
 python3 -m venv .venv
@@ -92,59 +87,56 @@ python3 -m venv .venv
 .venv/bin/python -m symbolon.node ~/mar-demo.sqlite --uhr-ab 1000
 ```
 
-Then open `http://anna.localhost:8470/`, `http://bruno.localhost:8470/` and
-`http://chris.localhost:8470/` in three tabs of a Chromium-based browser. In each, enter a name
-and create a key; then, as Anna, found a club with the other two. The file passed to the node
-holds its data; a fresh file means a fresh start.
+Open `http://anna.localhost:8470/`, `http://bruno.localhost:8470/` and
+`http://chris.localhost:8470/` in three tabs of a Chromium-based browser, enter a name and create
+a key in each, then found a club as Anna together with the other two. The database file holds
+the node's state; a new file starts a new instance.
 
-To see the contradiction between five simulated devices:
+Contradiction detection across five simulated devices:
 
 ```sh
 .venv/bin/python -m tools.netz ~/mar-netz-demo
 ```
 
-It prints five addresses and the steps to follow. A fresh directory means a fresh start.
+The command prints five addresses and the sequence of steps. A new directory starts a new run.
 
-## Where to start reading
+## Documentation
 
-All of these are in German.
+All documents listed here are in German.
 
-- `LAGE.md` — the current state: what is solved, what is open, how the parts fit, and what was
-  rejected and why, each statement with a reference.
-- `VISION.md` — why and what for; the assumptions about people the design rests on.
-- `08-scope.md` — what the protocol does and does not promise, and the admission test.
-- `ROADMAP.md` — the plan.
-- `07-decisions.md` — every normative decision with its reasons and the alternatives it rejected.
-  `tools/register_index.py` looks entries up by number.
+- `LAGE.md`: current state, solved and open problems, architecture, and rejected alternatives,
+  with references for each statement.
+- `VISION.md`: purpose, applications, and assumptions about human behaviour.
+- `08-scope.md`: guarantees and limitations of the protocol, and the admission criterion.
+- `ROADMAP.md`: plan.
+- `07-decisions.md`: all normative decisions with their rationale and rejected alternatives;
+  `tools/register_index.py` provides lookup by entry number.
 
-## Repository layout
+## Repository structure
 
-- `00` – `08`, plus lettered sub-specifications: the layered specification.
-- `*-prompt.md`, `*-golden-anchors.md`: implementation prompts and expected-value anchors for
-  specific layers. They sit flat in the root on purpose: once code cites a prompt file, it is
-  normative text like any spec file, and moving it would break the citation.
-- `07-decisions.md`: the decision register. Large by design; it is the point of the project, not
-  overhead.
+- `00` to `08`, with lettered sub-specifications: the layered specification.
+- `*-prompt.md`, `*-golden-anchors.md`: implementation prompts and expected values for individual
+  layers. They remain in the root directory because code cites them; a file cited by code is
+  normative and is not moved.
+- `07-decisions.md`: decision register.
 - `LAGE.md`, `VISION.md`, `ROADMAP.md`, `offen.md`: state, purpose, plan, open items.
-- `szenario-verein.md`: the club scenario the application is built from.
-- `pruefregeln.md`, `arbeitsweise.md`: the review rules and the working method.
-- `symbolon/`: the Python reference implementation. `symbolon/node/` is the node with its web
-  page, `symbolon/bote/` the messenger that syncs nodes over Reticulum.
-- `tests/`, `tools/`: the test suite and the tooling that enforces the review discipline.
-- `go/`, `hs/`, `rs/`: the independent rebuilds, pinned to frozen copies of the specification.
-- `archiv/`: earlier session handoffs, kept so that old references resolve.
+- `szenario-verein.md`: the club scenario on which the application is based.
+- `pruefregeln.md`, `arbeitsweise.md`: review rules and working method.
+- `symbolon/`: reference implementation; `symbolon/node/` contains the node and its web
+  interface, `symbolon/bote/` the component that synchronises nodes over Reticulum.
+- `tests/`, `tools/`: test suite and review tooling.
+- `go/`, `hs/`, `rs/`: independent reimplementations, each pinned to a frozen copy of the
+  specification.
+- `archiv/`: earlier session records, retained so that references remain resolvable.
 
 ## License
 
-Code is licensed under **Apache-2.0** (`LICENSE`). The specification, the decision register and
-other prose are licensed under **CC-BY-4.0** (`LICENSE-SPEC`). Both choices and their reasons are
-in the register (D319).
+Code: Apache-2.0 (`LICENSE`). Specification, decision register and other prose: CC BY 4.0
+(`LICENSE-SPEC`). Rationale in D319.
 
-## Getting involved
+## Contributing
 
-This is a one-person project, but it is not built ad hoc: every change is checked against the
-specification, not just against what compiles. `docs/METHOD.md` describes how.
-
-If you work on related problems — coordination without a center, protocols hardened by
-contradiction rather than authority — or if you are part of a group that might actually want to
-use this, open an issue or see `CONTRIBUTING.md`.
+MaR is maintained by a single author. Every change is reviewed against the specification; the
+method is described in `docs/METHOD.md`. Contact through an issue or via `CONTRIBUTING.md` is
+welcome, in particular from people working on decentralised coordination and from groups
+interested in using the protocol.

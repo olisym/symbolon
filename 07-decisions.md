@@ -29627,3 +29627,30 @@ als Auftrag, wenn jemand sie braucht; bis dahin tragen die drei Befehle.
 steht, wird vorher in einem frischen Klon gefahren (Schwester von D518).
 
 **Geändert.** `README.md`, `07-decisions.md`.
+
+### D663 — Nachtrag zu D662: die README neu, direkt auf Englisch und sachlich
+
+**Anlass.** Oli nach dem Push von D662 (`d9133b5`): die README liest sich wie wörtlich aus dem
+Deutschen übertragen. Ein zweiter Entwurf, direkt auf Englisch, war ihm zu umgangssprachlich; er
+will einen neutralen, sachlichen, wissenschaftlichen Ton, informativ und knapp, gut formuliert.
+
+**Befund.** Die Fassung aus D662 war auf Deutsch gedacht und Satz für Satz übertragen; Wendungen
+wie „Whoever signs two contradictory statements has produced the proof against themselves“
+tragen den deutschen Satzbau. D329 verlangt das Gegenteil: die englischen Dateien sind direkt
+verfasst, nicht übersetzt.
+
+**Beschluss 1 — neu geschrieben, Inhalt unverändert.** Dieselben Aussagen, Verweise und derselbe
+Weg zum Ausprobieren. Die Abschnitte heissen sachlich (Principle, Scope and limitations, Current
+state, Open questions, Running the demonstration, Documentation, Repository structure).
+
+**Beschluss 2 — der Ton der englischen Aussenschale (Oli).** Neutral, sachlich, informativ und
+knapp, ohne Umgangssprache, ohne Werbung und ohne Bilder wie das Brötchen; direkt auf Englisch
+verfasst. Das gilt für `README.md` und künftig für `CONTRIBUTING.md` und `docs/METHOD.md`.
+
+**Beschluss 3 — Englisch bleibt.** Die README ist der Einstieg auf GitHub; D329 gilt weiter.
+
+**Kandidat für eine Prüfregel, nicht übernommen.** Ein englischer Text für Lesende von aussen wird
+auf Englisch entworfen, nicht aus einem deutschen Gedanken übertragen; vor der Lieferung wird er
+einmal nur auf Sprache und Ton gelesen.
+
+**Geändert.** `README.md`, `07-decisions.md`.

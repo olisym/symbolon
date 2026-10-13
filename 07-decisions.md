@@ -29874,3 +29874,56 @@ Wahl als Widerspruch, und die getragenen Grenzen aus D666 Befund 5. Sie wird vor
 einem Prototyp der Auszählung gemessen (D599, D601).
 
 **Geändert.** `07-decisions.md`.
+
+### D668 — Die geheime Wahl: Position zur Auszählung, am Prototyp gemessen
+
+**Anlass.** D667 Beschluss 5: eine Position zur Norm der Wahl, vor dem Normtext an einem Prototyp
+der Auszählung gemessen.
+
+**Position — drei Objekte.**
+
+- **Die Wahl** nennt das Amt, feste Kandidaten und die Epoche, deren `P` wahlberechtigt ist.
+- **Die Liste** ist das Ergebnis einer Mischrunde (D666, D667 Befund 1): die Teilnehmer offen, ihre
+  frischen Schlüssel gemischt, dazu die Wahl, für die sie gilt.
+- **Die Stimme** ist ein gewöhnlicher Claim eines Schlüssels aus einer Liste: Wahlgang und Kandidat.
+  Das Atom bleibt (D666 Beschluss 1).
+
+**Position — wann eine Liste trägt.** Ihre Teilnehmer sind Wurzeln aus `P` und verschieden; sie
+trägt so viele verschiedene Schlüssel wie Teilnehmer; jeder Teilnehmer hat sie offen bestätigt, und
+jeder Schlüssel hat sie selbst bestätigt. Die Bestätigung durch den Schlüssel ist der Nachweis, dass
+sein Inhaber ihn hält. Hat eine Wurzel oder ein Schlüssel zwei Listen derselben Wahl bestätigt,
+trägt keine der beiden; das ist eine benannte Ausnahme wie die Doppelstimme (`04 §3.2`), und die
+Wurzel steht mit Namen dabei. Mehrere Listen mit verschiedenen Teilnehmern tragen nebeneinander.
+
+**Position — gewählt und Patt.** Je Schlüssel und Wahlgang zählt eine Stimme; zwei verschiedene
+zählen nicht (`04 §3.1`). Gewählt ist im geltenden Wahlgang, wer mehr als die Hälfte von `n = |P|`
+hat (D667 Beschluss 1 und 3). Ein Wahlgang steht im Patt, wenn ein Schlüssel in ihm gestimmt hat und
+für jeden Kandidaten `2 * (Stimmen + frei) <= n` gilt. Frei sind die Schlüssel ohne Stimme in diesem
+Wahlgang **und die Wurzeln aus `P`, die in keiner tragenden Liste stehen**: sie können noch eine
+bekommen. Der geltende Wahlgang ist der kleinste ohne Patt, wie in `04 §4.7`.
+
+**Befund 1 — gemessen.** 40000 zufällige Bestände, zwei Seeds, drei bis neun Mitglieder, ein bis
+vier Kandidaten, mit gestörten Listen, Doppelbestätigungen und Doppelstimmen. Nie zwei Gewählte.
+Weniger Wissen, also fehlende Stimmen oder eine fehlende Liste samt ihren Stimmen, hob nie ein
+Ergebnis und schob den Wahlgang nie weiter; geprüft auf Beständen ohne Doppelbestätigung und
+Doppelstimme, denn die sind die benannte Ausnahme.
+
+**Befund 2 — zwei Rücknahmeproben.** Zählen die Wurzeln ohne Liste nicht als frei, bricht die
+Monotonie 1629-mal: eine neue Liste hebt dann ein Patt auf. Ohne die Bestätigung durch den
+Schlüssel bricht sie 7-mal: ein Mitglied entwertete mit einer Einerliste und einem kopierten fremden
+Schlüssel eine ganze Liste. Beide Bedingungen tragen.
+
+**Befund 3 — die neuen Claims müssen unwiderruflich sein wie `vote@1`** (`04 §3.1` Bedingung 6).
+Position: in den Boden (`00 §5.2`), damit bestehende Vereine keine Satzungsänderung brauchen. Vor
+dem Normtext zu lesen.
+
+**Beschluss 1 — Listen ohne Mindestgrösse, die Seite warnt (Oli).** Wer bei der Mischrunde fehlt,
+kann mit anderen Nachzüglern eine eigene Runde machen; geheim ist die Stimme dann nur unter diesen.
+Wer allein eine Liste bildet, wählt erkennbar. Das bleibt erlaubt; die Seite sagt es vorher
+deutlich.
+
+**Beschluss 2 — der nächste Schritt.** Der Normtext der Wahl, mit Befund 3 und den Grenzen aus D666
+Befund 5 als getragene Grenzen, und die Golden Anchors dazu aus dem Prototyp. Danach der Auftrag für
+die Bibliothek; die Mischrunde im Knoten und die Seite folgen.
+
+**Geändert.** `07-decisions.md`.

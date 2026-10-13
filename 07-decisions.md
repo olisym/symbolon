@@ -29654,3 +29654,29 @@ auf Englisch entworfen, nicht aus einem deutschen Gedanken übertragen; vor der 
 einmal nur auf Sprache und Ton gelesen.
 
 **Geändert.** `README.md`, `07-decisions.md`.
+
+### D664 — `ROADMAP.md` fortgeschrieben: Phasen 0 bis 5 mit Stand; danach Gründung und O105
+
+**Anlass.** D658 Beschluss 3. Die Roadmap stand seit D468 still und führte die Phasen 2 bis 5 als
+Plan, obwohl sie gebaut sind; die Gründung und die Querprüfung (D661) kamen nicht vor.
+
+**Befund — Abschnitte, die zitiert werden.** `szenario-verein.md` zitiert `§3` und `§4`, `offen.md`
+`§7`, `VISION.md` `§1`, `LAGE.md` `§8`, das Register `§1`, `§4`, `§5`, `§6`, `§7` und `§9`. Jede
+Stelle ist gegen den neuen Text gelesen und trägt; die Nummern und Gegenstände der neun Abschnitte
+bleiben.
+
+**Beschluss 1 — die Phasen tragen ihren Stand.** Phase 0 bis 4 erledigt, Phase 5 im Lab erreicht,
+der Funk über Hardware ruht (D639); je mit den Einträgen, die sie tragen.
+
+**Beschluss 2 — `§8` bekommt drei Teile.** `§8.1` die Gründung mit ihren vier Schritten (D641
+Beschluss 1), `§8.2` die Lücken aus O105, `§8.3` die weiteren Szenarien mit dem Satz zum Bond aus
+D467. Der bisherige Inhalt von `§8` steht in `§8.3`.
+
+**Beschluss 3 — die Reihenfolge (Oli, in dieser Sitzung).** README, dann diese Roadmap, dann die
+geheime Wahl als eigener Strang mit gründlicher Recherche, vor Schritt 3 der Gründung. Die übrigen
+fünf Lücken aus O105 folgen, wenn ein Szenario sie braucht oder Oli sie vorzieht.
+
+**Beschluss 4 — was ruht, ergänzt.** Funk über Hardware (D639) und die Paketierung (D662
+Beschluss 2).
+
+**Geändert.** `ROADMAP.md`, `07-decisions.md`.

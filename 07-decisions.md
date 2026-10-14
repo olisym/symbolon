@@ -30344,3 +30344,29 @@ eine Stimme der Wurzel ohne Wahlschlüssel. Die Seite ist der nächste Auftrag n
 **Auftrag.** `p60-wahl-ablauf`, Basis ist der Commit dieses Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D679 — Abnahme `p60-wahl-ablauf`: angenommen im ersten Durchgang
+
+**Anlass.** Der Bericht des Werkzeugs zu `p60-wahl-ablauf`, Commit `4a74b2b` auf `4ed9cd5`
+(D678): `make check` mit Status 0, auf der Basis 1688 Tests gemessen, danach 1693, fünf
+Rücknahmeproben wie im Auftrag, keine Meldung, keine Rückfrage.
+
+**Befund 1 — was der Supervisor las.** Der Diff gegen `4ed9cd5` ganz, aus dem Spiegel: drei
+Dateien, genau die aus dem Auftrag. `tests/node/test_wahl_ablauf.py` ist bytegleich zum Diff der
+Tests. Die Tabelle, die Absichten und die Routen stehen, wie D678 Beschluss 2 und 3 sie nennt;
+die Reihenfolge der Abweisungen ist die des Auftrags, und keine Abweisung schreibt etwas.
+
+**Befund 2 — zwei Stellen strenger als der Prototyp, beide getragen.** Kandidaten der Absicht
+`election` werden ohne Längenprüfung gelesen; ein Eintrag, der keine 32 Bytes hat, scheitert an
+`election_wellformed` und ergibt `INVALID_ELECTION` statt einer allgemeinen Abweisung. Die
+Prüfung auf `ALREADY_VOTED` zählt nur Stimmen, die nach `§9.4` binden könnten, also mit
+lesbarem `v`, Kandidat aus 32 Bytes und Wahlgang als `int` ohne `bool`.
+
+**Beschluss 1 — angenommen.** `p60-wahl-ablauf` geht nach `main`. Der Knoten kann eine Wahl ohne
+Mischrunde vom Anlegen bis zum Ergebnis führen.
+
+**Beschluss 2 — der nächste Schritt.** Die Seite der Wahl (D678 Beschluss 4): Wahl anlegen,
+teilnehmen, abstimmen, Ergebnis, mit dem deutlichen Satz, dass die Wahl ohne Mischrunde nicht
+geheim ist. Vorher werden `app.js`, `anzeige.js` und der Selbsttest gelesen.
+
+**Geändert.** `07-decisions.md`.

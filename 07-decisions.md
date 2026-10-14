@@ -30232,3 +30232,31 @@ läuft mit 1688 Tests grün.
 **Auftrag.** `p59-wahlen-knoten`, Basis ist der Commit dieses Eintrags.
 
 **Geändert.** `04-governance.md`, `07-decisions.md`.
+
+### D676 — Abnahme `p59-wahlen-knoten`, erster Durchgang: ein Defekt im Feld `epoch`
+
+**Anlass.** Der Bericht des Werkzeugs zu `p59-wahlen-knoten`, Commit `ce7fd1d` auf `519c937`
+(D675): `make check` mit Status 0, 1688 Tests, vier Rücknahmeproben wie im Auftrag, keine
+Meldung, keine Rückfrage.
+
+**Befund 1 — was der Supervisor las.** Der Diff gegen `519c937` ganz, aus dem Spiegel: fünf
+Dateien, genau die aus dem Auftrag. `tests/node/test_wahlen.py` ist bytegleich zum Diff der
+Tests. `chain`, die neuen Arten, die Suche der Epoche in der Kette, die Policy der Epoche der
+Wahl und die Route stehen, wie D675 Beschluss 1 bis 3 sie nennt.
+
+**Befund 2 — der Defekt.** `WahlView.epoch` ist `obj[1]` nur, wenn die Epoche in der Kette
+steht, sonst `None`, auch bei einer wohlgeformten Wahl. Der Auftrag sagt: bei einer
+wohlgeformten Wahl stehen die Felder, wie die Wahl sie führt. Ob die Epoche aufgelöst ist,
+sagt das Ergebnis der Auszählung; das Feld nennt, worauf die Wahl sich beruft, damit die Seite
+eine Wahl auf eine erfundene Epoche als solche zeigen kann. Das Werkzeug hat die Stelle als
+Anmerkung genannt, nicht als Abweichung. Die Tests sahen sie nicht: die Wahl auf die erfundene
+Epoche prüfte nur das Ergebnis.
+
+**Beschluss 1 — Nachtrag auf demselben Branch.** `epoch` ist bei einer wohlgeformten Wahl
+`obj[1]`. `test_epoche_ausserhalb_der_kette_ist_nicht_aufgeloest` prüft dazu Amt, Bezeichnung
+und Epoche der Wahl. Im Supervisor-Klon gemessen: auf `ce7fd1d` wird der Test rot, und zwar an
+der Epoche (`None` statt des Hashes); mit der Reparatur ist er grün.
+
+**Auftrag.** `p59-nachtrag`, auf `p59-wahlen-knoten` an dem Commit dieses Eintrags.
+
+**Geändert.** `07-decisions.md`.

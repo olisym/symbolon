@@ -17,6 +17,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_id, core_bytes, id_genesis_anchor, sign, signed_bytes
 from symbolon.errors import VerifierError
+from symbolon.governance.chain import resolve_epoch
+from symbolon.governance.election import Election, ElectionState, election_wellformed
 from symbolon.governance.objects import RULE_FIELDS, Motion, Proposal, motion_wellformed
 from symbolon.governance.tally import (
     TallyResult,
@@ -206,6 +208,8 @@ _ARTS = frozenset(
         "obligation",
         "receipt",
         "device-end",
+        "election",
+        "ballot-ack",
     }
 )
 
@@ -483,6 +487,10 @@ def _intent_body(
 
     Die Sperre ``device-end`` beendet ein wirksam aufgenommenes eigenes Gerät, ohne Warnung und
     ohne Folge (D596 Beschluss 2, 01 §7.3).
+
+    ``election`` baut die Wahl auf die geltende Epoche, Kandidaten sortiert, und liefert das
+    Objekt ein. ``ballot-ack`` bereitet die Bestätigung einer Liste vor (04 §9.1, 04 §9.2,
+    D678 Beschluss 3).
     """
     author = _hex(_require(body, "I"), 32)
     art = _text(_require(body, "art"), "art")
@@ -685,6 +693,53 @@ def _intent_body(
                 raise _Named("UNKNOWN_CLAIM")
             fields["v"] = cbor_canon.encode({0: keep}).hex()
         effect = None
+    elif art == "election":
+        # Scope wie bei propose. Doppelte Einträge oder eine formwidrige Wahl: nichts schreiben
+        # (04 §9.1, D678 Beschluss 3).
+        scope = _scope_of(store, _require(body, "scope"))
+        office = _require(body, "office")
+        label = _require(body, "label")
+        raw_candidates = _require(body, "candidates")
+        if not isinstance(raw_candidates, list):
+            raise _Named("INVALID_ELECTION")
+        candidates = [_hex(item) for item in raw_candidates]
+        if len(candidates) != len(set(candidates)):
+            raise _Named("INVALID_ELECTION")
+        _view, epoch, _constitution = _current(store, scope, now)
+        obj = {
+            0: scope,
+            1: epoch.epoch_id,
+            2: office,
+            3: sorted(candidates),
+            4: label,
+        }
+        if not election_wellformed(Election(obj)):
+            raise _Named("INVALID_ELECTION")
+        digest = store.submit_object(ObjectKind.ELECTION, cbor_canon.encode(obj))
+        fields.update(p=f"nuc:{scope.hex()}/election@1", J=[3, digest.hex()], N=scope.hex())
+        effect = {"election": digest}
+    elif art == "ballot-ack":
+        # Liste des Bestands; die Wahl aus Feld 0 muss bekannt und wohlgeformt sein
+        # (04 §9.1, 04 §9.2, D678 Beschluss 3).
+        list_hash = _hex(_require(body, "list"), 32)
+        ballot_list = store.all_ballot_lists().get(list_hash)
+        if ballot_list is None:
+            raise _Named("UNKNOWN_LIST")
+        listed = ballot_list.obj
+        if not isinstance(listed, dict) or not isinstance(listed.get(0), bytes):
+            raise _Named("UNKNOWN_LIST")
+        election = store.all_elections().get(listed[0])
+        if election is None:
+            raise _Named("UNKNOWN_ELECTION")
+        if not election_wellformed(election):
+            raise _Named("MALFORMED_ELECTION")
+        scope = election.obj[0]
+        fields.update(
+            p=f"nuc:{scope.hex()}/ballot-ack@1",
+            J=[3, list_hash.hex()],
+            N=scope.hex(),
+        )
+        effect = None
     elif art == "obligation":
         scope = _scope_of(store, _require(body, "scope"))
         creditor = _hex(_require(body, "creditor"), 32)
@@ -711,6 +766,138 @@ def _intent_body(
         )
         effect = _receipt_effect(store, obligation, now)
     return fields, warnings, effect
+
+
+def _election_of(
+    store: SqliteStore, body: Mapping[str, Any], now: int
+) -> tuple[bytes, Election, bytes, list, int | None]:
+    """Bekannte wohlgeformte Wahl, ihr Scope, ``P`` und der geltende Wahlgang (04 §9, D678).
+
+    Unbekannt ``UNKNOWN_ELECTION``, formwidrig ``MALFORMED_ELECTION``, fehlt der Scope im
+    Bestand ``UNKNOWN_SCOPE``, ist die Zeile aus ``elections_view`` ``UNEVALUABLE`` dann
+    ``NOT_EVALUABLE``. ``P`` sind die ``participants`` der Verfassung ihrer Epoche aus ``chain``
+    von ``resolve_epoch`` (04 §9.3, D678 Beschluss 3).
+    """
+    digest = _hex(_require(body, "election"), 32)
+    election = store.all_elections().get(digest)
+    if election is None:
+        raise _Named("UNKNOWN_ELECTION")
+    if not election_wellformed(election):
+        raise _Named("MALFORMED_ELECTION")
+    scope = election.obj[0]
+    if scope not in store.all_genesis():
+        raise _Named("UNKNOWN_SCOPE")
+    row = next(item for item in elections_view(store, scope, now) if item.election == digest)
+    if row.result.state is ElectionState.UNEVALUABLE:
+        raise _Named("NOT_EVALUABLE")
+    genesis = store.all_genesis()[scope]
+    constitutions = store.all_constitutions()
+    resolution = resolve_epoch(
+        store,
+        scope=scope,
+        genesis_obj=genesis,
+        known_constitutions=constitutions,
+        known_proposals=_known(store),
+        now=now,
+    )
+    epoch = next(item for item in resolution.chain if item.epoch_id == election.obj[1])
+    participants = constitutions[epoch.constitution_hash]["participants"]
+    return digest, election, scope, participants, row.result.current_round
+
+
+def _wahl_liste(
+    store: SqliteStore, body: Mapping[str, Any], clock: Callable[[], int]
+) -> dict[str, bytes]:
+    """Liste mit der Wurzel allein; der Wahlschlüssel bestätigt sie einmal (04 §9, D678).
+
+    Steht ``I`` nicht in ``P``, ``NOT_ELIGIBLE``. Ein zweiter Aufruf liefert dieselbe Liste
+    und unterschreibt keine zweite Bestätigung (04 §9.2, D678 Beschluss 3).
+    """
+    now = clock()
+    digest, _election, scope, participants, _current_round = _election_of(store, body, now)
+    root = _hex(_require(body, "I"), 32)
+    if root not in participants:
+        raise _Named("NOT_ELIGIBLE")
+    seed = store.wahlschluessel(digest, root)
+    pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+    liste = {0: digest, 1: [root], 2: [pub]}
+    list_hash = store.submit_object(ObjectKind.BALLOT_LIST, cbor_canon.encode(liste))
+    bestaetigt = any(
+        is_nuc_name(claim, "ballot-ack") and claim.I == pub and claim.J == (3, list_hash)
+        for claim in store.all_claims()
+    )
+    if not bestaetigt:
+        prepared = _prepare(
+            store,
+            {
+                "I": pub.hex(),
+                "p": f"nuc:{scope.hex()}/ballot-ack@1",
+                "J": [3, list_hash.hex()],
+                "N": scope.hex(),
+            },
+            clock,
+        )
+        sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
+        _submit(store, core_bytes(prepared), sigma)
+    return {"list": list_hash, "key": pub}
+
+
+def _wahl_stimme(
+    store: SqliteStore, body: Mapping[str, Any], clock: Callable[[], int]
+) -> dict[str, bytes | int]:
+    """Stimme des Wahlschlüssels im genannten oder geltenden Wahlgang (04 §9, D678).
+
+    Fehlt der Seed, ``NO_BALLOT_KEY``. Liegt der Kandidat nicht in der Wahl,
+    ``UNKNOWN_CANDIDATE``. Hat der Schlüssel in diesem Wahlgang schon einen ``ballot@1`` mit
+    lesbarem ``v``, ``ALREADY_VOTED``, denn eine zweite Stimme entwertete beide (04 §9.4,
+    D678 Beschluss 3).
+    """
+    now = clock()
+    digest, election, scope, _participants, current_round = _election_of(store, body, now)
+    root = _hex(_require(body, "I"), 32)
+    seed = store.wahlschluessel_lesen(digest, root)
+    if seed is None:
+        raise _Named("NO_BALLOT_KEY")
+    candidate = _hex(_require(body, "candidate"))
+    if candidate not in election.obj[3]:
+        raise _Named("UNKNOWN_CANDIDATE")
+    if "round" in body:
+        rnd = _whole(body["round"], "round")
+        if rnd < 0:
+            raise ValueError("round is negative")
+    else:
+        rnd = current_round
+    pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+    for claim in store.all_claims():
+        if claim.I != pub or claim.N != scope or claim.J != (3, digest):
+            continue
+        if not is_nuc_name(claim, "ballot"):
+            continue
+        obj, kind = read_v(claim.v)
+        if kind is not None or not isinstance(obj, dict):
+            continue
+        named, wahlgang = obj.get(0), obj.get(1)
+        if (
+            isinstance(named, bytes)
+            and len(named) == 32
+            and type(wahlgang) is int
+            and wahlgang == rnd
+        ):
+            raise _Named("ALREADY_VOTED")
+    prepared = _prepare(
+        store,
+        {
+            "I": pub.hex(),
+            "p": f"nuc:{scope.hex()}/ballot@1",
+            "J": [3, digest.hex()],
+            "v": cbor_canon.encode({0: candidate, 1: rnd}).hex(),
+            "N": scope.hex(),
+        },
+        clock,
+    )
+    sigma = sign(Ed25519PrivateKey.from_private_bytes(seed), prepared)
+    cid = _submit(store, core_bytes(prepared), sigma)
+    return {"claim_id": cid, "round": rnd}
 
 
 def _sim_tip(store: SqliteStore, body: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -1014,6 +1201,12 @@ def _handler(
                 return
             if post and path == "/gruenden":
                 self._send(200, _gruenden(store, self._json_body()))
+                return
+            if post and path == "/wahl/liste":
+                self._send(200, _wahl_liste(store, self._json_body(), clock))
+                return
+            if post and path == "/wahl/stimme":
+                self._send(200, _wahl_stimme(store, self._json_body(), clock))
                 return
             if post and path in {
                 "/objects",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from enum import Enum
 from pathlib import Path
@@ -63,6 +64,12 @@ class SqliteStore:
             );
             CREATE TABLE IF NOT EXISTS verworfen (
                 scope BLOB PRIMARY KEY
+            );
+            CREATE TABLE IF NOT EXISTS wahlschluessel (
+                election BLOB NOT NULL,
+                root BLOB NOT NULL,
+                seed BLOB NOT NULL,
+                PRIMARY KEY (election, root)
             );
             """
         )
@@ -269,6 +276,33 @@ class SqliteStore:
         """Öffentliche Schlüssel der simulierten Personen (D471 Beschluss 3, D479 Beschluss 5)."""
         rows = self._db.execute("SELECT pub FROM sim_keys").fetchall()
         return {row[0] for row in rows}
+
+    def wahlschluessel(self, election: bytes, root: bytes) -> bytes:
+        """Seed zu Wahl und Wurzel; fehlt er, entsteht er aus 32 Zufallsbytes und wird
+        festgeschrieben (04 §9, D678 Beschluss 2)."""
+        row = self._db.execute(
+            "SELECT seed FROM wahlschluessel WHERE election = ? AND root = ?",
+            (election, root),
+        ).fetchone()
+        if row is not None:
+            return row[0]
+        seed = os.urandom(32)
+        self._db.execute(
+            "INSERT INTO wahlschluessel (election, root, seed) VALUES (?, ?, ?)",
+            (election, root, seed),
+        )
+        self._db.commit()
+        return seed
+
+    def wahlschluessel_lesen(self, election: bytes, root: bytes) -> bytes | None:
+        """Seed zu Wahl und Wurzel, oder ``None``; legt nichts an (04 §9, D678 Beschluss 2)."""
+        row = self._db.execute(
+            "SELECT seed FROM wahlschluessel WHERE election = ? AND root = ?",
+            (election, root),
+        ).fetchone()
+        if row is None:
+            return None
+        return row[0]
 
     def add_name(self, pub: bytes, name: str) -> None:
         """Setzt den Namen eines Schlüssels, auch wiederholt (D479 Beschluss 5)."""

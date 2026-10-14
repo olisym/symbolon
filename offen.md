@@ -514,3 +514,13 @@ Tab „Wahlen“, den Schritten unter „Jetzt zu tun“ und einer Frage vor jed
 und geheime Stimmen in derselben Epoche treffen sich nicht, denn die Wahl ist kein Antrag (D667
 Beschluss 2). Offen: die Mischrunde zwischen Knoten, ein Satzungsantrag für Vereine, die vor D673
 gegründet wurden, und was die Vorstandswahl füllt (O105 Punkt 1).
+
+### O107 Beteiligung: wer nie abstimmt
+
+Der Nenner ist `|P|`, Schweigen wirkt wie Ablehnung (D100). Mit festen Schwellen in der Vorlage
+(D648 Beschluss 5) steht ein Verein still, sobald mehr als ein Drittel nie abstimmt: keine
+Satzungsänderung mehr, Wahlen ohne Ende (D686 Befund 1 und 2). Position nach D686: Enthaltung als
+ausdrückliche Stimme, die den Nenner senkt; ruhen durch Beschluss mit `membership`, zurück durch
+ein eigenes Lebenszeichen. Offen: wann eine Rückkehr wirkt, ohne eine laufende Abstimmung zu
+kippen, die Kennung der Regel in der Satzung, Enthaltung in Wahl und Patt (D686 Befund 5).
+Nächster Schritt: nachschlagen, dann ein Prototyp an der Bibliothek.

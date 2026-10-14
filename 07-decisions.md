@@ -30625,3 +30625,69 @@ Seite. Die fünf Rücknahmeproben sind berichtet wie verlangt.
 seinem Satz dazu; danach die Mischrunde zwischen Knoten (D667, D683 Beschluss 3).
 
 **Geändert.** `07-decisions.md`.
+
+### D686 — Beteiligung: Enthaltung als Stimme, ruhende Mitgliedschaft; Position, kein Normtext
+
+**Anlass.** Olis neue Arbeitsweise nach D685: Fälle durchspielen, die das Protokoll an
+menschliches Handeln legen, bevor die Oberfläche weiter wächst; die geheime Wahl war so ein Fund
+(O105). Erster Fall auf Olis Wahl: ein Verein, in dem ein Teil nie abstimmt (D645 Beschluss 6).
+Gelesen: `04 §3.1`, `04 §3.2`, `04 §3.3`, `04 §8`, D100, D645 Beschluss 3 und 6, D648
+Beschluss 5, die Vorlage `verein` in `symbolon/node/gruendung.py`.
+
+**Befund 1 — die Geschichte.** Ein Verein mit 30 Mitgliedern, 20 machen mit, 10 nie. Die
+Vorlage hat die Schwellen `membership` und `ordinary` bei `1/2`, `amendment` bei `2/3`, gezählt
+gegen `n = |P|` (`04 §3.2`). Sitz oder Beitrag ändern braucht 16 Ja, vier Fünftel der Aktiven.
+Name, Zweck oder eine Regel ändern braucht 21 Ja bei 20 Aktiven: das geht nie mehr. Eine Wahl, in
+der die Aktiven 10 zu 10 stimmen, wählt niemanden (16 nötig) und kommt auch nicht ins Patt, denn
+die 10 ohne Liste sind frei und könnten noch entscheiden (`04 §9.4`): sie bleibt ohne Ende offen.
+
+**Befund 2 — zwei Entscheidungen ergeben zusammen den Stillstand.** Dass Schweigen wie Ablehnung
+wirkt, ist gewollt (D100, `04 §8`): eine Frist bräuchte eine gemeinsame Uhr, und wer Zustellung
+verzögern kann, machte sie zur Waffe. Als Ausweg nennt D100, die Schwelle gegen die tatsächliche
+Beteiligung zu wählen. Die Vorlage legt die Schwellen aber fest (D648 Beschluss 5), und ändern
+kann sie nur eine Satzungsänderung mit `amendment`. Ist mehr als ein Drittel still, ist der
+Ausweg zu; es bleiben der Ausschluss mit `membership` und ein neuer Genesis.
+
+**Befund 3 — Abwesenheit lässt sich nicht beweisen.** Dass jemand etwas unterschrieben hat,
+beweist sein Claim. Dass er es nicht hat, beweist nichts: seine Stimme kann unterwegs sein. Ein
+Ausschluss nach Zeit träfe gerade den, dessen Nachrichten verzögert werden; er bräuchte zudem die
+Uhr aus D100.
+
+**Befund 4 — aus dem Gedächtnis, nicht nachgeschlagen.** Im Vereinsrecht entscheidet in der
+Versammlung die Mehrheit der abgegebenen Stimmen; ohne Versammlung gilt ein Beschluss, wenn alle
+beteiligt wurden und bis zu einem Termin mindestens die Hälfte abgestimmt hat. Das ist Frist und
+Quorum, also der Weg, den D100 verworfen hat. `gesetze-im-internet.de` weist das Abrufwerkzeug
+ab; Oli legt die XML des BGB bereit.
+
+**Beschluss 1 — Enthaltung als Stimme (Oli, Position).** Man soll abstimmen müssen, auch wenn
+man sich enthält. Eine Enthaltung ist eine ausdrückliche Stimme: wer sich enthält, zählt im
+Nenner der Abstimmung nicht mehr mit. Nachgerechnet gegen `04 §3.2`: ein kleinerer Nenner hält
+`durchgekommen` wahr, und `gescheitert` heisst `n * (den - num) <= |Nein| * den`, was bei
+kleinerem `n` wahr bleibt. Die Monotonie aus D97 trägt also, solange eine Enthaltung nicht durch
+eine Stimme ersetzt werden kann. Das Protokoll erzwingt keine Stimme; die Seite fragt.
+
+**Beschluss 2 — ruhen durch Beschluss, zurück durch eigenes Lebenszeichen (Oli, Position).**
+Statt eines Ausschlusses nach Zeit beschliessen die anderen mit der Schwelle `membership`, dass
+jemand ruht; wer ruht, zählt im Nenner nicht mit. Der Einspruch ist, wieder etwas zu
+unterschreiben: dann ist er wieder voll dabei, ohne erneute Aufnahme. Das braucht keine Uhr und
+keinen Beweis einer Abwesenheit, nur den Beweis einer Anwesenheit. Es geht, solange mehr als die
+Hälfte noch handelt; danach bleibt der neue Genesis.
+
+**Befund 5 — offene Stellen der Position, vor jedem Normtext.**
+1. Ein Nenner, der mitten in einer Epoche wieder wächst, kippt ein erreichtes `durchgekommen`.
+   Die Rückkehr wirkt also erst in einer neuen Epoche. Gibt es keine neue Fassung, kehrt niemand
+   zurück; erzeugt die Rückkehr selbst eine neue Epoche, beendet ein Rückkehrer jede laufende
+   Abstimmung, auch mit Absicht. Hier liegt die eigentliche Frage des Falls.
+2. Eine Enthaltung ist ein neuer Wert in `vote.v[0]`. Ein Knoten ohne diese Regel liest ihn als
+   `UNKNOWN_VOTE_CHOICE`, zählt die Stimme nicht und behält den Nenner; zwei Fassungen des Knotens
+   kämen zu verschiedenen Ergebnissen (wie D646 Beschluss 6). Die Regel braucht eine Kennung in
+   der Satzung, die ein alter Knoten als nicht regierbar erkennt.
+3. Eine Enthaltung und das Ersetzen einer Stimme (D547), eine Enthaltung in der Wahl (`04 §9`),
+   und was eine Enthaltung beim Patt eines Wahlgangs (`04 §4.7`) bedeutet, sind nicht gerechnet.
+
+**Beschluss 3 — der Strang.** Neuer Posten O107. Nächster Schritt ist das Nachschlagen (D640):
+Beteiligungs- und Zustimmungsquoren, Enthaltung in der Auszählung, ruhende Mitgliedschaft im
+Vereinsrecht, und wie andere Systeme ohne gemeinsame Uhr mit Abwesenden umgehen. Danach ein
+Prototyp an der Bibliothek mit dem Verein aus Befund 1, vor jedem Normtext.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

@@ -230,15 +230,21 @@ const ABWEISUNGEN = new Map([
   ["MISSING_FIELD", "Name, Sitz und Zweck braucht jeder Verein. Eines davon fehlt."],
   ["TOO_FEW_FOUNDERS", "Ein Verein braucht mindestens drei Gründer."],
   ["NOT_FOUNDING", "Dieser Verein besteht schon. Verwerfen lässt sich nur eine Gründung."],
-  ["UNKNOWN_ELECTION", "Diese Wahl kennt der Knoten nicht."],
-  ["MALFORMED_ELECTION", "Diese Wahl hat nicht die verlangte Form."],
-  ["NOT_EVALUABLE", "Diese Wahl lässt sich nicht auszählen."],
-  ["NOT_ELIGIBLE", "Du stehst nicht auf der Mitgliederliste dieser Wahl."],
-  ["NO_BALLOT_KEY", "Für diese Wahl hält der Knoten keinen Wahlschlüssel von dir."],
-  ["UNKNOWN_CANDIDATE", "Diese Person steht nicht zur Wahl."],
-  ["ALREADY_VOTED", "Du hast in diesem Wahlgang schon abgestimmt."],
-  ["INVALID_ELECTION", "Diese Wahl lässt sich so nicht anlegen."],
-  ["UNKNOWN_LIST", "Diese Liste kennt der Knoten nicht."],
+  ["UNKNOWN_ELECTION", "Diese Wahl kennt das Gerät nicht."],
+  ["MALFORMED_ELECTION", "Diese Wahl ist fehlerhaft angelegt. An ihr lässt sich nicht teilnehmen."],
+  ["NOT_EVALUABLE", "Diese Wahl lässt sich nicht auszählen. An ihr lässt sich nicht teilnehmen."],
+  [
+    "NOT_ELIGIBLE",
+    "Wahlberechtigt ist nur, wer auf der Mitgliederliste der Fassung stand, für die die Wahl angelegt wurde.",
+  ],
+  ["NO_BALLOT_KEY", "Du nimmst an dieser Wahl noch nicht teil. Erst teilnehmen, dann abstimmen."],
+  ["UNKNOWN_CANDIDATE", "Diese Person steht in dieser Wahl nicht zur Wahl."],
+  ["ALREADY_VOTED", "Du hast in diesem Wahlgang schon gestimmt. Die Stimme lässt sich nicht ändern."],
+  [
+    "INVALID_ELECTION",
+    "So lässt sich die Wahl nicht anlegen: Amt und Bezeichnung brauchen Text, und jede Person steht nur einmal zur Wahl.",
+  ],
+  ["UNKNOWN_LIST", "Das Gerät findet deine Teilnahme an dieser Wahl nicht. Nimm noch einmal teil."],
 ]);
 
 // Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
@@ -797,7 +803,7 @@ export function wahlgangInWorten(runde) {
 // Solange es keine Mischrunde gibt, ist die Wahl nicht geheim (D678 Beschluss 1, D681 Beschluss 3,
 // 04 §9.6).
 export const NICHT_GEHEIM =
-  "Diese Wahl ist nicht geheim. Eine Liste mit einem Teilnehmer verbirgt nichts.";
+  "Diese Wahl ist nicht geheim: Wer den Bestand des Vereins liest, sieht, wer wen gewählt hat.";
 
 // Bezeichnung in Anführungszeichen, das Amt daneben, wenn es abweicht; ohne lesbare Bezeichnung
 // der feste Satz (D681 Beschluss 3).

@@ -47,7 +47,6 @@ import {
   schwelleInWorten,
   schwellenSaetze,
   textFeld,
-  NICHT_GEHEIM,
   erfolgSatz,
   stimmeErfolg,
   stimmeFrage,
@@ -1701,7 +1700,7 @@ function wahlFaelle() {
     satz: "Du stimmst in der Wahl „Vorstand 2026“ im Wahlgang 2 für Bruno.",
     zeilen: [
       "Diese Stimme lässt sich nicht ändern.",
-      NICHT_GEHEIM,
+      "Diese Wahl ist nicht geheim: Wer den Bestand des Vereins liest, sieht, wer wen gewählt hat.",
       "Unterschrieben wird mit deinem Wahlschlüssel, den dieses Gerät für dich hält.",
     ],
   });
@@ -1726,18 +1725,19 @@ function wahlFaelle() {
   gleich("erfolgSatz: ballot-ack", erfolgSatz("ballot-ack", { titel: "„Kasse“" }), "Du nimmst an der Wahl „Kasse“ teil.");
   gleich("erfolgSatz: ballot-ack ohne Titel", erfolgSatz("ballot-ack", {}), "Deine Teilnahme an der Wahl ist eingetragen.");
 
-  for (const name of [
-    "UNKNOWN_ELECTION",
-    "MALFORMED_ELECTION",
-    "NOT_EVALUABLE",
-    "NOT_ELIGIBLE",
-    "NO_BALLOT_KEY",
-    "UNKNOWN_CANDIDATE",
-    "ALREADY_VOTED",
-    "INVALID_ELECTION",
-    "UNKNOWN_LIST",
+  // Der Wortlaut steht im Fall, nicht in einer importierten Konstante (D682).
+  for (const [name, satz] of [
+    ["UNKNOWN_ELECTION", "Diese Wahl kennt das Gerät nicht."],
+    ["MALFORMED_ELECTION", "Diese Wahl ist fehlerhaft angelegt. An ihr lässt sich nicht teilnehmen."],
+    ["NOT_EVALUABLE", "Diese Wahl lässt sich nicht auszählen. An ihr lässt sich nicht teilnehmen."],
+    ["NOT_ELIGIBLE", "Wahlberechtigt ist nur, wer auf der Mitgliederliste der Fassung stand, für die die Wahl angelegt wurde."],
+    ["NO_BALLOT_KEY", "Du nimmst an dieser Wahl noch nicht teil. Erst teilnehmen, dann abstimmen."],
+    ["UNKNOWN_CANDIDATE", "Diese Person steht in dieser Wahl nicht zur Wahl."],
+    ["ALREADY_VOTED", "Du hast in diesem Wahlgang schon gestimmt. Die Stimme lässt sich nicht ändern."],
+    ["INVALID_ELECTION", "So lässt sich die Wahl nicht anlegen: Amt und Bezeichnung brauchen Text, und jede Person steht nur einmal zur Wahl."],
+    ["UNKNOWN_LIST", "Das Gerät findet deine Teilnahme an dieser Wahl nicht. Nimm noch einmal teil."],
   ]) {
-    gleich(`abweisungInWorten: ${name} in Worten`, abweisungInWorten(name) !== name, true);
+    gleich(`abweisungInWorten: ${name} in Worten`, abweisungInWorten(name), satz);
   }
   return results;
 }

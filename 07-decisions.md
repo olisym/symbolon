@@ -30065,3 +30065,44 @@ ganze Reihe mit 1678 Tests grün, gefahren, bevor die Bestätigung eines beendet
 herausfiel (danach `tests/governance` und `tests/property` erneut, 299 grün).
 
 **Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.
+
+### D672 — Abnahme `p57-wahl`: angenommen im ersten Durchgang
+
+**Anlass.** Der Bericht des Werkzeugs zu `p57-wahl`, Commit `c5068af` auf `e366021` (D671):
+`make check` mit Status 0, 1681 Tests, zehn Rücknahmeproben wie im Auftrag, keine Rückfrage.
+
+**Befund 1 — was der Supervisor las.** Der Diff gegen `e366021` ganz, aus dem Spiegel: fünf
+Dateien, genau die aus dem Auftrag. `tests/governance/test_wahl.py` ist bytegleich zum Diff der
+Tests. `tally.py`, `decide` und `classify_all` sind unberührt; `tally_election` benutzt
+`read_v`, `constitution_governable`, `_reattributed`, `resolve_object` und `vote_root` von dort.
+Die Reihenfolge der Tabelle aus `04 §9.4`, die fünf Bedingungen aus `§9.3`, der Patt mit den
+Wurzeln ohne Liste in `frei` und D671 Beschluss 1 und 2 stehen so im Code, wie die Norm sie
+nennt.
+
+**Befund 2 — gegen den Prototyp gerechnet.** 1000 zufällige Bestände aus der Welt der Tests:
+ein bis drei Listen, meist mit getrennten Teilnehmern, fehlende Bestätigungen, ungleich lange
+Listen, Bestätigungen auf unbekannte Objekte und über Geräte, bis zu neun Stimmen in den
+Wahlgängen 0 bis 2. Zustand, Gewählter, geltender Wahlgang, tragende Listen und die Vermerke zu
+Stimmen stimmen in allen 1000 mit dem Prototyp aus D671 überein; 11 enden `ELECTED`, 9 mit
+geltendem Wahlgang 1.
+
+**Befund 3 — die Vermerke zu Bestätigungen sind weiter als im Prototyp, und das trägt.**
+`CONFLICTING_LIST_ACK` steht bei jeder Identität mit Bestätigungen auf zwei Listen für `E`,
+`UNKNOWN_LIST` bei jeder Bestätigung auf ein lokal unbekanntes Objekt, auch wenn dadurch keine
+Liste fällt. Der Prototyp vermerkte nur, was eine sonst tragende Liste nahm. `§9.3` knüpft den
+Vermerk an die Doppelbestätigung, nicht an ihre Folge; die Lesart des Werkzeugs liegt näher am
+Text und zeigt den Fehler, bevor er eine Liste kostet. Die Golden Anchors prüfen nur die Fälle,
+in denen eine Liste fällt, und unterscheiden die beiden Lesarten nicht.
+
+**Befund 4 — eine Randstelle, kein Defekt.** Eine Liste mit dem Schlüssel `false` statt `0`
+gilt über `dict.get(0)` als Liste für `E`, denn in Python ist `False == 0`. Sie ist formwidrig
+und trägt nicht; wer sie bestätigt, nimmt nach D671 Beschluss 2 nur den Listen die Wirkung, in
+denen er selbst steht. Die Folge ist dieselbe wie bei jeder anderen formwidrigen Liste.
+
+**Beschluss 1 — angenommen.** `p57-wahl` geht nach `main`.
+
+**Beschluss 2 — O106 fortgeschrieben.** Die Zählregel steht in `04 §9` und ist in der Bibliothek
+gebaut. Offen bleiben der Ort der Mischrunde im Knoten, offene und geheime Stimmen in derselben
+Epoche, was die Vorstandswahl füllt, die Vorlage `verein` mit beiden Prädikaten und die Seite.
+
+**Geändert.** `offen.md`, `07-decisions.md`.

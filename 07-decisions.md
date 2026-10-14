@@ -30606,3 +30606,22 @@ für Stimmen, die binden und nicht zählen.
 **Auftrag.** `p62-wahl-ende`, Basis ist der Commit dieses Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D685 — Abnahme p62-wahl-ende: angenommen im ersten Durchgang
+
+**Anlass.** Der Bericht zu `p62-wahl-ende`, Commit `70cc48c` auf der Basis `cbf9ef8` (D684).
+
+**Befund 1 — was trägt.** Gelesen ist der ganze Diff. Die drei Testdateien sind bytegleich mit
+dem Diff aus dem Auftrag. `election.py`, `anzeige.js` und `app.js` folgen D684 Beschluss 1 und 2
+und decken sich in der Sache mit dem Prototyp. Im Supervisor-Klon auf dem Commit des Laufs: der
+Selbsttest mit 425 Fällen, die Markdown-Ziele und `ruff` grün, die ganze Reihe mit 1699 Tests
+grün, allein gefahren. Olis Ablauf in Playwright zu dritt läuft auf dem Branch wie am Prototyp:
+„Wahl · beendet“, „Chris ist gewählt.“, beide Wahlgänge mit ihren Stimmen, keine Fehler der
+Seite. Die fünf Rücknahmeproben sind berichtet wie verlangt.
+
+**Beschluss 1 — angenommen.** `p62-wahl-ende` geht nach `main`, als Vorspulen.
+
+**Beschluss 2 — der nächste Schritt.** Olis Blick auf die Karte einer beendeten Wahl, mit
+seinem Satz dazu; danach die Mischrunde zwischen Knoten (D667, D683 Beschluss 3).
+
+**Geändert.** `07-decisions.md`.

@@ -30744,3 +30744,31 @@ selbst ruhen, ruhen durch Beschluss, Rückkehr; je Fall die Auszählung vorher u
 eine Probe, dass keine Regel ein erreichtes Ergebnis kippt.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D688 — Schluss der Sitzung `00e0`: die Wahl auf der Seite, Fälle vor Oberfläche
+
+**Anlass.** D687 ist auf `main` (`3174a34`). Oli schliesst die Sitzung und öffnet `00e1`.
+
+**Befund 1 — was `00e0` hinterlässt.** Am 14.10. zwei Läufe und ein Strang:
+- die Seite der Wahl mit Tab, Schritten unter „Jetzt zu tun“ und einer Frage vor jeder Stimme
+  (D681 bis D683, `p61` mit Nachtrag);
+- das Ende einer Wahl sichtbar, mit den Stimmen je Wahlgang aus der Bibliothek (D684, D685,
+  `p62` im ersten Durchgang);
+- die Beteiligung als erster Fall der neuen Arbeitsweise, durchgespielt und nachgeschlagen
+  (D686, D687, O107).
+1699 Tests, der Selbsttest mit 425 Fällen. `offen.md` führt 107 Posten, 20 offen.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** über ein
+Skript, das ganze Abschnitte ersetzt und Zeilen an Abschnittsköpfen einfügt (D656 Befund 2).
+
+**Beschluss 1 — die Arbeitsweise (Oli).** In dieser frühen Phase wird das Protokoll an Fällen
+geprüft, die menschliches Handeln abbilden; die Oberfläche wächst erst, wenn Funktionen stehen.
+Je Fall: die Geschichte in Sätzen, auf dem Papier gegen die Norm, nachschlagen, dann Code; die
+Seite nur, wo ein Mensch urteilen muss.
+
+**Beschluss 2 — der nächste Schritt.** Der Prototyp zu O107 an der Bibliothek (D687 Nächster
+Schritt), mit `InMemoryStore`, den Fixtures aus `tests/governance` und Zufallstests mit
+`hypothesis`; keine neue Testumgebung.
+
+**Geändert.** `sitzungsstart-00e1.md` (neu), `sitzungsstart-00e0.md` nach `archiv/`,
+`07-decisions.md`.

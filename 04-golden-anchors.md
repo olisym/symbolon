@@ -697,6 +697,10 @@ bestätigt. `LV1` führt ALICE und BOB mit `K1` und `K2`, `LV2` CAROL und DAVE m
 | `WV-11` | `LV`; `K1` für CAROL, `K2`, `K3` A, `K4` B | CAROL ist kein Kandidat, `UNKNOWN_CANDIDATE`; `K1` bindet: frei 0, Patt; `OPEN`, geltend 1 |
 | `WV-12` | wie `WV-2`, dazu `K1`, `K2`, `K3` A in 1 | geltend 1; `ELECTED` ALICE |
 | `WV-13` | wie `WV-3`, dazu `K1`, `K2`, `K3` A in 1 | geltend 0, denn Wahlgang 0 steht nicht im Patt; `OPEN` |
+| `WV-14` | wie `WV-1`, aber DAVE bestätigt `LV` nur über `GD` | die Bestätigung zählt für DAVE; `ELECTED` ALICE |
+| `WV-15` | wie `WV-14`, danach beendet DAVE `GD` beim Endpunkt seiner Gegenzeichnung | die Bestätigung ist bestritten, `LV` trägt nicht; `OPEN`, geltend 0 |
+| `WV-16` | wie `WV-15` mit `verdict@1` geschützt; CAROL klagt die Bestätigung an, ALICE entscheidet mit 1 | das Verdikt rechnet sie zu, `LV` trägt; `ELECTED` ALICE |
+| `WV-17` | wie `WV-7`, dazu `LV3`, das BOB nur über `GB` bestätigt, danach beendet er `GB` beim Endpunkt seiner Gegenzeichnung | `LV1` und `LV2` tragen, `LV3` nicht; `ELECTED` ALICE |
 
 `WV-3` und `WV-4` sind das Paar um eine Wurzel ohne Liste: zählte DAVE nicht als frei, stünde
 Wahlgang 0 in `WV-4` im Patt, mit `2 * 2 = 4 <= 4` (D668 Befund 2). `WV-11` ist der Vektor dafür,
@@ -704,3 +708,9 @@ dass eine Stimme für einen fremden Kandidaten bindet: ohne das wäre `K1` frei,
 4`, und Wahlgang 0 gälte weiter. `WV-12` und `WV-13` sind das Paar um den geltenden Wahlgang:
 dieselben Stimmen in Wahlgang 1, einmal nach einem Patt, einmal ohne. Die Hashes der Wahl und der
 Listen rechnet der Test aus den Objekten.
+
+`GD` ist ein Gerät von DAVE, `GB` eines von BOB, je mit `device-add@1` aufgenommen und mit
+`device-ack@1` gegengezeichnet (`01 §7.3`). `WV-14` bis `WV-17` tragen D671 Beschluss 1: eine
+bestrittene Bestätigung ist keine, weder für eine Liste noch gegen sie. Ohne die Regel werden
+`WV-15` und `WV-17` rot, ohne das Verdikt `WV-16`, ohne die Zurechnung an die Wurzel `WV-14` und
+`WV-16`.

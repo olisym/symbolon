@@ -1438,7 +1438,11 @@ Nukleus geheim wählen kann, steht damit in seiner Verfassung (D669); der Boden 
 
 Sei `E` eine Wahl, `P` die Teilnehmer der Epoche `E.epoch`. Eine Bestätigung ist ein `ballot-ack@1`
 mit `N == scope`, im Zustand `ACTIVE` nach `classify_all` unter der scope-lokalen Policy und ohne
-`t_exp`. Eine Liste `L` trägt für `E`, wenn alle Bedingungen gelten:
+`t_exp`. Eine Bestätigung eines Geräts, das bei einem Endpunkt vor ihr beendet wurde
+(`02 §2.1`), ist keine Bestätigung, es sei denn, ein Verdikt rechnet sie zu wie eine Stimme in
+`§3.1` (D671). Eine **Liste für `E`** ist jedes Objekt unter `DOM_NUC_BALLOT_LIST` mit
+`0 == election_hash(E)`, formwidrig oder nicht. Eine Liste `L` trägt für `E`, wenn alle
+Bedingungen gelten:
 
 1. `L` ist nicht formwidrig und `L.election == election_hash(E)`;
 2. jeder Eintrag in `L.members` ist Element von `P`;
@@ -1458,7 +1462,8 @@ als Schlüssel, könnte zwei Schlüssel halten; beide Listen tragen nicht. Verme
 `CONFLICTING_LIST_ACK`, Subjekt alle beteiligten `claim_id`. Die Wurzel steht mit Namen dabei, wie
 bei der Doppelstimme (`§3.1`). Ein Objekt, das lokal unbekannt ist, kann eine solche Liste sein: die
 Richtung ist die aus `§4.4`, Vermerk `UNKNOWN_LIST`, Subjekt die `claim_id` der Bestätigung.
-Geheilt wird der Fall, indem jemand das Objekt nachreicht.
+Geheilt wird der Fall, indem jemand das Objekt nachreicht. Eine Bestätigung, deren `J` kein
+Objekt-Hash ist, bestätigt kein Objekt.
 
 Mehrere Listen mit verschiedenen Teilnehmern tragen nebeneinander. Wer bei der Mischrunde fehlt,
 kann mit anderen eine eigene bilden; geheim ist seine Stimme dann nur unter ihnen (D668
@@ -1532,10 +1537,11 @@ also, ein Gewählter auch. Ohne die Wurzeln ohne Liste in `frei` höbe eine neue
 (D668 Befund 2).
 
 **Die Ausnahmen sind benannt**, alle mit sichtbarem Anlass und abwärts: eine zweite Stimme desselben
-Schlüssels im selben Wahlgang (`AMBIGUOUS_BALLOT`) und eine Bestätigung einer zweiten Liste
-(`CONFLICTING_LIST_ACK`). Sie nehmen Stimmen oder ganze Listen heraus; ein Gewählter kann dadurch
-fallen, wie ein `PASSED` in `§3.2`. Wahlberechtigt bleibt `P` der Epoche aus der Wahl, auch wenn die
-Epoche inzwischen gewechselt hat; wer danach aufgenommen wird, wählt in dieser Wahl nicht.
+Schlüssels im selben Wahlgang (`AMBIGUOUS_BALLOT`), eine Bestätigung einer zweiten Liste
+(`CONFLICTING_LIST_ACK`) und die Sperre eines Geräts bei einem Endpunkt vor seiner Bestätigung
+(`device-end@1`, D532, D671). Sie nehmen Stimmen oder ganze Listen heraus; ein Gewählter kann
+dadurch fallen, wie ein `PASSED` in `§3.2`. Wahlberechtigt bleibt `P` der Epoche aus der Wahl, auch
+wenn die Epoche inzwischen gewechselt hat; wer danach aufgenommen wird, wählt in dieser Wahl nicht.
 
 ### 9.6 Bewusst getragene Grenzen
 

@@ -30000,3 +30000,68 @@ Sitzungsstart (aus D666, D667 und D669).
 
 **Geändert.** `sitzungsstart-00df.md` (neu), `sitzungsstart-00de.md` nach `archiv/`,
 `07-decisions.md`.
+
+### D671 — Die Auszählung der Wahl am Prototyp: bestrittene Bestätigungen, `WV-14` bis `WV-17`
+
+**Anlass.** D670 Beschluss 1: die Auszählung der Wahl in der Bibliothek, erst der Prototyp im
+Supervisor-Klon mit den Vektoren als Tests und den Rücknahmeproben, dann der Auftrag. Gelesen:
+`04 §9` ganz, `04-golden-anchors.md` `§13`, `symbolon/governance/tally.py` ganz, `objects.py`,
+`findings.py`, `tests/governance/fixtures.py`, die Welt in `tests/governance/test_geraete.py`.
+
+**Befund 1 — der Prototyp trägt `WV-1` bis `WV-13` beim ersten Lauf.** Ein Modul
+`symbolon/governance/election.py` neben `tally.py`, die Hashes aus den Objekten gerechnet. Die
+Proben aus D669 Beschluss 4 werden alle an der Sache rot: die Wurzel ohne Liste nicht frei
+(`WV-4`, `WV-8`, `WV-9`), die Stimme für einen fremden Kandidaten bindet nicht (`WV-11`), ohne
+Bedingung 4 (`WV-6`), ohne Bedingung 5 (`WV-8`, `WV-9`), der geltende Wahlgang ohne Patt
+(`WV-13` und neun weitere; geltend immer 0: `WV-2`, `WV-11`, `WV-12`).
+
+**Befund 2 — `§9.3` schweigt zu bestrittenen Bestätigungen.** Bedingung 3 rechnet eine
+Bestätigung über `02 §2.1` der Wurzel zu, also auch die eines Geräts. Ein Gerät, das seine Wurzel
+bei einem Endpunkt vor der Bestätigung beendet hat, ist bestritten; `§3.1` lässt eine solche
+Stimme nicht zählen (D532), `§9.3` sagt nichts. Ohne Regel bestätigte ein gestohlenes Gerät für
+seine Wurzel; wer es hält und an der Mischrunde teilnimmt, hält auch den frischen Schlüssel und
+stimmt mit ihm. Umgekehrt entwertete es mit einer zweiten Bestätigung nach Bedingung 5 jede Liste
+seiner Wurzel.
+
+**Befund 3 — eine Ausnahme der Monotonie fehlt in `§9.5`.** Die Sperre eines Geräts bei einem
+Endpunkt vor seiner Bestätigung nimmt einer Liste die Bestätigung, auch nachträglich; ein
+Gewählter kann dadurch fallen. `INV-04.7` nennt denselben Fall für Stimmen (D532), `§9.5` nicht.
+
+**Befund 4 — zwei Lesarten in Bedingung 5.** „Ein anderes Objekt, das eine Liste für `E` ist“
+sagt nicht, ob eine formwidrige Liste dazu zählt, und nicht, was eine Bestätigung ist, deren `J`
+kein Objekt-Hash ist.
+
+**Beschluss 1 — eine bestrittene Bestätigung ist keine.** Eine Bestätigung eines Geräts, das
+bei einem Endpunkt vor ihr beendet wurde, ist keine Bestätigung, weder für Bedingung 3 und 4 noch
+für Bedingung 5, es sei denn, ein Verdikt rechnet sie zu wie eine Stimme in `§3.1` (D533). Grund:
+dieselbe Lage soll in Stimme und Bestätigung dieselbe Folge haben; ein Pfad, auf dem ein beendetes
+Gerät für seine Wurzel handelt, wäre der Weg um D532 herum. Normtext in `§9.3`, die Ausnahme in
+`§9.5`.
+
+**Beschluss 2 — eine Liste für `E` ist jedes Objekt unter `DOM_NUC_BALLOT_LIST` mit
+`0 == election_hash(E)`, formwidrig oder nicht.** Bedingung 5 prüft dann keine Form. Eine
+formwidrige zweite Liste bringt keinen zweiten Schlüssel; wer sie bestätigt, schadet nur den
+Listen, in denen er selbst steht. Eine Bestätigung, deren `J` kein Objekt-Hash ist, bestätigt
+kein Objekt und berührt Bedingung 5 nicht.
+
+**Beschluss 3 — Golden Anchors `WV-14` bis `WV-17`** für Beschluss 1: die Bestätigung über ein
+Gerät zählt für die Wurzel, die bestrittene trägt nicht, ein Verdikt rechnet sie zu, und eine
+bestrittene Bestätigung einer zweiten Liste entwertet die erste nicht. Gemessen: ohne Beschluss 1
+werden `WV-15` und `WV-17` rot, ohne das Verdikt `WV-16`, ohne die Zurechnung an die Wurzel
+`WV-14` und `WV-16`.
+
+**Beschluss 4 — Wahl der Implementierung, nicht Norm (D489).** Eine Funktion `tally_election`
+in `symbolon/governance/election.py` mit `scope`, der Wahl, der aufgelösten Epoche aus
+`E.epoch` (oder `None`), ihrer Verfassung, einer Abbildung bekannter Objekte nach Hash, `now` und
+der Policy. Lokal unbekannt ist ein Hash, unter dem kein Objekt liegt, das auf ihn hasht. Das
+Ergebnis nennt Zustand, Gewählten, geltenden Wahlgang, die tragenden Listen und die Vermerke.
+Vermerke zu Stimmen stehen für jeden Wahlgang mit Stimmen, nicht nur den geltenden;
+`MALFORMED_BALLOT` nur für Stimmen, die ohne ihr `v` binden würden. Die sieben neuen Arten stehen
+in `GovernanceFinding`; keine Stelle zählt die Arten auf.
+
+**Befund 5 — der Prototyp fährt die ganze Reihe und `ruff`.** 20 Tests in
+`tests/governance/test_wahl.py`, elf Proben, jede an einer Zusicherung zur Sache rot; die
+ganze Reihe mit 1678 Tests grün, gefahren, bevor die Bestätigung eines beendeten Geräts ganz
+herausfiel (danach `tests/governance` und `tests/property` erneut, 299 grün).
+
+**Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`.

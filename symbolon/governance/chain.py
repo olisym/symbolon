@@ -25,11 +25,13 @@ from symbolon.verifier import ClaimStore, State
 
 @dataclass(frozen=True, slots=True)
 class EpochResolution:
-    """Ergebnis von ``resolve_epoch`` (04-governance.md §4.5, D174)."""
+    """Ergebnis von ``resolve_epoch`` (04-governance.md §4.5, D174). ``chain`` ist jede
+    erreichte Epoche, mit Epoche 1 beginnend, aufsteigend, ``epoch`` zuletzt (04 §9.4, D675)."""
 
     epoch: Epoch
     constitution_obj: dict | None
     findings: tuple[Finding, ...]
+    chain: tuple[Epoch, ...] = ()
 
 
 def _known_constitution(known: Mapping[bytes, dict], h: bytes) -> dict | None:
@@ -131,6 +133,7 @@ def resolve_epoch(
         raise ValueError("genesis_obj does not match scope")
 
     epoch = Epoch(scope=scope, index=1, constitution_hash=genesis_obj[4])
+    chain: list[Epoch] = [epoch]
 
     while True:
         constitution_obj = _known_constitution(
@@ -234,6 +237,7 @@ def resolve_epoch(
 
         if len(carrying) == 1:
             epoch = next(iter(carrying.values()))
+            chain.append(epoch)
             continue
         if len(carrying) > 1:
             for successor_id in carrying:
@@ -244,6 +248,7 @@ def resolve_epoch(
             epoch=epoch,
             constitution_obj=constitution_obj,
             findings=dedupe_sort(findings),
+            chain=tuple(chain),
         )
 
 

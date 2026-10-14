@@ -39,6 +39,7 @@ from symbolon.node.view import (
     _needed,
     antragstitel,
     ballot_view,
+    elections_view,
     fork_evidence,
     geraetestimmen,
     obligations_view,
@@ -947,6 +948,12 @@ def _handler(
                 if scope not in store.all_genesis():
                     raise _Missing()
                 self._send(200, proposals_view(store, scope, clock()))
+                return
+            if not post and path.startswith("/wahlen/"):
+                scope = _hex(path[len("/wahlen/") :], 32)
+                if scope not in store.all_genesis():
+                    raise _Missing()
+                self._send(200, elections_view(store, scope, clock()))
                 return
             if not post and path.startswith("/antragstitel/"):
                 scope = _hex(path[len("/antragstitel/") :], 32)

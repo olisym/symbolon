@@ -6,7 +6,12 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from symbolon.atom import Claim, claim_id
-from symbolon.governance.chain import StandResolution, resolve_stand
+from symbolon.governance.chain import StandResolution, resolve_epoch, resolve_stand
+from symbolon.governance.election import (
+    ElectionResult,
+    election_wellformed,
+    tally_election,
+)
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
 from symbolon.governance.objects import (
     Motion,
@@ -31,6 +36,7 @@ from symbolon.index import classify_all
 from symbolon.policy import constitution_hash, participants_wellformed
 from symbolon.predicates import is_nuc_name
 from symbolon.profiles.credit import SettlementResult, SettlementState, settlement
+from symbolon.profiles.policy import resolve_policy
 from symbolon.profiles.membership import MembershipResult, MembershipState, membership
 from symbolon.profiles.payload import read_v
 from symbolon.resolve import NucleusState, resolve_state
@@ -787,3 +793,76 @@ def antragstitel(store: SqliteStore, scope: bytes, now: int) -> tuple[AntragsTit
         kind, _motions, changes = _antrag_aenderungen(proposal, vorgaenger, constitutions, known)
         result.append(AntragsTitel(proposal=digest, kind=kind, changes=changes))
     return tuple(result)
+
+
+@dataclass(frozen=True, slots=True)
+class WahlView:
+    """Eine Wahl des Scopes mit ihrer Auszählung (04 §9.3, 04 §9.4, D675)."""
+
+    election: bytes
+    office: str | None
+    label: str | None
+    candidates: tuple[bytes, ...]
+    epoch: bytes | None
+    result: ElectionResult
+
+
+def elections_view(store: SqliteStore, scope: bytes, now: int) -> tuple[WahlView, ...]:
+    """Die Wahlen des Scopes, nach Hash sortiert, je nach der Epoche ausgezählt, die die Wahl
+    nennt, und nach deren Policy (04 §9.3, 04 §9.4, 04 §9.5, D675 Beschluss 1 bis 4)."""
+    genesis = store.all_genesis().get(scope)
+    if genesis is None:
+        raise ValueError("genesis of scope is not in the store")
+    constitutions = store.all_constitutions()
+    lists = store.all_ballot_lists()
+    elections = store.all_elections()
+    resolution = resolve_epoch(
+        store,
+        scope=scope,
+        genesis_obj=genesis,
+        known_constitutions=constitutions,
+        known_proposals=_known(store),
+        now=now,
+    )
+    known_objects = {**elections, **lists, **store.all_proposals(), **store.all_motions()}
+    rows: list[WahlView] = []
+    for digest in sorted(elections):
+        election = elections[digest]
+        obj = election.obj
+        if not isinstance(obj, dict) or obj.get(0) != scope:
+            continue
+        wellformed = election_wellformed(election)
+        epoch = None
+        if wellformed:
+            epoch = next((e for e in resolution.chain if e.epoch_id == obj[1]), None)
+        constitution_obj = None
+        policy = None
+        if epoch is not None:
+            constitution_obj = constitutions.get(epoch.constitution_hash)
+            policy = resolve_policy(
+                scope=scope,
+                genesis_obj=genesis,
+                constitution_hash=epoch.constitution_hash,
+                constitution_obj=constitution_obj,
+            ).policy
+        result = tally_election(
+            store,
+            scope=scope,
+            election=election,
+            epoch=epoch,
+            constitution_obj=constitution_obj,
+            known_objects=known_objects,
+            now=now,
+            policy=policy,
+        )
+        rows.append(
+            WahlView(
+                election=digest,
+                office=obj[2] if wellformed else None,
+                label=obj[4] if wellformed else None,
+                candidates=tuple(obj[3]) if wellformed else (),
+                epoch=obj[1] if epoch is not None else None,
+                result=result,
+            )
+        )
+    return tuple(rows)

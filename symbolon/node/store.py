@@ -11,6 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from symbolon import cbor_canon
 from symbolon.atom import Claim, claim_from_bytes, claim_id, signed_bytes
 from symbolon.genesis import genesis_scope
+from symbolon.governance import BallotList, Election
 from symbolon.governance.objects import ABSENT, Motion, Proposal
 from symbolon.policy import constitution_hash
 from symbolon.predicates import is_core_predicate
@@ -29,6 +30,8 @@ class ObjectKind(str, Enum):
     CONSTITUTION = "constitution"
     PROPOSAL = "proposal"
     MOTION = "motion"
+    ELECTION = "election"
+    BALLOT_LIST = "ballot-list"
 
 
 class SqliteStore:
@@ -171,6 +174,10 @@ class SqliteStore:
             ).proposal_hash
         elif kind is ObjectKind.MOTION:
             digest = Motion(obj).motion_hash
+        elif kind is ObjectKind.ELECTION:
+            digest = Election(obj).election_hash
+        elif kind is ObjectKind.BALLOT_LIST:
+            digest = BallotList(obj).list_hash
         else:
             raise ValueError("unknown object kind")
         row = self._db.execute(
@@ -219,6 +226,19 @@ class SqliteStore:
         """Alle Sachanträge, Abbildung vom Hash auf den Sachantrag (04 §2.5, D577 Beschluss 5)."""
         return {
             row[0]: Motion(cbor_canon.decode(row[1])) for row in self._rows(ObjectKind.MOTION)
+        }
+
+    def all_elections(self) -> dict[bytes, Election]:
+        """Alle Wahlen, wie sie kamen, Abbildung vom Hash auf die Wahl (04 §9.1, D675)."""
+        return {
+            row[0]: Election(cbor_canon.decode(row[1])) for row in self._rows(ObjectKind.ELECTION)
+        }
+
+    def all_ballot_lists(self) -> dict[bytes, BallotList]:
+        """Alle Listen, wie sie kamen, Abbildung vom Hash auf die Liste (04 §9.1, D675)."""
+        return {
+            row[0]: BallotList(cbor_canon.decode(row[1]))
+            for row in self._rows(ObjectKind.BALLOT_LIST)
         }
 
     def add_sim_key(self, seed: bytes) -> bytes:

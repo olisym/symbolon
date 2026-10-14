@@ -30106,3 +30106,49 @@ gebaut. Offen bleiben der Ort der Mischrunde im Knoten, offene und geheime Stimm
 Epoche, was die Vorstandswahl füllt, die Vorlage `verein` mit beiden Prädikaten und die Seite.
 
 **Geändert.** `offen.md`, `07-decisions.md`.
+
+### D673 — Die Vorlage `verein` führt `ballot-ack@1` und `ballot@1`
+
+**Anlass.** D669 Beschluss 1 und 4: die Vorlage `verein` führt beide Prädikate bei einer neuen
+Gründung; vorher ist zu prüfen, welche Vektoren und Fälle des Selbsttests ihren Hash tragen.
+Gelesen: `symbolon/node/gruendung.py` ganz, `tests/node/test_gruendung.py` bis zum ersten Test,
+D648 Beschluss 3, `vektoren.json` und die Stellen, die es laden.
+
+**Befund 1 — gemessen, wer den Hash trägt.** Im Supervisor-Klon auf `6668279` die Liste
+`irrevocable_verein` um beide Prädikate ergänzt und die ganze Reihe gefahren: 1680 grün, ein Test
+rot, `test_gruendung_ist_bestimmt`. Er baut die vier Objekte von Hand mit der Liste als
+Literal. Kein Fall des Selbsttests, kein Eintrag in `vektoren.json` und keine Spec-Datei hängt an
+einem Hash einer Gründung; die Hashes aus D641 Befund 3 gelten schon seit D646 nicht mehr.
+Die Liste steht sonst nur in `gruendung.py`; weder `GET /vorlagen` noch die Seite lesen sie.
+
+**Befund 2 — die Fassung liest nur die Felder.** `vorlage_der_satzung` sucht die Vorlage zu
+„verein@1“ für `typen`, `pflicht` und `geschuetzt`, also für die Lesart der Sachfelder (D648
+Beschluss 3 und 4). Die Regelfelder stehen in der Satzung selbst und brauchen die Vorlage nicht.
+Eine Fassung 2 nähme jedem Verein mit „verein@1“ die Typen seiner Felder, denn `VORLAGEN` kennt
+je Name nur eine Fassung.
+
+**Beschluss 1 — die Liste.** `irrevocable_verein` ist `["ballot-ack@1", "ballot@1",
+"obligation@1", "ratify@1", "vote@1"]`, aufsteigend nach Bytes wie die übrigen. Das Vereinsleben
+bleibt bei `["obligation@1"]`: es hat keine Teilnehmer und kann nach `04 §3.5` keine Auszählung
+tragen, also auch keine Wahl.
+
+**Beschluss 2 — die Fassung bleibt 1.** Sie benennt die Lesart der Felder, nicht den Text einer
+Gründung. Zwei Vereine mit „verein@1“ können damit verschiedene Listen in
+`irrevocable_predicates` führen; was gilt, steht in ihrer Satzung. Steigt die Fassung einmal,
+weil sich die Lesart ändert, braucht `VORLAGEN` dann mehr als eine Fassung je Name.
+
+**Beschluss 3 — die Tests.** `test_gruendung_ist_bestimmt` bekommt die neue Liste im Literal;
+das ist die Änderung, die dieser Eintrag beschliesst, kein Nachziehen. Neu ist
+`tests/node/test_gruendung_wahl.py`: ein Verein aus `gruenden`, eine Liste der drei Gründer mit
+drei frischen Schlüsseln, zwei Stimmen, `ELECTED`. Gemessen: ohne `ballot@1`, ohne
+`ballot-ack@1` oder ohne beide in der Vorlage werden beide Tests rot, der neue an
+`BALLOT_REVOCABLE`.
+
+**Beschluss 4 — nicht in diesem Schritt.** Bestehende Vereine, etwa auf Olis Geräten, ändern
+ihre Satzung einmal (D669 Beschluss 1). `irrevocable_predicates` ist ein Regelfeld, der Weg ist
+also ein Satzungsantrag, kein Sachantrag. Ob die Seite ihn für diesen Fall anbietet, ist mit der
+Seite der Wahl zu klären (O106).
+
+**Auftrag.** `p58-vorlage`, Basis ist der Commit dieses Eintrags.
+
+**Geändert.** `07-decisions.md`.

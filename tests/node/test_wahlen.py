@@ -186,7 +186,11 @@ def test_epoche_ausserhalb_der_kette_ist_nicht_aufgeloest(tmp_path) -> None:
     wahl = v.wahl(erfunden)
     _liste, keys = v.liste(wahl, [v.anna], "allein")
     v.stimme(keys[0], wahl, v.anna)
-    ergebnis = _ergebnis(store, v.scope, wahl).result
+    eintrag = _ergebnis(store, v.scope, wahl)
+    # Die Felder stehen, wie die Wahl sie führt; ob ihre Epoche aufgelöst ist, sagt die
+    # Auszählung (D675 Beschluss 3, D676).
+    assert (eintrag.office, eintrag.label, eintrag.epoch) == ("vorstand", "Vorstand", erfunden)
+    ergebnis = eintrag.result
     assert ergebnis.state is ElectionState.UNEVALUABLE
     assert {f.kind for f in ergebnis.findings} == {GovernanceFinding.CONSTITUTION_UNAVAILABLE}
 

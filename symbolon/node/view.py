@@ -861,7 +861,7 @@ def elections_view(store: SqliteStore, scope: bytes, now: int) -> tuple[WahlView
                 office=obj[2] if wellformed else None,
                 label=obj[4] if wellformed else None,
                 candidates=tuple(obj[3]) if wellformed else (),
-                epoch=obj[1] if epoch is not None else None,
+                epoch=obj[1] if wellformed else None,
                 result=result,
             )
         )

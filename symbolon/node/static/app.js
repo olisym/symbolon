@@ -1,9 +1,11 @@
 // Seite nach dem Klickmodell: links oben fest die Person, was ansteht und Widersprüche,
-// darunter fünf Tabs mit dem Verein in Sätzen und den Abschnitten; rechts die Regie mit der
-// Geschichte; als Gerät Name, Schalter und ohne Geschichte, auf jedem Knoten der Hinweis auf
-// neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3, D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3, D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
+// darunter sechs Tabs mit dem Verein in Sätzen und den Abschnitten, der Tab „Wahlen“ nach
+// „Anträge“; rechts die Regie mit der Geschichte; als Gerät Name, Schalter und ohne Geschichte,
+// auf jedem Knoten der Hinweis auf neuen Stand (D542 Beschluss 6, D525 Beschluss 2 und 3,
+// D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3,
+// D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
-// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4).
+// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4, D681 Beschluss 1 bis 3).
 
 import {
   ablauf,
@@ -70,6 +72,14 @@ import {
   widerspruchSatz,
   zeitpunktInWorten,
   zustimmungSatz,
+  NICHT_GEHEIM,
+  stimmeErfolg,
+  stimmeFrage,
+  wahlBeteiligung,
+  wahlErgebnisSatz,
+  wahlgangInWorten,
+  wahlSchritte,
+  wahlTitel,
 } from "./anzeige.js";
 
 
@@ -380,6 +390,26 @@ async function felderAus(art, kern, kontext) {
       name: schuld ? name(schuld.debtor) : null,
       betrag: schuld && schuld.amount !== null ? betrag(schuld.amount, schuld.unit) : null,
     };
+  }
+  // Die Wahl ohne Filter: das Objekt liegt schon vor der Unterschrift (D681 Beschluss 3).
+  if (art === "election") {
+    if (scope === null) return {};
+    try {
+      const wahlen = await holen(`/wahlen/${scope}`);
+      const eintrag = wahlen.find((zeile) => zeile.election === ziel);
+      if (!eintrag) return {};
+      return {
+        titel: wahlTitel(eintrag),
+        kandidaten: nachNamen(eintrag.candidates.map((schluessel) => nameVon(kontext.namen, schluessel))),
+      };
+    } catch {
+      return {};
+    }
+  }
+  if (art === "ballot-ack") {
+    const eintrag = kontext.listen?.get(ziel);
+    if (!eintrag) return {};
+    return { titel: wahlTitel(eintrag) };
   }
   return {};
 }
@@ -829,6 +859,96 @@ function namenAufgabe(identitaet) {
   return block;
 }
 
+// Teilnehmen legt die Liste an und unterschreibt danach die Bestätigung (D681 Beschluss 3).
+async function teilnehmen(wahl, kontext, handeln) {
+  try {
+    const antwort = await senden("/wahl/liste", { election: wahl.election, I: kontext.identitaet });
+    kontext.listen.set(antwort.list, wahl);
+    await handeln("ballot-ack", { list: antwort.list });
+  } catch (error) {
+    meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+    await meldungZeigen();
+  }
+}
+
+// Die Frage vor der Stimme, dann die Stimme im gezeigten Wahlgang (D681 Beschluss 3, D680
+// Beschluss 1).
+function stimmeFragen(wahl, name) {
+  const inhalt = stimmeFrage(wahlTitel(wahl), wahl.result.current_round, name);
+  const teile = [
+    marke("Du stimmst ab"),
+    element("div", "satz", inhalt.satz),
+    ...inhalt.zeilen.map((text) => zeile(text)),
+  ];
+  return new Promise((resolve) => {
+    teile.push(
+      knopfReihe(
+        knopf(
+          "Stimme abgeben",
+          () => {
+            frageSchliessen();
+            resolve(true);
+          },
+          "haupt",
+        ),
+        knopf("Nicht abstimmen", () => {
+          frageSchliessen();
+          resolve(false);
+        }),
+      ),
+    );
+    frageOeffnen(teile);
+  });
+}
+
+async function abstimmen(wahl, kandidat, name, kontext) {
+  if (!(await stimmeFragen(wahl, name))) {
+    meldung("Nicht abgestimmt.");
+    await meldungZeigen();
+    return;
+  }
+  const gesperrt = sperren();
+  try {
+    await senden("/wahl/stimme", {
+      election: wahl.election,
+      I: kontext.identitaet,
+      candidate: kandidat,
+      round: wahl.result.current_round,
+    });
+    meldung(stimmeErfolg(wahl.result.current_round, name), true);
+  } catch (error) {
+    meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+  } finally {
+    entsperren(gesperrt);
+  }
+  await zeichnen();
+}
+
+// Der offene Schritt einer Wahl, gleich in „Jetzt zu tun“ und im Tab (D681 Beschluss 1 und 3).
+function wahlSchritt(aufgabe, wahl, kontext, handeln) {
+  if (aufgabe.art === "ELECTION_JOIN") {
+    return [
+      zeile("Du bist wahlberechtigt und nimmst noch nicht teil."),
+      knopfReihe(
+        knopf("An der Wahl teilnehmen …", () => void teilnehmen(wahl, kontext, handeln), "haupt"),
+      ),
+    ];
+  }
+  const kandidaten = wahl.candidates.map((schluessel) => ({
+    schluessel,
+    name: nameVon(kontext.namen, schluessel),
+  }));
+  kandidaten.sort((links, rechts) => links.name.localeCompare(rechts.name, "de"));
+  return [
+    zeile(`Du kannst im ${wahlgangInWorten(wahl.result.current_round)} abstimmen.`),
+    knopfReihe(
+      ...kandidaten.map(({ schluessel, name }) =>
+        knopf(`Für ${name} stimmen …`, () => void abstimmen(wahl, schluessel, name, kontext)),
+      ),
+    ),
+  ];
+}
+
 // „Jetzt zu tun“: die Aufgaben der Person in Sätzen, jede mit ihrem Knopf (D494 Beschluss 1,
 // D492 Beschluss 5, D484 Beschluss 1). ``lage`` ist die Gründung, solange sie nicht besteht
 // (D651 Beschluss 4 und 6).
@@ -957,6 +1077,16 @@ function jetztBereich(tasks, kontext, handeln, lage) {
           ),
         );
       }
+    } else if (aufgabe.art === "ELECTION_JOIN" || aufgabe.art === "ELECTION_VOTE") {
+      // Ohne Zeile in den angekündigten Wahlen nichts (D681 Beschluss 2 und 3).
+      const wahl = kontext.wahlen.find((eintrag) => eintrag.election === aufgabe.election);
+      if (!wahl) continue;
+      block.append(
+        marke("Wahl"),
+        element("div", "satz", `Die Wahl ${wahlTitel(wahl)} ist offen.`),
+        element("div", "warnung", NICHT_GEHEIM),
+        ...wahlSchritt(aufgabe, wahl, kontext, handeln),
+      );
     }
     bereich.append(block);
   }
@@ -1333,6 +1463,107 @@ function antraegeAbschnitt(antraege, gov, view, namenListe, namen, identitaet, h
     abschnitt.append(karte);
   }
   abschnitt.append(neuerAntragFormular(gov, view, namenListe, namen, identitaet, handeln, vorlagen));
+  return abschnitt;
+}
+
+// „Neue Wahl:“ nur für Teilnehmer der geltenden Fassung (D681 Beschluss 3, 04 §9.3).
+function neueWahlFormular(gov, view, namen, identitaet, handeln) {
+  const form = element("div", "formular");
+  const teilnehmer = view?.state?.constitution_obj?.participants ?? [];
+  if (!teilnehmer.includes(identitaet)) {
+    form.append(zeile("Eine Wahl anlegen kann nur, wer auf der Mitgliederliste steht."));
+    return form;
+  }
+  const amt = element("input");
+  amt.type = "text";
+  const bezeichnung = element("input");
+  bezeichnung.type = "text";
+  const gewaehlt = new Set();
+  const auswahl = element("div", "auswahl");
+  const reihe = [...teilnehmer].sort((links, rechts) =>
+    nameVon(namen, links).localeCompare(nameVon(namen, rechts), "de"),
+  );
+  for (const person of reihe) {
+    const haken = element("input");
+    haken.type = "checkbox";
+    haken.addEventListener("change", () => {
+      if (haken.checked) gewaehlt.add(person);
+      else gewaehlt.delete(person);
+    });
+    const label = element("label", "wahl");
+    label.append(haken, element("span", null, nameVon(namen, person)));
+    auswahl.append(label);
+  }
+  form.append(
+    zeile("Neue Wahl:"),
+    feldBeschriftung("Amt", amt),
+    feldBeschriftung("Bezeichnung", bezeichnung),
+    zeile("Wer steht zur Wahl?"),
+    auswahl,
+    knopfReihe(
+      knopf("Wahl anlegen …", async () => {
+        const office = textFeld(amt.value);
+        const labelText = textFeld(bezeichnung.value);
+        if (office === null) {
+          meldung("Das Amt fehlt.");
+          await meldungZeigen();
+          return;
+        }
+        if (labelText === null) {
+          meldung("Die Bezeichnung fehlt.");
+          await meldungZeigen();
+          return;
+        }
+        if (gewaehlt.size === 0) {
+          meldung("Wähle mindestens eine Person, die zur Wahl steht.");
+          await meldungZeigen();
+          return;
+        }
+        await handeln("election", {
+          scope: gov,
+          office,
+          label: labelText,
+          candidates: [...gewaehlt],
+        });
+      }),
+    ),
+  );
+  return form;
+}
+
+// Der Tab „Wahlen“: je angekündigter Wahl eine Karte, darunter eine neue Wahl (D681 Beschluss 3).
+function wahlenAbschnitt(wahlen, tasks, gov, view, namen, identitaet, kontext, handeln) {
+  const abschnitt = abschnittOffen(
+    "Wahlen",
+    "Gewählt ist, wer mehr als die Hälfte der Wahlberechtigten hinter sich hat. Eine Stimme lässt sich nicht ändern.",
+  );
+  if (gov === null) {
+    abschnitt.append(zeile("Kein Verein."));
+    return abschnitt;
+  }
+  if (wahlen.length === 0) abschnitt.append(zeile("Keine Wahlen."));
+  for (const wahl of wahlen) {
+    const karte = element("div", "karte antrag");
+    const kandidaten = nachNamen(wahl.candidates.map((schluessel) => nameVon(namen, schluessel)));
+    karte.append(
+      marke("Wahl"),
+      element("div", "satz", `Wahl ${wahlTitel(wahl)}`),
+      zeile(`Zur Wahl: ${aufzaehlung(kandidaten)}.`),
+      zeile(wahlErgebnisSatz(wahl.result, namen)),
+    );
+    for (const satz of wahlBeteiligung(wahl, namen)) karte.append(zeile(satz, "leise"));
+    karte.append(element("div", "warnung", NICHT_GEHEIM));
+    const schritt = tasks.find(
+      (aufgabe) =>
+        aufgabe.scope === gov &&
+        aufgabe.election === wahl.election &&
+        (aufgabe.art === "ELECTION_JOIN" || aufgabe.art === "ELECTION_VOTE"),
+    );
+    if (schritt) karte.append(...wahlSchritt(schritt, wahl, kontext, handeln));
+    karte.append(einzelheiten([`Kennung: ${wahl.election}`]));
+    abschnitt.append(karte);
+  }
+  abschnitt.append(neueWahlFormular(gov, view, namen, identitaet, handeln));
   return abschnitt;
 }
 
@@ -1781,6 +2012,9 @@ async function zeichnenInhalt() {
   const govView = gov === null ? null : sichten.get(gov);
   const resView = res === null ? null : sichten.get(res);
   const antraege = gov === null ? [] : await holen(`/proposals/${gov}`);
+  // Nur angekündigte Wahlen; ohne Verein die leere Liste (D681 Beschluss 2 und 3).
+  const wahlen =
+    gov === null ? [] : (await holen(`/wahlen/${gov}`)).filter((zeile) => zeile.announced);
   const obligationen = res === null ? [] : await holen(`/obligations/${res}`);
   const forks = await holen("/forks");
   const geraetestimmen = gov === null ? [] : await holen(`/geraetestimmen/${gov}`);
@@ -1846,6 +2080,8 @@ async function zeichnenInhalt() {
     identitaet,
     jetzt,
     felder: null,
+    wahlen,
+    listen: new Map(),
   };
   const handeln = handelnFabrik(record, kontext);
 
@@ -1865,8 +2101,9 @@ async function zeichnenInhalt() {
   const oben = widersprueche.filter((eintrag) => eintrag.oben).map((eintrag) => eintrag.karte);
   const unten = widersprueche.filter((eintrag) => !eintrag.oben).map((eintrag) => eintrag.karte);
 
-  // Fünf Tabs unter dem festen Kopf, in der Reihenfolge aus D506 Beschluss 2; die Zählungen
-  // sind dieselben wie in „Im Verein gerade“, und nur der gewählte Tab wird gebaut.
+  // Sechs Tabs unter dem festen Kopf; „Wahlen“ steht nach „Anträge“, seine Zahl sind die
+  // offenen Schritte der Wahl (D506 Beschluss 2, D681 Beschluss 3). Nur der gewählte Tab wird
+  // gebaut.
   const tabs = [
     ["Im Verein", 0, () => [vereinGerade(govView, kontext), ...unten]],
     [
@@ -1874,6 +2111,11 @@ async function zeichnenInhalt() {
       // Nur PENDING in der laufenden Abstimmung (04 §4.7, D605 Beschluss 2).
       antraege.filter((antrag) => laufend(antrag) && antrag.state === "PENDING").length,
       () => [antraegeAbschnitt(antraege, gov, govView, namenListe, namen, identitaet, handeln, vorlagen)],
+    ],
+    [
+      "Wahlen",
+      wahlSchritte(tasks, gov),
+      () => [wahlenAbschnitt(wahlen, tasks, gov, govView, namen, identitaet, kontext, handeln)],
     ],
     ["Vertrauen", 0, () => [vertrauenAbschnitt(resView, res, namenListe, namen, jetzt, handeln)]],
     [

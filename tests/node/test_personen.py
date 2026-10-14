@@ -101,6 +101,10 @@ def test_regeln() -> None:
                     soll = [] if zweit else [{"I": I, "art": "receipt", "obligation": detail}]
                 elif art == "CONTRIBUTION_OPEN":
                     soll = []
+                elif art in {"ELECTION_JOIN", "ELECTION_VOTE"}:
+                    # Simulierte Personen wählen nicht; eine Stimme läuft über /wahl/stimme,
+                    # nicht über /sim/intent (D681 Beschluss 4).
+                    soll = []
                 else:
                     raise AssertionError(f"Art ohne Regel: {art}")
                 assert erhalten == soll, (geraet, person, art)

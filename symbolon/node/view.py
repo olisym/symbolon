@@ -5,10 +5,13 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from symbolon.atom import Claim, claim_id
 from symbolon.governance.chain import StandResolution, resolve_epoch, resolve_stand
 from symbolon.governance.election import (
     ElectionResult,
+    ElectionState,
     election_wellformed,
     tally_election,
 )
@@ -309,7 +312,8 @@ class ProposalView:
 class TaskView:
     """Eine Aufgabe einer Identität in einem Scope (D484 Beschluss 1). ``detail`` ist,
 
-    je nach ``art``, ein Verfassungs-, Vorschlags- oder Obligationshash.
+    je nach ``art``, ein Verfassungs-, Vorschlags-, Obligations- oder Wahlhash
+    (D681 Beschluss 2).
     """
 
     scope: bytes
@@ -507,6 +511,11 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
 
     Ein Vorschlag ausserhalb des geltenden Wahlgangs ist weder VOTE noch RATIFY; Sachanträge haben
     keinen Wahlgang (04 §4.7, D603 Beschluss 3).
+
+    Eine angekündigte Wahl im Zustand ``OPEN`` gibt einer Wurzel aus ``participants``, die kein
+    aufgenommenes Gerät ist, ``ELECTION_JOIN``, solange sie nicht unter ``members`` steht, sonst
+    ``ELECTION_VOTE``, wenn ihr Wahlschlüssel im geltenden Wahlgang noch nicht gestimmt hat
+    (04 §9.4, D681 Beschluss 2).
     """
     tasks: list[TaskView] = []
     for scope in store.all_genesis():
@@ -571,7 +580,52 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                     tasks.append(TaskView(scope=scope, art="CONTRIBUTION_OPEN", detail=cid))
                 if claim.J[0] == 1 and claim.J[1] == I:
                     tasks.append(TaskView(scope=scope, art="RECEIPT", detail=cid))
+        if view.verein is not None and not geraet:
+            for wahl in elections_view(store, scope, now):
+                if (
+                    not wahl.announced
+                    or wahl.result.state is not ElectionState.OPEN
+                    or I not in wahl.participants
+                ):
+                    continue
+                if I not in wahl.members:
+                    tasks.append(TaskView(scope=scope, art="ELECTION_JOIN", detail=wahl.election))
+                    continue
+                seed = store.wahlschluessel_lesen(wahl.election, I)
+                rnd = wahl.result.current_round
+                if seed is None or rnd is None:
+                    continue
+                pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
+                if not ballot_cast(store, scope, wahl.election, pub, rnd):
+                    tasks.append(TaskView(scope=scope, art="ELECTION_VOTE", detail=wahl.election))
     return tuple(sorted(tasks, key=lambda item: (item.scope, item.art, item.detail)))
+
+
+def ballot_cast(store: SqliteStore, scope: bytes, election: bytes, key: bytes, rnd: int) -> bool:
+    """Ob ``key`` im Wahlgang ``rnd`` schon einen ``ballot@1`` mit lesbarem ``v`` hat
+    (04 §9.4, D681 Beschluss 2).
+
+    Dieselbe Prüfung löst ``ALREADY_VOTED`` aus: ``I == key``, ``N == scope``,
+    ``J == (3, election)``, ein Kandidat aus 32 Bytes und der Wahlgang ``rnd``. ``read_vote_v``
+    ist die Fassung aus der Auszählung (D681 Befund 4).
+    """
+    for claim in store.all_claims():
+        if claim.I != key or claim.N != scope or claim.J != (3, election):
+            continue
+        if not is_nuc_name(claim, "ballot"):
+            continue
+        obj, kind = read_vote_v(claim.v)
+        if kind is not None or not isinstance(obj, dict):
+            continue
+        named, wahlgang = obj.get(0), obj.get(1)
+        if (
+            isinstance(named, bytes)
+            and len(named) == 32
+            and type(wahlgang) is int
+            and wahlgang == rnd
+        ):
+            return True
+    return False
 
 
 @dataclass(frozen=True, slots=True)
@@ -797,7 +851,13 @@ def antragstitel(store: SqliteStore, scope: bytes, now: int) -> tuple[AntragsTit
 
 @dataclass(frozen=True, slots=True)
 class WahlView:
-    """Eine Wahl des Scopes mit ihrer Auszählung (04 §9.3, 04 §9.4, D675)."""
+    """Eine Wahl des Scopes mit ihrer Auszählung (04 §9.3, 04 §9.4, D675).
+
+    ``announced``: ein ``election@1`` mit ``N == scope`` und ``J == (3, election)`` von einer
+    Wurzel aus ``participants``. ``participants`` ist ``P`` der Epoche der Wahl, leer wenn sie
+    nicht aufgelöst ist oder ``participants`` nicht wohlgeformt ist. ``members`` ist die
+    Vereinigung von Feld 1 der tragenden Listen, aufsteigend (D681 Beschluss 2).
+    """
 
     election: bytes
     office: str | None
@@ -805,11 +865,18 @@ class WahlView:
     candidates: tuple[bytes, ...]
     epoch: bytes | None
     result: ElectionResult
+    announced: bool
+    participants: tuple[bytes, ...]
+    members: tuple[bytes, ...]
 
 
 def elections_view(store: SqliteStore, scope: bytes, now: int) -> tuple[WahlView, ...]:
     """Die Wahlen des Scopes, nach Hash sortiert, je nach der Epoche ausgezählt, die die Wahl
-    nennt, und nach deren Policy (04 §9.3, 04 §9.4, 04 §9.5, D675 Beschluss 1 bis 4)."""
+    nennt, und nach deren Policy (04 §9.3, 04 §9.4, 04 §9.5, D675 Beschluss 1 bis 4).
+
+    ``participants``, ``members`` und ``announced`` kommen dazu, die Auszählung bleibt
+    (D681 Beschluss 2).
+    """
     genesis = store.all_genesis().get(scope)
     if genesis is None:
         raise ValueError("genesis of scope is not in the store")
@@ -855,6 +922,31 @@ def elections_view(store: SqliteStore, scope: bytes, now: int) -> tuple[WahlView
             now=now,
             policy=policy,
         )
+        # P der Epoche der Wahl, sonst leer (04 §9.3, D681 Beschluss 2).
+        if (
+            epoch is not None
+            and isinstance(constitution_obj, dict)
+            and participants_wellformed(constitution_obj)
+        ):
+            teilnehmer = tuple(constitution_obj["participants"])
+        else:
+            teilnehmer = ()
+        members = tuple(
+            sorted(
+                {
+                    member
+                    for list_hash in result.lists
+                    for member in lists[list_hash].obj[1]
+                }
+            )
+        )
+        announced = any(
+            is_nuc_name(claim, "election")
+            and claim.N == scope
+            and claim.J == (3, digest)
+            and claim.I in teilnehmer
+            for claim in store.all_claims()
+        )
         rows.append(
             WahlView(
                 election=digest,
@@ -863,6 +955,9 @@ def elections_view(store: SqliteStore, scope: bytes, now: int) -> tuple[WahlView
                 candidates=tuple(obj[3]) if wellformed else (),
                 epoch=obj[1] if wellformed else None,
                 result=result,
+                announced=announced,
+                participants=teilnehmer,
+                members=members,
             )
         )
     return tuple(rows)

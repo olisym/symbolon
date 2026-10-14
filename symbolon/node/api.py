@@ -44,6 +44,7 @@ from symbolon.node.view import (
     elections_view,
     fork_evidence,
     geraetestimmen,
+    ballot_cast,
     obligations_view,
     proposals_view,
     scope_view,
@@ -868,22 +869,8 @@ def _wahl_stimme(
     else:
         rnd = current_round
     pub = Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes_raw()
-    for claim in store.all_claims():
-        if claim.I != pub or claim.N != scope or claim.J != (3, digest):
-            continue
-        if not is_nuc_name(claim, "ballot"):
-            continue
-        obj, kind = read_v(claim.v)
-        if kind is not None or not isinstance(obj, dict):
-            continue
-        named, wahlgang = obj.get(0), obj.get(1)
-        if (
-            isinstance(named, bytes)
-            and len(named) == 32
-            and type(wahlgang) is int
-            and wahlgang == rnd
-        ):
-            raise _Named("ALREADY_VOTED")
+    if ballot_cast(store, scope, digest, pub, rnd):
+        raise _Named("ALREADY_VOTED")
     prepared = _prepare(
         store,
         {
@@ -1377,6 +1364,8 @@ _TASK_DETAIL_FIELD = {
     "RATIFY": "proposal",
     "CONTRIBUTION_OPEN": "obligation",
     "RECEIPT": "obligation",
+    "ELECTION_JOIN": "election",
+    "ELECTION_VOTE": "election",
 }
 
 

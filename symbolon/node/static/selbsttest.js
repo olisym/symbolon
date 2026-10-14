@@ -47,6 +47,15 @@ import {
   schwelleInWorten,
   schwellenSaetze,
   textFeld,
+  NICHT_GEHEIM,
+  erfolgSatz,
+  stimmeErfolg,
+  stimmeFrage,
+  wahlBeteiligung,
+  wahlErgebnisSatz,
+  wahlgangInWorten,
+  wahlSchritte,
+  wahlTitel,
   centAus,
   fassungSatz,
   feststellungPunkte,
@@ -1620,6 +1629,119 @@ function durchlaufFaelle() {
   return results;
 }
 
+// Die Seite der Wahl (D680 Beschluss 1, D681).
+function wahlFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  const anna = "a1".repeat(32);
+  const bruno = "b1".repeat(32);
+  const chris = "c1".repeat(32);
+  const namen = new Map([
+    [anna, "Anna"],
+    [bruno, "Bruno"],
+    [chris, "Chris"],
+  ]);
+  const zeile = { label: "Vorstand 2026", office: "Vorstand" };
+
+  gleich("wahlgangInWorten: Wahlgang 0 heisst Wahlgang 1", wahlgangInWorten(0), "Wahlgang 1");
+  gleich("wahlTitel: mit Amt", wahlTitel(zeile), "„Vorstand 2026“ (Amt: Vorstand)");
+  gleich("wahlTitel: Amt wie Bezeichnung", wahlTitel({ label: "Kasse", office: " Kasse " }), "„Kasse“");
+  gleich("wahlTitel: ohne Amt", wahlTitel({ label: "Kasse", office: "" }), "„Kasse“");
+  gleich("wahlTitel: ohne lesbare Bezeichnung", wahlTitel({ label: null, office: null }), "ohne lesbare Bezeichnung");
+
+  gleich(
+    "wahlErgebnisSatz: gewählt",
+    wahlErgebnisSatz({ state: "ELECTED", elected: bruno, current_round: 0 }, namen),
+    "Gewählt ist Bruno.",
+  );
+  gleich(
+    "wahlErgebnisSatz: offen im ersten Wahlgang",
+    wahlErgebnisSatz({ state: "OPEN", elected: null, current_round: 0 }, namen),
+    "Noch ist niemand gewählt. Es läuft Wahlgang 1.",
+  );
+  gleich(
+    "wahlErgebnisSatz: offen nach einem Patt",
+    wahlErgebnisSatz({ state: "OPEN", elected: null, current_round: 1 }, namen),
+    "Noch ist niemand gewählt. Es läuft Wahlgang 2. Im Wahlgang 1 kann niemand mehr die Mehrheit bekommen.",
+  );
+  gleich(
+    "wahlErgebnisSatz: nicht auszählbar",
+    wahlErgebnisSatz({ state: "UNEVALUABLE", elected: null, current_round: null }, namen),
+    "Diese Wahl lässt sich nicht auszählen.",
+  );
+  gleich("wahlErgebnisSatz: ein unbekannter Zustand wörtlich", wahlErgebnisSatz({ state: "NEU" }, namen), "NEU");
+
+  gleich(
+    "wahlBeteiligung: zu dritt, zwei nehmen teil",
+    wahlBeteiligung({ participants: [chris, anna, bruno], members: [bruno, anna] }, namen),
+    ["Wahlberechtigt: Anna, Bruno und Chris.", "Nimmt teil: Anna und Bruno.", "Gewählt ist, wer 2 von 3 Stimmen bekommt."],
+  );
+  gleich(
+    "wahlBeteiligung: zu viert sind es 3",
+    wahlBeteiligung({ participants: [anna, bruno, chris, "d1".repeat(32)], members: [] }, namen)[2],
+    "Gewählt ist, wer 3 von 4 Stimmen bekommt.",
+  );
+  gleich(
+    "wahlBeteiligung: ohne Wahlberechtigte kein Satz zur Mehrheit",
+    wahlBeteiligung({ participants: [], members: [] }, namen),
+    ["Wahlberechtigt: niemand.", "Nimmt teil: niemand."],
+  );
+
+  const aufgaben = [
+    { scope: "s1", art: "ELECTION_JOIN", election: "e1" },
+    { scope: "s1", art: "ELECTION_VOTE", election: "e2" },
+    { scope: "s1", art: "VOTE", proposal: "p1" },
+    { scope: "s2", art: "ELECTION_JOIN", election: "e3" },
+  ];
+  gleich("wahlSchritte: nur Schritte der Wahl im Scope", wahlSchritte(aufgaben, "s1"), 2);
+  gleich("wahlSchritte: ohne Aufgaben null", wahlSchritte([], "s1"), 0);
+
+  gleich("stimmeFrage: Satz und drei Zeilen", stimmeFrage("„Vorstand 2026“", 1, "Bruno"), {
+    satz: "Du stimmst in der Wahl „Vorstand 2026“ im Wahlgang 2 für Bruno.",
+    zeilen: [
+      "Diese Stimme lässt sich nicht ändern.",
+      NICHT_GEHEIM,
+      "Unterschrieben wird mit deinem Wahlschlüssel, den dieses Gerät für dich hält.",
+    ],
+  });
+  gleich("stimmeErfolg", stimmeErfolg(0, "Bruno"), "Deine Stimme für Bruno im Wahlgang 1 ist eingetragen.");
+
+  gleich(
+    "absichtSatz: election mit zwei Kandidaten",
+    absichtSatz("election", { titel: "„Vorstand 2026“", kandidaten: ["Anna", "Bruno"] }),
+    "Du legst die Wahl „Vorstand 2026“ an. Zur Wahl stehen Anna und Bruno.",
+  );
+  gleich(
+    "absichtSatz: election mit einem Kandidaten",
+    absichtSatz("election", { titel: "„Kasse“", kandidaten: ["Chris"] }),
+    "Du legst die Wahl „Kasse“ an. Zur Wahl steht Chris.",
+  );
+  gleich("absichtSatz: election ohne Kandidaten kein Satz", absichtSatz("election", { titel: "„Kasse“", kandidaten: [] }) === null, true);
+  gleich("absichtSatz: election ohne Titel kein Satz", absichtSatz("election", { kandidaten: ["Chris"] }) === null, true);
+  gleich("absichtSatz: ballot-ack", absichtSatz("ballot-ack", { titel: "„Kasse“" }), "Du nimmst an der Wahl „Kasse“ teil.");
+  gleich("absichtSatz: ballot-ack ohne Titel kein Satz", absichtSatz("ballot-ack", {}) === null, true);
+  gleich("erfolgSatz: election", erfolgSatz("election", { titel: "„Kasse“" }), "Die Wahl „Kasse“ ist angelegt.");
+  gleich("erfolgSatz: election ohne Titel", erfolgSatz("election", {}), "Die Wahl ist angelegt.");
+  gleich("erfolgSatz: ballot-ack", erfolgSatz("ballot-ack", { titel: "„Kasse“" }), "Du nimmst an der Wahl „Kasse“ teil.");
+  gleich("erfolgSatz: ballot-ack ohne Titel", erfolgSatz("ballot-ack", {}), "Deine Teilnahme an der Wahl ist eingetragen.");
+
+  for (const name of [
+    "UNKNOWN_ELECTION",
+    "MALFORMED_ELECTION",
+    "NOT_EVALUABLE",
+    "NOT_ELIGIBLE",
+    "NO_BALLOT_KEY",
+    "UNKNOWN_CANDIDATE",
+    "ALREADY_VOTED",
+    "INVALID_ELECTION",
+    "UNKNOWN_LIST",
+  ]) {
+    gleich(`abweisungInWorten: ${name} in Worten`, abweisungInWorten(name) !== name, true);
+  }
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1631,6 +1753,7 @@ export async function run(vectors, subtle) {
   results.push(...wahlgangFaelle());
   results.push(...gruendungFaelle(vectors));
   results.push(...durchlaufFaelle());
+  results.push(...wahlFaelle());
   return results;
 }
 

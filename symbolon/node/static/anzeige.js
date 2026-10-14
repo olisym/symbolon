@@ -11,7 +11,8 @@
 // und über Stimmen, die still nicht zählen: ein zweites Ja, ein gesperrtes Gerät (D556).
 // Die Gründung: Text und Betrag, die Schwellen als Sätze, der Stand und seine Sätze
 // (D651 Beschluss 3 bis 5, D648 Beschluss 2 und 5, 04 §3.2). Gleiche Namen, die Regie ohne
-// simulierte Personen, Sachfelder mit Typ (D654 Beschluss 2 bis 4).
+// simulierte Personen, Sachfelder mit Typ (D654 Beschluss 2 bis 4). Die Wahl: Titel, Ergebnis,
+// Beteiligung, der Schritt und die Frage vor der Stimme (D681 Beschluss 3, 04 §9.4).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -229,11 +230,21 @@ const ABWEISUNGEN = new Map([
   ["MISSING_FIELD", "Name, Sitz und Zweck braucht jeder Verein. Eines davon fehlt."],
   ["TOO_FEW_FOUNDERS", "Ein Verein braucht mindestens drei Gründer."],
   ["NOT_FOUNDING", "Dieser Verein besteht schon. Verwerfen lässt sich nur eine Gründung."],
+  ["UNKNOWN_ELECTION", "Diese Wahl kennt der Knoten nicht."],
+  ["MALFORMED_ELECTION", "Diese Wahl hat nicht die verlangte Form."],
+  ["NOT_EVALUABLE", "Diese Wahl lässt sich nicht auszählen."],
+  ["NOT_ELIGIBLE", "Du stehst nicht auf der Mitgliederliste dieser Wahl."],
+  ["NO_BALLOT_KEY", "Für diese Wahl hält der Knoten keinen Wahlschlüssel von dir."],
+  ["UNKNOWN_CANDIDATE", "Diese Person steht nicht zur Wahl."],
+  ["ALREADY_VOTED", "Du hast in diesem Wahlgang schon abgestimmt."],
+  ["INVALID_ELECTION", "Diese Wahl lässt sich so nicht anlegen."],
+  ["UNKNOWN_LIST", "Diese Liste kennt der Knoten nicht."],
 ]);
 
 // Eine Abweisung in Worten, aus D479 Beschluss 4, dazu NOT_A_TIP und die Abweisung wegen
 // mehrerer Spitzen (D492 Beschluss 4, D476 Beschluss 3) und INCOHERENT_EXPIRY (D500 Beschluss 2);
-// eine unbekannte erscheint mit ihrem Namen (D486 Beschluss 3).
+// die neun Abweisungen der Wahl (D678 Beschluss 3, D681 Beschluss 3); eine unbekannte erscheint
+// mit ihrem Namen (D486 Beschluss 3).
 export function abweisungInWorten(name) {
   return wortAus(ABWEISUNGEN, name);
 }
@@ -778,6 +789,87 @@ export function gruendungSatz(stand, namen, ich = null) {
   return `Der Verein ist in Gründung. Bestätigt: ${bestaetigt}. Noch offen: ${offen}.`;
 }
 
+// Wahlgang w der Norm heisst auf der Seite „Wahlgang w + 1“ (D681 Beschluss 3, 04 §9.4).
+export function wahlgangInWorten(runde) {
+  return `Wahlgang ${runde + 1}`;
+}
+
+// Solange es keine Mischrunde gibt, ist die Wahl nicht geheim (D678 Beschluss 1, D681 Beschluss 3,
+// 04 §9.6).
+export const NICHT_GEHEIM =
+  "Diese Wahl ist nicht geheim. Eine Liste mit einem Teilnehmer verbirgt nichts.";
+
+// Bezeichnung in Anführungszeichen, das Amt daneben, wenn es abweicht; ohne lesbare Bezeichnung
+// der feste Satz (D681 Beschluss 3).
+export function wahlTitel(zeile) {
+  const label = typeof zeile.label === "string" ? zeile.label.trim() : "";
+  const office = typeof zeile.office === "string" ? zeile.office.trim() : "";
+  if (label === "") return "ohne lesbare Bezeichnung";
+  if (office === "" || office === label) return `„${label}“`;
+  return `„${label}“ (Amt: ${office})`;
+}
+
+// Gewählt, offen im geltenden Wahlgang, oder nicht auszählbar; ein unbekannter Zustand bleibt
+// wörtlich (D681 Beschluss 3, 04 §9.4).
+export function wahlErgebnisSatz(result, namen) {
+  if (result.state === "ELECTED") return `Gewählt ist ${nameVon(namen, result.elected)}.`;
+  if (result.state === "OPEN") {
+    const laufend = wahlgangInWorten(result.current_round);
+    let satz = `Noch ist niemand gewählt. Es läuft ${laufend}.`;
+    if (result.current_round > 0) {
+      const vorbei = [];
+      for (let runde = 0; runde < result.current_round; runde += 1) {
+        vorbei.push(`Im ${wahlgangInWorten(runde)} kann niemand mehr die Mehrheit bekommen.`);
+      }
+      satz = `${satz} ${vorbei.join(" ")}`;
+    }
+    return satz;
+  }
+  if (result.state === "UNEVALUABLE") return "Diese Wahl lässt sich nicht auszählen.";
+  return result.state;
+}
+
+// Wahlberechtigte, Teilnehmer und ab wie vielen Stimmen gewählt ist. k kommt aus
+// noetigeStimmen([1, 2], n), denn 2 * |Y| > n ist dieselbe Grenze (D681 Beschluss 3, 04 §9.4).
+export function wahlBeteiligung(zeile, namen) {
+  const berechtigt = Array.isArray(zeile.participants) ? zeile.participants : [];
+  const dabei = Array.isArray(zeile.members) ? zeile.members : [];
+  const namenVon = (schluessel) => nachNamen(schluessel.map((wer) => nameVon(namen, wer)));
+  const saetze = [
+    `Wahlberechtigt: ${aufzaehlung(namenVon(berechtigt))}.`,
+    `Nimmt teil: ${aufzaehlung(namenVon(dabei))}.`,
+  ];
+  const k = noetigeStimmen([1, 2], berechtigt.length);
+  if (k !== null) saetze.push(`Gewählt ist, wer ${k} von ${berechtigt.length} Stimmen bekommt.`);
+  return saetze;
+}
+
+// ELECTION_JOIN und ELECTION_VOTE des Scopes (D681 Beschluss 3).
+export function wahlSchritte(tasks, scope) {
+  return tasks.filter(
+    (aufgabe) =>
+      aufgabe.scope === scope && (aufgabe.art === "ELECTION_JOIN" || aufgabe.art === "ELECTION_VOTE"),
+  ).length;
+}
+
+// Die Frage vor der Stimme: Wahl, Wahlgang, Kandidat, dass sich die Stimme nicht ändern lässt,
+// dass die Wahl nicht geheim ist, und dass der Wahlschlüssel unterschreibt (D681 Beschluss 3).
+export function stimmeFrage(titel, runde, name) {
+  return {
+    satz: `Du stimmst in der Wahl ${titel} im ${wahlgangInWorten(runde)} für ${name}.`,
+    zeilen: [
+      "Diese Stimme lässt sich nicht ändern.",
+      NICHT_GEHEIM,
+      "Unterschrieben wird mit deinem Wahlschlüssel, den dieses Gerät für dich hält.",
+    ],
+  };
+}
+
+// Die Meldung nach dem Eintragen der Stimme (D681 Beschluss 3).
+export function stimmeErfolg(runde, name) {
+  return `Deine Stimme für ${name} im ${wahlgangInWorten(runde)} ist eingetragen.`;
+}
+
 function vorhanden(felder, ...namen) {
   return namen.every((name) => felder[name] !== null && felder[name] !== undefined && felder[name] !== "");
 }
@@ -823,6 +915,17 @@ export function absichtSatz(art, felder) {
     case "receipt":
       if (!vorhanden(felder, "name", "betrag")) return null;
       return `Du bestätigst, dass ${felder.name} ${felder.betrag} bezahlt hat.`;
+    case "election": {
+      // Ohne Titel oder ohne Kandidaten kein Satz (D681 Beschluss 3).
+      if (!vorhanden(felder, "titel") || !Array.isArray(felder.kandidaten) || felder.kandidaten.length === 0) {
+        return null;
+      }
+      const verb = felder.kandidaten.length === 1 ? "steht" : "stehen";
+      return `Du legst die Wahl ${felder.titel} an. Zur Wahl ${verb} ${aufzaehlung(felder.kandidaten)}.`;
+    }
+    case "ballot-ack":
+      if (!vorhanden(felder, "titel")) return null;
+      return `Du nimmst an der Wahl ${felder.titel} teil.`;
     default:
       return null;
   }
@@ -966,6 +1069,14 @@ export function erfolgSatz(art, felder) {
       return "Deine Zusage, den Beitrag zu zahlen, ist eingetragen.";
     case "receipt":
       return "Deine Quittung ist eingetragen.";
+    case "election":
+      return vorhanden(felder, "titel")
+        ? `Die Wahl ${felder.titel} ist angelegt.`
+        : "Die Wahl ist angelegt.";
+    case "ballot-ack":
+      return vorhanden(felder, "titel")
+        ? `Du nimmst an der Wahl ${felder.titel} teil.`
+        : "Deine Teilnahme an der Wahl ist eingetragen.";
     default:
       return "Eingetragen.";
   }

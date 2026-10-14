@@ -523,4 +523,5 @@ Satzungsänderung mehr, Wahlen ohne Ende (D686 Befund 1 und 2). Position nach D6
 ausdrückliche Stimme, die den Nenner senkt; ruhen durch Beschluss mit `membership`, zurück durch
 ein eigenes Lebenszeichen. Offen: wann eine Rückkehr wirkt, ohne eine laufende Abstimmung zu
 kippen, die Kennung der Regel in der Satzung, Enthaltung in Wahl und Patt (D686 Befund 5).
-Nächster Schritt: nachschlagen, dann ein Prototyp an der Bibliothek.
+Nachgeschlagen in D687: der Nenner sinkt in einer Abstimmung nur, und jeder kann selbst ruhen.
+Nächster Schritt: ein Prototyp an der Bibliothek.

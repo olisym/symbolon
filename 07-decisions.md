@@ -30691,3 +30691,56 @@ Vereinsrecht, und wie andere Systeme ohne gemeinsame Uhr mit Abwesenden umgehen.
 Prototyp an der Bibliothek mit dem Verein aus Befund 1, vor jedem Normtext.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D687 — Beteiligung nachgeschlagen: der Nenner sinkt in einer Abstimmung nur; selbst ruhen
+
+**Anlass.** D686 Beschluss 3: nachschlagen vor dem Prototyp (D640). Gelesen sind Auszüge und
+Zusammenfassungen, keine Volltexte; das BGB nicht im Wortlaut, weil `gesetze-im-internet.de` das
+Abrufwerkzeug abweist.
+
+**Befund 1 — Enthaltung im Vereinsrecht.** Der BGH hat 1982 entschieden, dass Enthaltungen wie
+nicht erschienene Mitglieder zu behandeln sind (II ZR 164/81). Seit 2009 entscheidet nach BGB 32
+die Mehrheit der abgegebenen Stimmen; die Begründung nennt eine Enthaltung Unentschiedenheit,
+keine Ablehnung. Die Satzung kann abweichen (BGB 40). Das trägt D686 Beschluss 1.
+
+**Befund 2 — Korrektur an D686 Befund 4.** „Bis zu einem Termin mindestens die Hälfte“ war die
+befristete Corona-Regel für Beschlüsse ohne Versammlung; sie lief Ende August 2022 aus. Seither
+gilt ohne Versammlung wieder die Zustimmung aller Mitglieder, seit 2025 in Textform; Frist und
+Quorum gibt sich ein Verein nur per Satzung. Ohne gemeinsamen Ort und gemeinsame Zeit fällt auch
+das Recht auf den vorsichtigen Weg zurück, strenger als `|P|`.
+
+**Befund 3 — Quoren in der Forschung.** Ein Laborexperiment (Aguiar-Conraria, Magalhães,
+Vanberg, Experimental Economics) findet, dass Beteiligungs- und Zustimmungsquoren die Beteiligung
+senken und Boykotte der Gegner wahrscheinlicher machen, das Beteiligungsquorum stärker. Unter
+D100 gibt es diesen Anreiz nicht: Schweigen wirkt wie Nein, Fernbleiben bringt einem Gegner
+nichts. Die Enthaltung aus D686 erhält das, denn sie senkt den Nenner und hilft nur dem Antrag.
+Diese Eigenschaft wird bei jeder Änderung am Nenner mitgeprüft.
+
+**Befund 4 — derselbe Stillstand in der Praxis.** In der Arbitrum-DAO wird das Quorum am ganzen
+abstimmbaren Bestand gemessen, der wächst, während die abstimmende Stimmkraft gleich bleibt;
+absehbar käme keine Verfassungsänderung mehr durch. Der Vorschlag misst am angemeldeten Bestand;
+wer sich nicht anmeldet, zählt nicht. Ein Rest bleibt dort wie hier: wer angemeldet ist und
+schweigt, zählt weiter. DAOs messen den Nenner je Vorschlag an einem Schnappschuss; bei MaR ist
+die Epoche dieser Schnappschuss. Lazy Consensus (Apache: Schweigen ist Zustimmung nach 72
+Stunden) braucht eine Uhr und ist deshalb hier kein Weg.
+
+**Beschluss 1 — der Nenner sinkt in einer Abstimmung nur (Position, vor dem Normtext).** In einer
+laufenden Abstimmung darf der Nenner sinken, nie steigen. Sinken hält `durchgekommen` und
+`gescheitert` wahr (D686 Beschluss 1); Steigen kann ein erreichtes `durchgekommen` kippen. Was den
+Nenner senkt, wirkt sofort; was ihn erhöht, erst in einer neuen Epoche.
+
+**Beschluss 2 — selbst ruhen (Oli).** Neben dem Beschluss der anderen kann jeder selbst erklären,
+dass er ruht, etwa vor einer langen Reise. Die Erklärung ist ein Claim, also ein beweisbares
+Lebenszeichen, und sie senkt den Nenner; nach Beschluss 1 wirkt sie sofort, ohne Abstimmung.
+Zurück ist man durch ein eigenes Lebenszeichen, wirksam ab der nächsten Epoche.
+
+**Befund 5 — was der Prototyp klären muss.** Wie eine Rückkehr wirkt, wenn lange keine neue
+Fassung kommt (D686 Befund 5 Punkt 1). Ob ein selbst Ruhender in derselben Epoche noch abstimmen
+kann und was das am Nenner tut. Die Kennung der Regel in der Satzung (D686 Befund 5 Punkt 2).
+Enthaltung und Ruhen in Wahl und Patt (`04 §9.4`, `04 §4.7`).
+
+**Nächster Schritt.** Der Prototyp an der Bibliothek mit dem Verein aus D686 Befund 1: Enthaltung,
+selbst ruhen, ruhen durch Beschluss, Rückkehr; je Fall die Auszählung vorher und nachher, und
+eine Probe, dass keine Regel ein erreichtes Ergebnis kippt.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

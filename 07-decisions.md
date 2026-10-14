@@ -30559,3 +30559,50 @@ ein Satzungsantrag für Vereine, die vor D673 gegründet wurden, und was die Vor
 (D490), danach die Mischrunde zwischen Knoten (D667).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D684 — Das Ende einer Wahl sichtbar: das Ergebnis als Kopf, der Verlauf je Wahlgang
+
+**Anlass.** Olis Durchlauf einer Vorstandswahl zu dritt auf `59e5fd2` (D683 Beschluss 3).
+Wahlgang 1: jeder für sich, Patt. Wahlgang 2: Chris zwei, Anna eine. Olis Satz: „Ich dachte ok,
+er hat zwei von drei Stimmen und nun?“ „Gewählt ist Chris.“ stand auf der Karte; er hat es nicht
+gesehen und hielt die Wahl für hängengeblieben.
+
+**Befund 1 — das Ergebnis sah aus wie die Regel.** Drei Sätze begannen mit „Gewählt ist“: der Satz
+über dem Tab, das Ergebnis und „Gewählt ist, wer 2 von 3 Stimmen bekommt.“. Das Ergebnis stand
+als gewöhnliche Zeile mitten unter ihnen; das Auffälligste der Karte war der orange Kasten zur
+Geheimhaltung. Eine beendete Wahl sah aus wie eine laufende, und der Satz zum Patt verschwand,
+sobald jemand gewählt war. Eine richtige Aussage genügt nicht; sie muss dort stehen, wo ein Mensch
+hinsieht (D605, D606).
+
+**Befund 2 — der Hinweis auf Neues bei einem neuen Namen** ist gewollt (D654 Beschluss 3): das
+Adressbuch ist der Platzhalter für den Scan (D654 Befund 1). Kein Eingriff.
+
+**Beschluss 1 — die Karte (Oli).** Das Ergebnis ist der Kopf: „Chris ist gewählt.“ oder „Noch ist
+niemand gewählt. Es läuft Wahlgang n.“, darüber die Marke „Wahl · beendet“ oder „Wahl · läuft“.
+Darunter die Wahl, die Kandidaten und je Wahlgang eine Zeile mit den Stimmen; ein Wahlgang vor dem
+geltenden endet mit „Keine Mehrheit möglich.“. Die Regel heisst „Für die Mehrheit braucht es k von
+n Stimmen.“, der Satz über dem Tab beginnt nicht mehr mit „Gewählt ist“. Im Tab „Im Verein“ steht
+je beendete Wahl „<Name> ist gewählt: <Wahl>.“. Nach dem Ende steht der Satz zur Geheimhaltung
+leise statt im orangen Kasten; auf jeder Karte bleibt er (D680 Beschluss 1).
+
+**Beschluss 2 — Wahl der Implementierung (D489): die Stimmen je Wahlgang aus der Bibliothek.**
+`ElectionResult` bekommt `rounds`, je Wahlgang von 0 bis zum geltenden ein `RoundCount` mit
+`|Y(c, w)|` je Kandidat in der Reihenfolge der Kandidaten der Wahl, mit leerem Standardwert, also
+leer bei `UNEVALUABLE`. Gerechnet wird es aus `counted`, das `tally_election` schon führt; die
+Seite rechnet keine Stimmen selbst (Schwester von D547). Die Auszählung ändert sich nicht. Die
+Zahl der Stimmen je Kandidat ist auch nach der Mischrunde öffentlich, nur nicht, von wem.
+
+**Befund 3 — der Prototyp.** Im Supervisor-Klon auf `59e5fd2`. Olis Ablauf in Playwright zu dritt:
+die Karte im Patt, danach die beendete Karte und der Satz in „Im Verein“, keine Fehler der Seite.
+Zwei Tests in `tests/node/test_wahl_aufgaben.py`, im Selbsttest neun neue Fälle und vier
+geänderte Erwartungen (425 statt 416). Fünf Rücknahmeproben, jede rot am gemeinten Test. Eine
+davon, `counts` nach Zahl statt nach Kandidat, blieb zuerst grün: in beiden Tests stand der
+Kandidat mit mehr Stimmen ohnehin vorn. `test_verlauf_gewaehlt` gibt die Stimmen jetzt dem
+Kandidaten, der nach Bytes hinten steht. Die ganze Reihe: 1699 Tests grün.
+
+**Beschluss 3 — nicht in diesem Schritt.** Was ein Gewählter darf (O105 Punkt 1). Ein Verlauf
+für Stimmen, die binden und nicht zählen.
+
+**Auftrag.** `p62-wahl-ende`, Basis ist der Commit dieses Eintrags.
+
+**Geändert.** `07-decisions.md`.

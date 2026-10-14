@@ -1436,11 +1436,14 @@ Nukleus geheim wählen kann, steht damit in seiner Verfassung (D669); der Boden 
 
 ### 9.3 Wann eine Liste trägt
 
-Sei `E` eine Wahl, `P` die Teilnehmer der Epoche `E.epoch`. Eine Bestätigung ist ein `ballot-ack@1`
-mit `N == scope`, im Zustand `ACTIVE` nach `classify_all` unter der scope-lokalen Policy und ohne
-`t_exp`. Eine Bestätigung eines Geräts, das bei einem Endpunkt vor ihr beendet wurde
-(`02 §2.1`), ist keine Bestätigung, es sei denn, ein Verdikt rechnet sie zu wie eine Stimme in
-`§3.1` (D671). Eine **Liste für `E`** ist jedes Objekt unter `DOM_NUC_BALLOT_LIST` mit
+Sei `E` eine Wahl, `P` die Teilnehmer der Epoche `E.epoch`. **Aufgelöst** ist `E.epoch`, wenn sie
+in der Kette aus `§4.5` steht, die geltende Epoche oder eine frühere; ein Hash, unter dem eine
+bekannte Verfassung liegt, löst sie allein nicht auf (D675). Die **Policy** ist hier und in `§9.4`
+die der Verfassung von `E.epoch`, auch wenn die Epoche inzwischen gewechselt hat (D675). Eine
+Bestätigung ist ein `ballot-ack@1` mit `N == scope`, im Zustand `ACTIVE` nach `classify_all` unter
+dieser Policy und ohne `t_exp`. Eine Bestätigung eines Geräts, das bei einem Endpunkt vor ihr
+beendet wurde (`02 §2.1`), ist keine Bestätigung, es sei denn, ein Verdikt rechnet sie zu wie eine
+Stimme in `§3.1` (D671). Eine **Liste für `E`** ist jedes Objekt unter `DOM_NUC_BALLOT_LIST` mit
 `0 == election_hash(E)`, formwidrig oder nicht. Eine Liste `L` trägt für `E`, wenn alle
 Bedingungen gelten:
 
@@ -1518,7 +1521,7 @@ Kandidaten.
 |---|---|
 | die Wahl ist formwidrig | `MALFORMED_ELECTION`, Subjekt `election_hash` |
 | `E.scope` ist nicht der Scope | **`ValueError`**, wie in `§3.5` |
-| die Epoche `E.epoch` ist lokal nicht aufgelöst, oder ihre Verfassung fehlt | `CONSTITUTION_UNAVAILABLE` |
+| die Epoche `E.epoch` ist nicht aufgelöst (`§9.3`), oder ihre Verfassung fehlt | `CONSTITUTION_UNAVAILABLE` |
 | die Verfassung ist nicht regierbar nach `§3.5` | der Vermerk aus `§3.5` |
 | `irrevocable_predicates` führt `ballot-ack@1` oder `ballot@1` nicht | `BALLOT_REVOCABLE` |
 

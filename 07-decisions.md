@@ -30167,3 +30167,68 @@ Tests aus dem Auftrag. Dieselbe Zeile ist im Prototyp zu D673 mit der ganzen Rei
 gegründet wird, kann geheim wählen.
 
 **Geändert.** `07-decisions.md`.
+
+### D675 — Wahlen im Knoten: Objekte, Sicht und die Epoche aus der Kette
+
+**Anlass.** D674: als Nächstes der Knoten. Er soll Wahl und Liste ablegen und die Auszählung aus
+`04 §9` in die Sicht des Vereins bringen; die Seite kommt danach. Gelesen:
+`symbolon/node/store.py`, `view.py` und `api.py` ganz, `symbolon/governance/chain.py` mit
+`resolve_epoch`.
+
+**Befund 1 — „lokal aufgelöst“ trägt so nicht.** `04 §9.4` lässt die Auszählung laufen, wenn
+die Epoche `E.epoch` lokal aufgelöst ist und ihre Verfassung vorliegt. Liest ein Knoten das als
+„unter den bekannten Verfassungen gibt es eine, deren `epoch_id` passt“, kann jeder eine Epoche
+erfinden: eine Verfassung mit sich allein in `participants` einliefern, eine Wahl auf
+`epoch_id(scope, 2, ihr Hash)` stellen, eine Liste mit sich selbst bestätigen, eine Stimme
+abgeben, gewählt. Im Prototyp gemessen: mit der Suche über die Verfassungen ist ANNA so allein
+gewählt, mit der Kette ist die Wahl `UNEVALUABLE`.
+
+**Befund 2 — die Kette ist nicht greifbar.** `resolve_epoch` geht die Epochen von 1 bis zur
+geltenden durch, gibt aber nur die letzte zurück. Eine Wahl in einer früheren Epoche zählt nach
+`§9.5` weiter mit deren `P`; ohne die früheren Epochen wäre sie nach jedem Wechsel
+`UNEVALUABLE`. Gemessen: mit nur der geltenden Epoche fällt die Wahl aus Epoche 1, sobald DORA
+aufgenommen ist.
+
+**Befund 3 — `§9.3` sagt nicht, welche Policy.** „Die scope-lokale Policy“ war ohne Wechsel
+eindeutig. Danach kann die neue Verfassung `ballot@1` aus `irrevocable_predicates` nehmen. Mit
+ihrer Policy wirkt dann ein Widerruf einer Stimme, die unter der alten geschützt war; gemessen
+fällt der Gewählte. Die Prüfung aus `§9.2` liefe auf der einen Verfassung, der Schutz auf einer
+anderen.
+
+**Beschluss 1 — aufgelöst heisst: in der Kette (Normtext `§9.3`, `§9.4`).** `E.epoch` ist
+aufgelöst, wenn sie in der Kette aus `§4.5` steht, die geltende Epoche oder eine frühere. Ein
+Hash allein löst nichts auf. Grund: Befund 1; ohne die Regel hängt jedes Ergebnis daran, dass
+niemand eine Verfassung einliefert.
+
+**Beschluss 2 — die Policy der Epoche der Wahl (Normtext `§9.3`).** Die Policy für
+Bestätigungen und Stimmen ist die der Verfassung von `E.epoch`, auch nach einem Wechsel. Grund:
+Befund 3; `BALLOT_REVOCABLE` prüft dieselbe Verfassung, die dann auch schützt. Monoton bleibt
+die Auszählung damit über den Wechsel hinweg.
+
+**Beschluss 3 — Wahl der Implementierung, nicht Norm (D489).**
+- `EpochResolution` bekommt ein Feld `chain`, die erreichten Epochen aufsteigend, die geltende
+  zuletzt; `resolve_epoch` füllt es. Sonst ändert sich `chain.py` nicht.
+- Der Bestand kennt zwei neue Arten, `election` und `ballot-list`. Sie werden wie ein
+  Sachantrag gespeichert, wie sie kamen, auch formwidrig (D577 Beschluss 2), unter dem Hash aus
+  `§9.1`. Über `POST /objects` und den Abgleich kommen sie ohne weitere Änderung, denn beide
+  lesen die Art aus `ObjectKind`.
+- Eine eigene Sicht `elections_view` neben `proposals_view`, nicht in `ScopeView`: jede Wahl
+  mit Feld `0 == scope`, sortiert nach Hash, mit Amt, Bezeichnung, Kandidaten, Epoche und dem
+  Ergebnis von `tally_election`; bei einer formwidrigen Wahl die Felder leer. Bekannt sind ihr
+  Wahlen, Listen, Vorschläge und Sachanträge des Bestands. Die Route ist `GET /wahlen/<scope>`,
+  ein unbekannter Scope 404.
+
+**Beschluss 4 — nicht in diesem Schritt.** Keine Absichten für Wahl, Bestätigung und Stimme,
+keine Aufgaben, keine Mischrunde, keine Seite. Sie kommen mit der Seite der Wahl, die sie als
+erste braucht.
+
+**Befund 4 — der Prototyp.** Im Supervisor-Klon auf `6273cdb`: sechs Tests in
+`tests/node/test_wahlen.py` und vier Proben. Ohne die Kette (Suche über die Verfassungen) wird
+die erfundene Epoche rot. Mit der Policy der geltenden Epoche wird der Widerruf nach dem
+Wechsel rot. Mit nur der geltenden Epoche in `chain` werden der Wechsel und der Widerruf rot.
+Ohne den Filter auf den Scope bricht die Sicht mit `ValueError` ab. Die ganze Reihe
+läuft mit 1688 Tests grün.
+
+**Auftrag.** `p59-wahlen-knoten`, Basis ist der Commit dieses Eintrags.
+
+**Geändert.** `04-governance.md`, `07-decisions.md`.

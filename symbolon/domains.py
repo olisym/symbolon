@@ -13,3 +13,7 @@ DOM_NUC_PROPOSAL = b"claim-atom/v1/nucleus-proposal"
 
 # Sachantragsidentität (04 §2.5).
 DOM_NUC_MOTION = b"claim-atom/v1/nucleus-motion"
+
+# Wahl und Wahlliste (04 §9.1).
+DOM_NUC_ELECTION = b"claim-atom/v1/nucleus-election"
+DOM_NUC_BALLOT_LIST = b"claim-atom/v1/nucleus-ballot-list"

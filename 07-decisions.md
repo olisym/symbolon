@@ -30260,3 +30260,22 @@ der Epoche (`None` statt des Hashes); mit der Reparatur ist er grün.
 **Auftrag.** `p59-nachtrag`, auf `p59-wahlen-knoten` an dem Commit dieses Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D677 — Abnahme `p59-wahlen-knoten`, zweiter Durchgang: angenommen
+
+**Anlass.** Der Bericht des Werkzeugs zum Nachtrag aus D676, Commit `7d20d41` auf `0e2808b`:
+`make check` mit Status 0, 1688 Tests, die Rücknahmeprobe wie im Auftrag, keine Meldung, keine
+Rückfrage.
+
+**Befund 1 — was der Supervisor las.** Der Diff gegen `0e2808b` ganz, aus dem Spiegel: in
+`view.py` die eine Zeile aus D676 Beschluss 1, in `tests/` bytegleich zum Diff des Nachtrags.
+Die Reparatur ist dieselbe, die im Supervisor-Klon gemessen wurde.
+
+**Beschluss 1 — angenommen.** `p59-wahlen-knoten` geht nach `main`. Der Knoten hält Wahlen und
+Listen, zählt sie in der Epoche der Wahl aus und nennt sie unter `GET /wahlen/<scope>`.
+
+**Beschluss 2 — der nächste Schritt bei O106.** Die Absichten für Wahl, Bestätigung und Stimme
+mit der Seite der Wahl (D675 Beschluss 4). Davor zu klären: wo die frischen Schlüssel leben und
+wer sie signiert, die Seite oder der Knoten, und wie die Mischrunde aus D667 dort hinkommt.
+
+**Geändert.** `07-decisions.md`.

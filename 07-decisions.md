@@ -30495,3 +30495,41 @@ Simulierte Personen im Lab, die an einer Wahl teilnehmen.
 **Auftrag.** `p61-wahl-seite`, Basis ist der Commit dieses Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D682 — Abnahme p61-wahl-seite, erster Durchgang: Nachtrag zum Wortlaut
+
+**Anlass.** Der Bericht zu `p61-wahl-seite`, Commit `622c40e` auf der Basis `9d3a7ac` (D681).
+
+**Befund 1 — was trägt.** Gelesen ist der ganze Diff. Die vier Testdateien sind bytegleich mit
+dem Diff aus dem Auftrag. Knoten und Seite folgen D681 Beschluss 2 und 3 und decken sich in der
+Sache mit dem Prototyp; die Abweichungen sind Schreibweise. `make check` grün, 1697 Tests, der
+Selbsttest mit 416 Fällen, im Supervisor-Klon auf dem Commit des Laufs nachgefahren. Der
+Durchlauf zu dritt in Playwright läuft auf dem Branch wie am Prototyp: Bruno gewählt, danach
+„Jetzt zu tun“ leer, keine Fehler der Seite. Die acht Rücknahmeproben sind berichtet wie
+verlangt.
+
+**Befund 2 — ein Satz in Fachwörtern.** `NICHT_GEHEIM` lautet „Diese Wahl ist nicht geheim. Eine
+Liste mit einem Teilnehmer verbirgt nichts.“ Was eine Liste ist, weiss auf der Seite niemand.
+Die neun Abweisungen sagen zum Teil nicht, was zu tun ist; „Für diese Wahl hält der Knoten
+keinen Wahlschlüssel von dir.“ statt „Erst teilnehmen, dann abstimmen“.
+
+**Befund 3 — der Fehler liegt im Auftrag.** Er sagte, die Fälle legten den Wortlaut fest. Der
+Fall zu `stimmeFrage` vergleicht aber gegen die importierte Konstante `NICHT_GEHEIM`, und die
+neun Fälle zu den Abweisungen prüfen nur, dass es einen Text gibt. Beides legt nichts fest. Das
+Werkzeug ist dem Auftrag gefolgt.
+
+**Beschluss 1 — Nachtrag auf demselben Branch (D544).** Die Fälle nennen den Wortlaut selbst:
+`stimmeFrage` den Satz zur Geheimhaltung, die Abweisungen je ihren Satz, in der Fassung des
+Prototyps. `UNKNOWN_LIST` sagt „Das Gerät findet deine Teilnahme an dieser Wahl nicht. Nimm noch
+einmal teil.“, ohne das Wort Liste. Die Zahl der Fälle bleibt 416; der Import von
+`NICHT_GEHEIM` fällt aus dem Selbsttest weg. Die Tests ohne den Code ergeben zehn rote Fälle.
+
+**Beschluss 2 — nicht beanstandet.** `wahlErgebnisSatz` nennt nach mehreren Patts je Wahlgang
+einen Satz; der Prototyp nannte nur den letzten. Beides stimmt; die Fälle decken nur einen
+früheren Wahlgang ab. Die Haken unter „Wer steht zur Wahl?“ stehen nach Namen, wie im
+Prototyp, ohne dass der Auftrag es verlangte; das Werkzeug hat es gemeldet.
+
+**Auftrag.** `p61-nachtrag`, auf dem Branch `p61-wahl-seite`, Basis ist der Commit dieses
+Eintrags.
+
+**Geändert.** `07-decisions.md`.

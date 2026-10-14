@@ -30152,3 +30152,18 @@ Seite der Wahl zu klären (O106).
 **Auftrag.** `p58-vorlage`, Basis ist der Commit dieses Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D674 — Abnahme `p58-vorlage`: angenommen im ersten Durchgang
+
+**Anlass.** Der Bericht des Werkzeugs zu `p58-vorlage`, Commit `dc2956f` auf `fe653eb` (D673):
+`make check` mit Status 0, 1682 Tests, drei Rücknahmeproben wie im Auftrag, keine Rückfrage.
+
+**Befund 1 — was der Supervisor las.** Der Diff gegen `fe653eb` ganz, aus dem Spiegel: drei
+Dateien, in `gruendung.py` die eine Zeile aus D673 Beschluss 1; `fassung` und
+`irrevocable_vereinsleben` unverändert. Der Diff unter `tests/` ist bytegleich zum Diff der
+Tests aus dem Auftrag. Dieselbe Zeile ist im Prototyp zu D673 mit der ganzen Reihe gefahren.
+
+**Beschluss 1 — angenommen.** `p58-vorlage` geht nach `main`. Ein Verein, der ab jetzt
+gegründet wird, kann geheim wählen.
+
+**Geändert.** `07-decisions.md`.

@@ -30407,3 +30407,91 @@ Vereine, was die Vorstandswahl füllt (O105 Punkt 1).
 
 **Geändert.** `sitzungsstart-00e0.md` (neu), `sitzungsstart-00df.md` nach `archiv/`, `offen.md`,
 `07-decisions.md`.
+
+### D681 — Die Seite der Wahl: Tab, Schritte in „Jetzt zu tun“, eine Frage vor jeder Stimme
+
+**Anlass.** D680 Beschluss 1 und 2. Gelesen: `app.js` und `anzeige.js` ganz, vom Selbsttest
+Aufbau und `run`, in `api.py` die Absichten und die Routen der Wahl, in `view.py`
+`elections_view`, `tasks_view` und `proposals_view`, dazu `04 §9.1` bis `§9.4`.
+
+**Befund 1 — die Seite kann ihre Schritte nicht wissen.** `GET /wahlen/<scope>` nennt weder `P`
+der Epoche der Wahl noch, wer in einer tragenden Liste steht, noch, ob der Wahlschlüssel einer
+Wurzel im geltenden Wahlgang schon gestimmt hat. Das Letzte weiss nach der Mischrunde nur der
+Knoten, der den Schlüssel hält.
+
+**Befund 2 — eine abgebrochene Wahl bleibt sichtbar.** Die Absicht `election` liefert das Objekt
+schon bei `/intent` ein, vor der Unterschrift, und `elections_view` zeigt jedes Objekt.
+`proposals_view` zeigt einen Antrag nur mit einem `propose@1` eines Teilnehmers (`_antraege`,
+D484 Befund 2).
+
+**Befund 3 — der Wahlgang in der Frage kann veralten.** Zwischen Frage und Klick kann ein Patt
+den geltenden Wahlgang weiterschieben. Schickt die Seite den gezeigten Wahlgang mit, landet die
+Stimme dann in einem Wahlgang im Patt. Dessen Patt ändert sie nicht: sie nimmt einen Schlüssel
+aus `frei` und gibt ihn einem `Y(c)`, `|Y(c)| + frei` bleibt für `c` gleich und sinkt für jeden
+anderen Kandidaten, und Bedingung 1 galt schon (`04 §9.4`). Die Stimme ist verloren, die Aufgabe
+im geltenden Wahlgang bleibt stehen. Der Knoten bleibt, wie er ist; eine Abweisung
+`NOT_CURRENT_ROUND` hätte zudem `test_abweisungen` geändert, der eine Stimme mit `round` 1 im
+Wahlgang 0 annimmt (D678 Beschluss 3).
+
+**Befund 4 — zwei Funktionen unter einem Namen.** `read_v` heisst in `api.py` die Fassung aus
+`governance.tally`, in `view.py` die aus `profiles.payload`; dort heisst die erste
+`read_vote_v`. Beim Verschieben der Prüfung zu `ALREADY_VOTED` nach `view.py` griff der
+Prototyp zuerst die falsche, und `test_abweisungen` fing es.
+
+**Beschluss 1 — die Schritte auch oben (Oli).** „An der Wahl teilnehmen“ und „Abstimmen“
+stehen unter „Jetzt zu tun“ und im Tab „Wahlen“. Ein Block „Jetzt zu tun“, dem Schritte fehlen,
+sagte, es sei nichts zu tun.
+
+**Beschluss 2 — Wahl der Implementierung (D489): der Knoten.**
+- `WahlView` bekommt drei Felder. `announced`: es gibt ein `election@1` mit `N == scope` und
+  `J == (3, election_hash)` von einer Wurzel aus `P` der Epoche der Wahl, wie bei `_antraege`.
+  `participants`: `P` der Epoche der Wahl, leer, wenn die Epoche nicht aufgelöst ist oder ihre
+  Verfassung `participants` nicht wohlgeformt führt. `members`: die Teilnehmer der tragenden
+  Listen, aufsteigend. Die Auszählung bleibt unberührt.
+- `tasks_view` bekommt `ELECTION_JOIN` und `ELECTION_VOTE` mit dem Feld `election`: nur für eine
+  Wurzel, nie für ein Gerät, nur zu einer angekündigten Wahl im Zustand `OPEN` und nur, wenn die
+  Wurzel unter `participants` steht. `ELECTION_JOIN`, solange sie nicht unter `members` steht;
+  sonst `ELECTION_VOTE`, wenn der Knoten ihren Wahlschlüssel hält und dieser im geltenden
+  Wahlgang nicht gestimmt hat.
+- Ob ein Wahlschlüssel in einem Wahlgang gestimmt hat, rechnet eine Funktion `ballot_cast` in
+  `view.py`, die `ALREADY_VOTED` und `ELECTION_VOTE` teilen. So bietet die Seite keine Stimme an,
+  die der Knoten abweist.
+
+**Beschluss 3 — Wahl der Implementierung: die Seite.**
+- Der Tab „Wahlen“ steht nach „Anträge“; seine Zahl sind die `ELECTION_JOIN` und
+  `ELECTION_VOTE` des Vereins. Je angekündigter Wahl eine Karte mit Titel, Kandidaten, Ergebnis,
+  Wahlberechtigten, Teilnehmern, ab wie vielen Stimmen gewählt ist, dem Satz, dass die Wahl nicht
+  geheim ist, und dem offenen Schritt. Darunter „Neue Wahl:“ mit Amt, Bezeichnung und Kandidaten
+  aus der Mitgliederliste, nur für Teilnehmer der geltenden Fassung.
+- „An der Wahl teilnehmen …“ ruft `POST /wahl/liste` und unterschreibt danach `ballot-ack` über
+  die Frage, mit einem Satz aus `absichtSatz`. „Für <Name> stimmen …“ öffnet eine eigene Frage
+  wie „Gründung verwerfen“: Wahl, Wahlgang und Kandidat, dass sich die Stimme nicht ändern lässt,
+  dass die Wahl nicht geheim ist und dass der Wahlschlüssel im Gerät unterschreibt. Danach
+  `POST /wahl/stimme` mit dem gezeigten Wahlgang.
+- Wahlgang `w` der Norm heisst auf der Seite „Wahlgang w + 1“.
+- „Gewählt ist, wer k von n Stimmen bekommt“, `k` aus `noetigeStimmen([1, 2], n)`, denn
+  `2 * |Y| > n` ist dieselbe Grenze.
+- Die neun Abweisungen aus D678 stehen in Worten da.
+
+**Befund 5 — der Prototyp.** Im Supervisor-Klon auf `144f663`. Ein Durchlauf zu dritt in
+Playwright unter `.localhost` (Chromium): gründen, Wahl anlegen, jeder nimmt teil, zwei Stimmen,
+ein Abbruch vor einer Stimme, Bruno ist gewählt, danach ist „Jetzt zu tun“ leer; keine Fehler der
+Seite. Vier Tests in `tests/node/test_wahl_aufgaben.py` und 36 neue Fälle des Selbsttests, 416
+statt 380. Zwölf Rücknahmeproben, jede rot am gemeinten Test. Die ganze Reihe: 1697 Tests grün,
+nachdem `test_regeln` die beiden Arten kannte (Befund 6).
+
+**Befund 6 — eine Aufzählung, die ich nicht gesucht hatte.** `test_regeln` in
+`tests/node/test_personen.py` ordnet jeder Art aus `_TASK_DETAIL_FIELD` eine Regel der
+simulierten Personen zu und wurde mit den neuen Arten rot. `absichten` in `tools/personen.py`
+überspringt eine unbekannte Art; die simulierten Personen im Lab wählen also nicht, und das ist
+richtig, denn eine Stimme läuft über `POST /wahl/stimme`, nicht über `/sim/intent`. Der Test
+bekommt dafür eine Regel ohne Rumpf. Die Prüfregel aus D537 hätte die Stelle vorher gefunden.
+
+**Beschluss 4 — nicht in diesem Schritt.** Die Mischrunde. Ein Gerät, das für seine Wurzel
+teilnimmt; `/wahl/liste` nimmt nur eine Wurzel. Eine Aufgabe für eine Wurzel, deren
+Wahlschlüssel ein anderer Knoten hält. Eine abgebrochene Wahl auch aus dem Bestand zu nehmen.
+Simulierte Personen im Lab, die an einer Wahl teilnehmen.
+
+**Auftrag.** `p61-wahl-seite`, Basis ist der Commit dieses Eintrags.
+
+**Geändert.** `07-decisions.md`.

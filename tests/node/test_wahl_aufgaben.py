@@ -138,3 +138,55 @@ def test_neuer_wahlgang(tmp_path) -> None:
         assert _aufgaben(lauf, lauf.chris) == []
     finally:
         _stop(lauf.server)
+
+
+def test_verlauf(tmp_path) -> None:
+    """Zu viert, Wahlgang 0 im Patt mit je zwei, dann eine Stimme in Wahlgang 1: ``rounds`` nennt
+    je Wahlgang die Stimmen je Kandidat, in der Reihenfolge der Kandidaten (04 §9.4, D684)."""
+    lauf = Lauf(tmp_path, vier=True)
+    try:
+        wahl = lauf.wahl()
+        for person in (lauf.anna, lauf.bruno, lauf.chris, lauf.dora):
+            lauf.liste(wahl, person)
+        for person, kandidat in (
+            (lauf.anna, lauf.anna),
+            (lauf.bruno, lauf.anna),
+            (lauf.chris, lauf.bruno),
+            (lauf.dora, lauf.bruno),
+        ):
+            status, _body = lauf.stimme(wahl, person, kandidat)
+            assert status == 200
+        status, _body = lauf.stimme(wahl, lauf.chris, lauf.bruno)
+        assert status == 200
+        (zeile,) = lauf.wahlen()
+        kandidaten = zeile["candidates"]
+        zahl = {lauf.anna.pub.hex(): (2, 0), lauf.bruno.pub.hex(): (2, 1)}
+        assert zeile["result"]["rounds"] == [
+            {"round": 0, "counts": [[k, zahl[k][0]] for k in kandidaten]},
+            {"round": 1, "counts": [[k, zahl[k][1]] for k in kandidaten]},
+        ]
+    finally:
+        _stop(lauf.server)
+
+
+def test_verlauf_gewaehlt(tmp_path) -> None:
+    """Zu dritt zwei Stimmen für den Kandidaten, der nach Bytes hinten steht: ein Wahlgang,
+    gewählt, und ``counts`` bleibt in der Reihenfolge der Kandidaten, nicht nach Zahl
+    (04 §9.4, D684)."""
+    lauf = Lauf(tmp_path)
+    try:
+        wahl = lauf.wahl()
+        hinten = max((lauf.anna, lauf.bruno), key=lambda p: p.pub)
+        for person in (lauf.anna, lauf.bruno):
+            lauf.liste(wahl, person)
+            status, _body = lauf.stimme(wahl, person, hinten)
+            assert status == 200
+        (zeile,) = lauf.wahlen()
+        assert zeile["result"]["state"] == "ELECTED"
+        kandidaten = zeile["candidates"]
+        assert kandidaten[-1] == hinten.pub.hex()
+        assert zeile["result"]["rounds"] == [
+            {"round": 0, "counts": [[kandidaten[0], 0], [kandidaten[1], 2]]}
+        ]
+    finally:
+        _stop(lauf.server)

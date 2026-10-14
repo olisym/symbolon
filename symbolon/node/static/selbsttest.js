@@ -51,6 +51,9 @@ import {
   stimmeErfolg,
   stimmeFrage,
   wahlBeteiligung,
+  wahlenImVerein,
+  wahlMarke,
+  wahlVerlauf,
   wahlErgebnisSatz,
   wahlgangInWorten,
   wahlSchritte,
@@ -1652,7 +1655,7 @@ function wahlFaelle() {
   gleich(
     "wahlErgebnisSatz: gewählt",
     wahlErgebnisSatz({ state: "ELECTED", elected: bruno, current_round: 0 }, namen),
-    "Gewählt ist Bruno.",
+    "Bruno ist gewählt.",
   );
   gleich(
     "wahlErgebnisSatz: offen im ersten Wahlgang",
@@ -1662,7 +1665,7 @@ function wahlFaelle() {
   gleich(
     "wahlErgebnisSatz: offen nach einem Patt",
     wahlErgebnisSatz({ state: "OPEN", elected: null, current_round: 1 }, namen),
-    "Noch ist niemand gewählt. Es läuft Wahlgang 2. Im Wahlgang 1 kann niemand mehr die Mehrheit bekommen.",
+    "Noch ist niemand gewählt. Es läuft Wahlgang 2.",
   );
   gleich(
     "wahlErgebnisSatz: nicht auszählbar",
@@ -1674,18 +1677,69 @@ function wahlFaelle() {
   gleich(
     "wahlBeteiligung: zu dritt, zwei nehmen teil",
     wahlBeteiligung({ participants: [chris, anna, bruno], members: [bruno, anna] }, namen),
-    ["Wahlberechtigt: Anna, Bruno und Chris.", "Nimmt teil: Anna und Bruno.", "Gewählt ist, wer 2 von 3 Stimmen bekommt."],
+    ["Wahlberechtigt: Anna, Bruno und Chris.", "Nimmt teil: Anna und Bruno.", "Für die Mehrheit braucht es 2 von 3 Stimmen."],
   );
   gleich(
     "wahlBeteiligung: zu viert sind es 3",
     wahlBeteiligung({ participants: [anna, bruno, chris, "d1".repeat(32)], members: [] }, namen)[2],
-    "Gewählt ist, wer 3 von 4 Stimmen bekommt.",
+    "Für die Mehrheit braucht es 3 von 4 Stimmen.",
   );
   gleich(
     "wahlBeteiligung: ohne Wahlberechtigte kein Satz zur Mehrheit",
     wahlBeteiligung({ participants: [], members: [] }, namen),
     ["Wahlberechtigt: niemand.", "Nimmt teil: niemand."],
   );
+
+  // Das Ende und der Verlauf (D684).
+  gleich("wahlMarke: beendet", wahlMarke({ state: "ELECTED" }), "Wahl · beendet");
+  gleich("wahlMarke: läuft", wahlMarke({ state: "OPEN" }), "Wahl · läuft");
+  gleich("wahlMarke: nicht auszählbar", wahlMarke({ state: "UNEVALUABLE" }), "Wahl");
+  const verlauf = {
+    state: "ELECTED",
+    elected: chris,
+    current_round: 1,
+    rounds: [
+      { round: 0, counts: [[anna, 1], [bruno, 1], [chris, 1]] },
+      { round: 1, counts: [[anna, 1], [bruno, 0], [chris, 2]] },
+    ],
+  };
+  gleich("wahlVerlauf: Patt, dann gewählt, die meisten zuerst", wahlVerlauf(verlauf, namen), [
+    "Wahlgang 1: Anna 1, Bruno 1, Chris 1. Keine Mehrheit möglich.",
+    "Wahlgang 2: Chris 2, Anna 1.",
+  ]);
+  gleich(
+    "wahlVerlauf: noch keine Stimme",
+    wahlVerlauf({ state: "OPEN", current_round: 0, rounds: [{ round: 0, counts: [[anna, 0]] }] }, namen),
+    ["Wahlgang 1: noch keine Stimme."],
+  );
+  gleich(
+    "wahlVerlauf: offen nach einem Patt",
+    wahlVerlauf(
+      {
+        state: "OPEN",
+        current_round: 1,
+        rounds: [
+          { round: 0, counts: [[anna, 2], [bruno, 2]] },
+          { round: 1, counts: [[anna, 0], [bruno, 1]] },
+        ],
+      },
+      namen,
+    ),
+    ["Wahlgang 1: Anna 2, Bruno 2. Keine Mehrheit möglich.", "Wahlgang 2: Bruno 1."],
+  );
+  gleich("wahlVerlauf: ohne Wahlgänge keine Zeile", wahlVerlauf({ state: "UNEVALUABLE", rounds: [] }, namen), []);
+  gleich(
+    "wahlenImVerein: nur beendete Wahlen",
+    wahlenImVerein(
+      [
+        { label: "Vorstand 2026", office: "Vorstand", result: { state: "ELECTED", elected: chris } },
+        { label: "Kasse", office: "Kasse", result: { state: "OPEN", elected: null } },
+      ],
+      namen,
+    ),
+    ["Chris ist gewählt: „Vorstand 2026“ (Amt: Vorstand)."],
+  );
+  gleich("wahlenImVerein: ohne Wahlen nichts", wahlenImVerein([], namen), []);
 
   const aufgaben = [
     { scope: "s1", art: "ELECTION_JOIN", election: "e1" },

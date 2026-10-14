@@ -815,28 +815,53 @@ export function wahlTitel(zeile) {
   return `„${label}“ (Amt: ${office})`;
 }
 
-// Gewählt, offen im geltenden Wahlgang, oder nicht auszählbar; ein unbekannter Zustand bleibt
-// wörtlich (D681 Beschluss 3, 04 §9.4).
+// Der Kopf der Karte: gewählt, offen im geltenden Wahlgang, oder nicht auszählbar; ein
+// unbekannter Zustand bleibt wörtlich (D684 Beschluss 1, 04 §9.4).
 export function wahlErgebnisSatz(result, namen) {
-  if (result.state === "ELECTED") return `Gewählt ist ${nameVon(namen, result.elected)}.`;
+  if (result.state === "ELECTED") return `${nameVon(namen, result.elected)} ist gewählt.`;
   if (result.state === "OPEN") {
-    const laufend = wahlgangInWorten(result.current_round);
-    let satz = `Noch ist niemand gewählt. Es läuft ${laufend}.`;
-    if (result.current_round > 0) {
-      const vorbei = [];
-      for (let runde = 0; runde < result.current_round; runde += 1) {
-        vorbei.push(`Im ${wahlgangInWorten(runde)} kann niemand mehr die Mehrheit bekommen.`);
-      }
-      satz = `${satz} ${vorbei.join(" ")}`;
-    }
-    return satz;
+    return `Noch ist niemand gewählt. Es läuft ${wahlgangInWorten(result.current_round)}.`;
   }
   if (result.state === "UNEVALUABLE") return "Diese Wahl lässt sich nicht auszählen.";
   return result.state;
 }
 
-// Wahlberechtigte, Teilnehmer und ab wie vielen Stimmen gewählt ist. k kommt aus
-// noetigeStimmen([1, 2], n), denn 2 * |Y| > n ist dieselbe Grenze (D681 Beschluss 3, 04 §9.4).
+// Über dem Ergebnis: beendet, läuft, sonst nur „Wahl“ (D684 Beschluss 1).
+export function wahlMarke(result) {
+  if (result.state === "ELECTED") return "Wahl · beendet";
+  if (result.state === "OPEN") return "Wahl · läuft";
+  return "Wahl";
+}
+
+// Je Wahlgang die Stimmen grösser als null, die meisten zuerst, bei gleicher Zahl nach Namen.
+// Ein Wahlgang vor dem geltenden endet mit dem Patt (D684 Beschluss 1, 04 §9.4).
+export function wahlVerlauf(result, namen) {
+  const rounds = Array.isArray(result.rounds) ? result.rounds : [];
+  return rounds.map((gang) => {
+    const stimmen = (gang.counts ?? [])
+      .filter(([, zahl]) => zahl > 0)
+      .map(([schluessel, zahl]) => ({ name: nameVon(namen, schluessel), zahl }));
+    const titel = wahlgangInWorten(gang.round);
+    if (stimmen.length === 0) return `${titel}: noch keine Stimme.`;
+    stimmen.sort((links, rechts) => {
+      if (rechts.zahl !== links.zahl) return rechts.zahl - links.zahl;
+      return links.name.localeCompare(rechts.name, "de");
+    });
+    const kern = `${titel}: ${stimmen.map(({ name, zahl }) => `${name} ${zahl}`).join(", ")}.`;
+    if (gang.round < result.current_round) return `${kern} Keine Mehrheit möglich.`;
+    return kern;
+  });
+}
+
+// Je beendete Wahl ein Satz für den Tab „Im Verein“ (D684 Beschluss 1).
+export function wahlenImVerein(wahlen, namen) {
+  return wahlen
+    .filter((wahl) => wahl.result?.state === "ELECTED")
+    .map((wahl) => `${nameVon(namen, wahl.result.elected)} ist gewählt: ${wahlTitel(wahl)}.`);
+}
+
+// Wahlberechtigte, Teilnehmer und wie viele Stimmen die Mehrheit braucht. k kommt aus
+// noetigeStimmen([1, 2], n), denn 2 * |Y| > n ist dieselbe Grenze (D684 Beschluss 1, 04 §9.4).
 export function wahlBeteiligung(zeile, namen) {
   const berechtigt = Array.isArray(zeile.participants) ? zeile.participants : [];
   const dabei = Array.isArray(zeile.members) ? zeile.members : [];
@@ -846,7 +871,7 @@ export function wahlBeteiligung(zeile, namen) {
     `Nimmt teil: ${aufzaehlung(namenVon(dabei))}.`,
   ];
   const k = noetigeStimmen([1, 2], berechtigt.length);
-  if (k !== null) saetze.push(`Gewählt ist, wer ${k} von ${berechtigt.length} Stimmen bekommt.`);
+  if (k !== null) saetze.push(`Für die Mehrheit braucht es ${k} von ${berechtigt.length} Stimmen.`);
   return saetze;
 }
 

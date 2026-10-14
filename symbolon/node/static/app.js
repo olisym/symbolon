@@ -5,7 +5,8 @@
 // D518 Beschluss 5, D507 Beschluss 1 und 2, D506 Beschluss 1 und 2, D496 Beschluss 1 bis 3,
 // D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
-// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4, D681 Beschluss 1 bis 3).
+// D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4, D681 Beschluss 1 bis 3,
+// D684 Beschluss 1 bis 3).
 
 import {
   ablauf,
@@ -78,8 +79,11 @@ import {
   wahlBeteiligung,
   wahlErgebnisSatz,
   wahlgangInWorten,
+  wahlMarke,
   wahlSchritte,
   wahlTitel,
+  wahlVerlauf,
+  wahlenImVerein,
 } from "./anzeige.js";
 
 
@@ -1242,6 +1246,8 @@ function vereinGerade(view, kontext) {
       saetze.push(gesperrtSatz(nameVon(namen, schluessel), antragTitel(antrag.changes, namen)));
     }
   }
+  // Je beendete Wahl ein Satz, vor den offenen Beiträgen (D684 Beschluss 1).
+  saetze.push(...wahlenImVerein(kontext.wahlen, namen));
   const offeneBeitraege = obligationen.filter((schuld) => schuld.state === "OPEN").length;
   if (offeneBeitraege > 0) {
     saetze.push(offeneBeitraege === 1 ? "Ein Beitrag ist offen." : `${offeneBeitraege} Beiträge sind offen.`);
@@ -1531,11 +1537,12 @@ function neueWahlFormular(gov, view, namen, identitaet, handeln) {
   return form;
 }
 
-// Der Tab „Wahlen“: je angekündigter Wahl eine Karte, darunter eine neue Wahl (D681 Beschluss 3).
+// Der Tab „Wahlen“: das Ergebnis ist der Kopf, darunter Verlauf und Regel (D684 Beschluss 1,
+// D681 Beschluss 3).
 function wahlenAbschnitt(wahlen, tasks, gov, view, namen, identitaet, kontext, handeln) {
   const abschnitt = abschnittOffen(
     "Wahlen",
-    "Gewählt ist, wer mehr als die Hälfte der Wahlberechtigten hinter sich hat. Eine Stimme lässt sich nicht ändern.",
+    "Eine Wahl entscheidet die Mehrheit: mehr als die Hälfte der Wahlberechtigten. Eine Stimme lässt sich nicht ändern.",
   );
   if (gov === null) {
     abschnitt.append(zeile("Kein Verein."));
@@ -1546,13 +1553,16 @@ function wahlenAbschnitt(wahlen, tasks, gov, view, namen, identitaet, kontext, h
     const karte = element("div", "karte antrag");
     const kandidaten = nachNamen(wahl.candidates.map((schluessel) => nameVon(namen, schluessel)));
     karte.append(
-      marke("Wahl"),
-      element("div", "satz", `Wahl ${wahlTitel(wahl)}`),
+      marke(wahlMarke(wahl.result)),
+      element("div", "satz", wahlErgebnisSatz(wahl.result, namen)),
+      zeile(`Wahl ${wahlTitel(wahl)}`),
       zeile(`Zur Wahl: ${aufzaehlung(kandidaten)}.`),
-      zeile(wahlErgebnisSatz(wahl.result, namen)),
     );
+    for (const satz of wahlVerlauf(wahl.result, namen)) karte.append(zeile(satz));
     for (const satz of wahlBeteiligung(wahl, namen)) karte.append(zeile(satz, "leise"));
-    karte.append(element("div", "warnung", NICHT_GEHEIM));
+    // Nach dem Ende leise, solange die Wahl läuft als Warnung (D684 Beschluss 1, D680 Beschluss 1).
+    if (wahl.result.state === "ELECTED") karte.append(zeile(NICHT_GEHEIM, "leise"));
+    else karte.append(element("div", "warnung", NICHT_GEHEIM));
     const schritt = tasks.find(
       (aufgabe) =>
         aufgabe.scope === gov &&

@@ -116,12 +116,22 @@ class ElectionState(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
+class RoundCount:
+    """Stimmen eines Wahlgangs: ``|Y(c, w)|`` je Kandidat, in der Reihenfolge der Kandidaten
+    (04 §9.4, D684 Beschluss 2)."""
+
+    round: int
+    counts: tuple[tuple[bytes, int], ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ElectionResult:
     """Ergebnis von ``tally_election`` (04 §9.4, D671 Beschluss 4).
 
     ``current_round`` ist der geltende Wahlgang; bei ``UNEVALUABLE`` ``None``. ``lists`` sind die
     ``list_hash`` der tragenden Listen, aufsteigend. ``elected`` nennt den Gewählten, sonst
-    ``None``.
+    ``None``. ``rounds`` nennt je Wahlgang von 0 bis zum geltenden die Stimmen je Kandidat; bei
+    ``UNEVALUABLE`` ist es leer (D684 Beschluss 2).
     """
 
     state: ElectionState
@@ -130,6 +140,7 @@ class ElectionResult:
     lists: tuple[bytes, ...]
     findings: tuple[Finding, ...]
     election_hash: bytes
+    rounds: tuple[RoundCount, ...] = ()
 
 
 def _ballot_choice(vote: Claim) -> tuple[bytes, int] | None:
@@ -359,6 +370,15 @@ def tally_election(
     ]
     elected = winners[0] if len(winners) == 1 else None
     state = ElectionState.ELECTED if elected is not None else ElectionState.OPEN
+    # Je Wahlgang bis zum geltenden die Stimmen je Kandidat, in dessen Reihenfolge
+    # (04 §9.4, D684 Beschluss 2).
+    rounds = tuple(
+        RoundCount(
+            round=rnd,
+            counts=tuple((cand, len(counted.get((rnd, cand), ()))) for cand in candidates),
+        )
+        for rnd in range(current + 1)
+    )
     return ElectionResult(
         state=state,
         elected=elected,
@@ -366,4 +386,5 @@ def tally_election(
         lists=tuple(sorted(lst.list_hash for lst in carrying)),
         findings=dedupe_sort(findings),
         election_hash=e_hash,
+        rounds=rounds,
     )

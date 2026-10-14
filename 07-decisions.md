@@ -30370,3 +30370,40 @@ teilnehmen, abstimmen, Ergebnis, mit dem deutlichen Satz, dass die Wahl ohne Mis
 geheim ist. Vorher werden `app.js`, `anzeige.js` und der Selbsttest gelesen.
 
 **Geändert.** `07-decisions.md`.
+
+### D680 — Schluss der Sitzung `00df`: Wahl in Bibliothek und Knoten; als Nächstes die Seite
+
+**Anlass.** D679 ist auf `main` (`5cb4b5c`). Oli schliesst die Sitzung.
+
+**Befund 1 — was `00df` hinterlässt.** Am 14.10. die geheime Wahl von der Norm bis zum Knoten,
+in vier Läufen, einer davon mit Nachtrag (D676):
+- die Auszählung in der Bibliothek, `tally_election` (D671, D672, `p57`);
+- die Vorlage `verein` mit `ballot-ack@1` und `ballot@1` (D673, D674, `p58`);
+- Wahl und Liste im Bestand, `GET /wahlen/<scope>`, die Epoche aus der Kette (D675 bis D677,
+  `p59` mit Nachtrag);
+- die Wahl ohne Mischrunde, mit dem Wahlschlüssel im Knoten (D678, D679, `p60`).
+
+Am Prototyp gefunden und vor dem Auftrag in die Norm genommen: die bestrittene Bestätigung
+(D671), die erfundene Epoche und die Policy der Epoche der Wahl (D675). 1693 Tests, der
+Selbsttest unverändert mit 380 Fällen. `offen.md` führt 106 Posten, 19 offen.
+
+**Befund 2 — der Sitzungsstart ist aus der Fassung im Repositorium fortgeschrieben,** über ein
+Skript mit Paaren aus altem und neuem Text und dem Ersatz ganzer Abschnitte (D656 Befund 2).
+
+**Beschluss 1 — die Seite der Wahl (Oli).** Ein eigener Tab „Wahlen“ neben „Anträge“, mit der
+Zahl der offenen Schritte (teilnehmen, abstimmen). Vor jeder Stimme fragt die Seite, auch wenn
+der Knoten unterschreibt, mit dem Wahlgang und dem Satz, dass sich die Stimme nicht ändern
+lässt. Die Karte jeder Wahl sagt, solange es keine Mischrunde gibt, dass die Wahl nicht geheim
+ist (D678 Beschluss 1).
+
+**Beschluss 2 — der nächste Schritt.** Die Seite der Wahl: erst `app.js`, `anzeige.js` und den
+Selbsttest ganz lesen, dann ein Prototyp mit Fällen für die neuen Sätze (`absichtSatz` für
+`election` und `ballot-ack`, `erfolgSatz`, die Abweisungen aus D678), dann der Auftrag und ein
+Durchlauf in Playwright. Danach die Mischrunde im Knoten.
+
+**Beschluss 3 — O106 fortgeschrieben.** Gebaut sind Norm, Bibliothek, Vorlage und Knoten ohne
+Mischrunde. Offen: die Seite, die Mischrunde zwischen Knoten, ein Satzungsantrag für bestehende
+Vereine, was die Vorstandswahl füllt (O105 Punkt 1).
+
+**Geändert.** `sitzungsstart-00e0.md` (neu), `sitzungsstart-00df.md` nach `archiv/`, `offen.md`,
+`07-decisions.md`.

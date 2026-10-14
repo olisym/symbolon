@@ -507,7 +507,9 @@ Strang, wenn ein Szenario ihn braucht; vorher wird nachgeschlagen (D640):
 
 Jede Stimme ist ein unterschriebener Claim (O105 Punkt 2). Richtung nach D666: eine Mischrunde
 unter den Teilnehmenden ergibt eine Liste frischer Schlüssel, mit denen nach `04 §3` abgestimmt
-wird; das Atom bleibt. Die Zählregel steht in `04 §9` (D669, D671) und ist in der Bibliothek
-gebaut (D672). Offen: die Mischrunde im Knoten, offene und geheime Stimmen in derselben Epoche
-(D666 Befund 6), was die Vorstandswahl füllt (O105 Punkt 1), die Vorlage `verein` mit
-`ballot-ack@1` und `ballot@1` und die Seite.
+wird; das Atom bleibt. Gebaut: die Zählregel in `04 §9` und in der Bibliothek (D669, D671,
+D672), die Vorlage `verein` mit `ballot-ack@1` und `ballot@1` (D674), Wahl und Liste im Knoten
+(D677) und der Ablauf ohne Mischrunde mit dem Wahlschlüssel im Knoten (D679). Offene und geheime
+Stimmen in derselben Epoche treffen sich nicht, denn die Wahl ist kein Antrag (D667 Beschluss 2).
+Offen: die Seite (D680), die Mischrunde zwischen Knoten, ein Satzungsantrag für Vereine, die vor
+D673 gegründet wurden, und was die Vorstandswahl füllt (O105 Punkt 1).

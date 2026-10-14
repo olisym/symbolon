@@ -31,7 +31,7 @@ VORLAGEN: dict[str, dict[str, object]] = {
             "membership": [1, 2],
             "amendment": [2, 3],
         },
-        "irrevocable_verein": ["obligation@1", "ratify@1", "vote@1"],
+        "irrevocable_verein": ["ballot-ack@1", "ballot@1", "obligation@1", "ratify@1", "vote@1"],
         "irrevocable_vereinsleben": ["obligation@1"],
         "amendment_rule": 2,
         "trust_params": {0: 100, 1: 1, 2: 2, 3: 100},

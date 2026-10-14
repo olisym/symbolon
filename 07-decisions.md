@@ -30279,3 +30279,68 @@ mit der Seite der Wahl (D675 Beschluss 4). Davor zu klären: wo die frischen Sch
 wer sie signiert, die Seite oder der Knoten, und wie die Mischrunde aus D667 dort hinkommt.
 
 **Geändert.** `07-decisions.md`.
+
+### D678 — Die Wahl im Knoten ohne Mischrunde; der Wahlschlüssel liegt im Knoten
+
+**Anlass.** D677 Beschluss 2: die Absichten für Wahl, Bestätigung und Stimme mit der Seite.
+Davor waren zwei Fragen zu klären: wo der frische Schlüssel liegt, und wie die Mischrunde aus
+D667 dorthin kommt. Gelesen: D666, D667, `symbolon/node/static/geraet.js` (Schlüssel und
+Ablauf), `api.py` (Absichten, `/sim/intent`), `store.py`.
+
+**Befund 1 — wo heute Schlüssel liegen.** Die Seite hält genau einen Schlüssel je Browser, nicht
+exportierbar, in IndexedDB unter `selbst`, mit seiner Kette (D481, D482). Im Knoten liegen nur
+die Seeds simulierter Personen (D476 Beschluss 4). Die Seite spricht nur mit ihrem eigenen
+Knoten (`default-src 'self'`); eine Mischrunde zwischen Menschen läuft also ohnehin zwischen
+Knoten (D666 Beschluss 3).
+
+**Beschluss 1 — zwei Schritte (Oli).** Erst der Ablauf ohne Mischrunde: jedes Mitglied bildet
+eine eigene Liste mit sich allein und seinem Wahlschlüssel. So eine Liste trägt nach `§9` und
+ist nicht geheim (`§9.6`: eine Liste mit einem Teilnehmer verbirgt nichts). Damit laufen Wahl
+anlegen, Schlüssel, Bestätigen, Abstimmen und Ergebnis schon durch. Danach ersetzt die
+Mischrunde zwischen den Knoten die Einzellisten, und erst dann ist die Wahl geheim. Die Seite
+sagt bis dahin deutlich, dass die Wahl nicht geheim ist.
+
+**Beschluss 2 — der Wahlschlüssel liegt im Knoten (Oli).** Je Wahl und Wurzel ein frischer
+Ed25519-Schlüssel, angelegt und gehalten vom Knoten, in einer eigenen Tabelle
+`wahlschluessel`; der Knoten unterschreibt mit ihm. Damit liegt zum ersten Mal ein echter
+privater Schlüssel eines Menschen im Knoten. Getragen wird:
+- wer den Knoten auf dem Gerät erreicht, kann mit dem Schlüssel stimmen; die Schnittstelle
+  bindet nur an `127.0.0.1` und prüft niemanden, wie bei den simulierten Personen;
+- der Seed liegt unverschlüsselt in der Datei des Bestands, wie die Seeds der Simulation;
+- geht die Datei verloren, ist die Stimme in dieser Wahl verloren. Browserdaten zu löschen
+  schadet nicht.
+
+Dafür kann der Knoten in Schritt 2 die Mischrunde mit dem eigenen Schlüssel führen, ohne dass
+die Seite jede Runde unterschreibt. Der Wurzelschlüssel bleibt in der Seite: Wahl anlegen und
+die Bestätigung als Mitglied unterschreibt weiter der Mensch.
+
+**Beschluss 3 — Wahl der Implementierung (D489): Schnittstelle für Schritt 1.**
+- Absicht `election`: Scope, Amt, Bezeichnung, Kandidaten. Der Knoten baut die Wahl auf die
+  geltende Epoche, Kandidaten sortiert. Doppelte oder eine formwidrige Wahl ergeben
+  `INVALID_ELECTION`. Er liefert das Objekt ein und bereitet `election@1` vor; die Folge nennt
+  den Hash.
+- Absicht `ballot-ack`: eine Liste des Bestands. Der Knoten bereitet die Bestätigung als Mitglied
+  vor; eine unbekannte Liste ergibt `UNKNOWN_LIST`.
+- `POST /wahl/liste` mit Wahl und Wurzel. Wahl unbekannt: `UNKNOWN_ELECTION`; formwidrig:
+  `MALFORMED_ELECTION`; nicht auswertbar: `NOT_EVALUABLE`; Wurzel nicht in `P` der Epoche der
+  Wahl: `NOT_ELIGIBLE`. Sonst legt der Knoten den Wahlschlüssel an, wenn er fehlt, baut die
+  Liste mit der Wurzel allein, liefert sie ein und bestätigt sie mit dem Schlüssel, einmal.
+  Wiederholt gibt es dieselbe Liste ohne zweite Bestätigung.
+- `POST /wahl/stimme` mit Wahl, Wurzel, Kandidat und optional Wahlgang. Ohne Wahlgang gilt der
+  geltende aus `/wahlen`. Fehlt der Schlüssel: `NO_BALLOT_KEY`. Ein Kandidat ausserhalb der Wahl:
+  `UNKNOWN_CANDIDATE`, obwohl die Norm ihn binden liesse; der Knoten verhindert den Irrtum. Hat
+  der Schlüssel im Wahlgang schon gestimmt: `ALREADY_VOTED`, denn eine zweite Stimme entwertete
+  beide (`§9.4`).
+
+**Befund 2 — der Prototyp.** Im Supervisor-Klon auf `1ad862b`: fünf Tests in
+`tests/node/test_wahl_ablauf.py` über HTTP, mit simulierten Gründern. Fünf Proben, jede rot an
+einer Zusicherung: ohne Prüfung von `P`, ohne `ALREADY_VOTED`, mit einer Bestätigung bei jeder
+Wiederholung der Liste, mit Wahlgang 0 statt des geltenden, ohne Prüfung des Kandidaten. Die
+ganze Reihe läuft mit 1693 Tests grün.
+
+**Beschluss 4 — nicht in diesem Schritt.** Die Seite, die Mischrunde, Aufgaben in `tasks_view`,
+eine Stimme der Wurzel ohne Wahlschlüssel. Die Seite ist der nächste Auftrag nach diesem.
+
+**Auftrag.** `p60-wahl-ablauf`, Basis ist der Commit dieses Eintrags.
+
+**Geändert.** `07-decisions.md`.

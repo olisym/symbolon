@@ -30533,3 +30533,29 @@ Prototyp, ohne dass der Auftrag es verlangte; das Werkzeug hat es gemeldet.
 Eintrags.
 
 **Geändert.** `07-decisions.md`.
+
+### D683 — Abnahme p61-wahl-seite, zweiter Durchgang: angenommen
+
+**Anlass.** Der Bericht zum Nachtrag, Commit `ee21049` auf der Basis `45ae5a0` (D682).
+
+**Befund 1 — was trägt.** Gelesen ist der ganze Diff. Die Testdatei ist bytegleich mit dem Diff
+aus dem Nachtrag; `anzeige.js` trägt den Wortlaut aus D682 Beschluss 1 und weicht vom Prototyp
+nur im Zeilenumbruch ab. Im Supervisor-Klon auf dem Commit des Laufs: der Selbsttest mit 416
+Fällen grün, die Markdown-Ziele grün. Die ganze Reihe lief auf `622c40e` mit 1697 Tests grün
+(D682 Befund 1); der Nachtrag ändert nur `anzeige.js` und den Selbsttest. Die Rücknahmeprobe ist
+berichtet wie verlangt.
+
+**Befund 2 — eine Prüfregel.** Ein Fall, der gegen eine importierte Konstante vergleicht, legt
+ihren Wortlaut nicht fest; ein Auftrag, der Wortlaut verlangt, schreibt ihn in den Fall
+(D682 Befund 3).
+
+**Beschluss 1 — angenommen.** `p61-wahl-seite` geht nach `main`, als Vorspulen.
+
+**Beschluss 2 — O106 fortgeschrieben.** Gebaut ist dazu die Seite: Tab „Wahlen“, die Schritte
+unter „Jetzt zu tun“, eine Frage vor jeder Stimme. Offen bleiben die Mischrunde zwischen Knoten,
+ein Satzungsantrag für Vereine, die vor D673 gegründet wurden, und was die Vorstandswahl füllt.
+
+**Beschluss 3 — der nächste Schritt.** Olis Durchlauf einer Vorstandswahl zu dritt auf der Seite
+(D490), danach die Mischrunde zwischen Knoten (D667).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

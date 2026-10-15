@@ -31234,3 +31234,58 @@ bei `MALFORMED_BALLOT` (D694 Befund 5 Punkt 3) bleibt außerhalb dieses Strangs.
 Beschluss 1.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D696 — Schluss der Sitzung `00e1`: das Ziel neu, die Landkarte, Breite vor Tiefe
+
+**Anlass.** D695 ist auf `main` (`5ce5f8f`). Oli fragt, ob die Fälle zu sehr ins Einzelne gehen
+und was das Ziel ist, und schliesst die Sitzung mit einem neu gefassten Ziel.
+
+**Befund 1 — was `00e1` hinterlässt.** Am 15.10. ein Strang, ganz durchgezogen: die Beteiligung
+(O107) vom Fall bis in die Bibliothek. Gerechnet, gemessen und nachgeschlagen in D689 bis D692,
+Normtext und 46 Vektoren in D693, der Lauf `p63` mit Nachtrag in D694 und D695. Der wichtigste
+Fund kam beim Lesen der Norm vor dem Normtext: Enthaltung und Ruhen je Antrag hätten zwei
+rivalisierende Nachfolger derselben Epoche durchkommen lassen (D692 Befund 1). 1746 Tests, der
+Selbsttest unverändert bei 425 Fällen.
+
+**Befund 2 — die Kette war zu tief für die Frage.** Aus einem einzigen Fall wurden sechs
+Registereinträge, Normtext, 47 Tests, rund tausend Zeilen Code und ein Nachtrag. Der Fund war
+echt, aber zu diesem Preis trägt eine Sitzung einen Fall. Das Ziel aus `00ci` ist eine
+belastbare Antwort, ob gegenseitige Absicherung und gemeinsames Entscheiden ohne Zentrale
+funktionieren, und die Leitlinie aus `00cv` lautet, nicht an Randfällen zu zerreiben. Für beides
+ist die Kette zu schmal: den Verein kennen wir genau, ob Food-Koop, Versicherung, Markt oder
+Sicherheitsdienst tragen, wissen wir nicht.
+
+**Beschluss 1 — das Ziel (Oli).** Die Probe ist, ob MaR abbildet, was Menschen heute schon tun,
+weil es ihr Zusammenleben reibungsloser und für alle besser macht. Keine Grundlagenforschung: zu
+jedem Anwendungsfall gibt es Vorlagen, an denen sich ablesen lässt, welche Mechanismen und
+Funktionen er braucht, wie das Vereinsrecht für den Verein (D645). Gegen diese Vorlagen läuft
+das Protokoll. Die Mechanismen darunter werden erkannt und auf gemeinsame Wurzeln
+zusammengezogen; für diese Wurzeln soll das Protokoll besonders effizient und schlank sein.
+
+**Beschluss 2 — die Landkarte zuerst (Oli).** Die nächste Sitzung beginnt mit einer Landkarte
+der Anwendungsfälle, nur auf Papier. Je Fall: die Vorlage nachschlagen (Recht, Normen, gelebte
+Praxis), die Mechanismen daraus auflisten, jeden gegen die Bausteine legen, und am Ende eine
+Zeile: trägt, trägt mit Lücke, trägt nicht. Code entsteht erst, wenn mehrere Fälle an derselben
+Wurzel haken. Die Vorführung zu dritt auf drei Telefonen (Oli, `00ci`) kommt danach; die
+Landkarte sagt, wohin sie sich lohnt.
+
+**Beschluss 3 — Breite vor Tiefe.** Die Arbeitsweise aus D688 Beschluss 1 bleibt für den Fall,
+den die Landkarte als Wurzel auswählt. Für die Landkarte selbst gilt: kein Normtext, kein
+Prototyp, keine Vektoren; ein Fall in einer Sitzungsstunde. Der Verein ist der erste Eintrag, als
+Massstab: er ist bis in die Bibliothek gebaut.
+
+**Befund 3 — Kandidaten für die Landkarte, nicht nachgeschlagen.** Aus `00ci`: Food-Koop,
+Versicherung, Markt, Sicherheitsdienst. Mögliche Vorlagen, aus dem Gedächtnis und erst zu prüfen:
+das Genossenschaftsgesetz und die Praxis von Food-Coops; der Versicherungsverein auf
+Gegenseitigkeit und Solidargemeinschaften; Kaufrecht, Marktordnung und Handelsbrauch; das
+Bewachungsgewerbe und die Nachbarschaftshilfe. Mögliche gemeinsame Wurzeln, als Vermutung:
+Mitgliedschaft, Beitrag und Umlage, Zusage und Schuld, Entscheidung, Vertretung, Streit und
+Schlichtung, Teilen eines Risikos. Welche Fälle und welche Vorlagen gelten, entscheidet Oli zu
+Beginn von `00e2`.
+
+**Beschluss 4 — ein Posten.** Neuer Posten O108 „Die Landkarte der Anwendungsfälle“. O107 bleibt
+offen für die Seite und die Vorlage `verein`; sie warten, bis die Landkarte sagt, was zuerst
+sichtbar werden soll.
+
+**Geändert.** `sitzungsstart-00e2.md` (neu), `sitzungsstart-00e1.md` nach `archiv/`,
+`07-decisions.md`, `offen.md`.

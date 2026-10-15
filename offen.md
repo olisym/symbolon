@@ -535,3 +535,12 @@ Liste in der Satzung, selbst ruhen wirkt dort nicht. Offen: mehrere Geräte eine
 Rivalen und Kennung in D692; der Normtext in D693 (`participation@1`, `BV-1` bis `BV-43`).
 Die Bibliothek zählt es seit `p63` (D694, D695). Offen: die Seite und `participation@1` in der
 Vorlage `verein`.
+Wartet auf die Landkarte (O108), die sagt, was zuerst sichtbar werden soll (D696 Beschluss 4).
+
+### O108 Die Landkarte der Anwendungsfälle
+
+Ziel nach D696: prüfen, ob MaR abbildet, was Menschen heute schon tun, gegen Vorlagen je
+Anwendungsfall (Recht, Normen, gelebte Praxis), und die Mechanismen darunter auf gemeinsame
+Wurzeln zusammenziehen. Je Fall eine Zeile: trägt, trägt mit Lücke, trägt nicht. Breite vor
+Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken. Kandidaten:
+Verein als Massstab, Food-Koop, Versicherung, Markt, Sicherheitsdienst (D696 Befund 3).

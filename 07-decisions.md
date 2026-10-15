@@ -31204,3 +31204,33 @@ Supervisor-Klon, verworfen: mit beiden Reparaturen 47 von 47 grün, 616 in `test
 `make check-specs`, nicht nur durch Ruff und `pytest`.
 
 **Geändert.** `07-decisions.md`, `04-golden-anchors.md`, auf `p63-beteiligung`.
+
+### D695 — Abnahme Nachtrag `p63-beteiligung`: angenommen, `main` vorgespult auf `59a9735`
+
+**Anlass.** Der Bericht zu `59a9735` auf `p63-beteiligung`, Nachtrag nach D694 Beschluss 1.
+
+**Befund 1 — der Diff gegen `dbb5b9d`.** Gelesen aus dem Spiegel: `RULE_FIELDS` führt die zehn
+Regelfelder aus `04 §1.1`; eine bestrittene Stimme, die die Bedingungen 1 bis 6 aus `04 §3.1`
+erfüllt, läuft unter `participation@1` durch die Regeln der Ruhe und hält die Wurzel im Nenner,
+gezählt wird sie nicht, `DISPUTED_VOTE` bleibt; der Docstring von `tally_election` ist bereinigt.
+Nichts darüber hinaus.
+
+**Befund 2 — nachgefahren.** Frischer Arbeitsbaum auf `59a9735`: `make check` endet mit 0, 1746
+Tests grün, Spec und Ruff sauber; Register und Testdatei mit den Hashes aus dem Nachtrag. Die
+Proben D und E aus dem Bericht treffen genau `BV-44`, `BV-45` und `BV-46`, die Proben A bis C
+dieselben Vektoren wie im ersten Lauf; am Prototyp vor dem Nachtrag war es dasselbe (D694
+Beschluss 1).
+
+**Beschluss 1 — angenommen.** `main` wird auf `59a9735` vorgespult. Damit zählt die Bibliothek
+Enthaltung, Ruhen und Rückkehr nach D689 bis D694, unter der Kennung `participation@1`; ohne sie
+zählt sie wie vorher.
+
+**Befund 3 — was offen bleibt.** Die Seite: Enthaltung, „Ich ruhe“, „Ich bin zurück“, keine
+Stimme nach dem Ruhen, die Nennungen durch den Knoten, die Liste der Ruhenden im Vorschlag (D690
+Befund 5, D693 Befund 2). Die Vorlage `verein` führt `participation@1` noch nicht. Die Abweichung
+bei `MALFORMED_BALLOT` (D694 Befund 5 Punkt 3) bleibt außerhalb dieses Strangs.
+
+**Nächster Schritt.** Oli wählt: die Seite zur Beteiligung, oder der nächste Fall nach D688
+Beschluss 1.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

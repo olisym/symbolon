@@ -533,4 +533,5 @@ Stimme, die die eigene Ruhe nennt, ist ein Lebenszeichen; die Liste braucht `thr
 Wahl und Patt in D691: Enthaltung je Wahlgang, auch geheim; in der geheimen Wahl zählt nur die
 Liste in der Satzung, selbst ruhen wirkt dort nicht. Offen: mehrere Geräte einer Wurzel.
 Rivalen und Kennung in D692; der Normtext in D693 (`participation@1`, `BV-1` bis `BV-43`).
-Nächster Schritt: der Auftrag `p63-beteiligung`, danach die Seite.
+Die Bibliothek zählt es seit `p63` (D694, D695). Offen: die Seite und `participation@1` in der
+Vorlage `verein`.

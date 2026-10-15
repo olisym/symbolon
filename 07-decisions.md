@@ -30772,3 +30772,102 @@ Schritt), mit `InMemoryStore`, den Fixtures aus `tests/governance` und Zufallste
 
 **Geändert.** `sitzungsstart-00e1.md` (neu), `sitzungsstart-00e0.md` nach `archiv/`,
 `07-decisions.md`.
+
+### D689 — Beteiligung gerechnet: nur wer schweigt, verlässt den Nenner; die Ruhenden in der Satzung
+
+**Anlass.** D688 Beschluss 2: der Prototyp zu O107. Vor dem Code auf dem Papier gegen `reached`
+und `hopeless` in `symbolon/governance/tally.py` gerechnet; dabei fiel D687 Beschluss 1.
+
+**Befund 1 — „der Nenner sinkt nur“ reicht nicht.** Auch ein sinkender Nenner kippt ein
+Ergebnis, wenn der, der herausfällt, auf diesen Antrag schon zählend gestimmt hat. Schwelle `1/2`:
+bei `n = 31` und 16 Ja ist der Antrag durchgekommen (`32 > 31`); ruht einer der Ja-Sager, ist er
+bei `n = 30` und 15 Ja offen (`30 > 30` falsch). Ebenso gescheitert: `n = 30`, 15 Nein
+(`30 <= 30`); ruht einer der Nein-Sager, ist `n = 29`, 14 Nein offen.
+
+**Befund 2 — gemessen: nur eine von zehn Änderungen hält.** Zehn Änderungen an Ja, Nein und
+Nenner in einer laufenden Abstimmung, je gegen jedes erreichte Ergebnis, mit `hypothesis` über
+20 000 Fälle, `n` bis 60, Schwellen `1/3`, `1/2`, `2/3`, `3/4`; gerechnet im Supervisor-Klon mit
+den Formeln aus `tally.py`, nicht eingecheckt. Es hält allein: eine Wurzel ohne zählende Stimme
+verlässt den Nenner. Das folgt aus `den >= num` und gilt für jede Schwelle. Es kippen, mit dem
+kleinsten gefundenen Fall:
+
+| Änderung | Fall | vorher | nachher |
+|---|---|---|---|
+| ein Ja-Sager ruht | `n = 5`, 2 Ja, 1 Nein, `1/3` | durchgekommen | offen |
+| ein Nein-Sager ruht | `n = 3`, 2 Ja, 1 Nein, `2/3` | gescheitert | durchgekommen |
+| Enthaltung ersetzt Ja | wie ein Ja-Sager ruht | durchgekommen | offen |
+| Enthaltung ersetzt Nein | wie ein Nein-Sager ruht | gescheitert | durchgekommen |
+| Ja ersetzt Enthaltung | `n = 1`, 0 Ja, 1 Nein, `1/3` | gescheitert | durchgekommen |
+| Nein ersetzt Enthaltung | `n = 5`, 2 Ja, 1 Nein, `1/3` | durchgekommen | offen |
+| ein Ruhender stimmt Ja | `n = 1`, 0 Ja, 1 Nein, `1/3` | gescheitert | durchgekommen |
+| ein Ruhender stimmt Nein | `n = 5`, 2 Ja, 1 Nein, `1/3` | durchgekommen | offen |
+| Rückkehr ohne Stimme | `n = 5`, 2 Ja, 1 Nein, `1/3` | durchgekommen | offen |
+
+D686 Beschluss 1 und D687 Beschluss 1 hatten nur die Hälfte geprüft: dass ein kleinerer Nenner
+bei gleichen Stimmen hält.
+
+**Beschluss 1 — der Nenner (Position, vor dem Normtext).** Der Nenner eines Antrags ist `|P|`
+ohne die Ruhenden und ohne jede Wurzel, die sich zu diesem Antrag enthält. Eine Wurzel mit
+zählendem Ja oder Nein auf diesen Antrag bleibt im Nenner, auch wenn sie ruht. Daraus:
+1. Eine Enthaltung ersetzt kein Ja und kein Nein, und keine Stimme ersetzt eine Enthaltung
+   (D547 gilt nur zwischen Ja und Nein).
+2. Wer ruht, stimmt nicht. Die Stimme einer ruhenden Wurzel zählt nicht und hebt den Nenner
+   nicht; sie ist ein Lebenszeichen, kein Votum.
+3. Was der Nenner einer Fassung zu Beginn ist, folgt aus ihrer Satzung, nicht aus Claims, die
+   spät eintreffen können. Claims dürfen ihn nur senken, und nur um Wurzeln ohne zählende Stimme.
+
+**Beschluss 2 — Ruhen ohne Reihenfolge ist ein Widerspruch.** Erklärt eine Wurzel, dass sie
+ruht, und hat sie auf einen Antrag derselben Fassung eine Stimme, die die Erklärung nicht nennt,
+lässt sich ohne Uhr nicht sagen, was zuerst kam. Sie zählt dann für diesen Antrag wie bei
+`AMBIGUOUS_VOTE`: im Nenner, ohne Stimme. Das ist der Vorbehalt aus D529 (ein selbst signierter
+Widerspruch, sichtbar, einmal je Antrag), kein neuer. Für den ehrlichen Fall nennt die Erklärung
+die eigenen Stimmen, wie eine ersetzende Stimme ihre Vorgänger nennt (D547): diese Stimmen zählen
+weiter, und die Wurzel bleibt für diese Anträge im Nenner. Der Knoten setzt die Nennung beim
+Erklären von selbst. Dasselbe gilt für Enthaltung und Ja oder Nein derselben Wurzel auf denselben
+Antrag ohne Nennung: im Nenner, ohne Stimme.
+
+**Beschluss 3 — die Ruhenden stehen in der Satzung (Oli).** Die Satzung führt eine Liste der
+Ruhenden; wer darauf steht, zählt in dieser Fassung nicht im Nenner. Ruhen durch Beschluss ist
+eine Änderung dieser Liste mit der Schwelle `membership`, wie eine Aufnahme (`04 §6.4`), und
+wirkt mit der neuen Fassung. Verworfen: die Rückkehr durch eine eigene Erklärung ohne Antrag
+(D686 Beschluss 2). Sie kann spät eintreffen und höbe den Nenner mitten in einer Fassung; das ist
+die letzte Zeile von Befund 2. Verworfen auch: die Rückkehr erzeugt selbst eine neue Fassung; dann
+beendet jeder Rückkehrer jede laufende Abstimmung (D686 Befund 5 Punkt 1).
+
+**Beschluss 4 — selbst ruhen gilt, bis man selbst zurück ist (Oli).** Die eigene Erklärung
+senkt den Nenner sofort, in der Fassung, die sie nennt, und in jeder späteren, bis die Wurzel
+zurück ist. Sie läuft nicht von selbst aus. Wer ruht, zählt wie einer, der sich enthält, nicht wie
+einer, der Nein sagt; ein Antrag in einer Zeit, in der viele ruhen, schadet keinem, der da ist.
+Verworfen: die Erklärung gilt nur für eine Fassung, danach zählt die Wurzel wieder als Schweigen;
+wer lange fort ist, fiele bei jedem Wechsel als Nein zurück. Verworfen auch: die Erklärung nennt,
+bis zu welcher Fassung sie gilt; sicher, aber niemand denkt in Fassungen.
+
+**Beschluss 5 — zurück in zwei Schritten (Oli).** Die Wurzel erklärt selbst, dass sie zurück
+ist; ein Antrag nimmt das in die Satzung auf, und wer ihm zustimmt, bestätigt es. Ab dieser
+Fassung zählt sie wieder. Eine zusätzliche Unterschrift einer weiteren Person ist verworfen: sie
+schützte nur gegen einen gestohlenen Schlüssel, und der stimmt nach der Rückkehr ohnehin.
+
+**Befund 3 — was die Position kostet, ohne Lösung in diesem Schritt.**
+1. Die Aktiven können eine Rückkehr blockieren, indem sie keinen Antrag annehmen, der sie
+   aufnimmt. Die Erklärung ist öffentlich; die Seite kann sie zu jedem Antrag zeigen, und die
+   Weigerung ist damit sichtbar.
+2. Ruhen viele, entscheiden wenige. Eine Mindestzahl an Abstimmenden verhinderte das, machte
+   aber Ruhen zum Boykott (D687 Befund 3). Deshalb keine Mindestzahl.
+3. Die Liste der Ruhenden ist ein neues Feld der Satzung. Ein Knoten, der es nicht kennt, rechnet
+   mit `|P|` und kommt zu einem anderen Ergebnis; die Satzung braucht eine Kennung, an der ein
+   alter Knoten sie als nicht regierbar erkennt (D686 Befund 5 Punkt 2, `constitution_governable`).
+
+**Golden Numbers — der Verein aus D686 Befund 1.** 30 Mitglieder, 10 stehen auf der Liste der
+Ruhenden: `n = 20`. Mit den Schwellen der Vorlage `verein` reichen für `ordinary` und
+`membership` (`1/2`) 11 Ja (`22 > 20`), für `amendment` (`2/3`) 14 Ja (`42 > 40`; 13 gibt
+`39 > 40` falsch). Vorher, bei `n = 30`: 16 und 21. Wer die 10 auf die Liste setzt, braucht dafür
+noch `membership` bei `n = 30`, also 16 Ja: erreichbar, solange mehr als die Hälfte handelt.
+
+**Nächster Schritt.** Der Prototyp an der Bibliothek im Supervisor-Klon, nicht eingecheckt: die
+Liste der Ruhenden und die Enthaltung als Ergänzung zu `_decide`, mit `InMemoryStore` und den
+Fixtures aus `tests/governance`; der Verein aus D686 mit diesen Golden Numbers; und eine Probe mit
+`hypothesis`, dass kein spät eintreffender Claim nach Beschluss 1 und 2 ein erreichtes Ergebnis
+kippt, ausser im Widerspruch aus Beschluss 2. Offen bleiben Enthaltung und Ruhen in Wahl und Patt
+(`04 §9.4`, `04 §4.7`).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

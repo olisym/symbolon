@@ -524,4 +524,8 @@ ausdrückliche Stimme, die den Nenner senkt; ruhen durch Beschluss mit `membersh
 ein eigenes Lebenszeichen. Offen: wann eine Rückkehr wirkt, ohne eine laufende Abstimmung zu
 kippen, die Kennung der Regel in der Satzung, Enthaltung in Wahl und Patt (D686 Befund 5).
 Nachgeschlagen in D687: der Nenner sinkt in einer Abstimmung nur, und jeder kann selbst ruhen.
-Nächster Schritt: ein Prototyp an der Bibliothek.
+Gerechnet in D689: nur eine Wurzel ohne zählende Stimme darf den Nenner verlassen; wer ruht,
+stimmt nicht; die Ruhenden stehen in der Satzung, selbst ruhen gilt bis zur eigenen Rückkehr,
+und zurück ist man, wenn ein Antrag das aufnimmt. Offen: die Kennung der Liste in der Satzung,
+Enthaltung und Ruhen in Wahl und Patt, eine blockierte Rückkehr (D689 Befund 3).
+Nächster Schritt: ein Prototyp an der Bibliothek mit dem Verein aus D686.

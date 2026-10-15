@@ -714,3 +714,113 @@ Listen rechnet der Test aus den Objekten.
 bestrittene Bestätigung ist keine, weder für eine Liste noch gegen sie. Ohne die Regel werden
 `WV-15` und `WV-17` rot, ohne das Verdikt `WV-16`, ohne die Zurechnung an die Wurzel `WV-14` und
 `WV-16`.
+
+## 14. Beteiligung (`04 §1.1`, `§2.2`, `§2.6`, `§3.1`, `§3.2`, `§3.4`, `§4.7`, `§9.4`)
+
+Jeder Vektor in `§14.1` bis `§14.4` steht in Epoche 1 eines **eigenen Genesis** wie in `§12`. Die
+Verfassung `CB` ist `C1` mit `participants` aus ALICE, BOB, CAROL, DAVE, EVE und FRANK (`n = 6`),
+`thresholds` `ordinary` `[1,2]`, `membership` `[1,2]`, `amendment` `[2,3]` wie die Vorlage
+`verein`, `rest@1` zusätzlich in `irrevocable_predicates` und `required_features:
+["participation@1"]`. `XB` ist ein Vorschlag, dessen Ziel nur `arbitration` ändert, Klasse
+`amendment`; `YB` ein zweiter wie `XB` mit anderem Arbitrator, beide im Wahlgang 0. Vier Ja
+erreichen `[2,3]` bei `n = 6` nicht (`12 > 12` falsch), bei `n = 5` schon (`12 > 10`). „Vier Ja“
+heißt ALICE, BOB, CAROL und DAVE auf `XB`. „EVE ruht“ heißt ein `rest@1` von EVE mit `v[0] = 1`
+und ohne Key `1`. Welche Erwartungen am Prototyp aus D690 nachgerechnet sind, sagt D693.
+
+### 14.1 Enthaltung und Ruhen
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `BV-1` | vier Ja | `PENDING`, `n = 6` |
+| `BV-2` | vier Ja, EVE enthält sich | `PASSED`, `n = 5` |
+| `BV-3` | wie `BV-2`, die Verfassung ohne `required_features` und ohne `rest@1` | EVEs Stimme `UNKNOWN_VOTE_CHOICE`; `PENDING`, `n = 6` |
+| `BV-4` | vier Ja, EVE ruht | `PASSED`, `n = 5` |
+| `BV-5` | vier Ja, `resting: [FRANK]` | `PASSED`, `n = 5` |
+| `BV-6` | ALICE, BOB, CAROL und FRANK Ja, `resting: [FRANK]` | FRANKs Stimme `RESTING_VOTE`; `PENDING`, `n = 5`, drei Ja |
+| `BV-7` | vier Ja, EVE Ja, danach EVE ruht und nennt ihr Ja | EVEs Ja zählt; `PASSED`, `n = 6`, fünf Ja |
+| `BV-8` | wie `BV-7`, die Erklärung nennt nichts | `AMBIGUOUS_REST`; `PENDING`, `n = 6`, vier Ja |
+| `BV-9` | vier Ja, EVE ruht, danach EVE Ja und nennt die Erklärung | EVEs Ja `RESTING_VOTE`; `PASSED`, `n = 5` |
+| `BV-10` | vier Ja, EVE enthält sich mit Key `1` | `ABSTENTION_WITH_REPLACES`; `PENDING`, `n = 6` |
+| `BV-11` | vier Ja, EVE Ja und EVE Enthaltung, keine nennt die andere | `AMBIGUOUS_VOTE`; `PENDING`, `n = 6` |
+| `BV-12` | vier Ja, EVE Enthaltung, danach EVE Nein und nennt die Enthaltung | die Nennung wirkt nicht, `AMBIGUOUS_VOTE`; `PENDING`, `n = 6` |
+| `BV-13` | vier Ja, EVE ruht und nennt eine `claim_id`, die lokal unbekannt ist | EVE bleibt im Nenner; `PENDING`, `n = 6` |
+| `BV-14` | vier Ja, EVEs Erklärung trägt `t_exp` | `REST_WITH_EXPIRY`; `PENDING`, `n = 6` |
+| `BV-15` | vier Ja, EVEs Erklärung mit `v[0] = 2` | wirkt erst in Epoche 2; `PENDING`, `n = 6` |
+| `BV-16` | vier Ja, EVE ruht, `returned: {EVE: 2}` | die Erklärung mit `v[0] = 1` wirkt nicht; `PENDING`, `n = 6` |
+
+`BV-1` und `BV-2` sind das Paar um eine Enthaltung, `BV-2` und `BV-3` das Paar um die Kennung:
+dieselbe Stimme, einmal Enthaltung, einmal unbekannt. `BV-7` und `BV-8` sind das Paar um die
+Nennung: ohne sie nimmt die Erklärung dem Ja die Wirkung. `BV-9` ist das Lebenszeichen: ohne die
+Regel aus `§3.1` Punkt 1 wäre `AMBIGUOUS_REST` die Folge und EVE im Nenner. `BV-15` und `BV-16`
+brauchen eine Epoche mit Index 1 und die Regel `r <= v[0] <= e` aus `§2.6`.
+
+### 14.2 Rivalen (`§3.2`, `§4.4`)
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `BV-17` | vier Ja auf `XB`; EVE Ja auf `YB` und Enthaltung auf `XB` | EVE bleibt im Nenner von `XB`; `XB` `PENDING`, `n = 6` |
+| `BV-18` | vier Ja auf `XB`; EVE Ja auf ein lokal unbekanntes Objekt und Enthaltung auf `XB` | EVE bleibt im Nenner; `PENDING`, `n = 6` |
+| `BV-19` | vier Ja auf `XB`; EVE Ja auf `YB`, danach EVE ruht und nennt es | für `XB` bleibt EVE im Nenner; `PENDING`, `n = 6` |
+| `BV-20` | zehn Wurzeln, `[1,2]` in jeder Klasse; vier Ja auf `XB`, die sich bei `YB` enthalten; fünf Ja auf `YB`, von denen sich drei bei `XB` enthalten | `XB` und `YB` je `PENDING`, `n = 10` |
+
+`BV-17` bis `BV-19` sind die Sperre aus `§3.2`. Ohne sie wäre jeder `PASSED` mit `n = 5`. `BV-20`
+ist D692 Befund 1: ohne die Sperre kommen `XB` mit `n = 7` (`8 > 7`) und `YB` mit `n = 6`
+(`10 > 6`) beide durch. Seine Verfassung führt zehn Wurzeln; die übrigen vier sind frisch gebaut
+(D464).
+
+### 14.3 Klasse und Form (`§1.1`, `§3.4`, `§3.5`)
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `BV-21` | Ziel ist `CB` mit `resting: [EVE, FRANK]`, sonst gleich; vier Ja | Klasse `membership`, `[1,2]`; `PASSED` (`8 > 6`) |
+| `BV-22` | wie `BV-21`, das Ziel ändert dazu `arbitration` | Klasse `amendment`; `PENDING` |
+| `BV-23` | Ziel ist `CB` mit `returned: {EVE: 2}`; vier Ja | Klasse `membership`; `PASSED` |
+| `BV-24` | `required_features: ["participation@1", "x-unbekannt@1"]` | `UNEVALUABLE`, `UNSUPPORTED_FEATURE`, Subjekt der Hash der Verfassung |
+| `BV-25` | `required_features: []` | `UNEVALUABLE`, `MALFORMED_REQUIRED_FEATURES` |
+| `BV-26` | `required_features: ["x-unbekannt@1"]`, dazu `participants` leer | `UNSUPPORTED_FEATURE`, nicht `MALFORMED_PARTICIPANTS` |
+| `BV-27` | `resting: [FRANK]` ohne `required_features` | `UNEVALUABLE`, `MALFORMED_RESTING` |
+| `BV-28` | `resting` mit einer Wurzel, die nicht in `participants` steht | `MALFORMED_RESTING` |
+| `BV-29` | `resting` unsortiert | `MALFORMED_RESTING` |
+| `BV-30` | `returned: {EVE: 0}` | `MALFORMED_RESTING` |
+| `BV-31` | `CB` ohne `rest@1` in `irrevocable_predicates` | `UNEVALUABLE`, `REST_REVOCABLE` |
+| `BV-32` | Ziel wie `BV-24`; ein `ratify@1` auf den Vorschlag mit genug Ja | Bedingung 6 aus `§4.1`: keine Epoche, `UNSUPPORTED_FEATURE`, Subjekt `proposal.constitution_hash` |
+
+`BV-21` ist D690 Befund 2: mit der Klasse von heute wäre der Vorschlag `amendment` und vier Ja
+reichten nicht. `BV-26` trägt die Reihenfolge aus `§3.5`: die unbekannte Regel steht vor jedem
+anderen Inhalt. `BV-24` braucht die Rücknahmeprobe aus D692 Beschluss 2: wer den Eintrag nicht
+prüft, rechnet `BV-24` wie `CB` und sieht `PENDING` statt `UNEVALUABLE`.
+
+### 14.4 Patt (`§4.7`)
+
+Ja heißt hier: ALICE und BOB auf `XB`, CAROL auf `YB`.
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `BV-33` | Ja; DAVE, EVE und FRANK schweigen | kein Patt: `XB` `(2 + 3) * 3 = 15 > 12`; geltend 0 |
+| `BV-34` | Ja; DAVE, EVE und FRANK ruhen | `n = 3`, frei 0: `XB` `2 * 3 = 6 <= 6`, `YB` `3 <= 6`; Patt, geltend 1 |
+| `BV-35` | Ja; `resting: [DAVE, EVE, FRANK]` | wie `BV-34`; Patt, geltend 1 |
+| `BV-36` | Ja; DAVE, EVE und FRANK enthalten sich bei `XB` und `YB` | Bedingung 4 je mit `n = 3` und ohne die drei in `F`; Bedingung 3 mit `n = 6` und drei Freien, `3 * 2 = 6 <= 6`; Patt, geltend 1 |
+
+`BV-33` und `BV-34` sind das Paar um eine Ruhe im Patt: dieselben Stimmen, einmal schweigen drei,
+einmal ruhen sie. Ohne die Regel aus `§4.7` sind ruhende Wurzeln frei, und `BV-34` hat kein Patt.
+
+### 14.5 Geheime Wahl (`§9.4`)
+
+Die Welt aus `§13`, die Verfassung dazu mit `required_features: ["participation@1"]` und `rest@1`
+in `irrevocable_predicates`. „`Ki` E“ heißt ein `ballot@1` von `Ki` mit `candidate == h''` im
+Wahlgang 0.
+
+| Vektor | Lage | Erwartet |
+|---|---|---|
+| `BV-37` | `LV`; `K1`, `K2` A, `K3` E | `n(0) = 3`; `ELECTED` ALICE: `2 * 2 = 4 > 3` |
+| `BV-38` | wie `BV-37`, die Verfassung ohne `required_features` | `K3` bindet nicht; `OPEN`, geltend 0 |
+| `BV-39` | `LV`; `K1`, `K2` A, `K3` E und `K3` A | `AMBIGUOUS_BALLOT`, `K3` im Nenner; `OPEN`, geltend 0 |
+| `BV-40` | `resting: [DAVE]`; die Liste ohne DAVE und `K4`; `K1`, `K2` A | `n = 3`; `ELECTED` ALICE |
+| `BV-41` | `resting: [DAVE]`; `LV` mit DAVE | `LV` trägt nicht (`§9.3` Bedingung 2); `OPEN`, geltend 0 |
+| `BV-42` | `LV`; `K1`, `K2` A; DAVE ruht mit einem `rest@1` | die Erklärung wirkt hier nicht; `OPEN`, geltend 0 |
+| `BV-43` | `LV`; `K1` A, `K2` B, `K3`, `K4` E | `n(0) = 2`, frei 0: je `2 * 1 = 2 <= 2`; Patt, geltend 1 |
+
+`BV-37` und `BV-38` sind das Paar um die Kennung in der Wahl. `BV-40` und `WV-4` sind das Paar um
+eine Wurzel ohne Liste: ruht sie in `resting`, ist sie nicht frei. `BV-42` ist D691 Beschluss 1.
+`BV-43` ist der Stillstand aus D686 Befund 1 im Kleinen: ohne die Enthaltungen wären `K3` und
+`K4` frei, `2 * (1 + 2) = 6 > 4`, und Wahlgang 0 gälte weiter.

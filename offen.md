@@ -532,4 +532,5 @@ Im Prototyp (D690): es kippt nur der zweite Claim eines Mitglieds, und nur nach 
 Stimme, die die eigene Ruhe nennt, ist ein Lebenszeichen; die Liste braucht `threshold_class`.
 Wahl und Patt in D691: Enthaltung je Wahlgang, auch geheim; in der geheimen Wahl zählt nur die
 Liste in der Satzung, selbst ruhen wirkt dort nicht. Offen: mehrere Geräte einer Wurzel.
-Nächster Schritt: der Normtext mit Kennung und Vektoren, dann der Auftrag.
+Rivalen und Kennung in D692; der Normtext in D693 (`participation@1`, `BV-1` bis `BV-43`).
+Nächster Schritt: der Auftrag `p63-beteiligung`, danach die Seite.

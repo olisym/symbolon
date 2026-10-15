@@ -31,13 +31,16 @@ Stimmmodus (`00 §4`). Der Genesis ändert sich nie; wer ihn ändern will, grün
 Nukleus.
 
 **Verfassung (versioniert).** Die inhaltlichen Regeln, content-adressiert. Sie trägt in dieser
-Schicht drei zusätzliche Felder gegenüber `00 §5`:
+Schicht sechs zusätzliche Felder gegenüber `00 §5`:
 
 | Feld | Typ | Pflicht | Bedeutung |
 |---|---|---|---|
 | `participants` | array of bstr (32 B), sortiert, duplikatfrei | optional | Die stimmberechtigte Menge `P` der Epoche |
 | `thresholds` | map text zu `[num, den]` | Pflicht | Schwellen je Klasse, exakte Integer |
 | `protected_fields` | array of text, sortiert, duplikatfrei, nicht leer | optional | Die geschützten Sachfelder |
+| `required_features` | array of text, sortiert, duplikatfrei, nicht leer | optional | Die Regeln, die die Verfassung voraussetzt |
+| `resting` | array of bstr (32 B), sortiert, duplikatfrei, nicht leer | optional | Die Ruhenden der Epoche |
+| `returned` | map bstr (32 B) zu uint, nicht leer | optional | Je Wurzel der Epochenindex, ab dem ihre Ruhe-Erklärungen wieder gelten |
 
 `participants` ist **optional**, damit das kanonische Beispiel aus `00 §3.1` es weglässt und `N`
 byte-identisch bleibt. Ein Nukleus ohne deklariertes `participants` ist nicht auszählbar (`§3.5`).
@@ -64,8 +67,8 @@ Die Aufnahme von `vote@1` widerspricht D58 nicht. Die Negativliste dort nennt `v
 Kriterium lautet, ob Fortbestehen die konservative Lesart ist. Eine Stimme gewährt keine
 fortdauernde Autorität; sie ist ein einmaliger Akt an einem einzelnen Objekt (D97).
 
-**Regelfelder und Sachfelder** (D565, D646). Sieben Felder einer Verfassung sind **Regelfelder**:
-`participants`, `thresholds` und `protected_fields` aus der Tabelle oben,
+**Regelfelder und Sachfelder** (D565, D646, D692). Zehn Felder einer Verfassung sind
+**Regelfelder**: die sechs aus der Tabelle oben,
 `irrevocable_predicates`, `arbitration`, `enforcement_policy` und `nucleus_keys` aus `00 §5`.
 Jedes andere Feld ist ein **Sachfeld**. Die
 Liste ist Protokoll, nicht Verfassungsinhalt: ein Feld, das eine Auswertung liest, steht auf ihr,
@@ -84,6 +87,37 @@ fehlende Feld, unter einem anderen Hash.
 - Die Liste ist selbst ein Regelfeld. Sie ändert nur ein Vorschlag, und der fällt in die Klasse
   `amendment` (`§3.4`); wer ein Feld aus dem Schutz nimmt, braucht die Schwelle, die es schützt.
 - Gelesen wird die Liste nur bei der Auszählung eines Sachantrags (`§3.5`).
+
+**Vorausgesetzte Regeln** (D692). `required_features` nennt Regeln, die ein Knoten kennen muss, um
+gegen diese Verfassung auszuzählen. Kennt er einen Eintrag nicht, ist die Verfassung für ihn nicht
+regierbar (`§3.5`): er rechnet sichtbar nicht, statt anders. Das Feld ist **optional**: fehlt es,
+setzt die Verfassung nichts voraus, und jede Verfassung ohne es behält ihren Hash. Es ist eine
+Liste von Texten, aufsteigend sortiert nach den Bytes ihrer UTF-8-Kodierung, duplikatfrei und
+nicht leer. Diese Fassung kennt einen Eintrag: `participation@1`, die Beteiligung (`§2.2`, `§2.6`,
+`§3.1`, `§3.2`, `§4.7`, `§9`).
+
+- Eine Regel bekommt einen Eintrag, wenn sie die Auszählung ändert; was sie nicht ändert, braucht
+  keinen. Das Muster ist die kritische Erweiterung (`crit` in RFC 7515, das Kennzeichen in
+  RFC 5280, `required_capabilities` in RFC 9420); es hilft nur, wo es geprüft wird (D692 Befund 4).
+- Ein Knoten, der das Feld selbst nicht kennt, liest es nicht und zählt nach seiner Fassung. Das
+  ist getragen wie D646 Beschluss 6; ab dieser Fassung schützt das Feld jede künftige Regel.
+
+**Die Ruhenden** (D689, D690, D692). Unter `participation@1` führt eine Verfassung optional
+`resting`, die Wurzeln aus `P`, die in dieser Epoche ruhen, und `returned`, je Wurzel aus `P` den
+Index der Epoche, ab dem ihre Ruhe-Erklärungen nach `§2.6` wieder gelten. Wer in `resting` steht,
+stimmt in dieser Epoche nicht und zählt in keinem Nenner (`§3.1`, `§3.2`).
+
+- `resting` ist eine Liste von Bytestrings der Länge 32, aufsteigend sortiert, duplikatfrei, nicht
+  leer, jeder Eintrag in `participants`. `returned` ist eine nicht leere Map, jeder Schlüssel ein
+  Bytestring der Länge 32 in `participants`, jeder Wert ein `uint` größer 0. Leer ist formwidrig,
+  weil es dasselbe sagte wie das fehlende Feld, unter einem anderen Hash.
+- Ohne `participation@1` ist eine Verfassung mit `resting` oder `returned` formwidrig. Unter
+  `participation@1` muss `irrevocable_predicates` `rest@1` führen: eine widerrufbare Ruhe höbe den
+  Nenner mitten in einer Epoche (D692 Beschluss 3).
+- Zurück ist man in zwei Schritten: die Wurzel erklärt es selbst, mit einer Stimme, die ihre Ruhe
+  nennt (`§3.1`), und ein Vorschlag nimmt es auf, indem er sie aus `resting` streicht oder in
+  `returned` mit dem Index der neuen Epoche führt (D689 Beschluss 5). Ein Lebenszeichen allein höbe
+  den Nenner mitten in einer Epoche, sobald es spät eintrifft (D689 Befund 2).
 
 **Epoche (abgeleitet).** Kein Objekt, sondern eine Identität:
 
@@ -118,7 +152,8 @@ folgenden Epoche mit. Die Epochenverfassung ist fest, kein Livewert.
 
 ## 2. Profile
 
-Drei Prädikate. Alle drei sind `nuc:`-gescoped und tragen `N` als Pflichtfeld.
+Drei Prädikate, unter `participation@1` (`§1.1`) ein viertes (`§2.6`). Alle sind
+`nuc:`-gescoped und tragen `N` als Pflichtfeld.
 
 ### 2.1 `nuc:N/propose@1`
 
@@ -148,8 +183,16 @@ Andere Werte sind unbekannt und zählen weder als Ja noch als Nein; sie erzeugen
 Vorschlag, die diese Stimme **ersetzt** (`§3.1`, D547). Jeder Eintrag ist ein Bytestring der Länge
 32. Weitere Keys sind für spätere Durchgänge reserviert und werden ignoriert.
 
-Es gibt **keinen dritten Wert** für Enthaltung. Wer sich nicht äußert, gibt keine Stimme ab; das
-ist von einer Nein-Stimme in der Wirkung nicht unterschieden (`§3.2`), aber in der Diagnose (D94).
+Ohne `participation@1` (`§1.1`) gibt es **keinen dritten Wert** für Enthaltung. Wer sich nicht
+äußert, gibt keine Stimme ab; das ist von einer Nein-Stimme in der Wirkung nicht unterschieden
+(`§3.2`), aber in der Diagnose (D94).
+
+**Enthaltung** (D686, D689). Unter `participation@1` bedeutet `choice == 2` Enthaltung: die
+Wurzel zählt weder als Ja noch als Nein und verlässt den Nenner dieses Antrags (`§3.2`). Eine
+Enthaltung trägt keinen Key `1`; trägt sie ihn, zählt sie nicht, Vermerk
+`ABSTENTION_WITH_REPLACES`, Subjekt ihre `claim_id`. Eine Enthaltung ersetzt nichts und wird
+durch nichts ersetzt (`§3.1`): zwischen Enthaltung und Ja oder Nein zu tauschen kippte ein
+erreichtes Ergebnis in beide Richtungen (D689 Befund 2).
 
 ### 2.3 `nuc:N/ratify@1`
 
@@ -282,6 +325,45 @@ Wo `§3` und `§4` einen Vorschlag auszählen oder feststellen, gilt dasselbe f�
 `motion_hash` an der Stelle von `proposal_hash`. Die Abweichungen stehen in `§3.4`, `§3.5`, `§4.1`
 und `§4.4`. Das Register nennt einen Vorschlag auch Regeländerung (D564).
 
+### 2.6 `nuc:N/rest@1`
+
+Nur unter `participation@1` (`§1.1`); ohne den Eintrag liest keine Auszählung dieses Prädikat.
+
+| Feld | Belegung |
+|---|---|
+| `I` | ein Element von `P` |
+| `N` | `N` des Nukleus |
+| `J` | `[object-hash, epoch_id]` (Tag 3), die Epoche, in der die Wurzel erklärt |
+| `v` | `{0: i}` oder `{0: i, 1: [claim_id, …]}` |
+
+Die Wurzel erklärt, dass sie ruht, ab der Epoche mit Index `i` (D689 Beschluss 4). Key `1` nennt
+Stimmen derselben Wurzel, die vor der Erklärung abgegeben wurden und weiter zählen (D689
+Beschluss 2); der Knoten setzt die Nennung beim Erklären selbst. Jeder Eintrag ist ein Bytestring
+der Länge 32. Weitere Keys sind reserviert und werden ignoriert. `J` liest keine Auszählung; es
+dient der Auffindbarkeit wie `propose@1`.
+
+**Wann eine Erklärung wirkt.** In einer Epoche mit Index `e` wirkt eine Erklärung `R` der Wurzel
+`m`, wenn alle Bedingungen gelten:
+
+1. `R.N == scope`, `wurzel(R)` nach `02 §2.1` ist `m`, und `m` steht in `P`;
+2. `R` ist `ACTIVE` nach `classify_all` unter der Policy der Epoche und trägt kein `t_exp`;
+3. `v` ist lesbar und kanonisch (`§2.3`), `v[0]` ist ein `uint`, Key `1` fehlt oder ist eine Liste
+   von Bytestrings der Länge 32;
+4. `r <= v[0] <= e`, mit `r` dem Wert von `m` in `returned` der Verfassung der Epoche, `0`, wenn
+   `m` dort fehlt.
+
+Eine Erklärung mit `t_exp` wirkt nicht, Vermerk `REST_WITH_EXPIRY`; eine, die an Bedingung 3
+scheitert, wirkt nicht, Vermerk `MALFORMED_REST`; Subjekt ist je ihre `claim_id`. Wie bei einer
+Stimme (`§3.1`, Bedingung 4) wird eine Ruhe mit Ablauf ungültig und nicht still umgedeutet: sie
+höbe den Nenner durch Zeitablauf.
+
+- Eine Erklärung wirkt, bis eine Verfassung die Wurzel in `returned` mit einem größeren Index
+  führt. Sie läuft nicht von selbst aus (D689 Beschluss 4).
+- Ein Index über dem der laufenden Epoche wirkt erst dort. Wer sich falsch datiert, schadet nur
+  sich: eine Ruhe senkt den Nenner nur um die eigene Wurzel.
+- Was sie je Antrag bewirkt, sagen `§3.1` und `§3.2`, im Patt `§4.7`. In der geheimen Wahl wirkt
+  sie nicht (`§9.4`, D691 Beschluss 1).
+
 ---
 
 ## 3. Der Kern-Loop
@@ -294,7 +376,9 @@ Eine `vote@1`-Stimme zählt für einen Vorschlag genau dann, wenn alle Bedingung
 2. `vote.J == (3, proposal_hash)`
 3. `wurzel(vote)` nach `02 §2.1` ist Element von `P` — sonst Vermerk `NON_MEMBER_VOTE`
 4. `vote.t_exp` ist nicht gesetzt — sonst Vermerk `VOTE_WITH_EXPIRY`
-5. `vote.v[0]` ist `0` oder `1` — sonst Vermerk `UNKNOWN_VOTE_CHOICE`
+5. `vote.v[0]` ist `0` oder `1`, unter `participation@1` auch `2` (`§2.2`) — sonst Vermerk
+   `UNKNOWN_VOTE_CHOICE`. Eine Enthaltung mit Key `1` zählt nicht, Vermerk
+   `ABSTENTION_WITH_REPLACES`
 6. Der Claim ist `ACTIVE` nach `classify_all` unter der scope-lokalen Policy (D91). Weil
    `vote@1` nach `§2.1` geschützt ist, führen Widerruf und Supersede hier nie aus `ACTIVE`
    heraus; die Bedingung schließt damit fehlenden Vorgänger, Equivocation und Ablauf aus, nicht
@@ -393,6 +477,23 @@ bekommt `NON_CANONICAL_V` und **nicht** `AMBIGUOUS_VOTE`, und seine kanonische S
 ist keine Ausnahme von der Regel darüber, sondern ihre Voraussetzung: zwei Stimmen sagen nur dann
 Verschiedenes, wenn beide etwas sagen.
 
+**Unter `participation@1`** (D689, D690, D692) gilt zusätzlich, vor der Zusammenfassung je
+Wurzel:
+
+1. **Wer ruht, stimmt nicht.** Eine Stimme einer Wurzel aus `resting` zählt nicht; ebenso eine
+   Stimme, die in Key `1` eine wirksame Erklärung (`§2.6`) derselben Wurzel nennt. Vermerk
+   `RESTING_VOTE`, Subjekt ihre `claim_id`. Die zweite ist ein Lebenszeichen: die Wurzel ist
+   wieder da, und ein Vorschlag kann das aufnehmen (`§1.1`, D690 Beschluss 1).
+2. **Eine Enthaltung ist endgültig.** Ein Name in Key `1` einer Ja- oder Nein-Stimme, der auf eine
+   Enthaltung zeigt, bleibt ohne Wirkung. Enthaltung und Ja oder Nein derselben Wurzel sind zwei
+   Stimmen verschiedener Wahl und zählen nach den Regeln oben nicht, Vermerk `AMBIGUOUS_VOTE`.
+3. **Ruhe und Stimme ohne Reihenfolge.** Hat eine Wurzel eine wirksame Erklärung und auf diesen
+   Antrag eine Stimme, die nach den Bedingungen 1 bis 6 zählen kann und die keine ihrer wirksamen
+   Erklärungen nennt, zählt keine ihrer Stimmen auf diesen Antrag; Vermerk `AMBIGUOUS_REST`,
+   Subjekt alle beteiligten `claim_id`. Ohne Uhr ist nicht zu sagen, was zuerst kam (D689
+   Beschluss 2). Die Wurzel bleibt im Nenner (`§3.2`). Eine Stimme, die eine Erklärung nennt,
+   zählt nach den Regeln oben.
+
 ### 3.2 Die Auszählung
 
 Sei `n = |P|`, sei `[num, den]` die anzuwendende Schwelle (`§3.4`), seien `Ja` und `Nein` die
@@ -410,6 +511,32 @@ sein `proposal_hash`; `gescheitert` bleibt davon unberührt.
 Der Nenner ist `n`, nie `|Ja| + |Nein|`. Wer nicht abstimmt, senkt den Nenner nicht;
 Nichtteilnahme wirkt wie Ablehnung. Die Schwelle gilt gegenüber den **Berechtigten**, nicht
 gegenüber den Erschienenen.
+
+**Der Nenner unter `participation@1`** (D689, D692). `n` ist dann `|P ∖ resting|` ohne jede
+Wurzel `m`, die den Nenner dieses Antrags `X` verlässt. `m` verlässt ihn, wenn
+
+1. ihre Stimmen auf `X` nach `§3.1` als Enthaltung zählen, oder
+2. sie eine wirksame Erklärung hat (`§2.6`), auf `X` keine Stimme hat, die die Bedingungen 1 bis 6
+   aus `§3.1` erfüllt und nicht `RESTING_VOTE` trägt, und jede `claim_id`, die ihre wirksamen
+   Erklärungen nennen, lokal bekannt ist,
+
+und wenn sie in beiden Fällen kein aktives Ja auf ein Objekt hat, das nach `§4.4` mit `X`
+unvereinbar oder lokal unbekannt ist. Aktiv heißt wie in `§4.4`: `ACTIVE`, ohne `t_exp`, nicht
+bestritten; ob dieses Ja selbst zählt, spielt keine Rolle.
+
+- Den Nenner verlässt nur, wer auf `X` keine zählende Ja- oder Nein-Stimme hat. Das ist die einzige
+  Änderung, die jedes erreichte Ergebnis hält: bei `den >= num` bleiben `durchgekommen` und
+  `gescheitert` wahr (D689 Befund 2).
+- Eine Erklärung, die Unbekanntes nennt, hält die Wurzel im Nenner: das Unbekannte kann eine Stimme
+  auf `X` sein. Trifft sie ein, kommt eine Stimme bei gleichem Nenner hinzu.
+- Die Sperre über unvereinbare Ja hält die Ja-Mengen rivalisierender Anträge im Nenner des jeweils
+  anderen; ohne sie kämen zwei Nachfolger derselben Epoche durch (D692 Befund 1, `§4.4`). Wer sich
+  bei `X` enthält und einem Rivalen zustimmt, senkt den Nenner von `X` deshalb nicht.
+- Was einen Nenner hebt, wirkt erst mit einer neuen Epoche, über `resting` und `returned` (`§1.1`).
+  Innerhalb einer Epoche hebt ihn nur ein zweiter Claim derselben Wurzel: `AMBIGUOUS_REST`,
+  `AMBIGUOUS_VOTE` mit einer Enthaltung, ein Ja auf einen Rivalen, das spät eintrifft. Ein
+  erreichtes Ergebnis fällt dadurch nach `PENDING`, nie ins Gegenteil (D690 Befund 3); das ist die
+  Klasse der Ausnahmen aus dem nächsten Absatz.
 
 Beide Mengen wachsen nur (D97), beide Bedingungen sind einmal wahr für immer wahr, und sie
 schließen einander aus. Die Ausnahmen sind benannt und getragen, alle mit sichtbarem Anlass: der
@@ -447,8 +574,13 @@ abgeleitet, nicht vom Vorschlagenden gewählt:
 |---|---|
 | ein Sachantrag (`§2.5`), der kein geschütztes Feld berührt | `ordinary` |
 | ein Sachantrag, der ein geschütztes Feld berührt (`§1.1`) | `amendment` (Index aus `genesis[5]`) |
-| ein Vorschlag, Unterschied ausschließlich in `participants` | `membership` |
+| ein Vorschlag, Unterschied ausschließlich in `participants`, `resting` und `returned` | `membership` |
 | ein Vorschlag, alles andere | `amendment` (Index aus `genesis[5]`) |
+
+**`resting` und `returned` zählen wie `participants`** (D690 Befund 2 und Beschluss 2). Ruhen und
+Zurückkehren sind Fragen der Mitgliedschaft. Als `amendment` bräuchte ein Verein, in dem ein
+Drittel schweigt, für die Liste der Ruhenden genau die Schwelle, die das Schweigen blockiert
+(D686 Befund 2).
 
 **Die alte Verfassung eines Vorschlags ist der Stand aus der Verfassung der Epoche und `S`**
 (D567): die Verfassung, mit der die Epoche beginnt, nach Anwendung der Sachanträge in `S` wie in
@@ -569,10 +701,14 @@ zurückweist.
 
 | Lage | Vermerk |
 |---|---|
+| `required_features` formwidrig nach `§1.1` | `MALFORMED_REQUIRED_FEATURES` |
+| `required_features` nennt eine Regel, die der Knoten nicht kennt | `UNSUPPORTED_FEATURE` |
 | `participants` nicht deklariert | `PARTICIPANTS_UNDECLARED` |
 | `participants` formwidrig: kein Array, leer, Eintrag nicht 32 B, unsortiert, Duplikate | `MALFORMED_PARTICIPANTS` |
 | `irrevocable_predicates` führt `vote@1` nicht | `VOTE_REVOCABLE` |
 | `irrevocable_predicates` führt `ratify@1` nicht | `RATIFY_REVOCABLE` |
+| `resting` oder `returned` formwidrig nach `§1.1`, oder geführt ohne `participation@1` | `MALFORMED_RESTING` |
+| unter `participation@1`: `irrevocable_predicates` führt `rest@1` nicht | `REST_REVOCABLE` |
 | bei einem Sachantrag: `protected_fields` formwidrig nach `§1.1` | `MALFORMED_PROTECTED_FIELDS` |
 | `genesis[6]` ist nicht der uint `0` (Gewichtungsmodus nicht Kopfzahl) | `UNSUPPORTED_WEIGHT_MODE` |
 | `genesis[5] > 2`, Schwellenklasse fehlt, oder Schwelle nicht wohlgeformt | `MALFORMED_THRESHOLD` |
@@ -587,6 +723,10 @@ Verfassungen geprüft, benennt das Subjekt die **zurückgewiesene** — bei der 
 Objekt zeigt, schickt den Beobachter an die falsche Stelle, und das ist schlechter als gar keine
 Adresse: einer fehlenden folgt er nicht. `findings` ist sortiert und dedupliziert, in der Ordnung
 aus `00 §10` (D429).
+
+**Die vorausgesetzten Regeln stehen vor jedem anderen Inhalt** (D692). Unter einer Regel, die der
+Knoten nicht kennt, kann jedes andere Feld eine andere Bedeutung haben; ein Vermerk über ein
+solches Feld schickte den Beobachter an die falsche Stelle.
 
 **Eine leere `participants`-Liste ist formwidrig.** Sie ist sortiert und duplikatfrei und käme
 sonst durch; mit `n = 0` wäre jeder Vorschlag sofort `FAILED`, und die Diagnose sagte „abgelehnt",
@@ -663,7 +803,8 @@ ihn fest** und nimmt ihn damit in den Stand der Epoche auf (`§4.6`). Beides gen
 4. keine zwei bezeichnen Stimmen derselben Wurzel
 5. die Anzahl der Wurzeln überschreitet die Schwelle nach `§3.2` und `§3.4`
 6. bei einem Vorschlag: die Zielverfassung ist **regierbar**: `participants` ist deklariert und
-   wohlgeformt nach `§3.5`, und `irrevocable_predicates` führt `vote@1` und `ratify@1`
+   wohlgeformt nach `§3.5`, `irrevocable_predicates` führt `vote@1` und `ratify@1`, und keine
+   Zeile über `required_features`, `resting`, `returned` und `rest@1` aus `§3.5` trifft zu
 7. bei einem Vorschlag: **jeder Sachantrag in `S` ist festgestellt**, ein `ratify@1` auf ihn trägt
    nach dieser Prüfung
 8. bei einem Vorschlag: **sein Wahlgang ist der geltende** Wahlgang der Epoche (`§4.7`)
@@ -713,14 +854,18 @@ unlesbar, der Claim trägt nur nicht.
 
 | Lage in der Zielverfassung | Vermerk, Subjekt `proposal.constitution_hash` |
 |---|---|
+| `required_features` formwidrig nach `§1.1` | `MALFORMED_REQUIRED_FEATURES` |
+| `required_features` nennt eine Regel, die der Knoten nicht kennt | `UNSUPPORTED_FEATURE` |
 | `participants` nicht deklariert | `PARTICIPANTS_UNDECLARED` |
 | `participants` formwidrig nach `§3.5` | `MALFORMED_PARTICIPANTS` |
 | `irrevocable_predicates` führt `vote@1` nicht | `VOTE_REVOCABLE` |
 | `irrevocable_predicates` führt `ratify@1` nicht | `RATIFY_REVOCABLE` |
+| `resting` oder `returned` formwidrig, oder geführt ohne `participation@1` | `MALFORMED_RESTING` |
+| unter `participation@1`: `irrevocable_predicates` führt `rest@1` nicht | `REST_REVOCABLE` |
 
-Es sind dieselben vier Lagen wie in `§3.5`, dort an der Verfassung der Epoche gemessen, hier an
-der Zielverfassung. Das Subjekt benennt nach D198 das zurückgewiesene Objekt, also die
-Zielverfassung; die Verfassung der Epoche ist in dieser Lage heil.
+Es sind dieselben acht Lagen wie in `§3.5`, in derselben Reihenfolge, dort an der Verfassung der
+Epoche gemessen, hier an der Zielverfassung. Das Subjekt benennt nach D198 das zurückgewiesene
+Objekt, also die Zielverfassung; die Verfassung der Epoche ist in dieser Lage heil.
 
 **Warum hier und nicht in `§3.5`.** Die Regierbarkeit des Ziels wird für die Auszählung nicht
 gebraucht — Klasse und angewandte Schwelle stehen ohne sie fest. Stünde die Prüfung in `§3.5`,
@@ -863,6 +1008,15 @@ zählen gegen dasselbe `P`, denn `participants` ist ein Regelfeld (`§1.2`). Zwe
 Anträge derselben Epoche haben deshalb, gleich welcher Klasse, ein Mitglied, dessen Ja in beiden
 zählt. Verletzen diese beiden Ja eine der Regeln, zählt keines von ihnen; der Widerspruch zeigt,
 dass die beiden Anträge nicht beide durchgekommen sein können.
+
+**Unter `participation@1`** (D692) zählt jeder Antrag `X` gegen seinen eigenen Nenner `n_X`
+(`§3.2`), und die Rechnung trägt über die Sperre dort. Seien `A` und `B` unvereinbar, beide
+durchgekommen, ihre zählenden Ja-Mengen disjunkt. Wer den Nenner von `A` verlässt, hat kein aktives
+Ja auf `B`; die Wurzeln beider Ja-Mengen liegen also in `n_A`, ebenso in `n_B`. Dann
+`|A| * den > num * n_A >= num * (|A| + |B|)` und dasselbe für `B`, zusammen `den > 2 * num`,
+gegen `§3.5`. Also teilen `A` und `B` eine Wurzel, deren Ja in beiden zählt, und die Rechnung läuft
+weiter wie oben. Ohne die Sperre kommen schon zwei Mitglieder auf zwei Nachfolger (D692 Befund 1
+und 2).
 
 - **B1. Höchstens ein Vorschlag von `g` kommt durch.** Nach `§3.2` kommt nur ein Vorschlag des
   geltenden Wahlgangs durch; zwei durchgekommene liegen also im selben Wahlgang, und dort gilt die
@@ -1088,6 +1242,19 @@ die Menge der freien Wurzeln aus `P`. `Y(X)` ist die Menge der Wurzeln mit `J(m,
 Kann die Auszählung der Epoche selbst nicht laufen, weil ihre Verfassung fehlt oder nach `§3.5`
 nicht regierbar ist, steht kein Wahlgang im Patt.
 
+**Unter `participation@1`** (D691 Befund 4). `P` ist in diesem Abschnitt `P ∖ resting`, und:
+
+- eine Ja-Stimme bindet nicht, wenn sie `RESTING_VOTE` oder `AMBIGUOUS_REST` trägt (`§3.1`);
+- eine Wurzel mit wirksamer Erklärung (`§2.6`) ist nicht frei, es sei denn, ihre wirksamen
+  Erklärungen nennen eine lokal unbekannte `claim_id`;
+- in Bedingung 4 ist `n` der Nenner von `X` nach `§3.2`, und `F(w)` zählt ohne die Wurzeln, die
+  sich zu `X` enthalten haben: sie können für `X` kein Ja mehr bringen (`§3.1`);
+- in Bedingung 3 ist `n` der Nenner nach `§3.2` eines Vorschlags von `w`, auf den noch niemand
+  gestimmt hat.
+
+Jede dieser Regeln senkt in Bedingung 3 oder 4 die linke Seite um `den` und die rechte um
+höchstens `num`; wegen `den >= num` bleibt ein Patt ein Patt, und die Monotonie unten hält.
+
 **Der geltende Wahlgang** ist der kleinste, der nicht im Patt steht. Es gibt ihn immer: ein
 Wahlgang, in dem keine Wurzel gebunden ist, steht nach Bedingung 1 nie im Patt, und ein Bestand
 bindet nur in endlich vielen. Durchkommen kann nur ein Vorschlag des geltenden Wahlgangs (`§3.2`),
@@ -1294,7 +1461,13 @@ Alles Weitere zur Föderation — Losverfahren für Versammlungen, Repräsentati
 
 - **Eine hohe Schwelle bei lauer Beteiligung macht die Verfassung faktisch unveränderlich.** Der
   Nenner ist `|P|`, nicht die Zahl der Abstimmenden. Die Schwelle ist gegen realistische
-  Beteiligung zu wählen; das gehört in `example-nucleus.md`, nicht ins Protokoll.
+  Beteiligung zu wählen; das gehört in `example-nucleus.md`, nicht ins Protokoll. Unter
+  `participation@1` senken Enthaltung und Ruhen den Nenner (`§3.2`); wer schweigt, ohne zu ruhen,
+  wirkt weiter wie Ablehnung. Ruhen viele, entscheiden wenige; eine Mindestzahl an Abstimmenden
+  machte das Ruhen zum Boykott und ist deshalb verworfen (D689 Befund 3).
+- **Wer selbst ruht, kommt nur mit den anderen zurück.** Die Rückkehr wirkt erst, wenn ein
+  Vorschlag sie aufnimmt (`§1.1`); wer keinen annimmt, hält den Rückkehrer draussen. Sein
+  Lebenszeichen ist öffentlich, die Weigerung damit sichtbar (D689 Befund 3).
 
 - **Ein feindlicher Eintrag blockiert seine eigene Entfernung.** Wer in `participants` steht,
   stimmt über jede Änderung mit, die ihn herausnähme; der Nenner bleibt `|P|`, und gescheitert ist
@@ -1426,8 +1599,9 @@ Reihenfolge nichts über die Mischrunde verrät.
 `election@1` dient der Auffindbarkeit wie `propose@1` (`§1.1`): ungeschützt und von keiner Prüfung
 gelesen. `ballot-ack@1` bestätigt eine Liste; von einem Teilnehmer heisst es „ich stehe darin, und
 mein Schlüssel ist darin“, von einem Schlüssel „ich halte diesen Schlüssel“. `ballot@1` ist die
-Stimme: `candidate` ist ein Bytestring der Länge 32, `round` ein `uint`, der Wahlgang. Weitere Keys
-in `v` sind reserviert und werden ignoriert.
+Stimme: `candidate` ist ein Bytestring der Länge 32, `round` ein `uint`, der Wahlgang. Unter
+`participation@1` ist `candidate == h''`, der leere Bytestring, eine Enthaltung (`§9.4`, D691).
+Weitere Keys in `v` sind reserviert und werden ignoriert.
 
 **Beide geschützt, wie `vote@1`.** Eine Wahl ist nur auszählbar, wenn `irrevocable_predicates` der
 Verfassung ihrer Epoche `ballot-ack@1` und `ballot@1` führt. Ohne den Schutz nähme ein Widerruf
@@ -1448,7 +1622,8 @@ Stimme in `§3.1` (D671). Eine **Liste für `E`** ist jedes Objekt unter `DOM_NU
 Bedingungen gelten:
 
 1. `L` ist nicht formwidrig und `L.election == election_hash(E)`;
-2. jeder Eintrag in `L.members` ist Element von `P`;
+2. jeder Eintrag in `L.members` ist Element von `P`, unter `participation@1` von `P ∖ resting`
+   der Verfassung von `E.epoch`;
 3. für jeden Eintrag `m` in `L.members` gibt es eine Bestätigung mit `J == (3, list_hash(L))` und
    `wurzel == m` nach `02 §2.1`;
 4. für jeden Eintrag `k` in `L.keys` gibt es eine Bestätigung mit `J == (3, list_hash(L))` und
@@ -1479,7 +1654,8 @@ Vereinigung ihrer Teilnehmer.
 
 **Welche Stimme bindet.** Ein `ballot@1` `B` **bindet** den Schlüssel `B.I` im Wahlgang `w`, wenn
 `B.N == scope`, `B.J == (3, election_hash(E))`, `B.I` in `K`, `B` im Zustand `ACTIVE` ohne
-`t_exp`, `v` kanonisch kodiert, `v[1] == w` ein `uint` und `v[0]` ein Bytestring der Länge 32 ist.
+`t_exp`, `v` kanonisch kodiert, `v[1] == w` ein `uint` und `v[0]` ein Bytestring der Länge 32
+ist, unter `participation@1` auch der leere.
 `gebunden(w)` ist die Menge der Schlüssel mit einer bindenden Stimme in `w`. Eine Stimme, deren
 `v` nicht lesbar ist, bindet nicht und zählt nicht; Vermerk `MALFORMED_BALLOT`, Subjekt ihre
 `claim_id`.
@@ -1492,6 +1668,23 @@ sie einen Kandidaten, der nicht in `E.candidates` steht, zählt sie nicht und bi
 
 Ein Ersetzen wie in `§3.1` gibt es hier nicht. Wer in einem Wahlgang ein zweites Mal verschieden
 stimmt, nimmt beiden Stimmen die Wirkung.
+
+**Enthaltung** (D691). Unter `participation@1` ist `n = |P ∖ resting|`, mit `resting` aus der
+Verfassung von `E.epoch`. Ein Schlüssel **enthält sich** in `w`, wenn alle seine bindenden Stimmen
+in `w` `h''` nennen; er zählt für keinen Kandidaten, ist gebunden und verlässt den Nenner dieses
+Wahlgangs: `n(w) = n - |enthalten(w)|`. Nennen seine bindenden Stimmen `h''` und einen Kandidaten,
+ist das `AMBIGUOUS_BALLOT`: er bleibt im Nenner. `h''` ist kein Kandidat und erzeugt keinen
+`UNKNOWN_CANDIDATE`. Patt und „gewählt“ rechnen mit `n(w)` an der Stelle von `n`.
+
+- Für den Nenner zählt, wie viele Schlüssel sich enthalten, nicht welche: jede tragende Liste hat
+  so viele Schlüssel wie Teilnehmer. Die Enthaltung bleibt geheim.
+- Eine Enthaltung nimmt einen freien Schlüssel heraus: `frei(w)` und `n(w)` sinken je um 1. Ein
+  Gewählter bleibt gewählt, ein Patt bleibt ein Patt, denn links sinkt es um 2, rechts um 1 (D691
+  Befund 2).
+- Eine Erklärung nach `§2.6` wirkt hier nicht. Der Schlüssel ist anonym; ob eine Ruhe vor oder
+  nach der Liste kam, beweist nichts, und jede Regel, die den Ruhenden aus dem Nenner nähme,
+  kippte je nach Eintreffen (D691 Befund 3 und Beschluss 1). Wer zur Wahl fort ist, steht vorher
+  in `resting`.
 
 **Frei** sind im Wahlgang `w` die Schlüssel aus `K` ohne bindende Stimme in `w` und die Wurzeln aus
 `P`, die nicht in `T` stehen: `frei(w) = |K ∖ gebunden(w)| + |P ∖ T|`. Eine Wurzel ohne Liste kann
@@ -1527,11 +1720,13 @@ Kandidaten.
 
 ### 9.5 Warum das trägt
 
-**Höchstens ein Gewählter.** In einem Wahlgang zählt jeder Schlüssel für höchstens einen
-Kandidaten; zwei Gewählte bräuchten zwei disjunkte Mengen mit je mehr als `n/2` Schlüsseln, und
-`|K| <= n`, denn jede tragende Liste hat so viele Schlüssel wie Teilnehmer aus `P`, und nach
-Bedingung 5 steht keine Wurzel in zwei. Über Wahlgänge hinweg zählt nur der geltende; ist dort `c`
-gewählt, verletzt `c` Bedingung 2 des Patts, und kein späterer Wahlgang gilt.
+**Höchstens ein Gewählter.** In einem Wahlgang zählt jeder Schlüssel für höchstens einen Kandidaten,
+ein enthaltener für keinen; zwei Gewählte bräuchten zwei disjunkte Mengen mit je mehr als `n/2`
+Schlüsseln, und `|K| <= n`, denn jede tragende Liste hat so viele Schlüssel wie Teilnehmer aus `P`,
+und nach Bedingung 5 steht keine Wurzel in zwei. Unter `participation@1` liegen beide Mengen in `K`
+ohne die enthaltenen Schlüssel, und davon gibt es höchstens `n(w)`. Über Wahlgänge hinweg zählt nur
+der geltende; ist dort `c` gewählt, verletzt `c` Bedingung 2 des Patts, und kein späterer Wahlgang
+gilt.
 
 **Monoton im Wissen.** Eine Stimme bewegt einen Schlüssel von frei nach gebunden; `|Y(c, w)| +
 frei(w)` wächst dabei für kein `c`. Eine neue tragende Liste mit `j` Teilnehmern bringt `j`

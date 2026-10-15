@@ -31085,3 +31085,66 @@ Fassung (D689 Befund 2, letzte Zeile).
 `§4.7`, `§9.2` und `§9.4` mit Vektoren in `04-golden-anchors.md`; dann der Auftrag.
 
 **Geändert.** `07-decisions.md`.
+
+### D693 — Normtext Beteiligung: `participation@1` in `04`, Vektoren `BV-1` bis `BV-43`
+
+**Anlass.** D692 Nächster Schritt. Der Normtext zu D689 bis D692 in `04-governance.md`, die
+Vektoren in `04-golden-anchors.md §14`.
+
+**Geändert in `04-governance.md`.**
+- `§1.1`: drei neue Regelfelder `required_features`, `resting`, `returned`, also zehn
+  Regelfelder; die Absätze „Vorausgesetzte Regeln“ und „Die Ruhenden“.
+- `§2`: ein viertes Prädikat unter `participation@1`. `§2.2`: `choice == 2` ist Enthaltung, ohne
+  Key `1`. Neuer `§2.6`: `nuc:N/rest@1` und wann eine Erklärung wirkt.
+- `§3.1`: Bedingung 5 mit dem dritten Wert; ein Block mit drei Regeln: wer ruht, stimmt nicht,
+  eine Enthaltung ist endgültig, Ruhe und Stimme ohne Reihenfolge.
+- `§3.2`: der Nenner unter `participation@1`, mit der Sperre aus D692 Beschluss 1.
+- `§3.4`: `resting` und `returned` zählen für die Klasse wie `participants`.
+- `§3.5` und `§4.1` Bedingung 6: vier neue Lagen; die vorausgesetzten Regeln vor jedem anderen
+  Inhalt.
+- `§4.4`: die Rechnung mit einem Nenner je Antrag. `§4.7`: Patt unter `participation@1`.
+- `§8`: die Grenze der lauen Beteiligung ergänzt, eine neue Grenze zur blockierten Rückkehr.
+- `§9.2` bis `§9.5`: Enthaltung mit `candidate == h''`; Listen nur aus `P ∖ resting`; eine
+  Erklärung wirkt in der geheimen Wahl nicht.
+
+**Neue Vermerke**, neun: `ABSTENTION_WITH_REPLACES`, `AMBIGUOUS_REST`,
+`MALFORMED_REQUIRED_FEATURES`, `MALFORMED_REST`, `MALFORMED_RESTING`, `REST_REVOCABLE`,
+`REST_WITH_EXPIRY`, `RESTING_VOTE`, `UNSUPPORTED_FEATURE`. Die Ordnung aus `00 §10` ist
+alphabetisch und braucht keinen Eintrag.
+
+**Entscheidungen beim Schreiben (Position).**
+1. Die Auszählung liest `J` von `rest@1` nicht; die Epoche steht in `v[0]`. `J` zu prüfen
+   bräuchte die Kette, und wer sich falsch datiert, schadet nur sich.
+2. Eine Erklärung mit `t_exp` wirkt nicht, mit eigenem Vermerk, wie eine Stimme mit `t_exp`
+   (`§3.1` Bedingung 4, D94, D110): sie höbe den Nenner durch Zeitablauf.
+3. `returned` führt je Wurzel den Index, ab dem ihre Erklärungen wieder gelten; eine Erklärung
+   wirkt bei `returned[m] <= v[0] <= e`. Ein Wert `0` ist formwidrig, weil er dasselbe sagte wie
+   der fehlende Eintrag.
+4. Ein Vermerk `MALFORMED_RESTING` für beide Felder und für ihr Auftreten ohne
+   `participation@1`, wie ein Vermerk für die drei Regeln aus `§4.4` (D567): Wirkung und Ort sind
+   dieselben, die Verfassung.
+5. Eine Erklärung, die eine lokal unbekannte `claim_id` nennt, hält die Wurzel im Nenner, und im
+   Patt gilt sie als frei: das Unbekannte kann eine Stimme sein. Trifft es ein, kommt eine Stimme
+   bei gleichem Nenner hinzu, oder eine freie Wurzel wird gebunden; beides ist monoton.
+6. In `§4.7` bindet ein Ja mit `RESTING_VOTE` oder `AMBIGUOUS_REST` nicht. Bände es, könnte eine
+   spät eintreffende Erklärung ein Patt aufheben.
+7. In der geheimen Wahl ist die Enthaltung der leere Bytestring in `candidate`. Ein Knoten ohne
+   die Regel lässt diesen Schlüssel frei (`BV-38`); darum steht sie unter der Kennung.
+
+**Befund 1 — welche Erwartungen nachgerechnet sind.** Am Prototyp aus D690 (Supervisor-Klon, nicht
+eingecheckt): `BV-1`, `BV-2`, `BV-4` bis `BV-13`, `BV-15` bis `BV-23`, mit den Namen des Prototyps
+(`ruhend` für `resting`, `zurueck` für `returned`). Von Hand, weil der Prototyp sie nicht baut: die
+Kennung und die Form (`BV-3`, `BV-14`, `BV-24` bis `BV-32`), das Patt (`BV-33` bis `BV-36`) und
+die geheime Wahl (`BV-37` bis `BV-43`). Widerspricht der Lauf einer Erwartung, wird gemeldet,
+nicht nachgezogen.
+
+**Befund 2 — was offen bleibt.** Mehrere Geräte einer Wurzel sind über `wurzel()` nach `02 §2.1`
+abgedeckt, aber nicht eigens durchgespielt (D690 Befund 7). Die Seite: Enthaltung, „Ich ruhe“,
+„Ich bin zurück“, keine Stimme nach dem Ruhen, die Nennungen durch den Knoten (D690 Befund 5);
+sie folgt nach der Bibliothek.
+
+**Nächster Schritt.** Der Auftrag `p63-beteiligung` an die Bibliothek, Basis der Commit dieses
+Eintrags: Normtext und Vektoren, mit der Rücknahmeprobe zu `UNSUPPORTED_FEATURE` (D692
+Beschluss 2) und zur Sperre (`BV-20`).
+
+**Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`, `offen.md`.

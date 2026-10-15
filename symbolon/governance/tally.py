@@ -48,6 +48,9 @@ class TallyResult:
 
     ``current_ballot`` ist der geltende Wahlgang, gerechnet bei einem Vorschlag, dessen Auszählung
     ohne Wahlgang durchkäme; sonst ``None`` (04 §3.2, 04 §4.7, D601 Beschluss 1).
+
+    ``denominator`` ist der Nenner aus 04 §3.2 unter ``participation@1``, sonst ``None``.
+    ``abstained`` sind die Wurzeln, deren Stimmen auf den Antrag als Enthaltung zählen (04 §3.2).
     """
 
     state: TallyState
@@ -59,9 +62,14 @@ class TallyResult:
     epoch_id: bytes
     proposal_hash: bytes
     current_ballot: int | None = None
+    denominator: int | None = None
+    abstained: frozenset[bytes] = frozenset()
 
     @property
     def n(self) -> int | None:
+        """Nenner: ``denominator``, wenn gesetzt, sonst ``|participants|`` (04 §3.2)."""
+        if self.denominator is not None:
+            return self.denominator
         if self.participants is None:
             return None
         return len(self.participants)
@@ -82,14 +90,19 @@ def hopeless(no: int, n: int, num: int, den: int) -> bool:
     return (n - no) * den <= num * n
 
 
-def threshold_class(old_obj: dict, new_obj: dict, genesis_obj: dict) -> str:
-    """Klasse aus dem Verfassungsunterschied (04-governance.md §3.4, D113).
+# Felder, die für die Klasse wie ``participants`` zählen (04 §3.4).
+_MEMBERSHIP_FIELDS = frozenset({"participants", "resting", "returned"})
 
+
+def threshold_class(old_obj: dict, new_obj: dict, genesis_obj: dict) -> str:
+    """Klasse aus dem Verfassungsunterschied (04 §3.4, D113).
+
+    ``resting`` und ``returned`` zählen wie ``participants`` (04 §3.4).
     Liest ``genesis_obj[5]`` ungeprüft. Der Aufrufer muss Bindung und Index
-    bereits validiert haben — so wie ``decide`` es tut (04-governance.md §3, D145).
+    bereits validiert haben — so wie ``decide`` es tut (04 §3.5, D145).
     """
-    old_rest = {k: v for k, v in old_obj.items() if k != "participants"}
-    new_rest = {k: v for k, v in new_obj.items() if k != "participants"}
+    old_rest = {k: v for k, v in old_obj.items() if k not in _MEMBERSHIP_FIELDS}
+    new_rest = {k: v for k, v in new_obj.items() if k not in _MEMBERSHIP_FIELDS}
     if cbor_canon.encode(old_rest) == cbor_canon.encode(new_rest):
         return "membership"
     return _CLASS_BY_INDEX[genesis_obj[5]]
@@ -136,8 +149,13 @@ def _is_yes_choice(value: object) -> bool:
     return type(value) is int and value == 1
 
 
-def _is_known_choice(value: object) -> bool:
-    return type(value) is int and value in (0, 1)
+def _is_known_choice(value: object, *, participation: bool = False) -> bool:
+    """``0`` und ``1``, unter ``participation@1`` auch ``2`` (04 §2.2, 04 §3.1)."""
+    if type(value) is not int:
+        return False
+    if value in (0, 1):
+        return True
+    return participation and value == 2
 
 
 def read_replaces(obj: dict) -> tuple[tuple[bytes, ...], bool]:
@@ -278,8 +296,97 @@ def resolve_object(known_proposals: Mapping[bytes, object], h: bytes) -> Proposa
     return None
 
 
+# Diese Fassung kennt genau diesen Eintrag (04 §1.1, 04 §3.5).
+_KNOWN_FEATURES = frozenset({"participation@1"})
+
+
+def _has_participation(obj: dict) -> bool:
+    """Ob die Verfassung ``participation@1`` voraussetzt (04 §1.1)."""
+    features = obj.get("required_features")
+    return isinstance(features, list) and "participation@1" in features
+
+
+def _ist_uint(value: object) -> bool:
+    """``uint``: ``int`` ab 0, ``bool`` zählt nicht (04 §1.1)."""
+    return type(value) is int and value >= 0
+
+
+def _text_liste_aufsteigend(raw: object) -> bool:
+    """Liste von Texten, nicht leer, streng aufsteigend nach UTF-8 (04 §1.1)."""
+    if not isinstance(raw, list) or not raw:
+        return False
+    kodiert: list[bytes] = []
+    for eintrag in raw:
+        if not isinstance(eintrag, str):
+            return False
+        try:
+            kodiert.append(eintrag.encode("utf-8"))
+        except UnicodeEncodeError:
+            return False
+    return all(links < rechts for links, rechts in zip(kodiert, kodiert[1:]))
+
+
+def _required_features_finding(obj: dict) -> GovernanceFinding | None:
+    """Die beiden Zeilen zu ``required_features`` aus 04 §3.5."""
+    if "required_features" not in obj:
+        return None
+    raw = obj["required_features"]
+    if not _text_liste_aufsteigend(raw):
+        return GovernanceFinding.MALFORMED_REQUIRED_FEATURES
+    if any(eintrag not in _KNOWN_FEATURES for eintrag in raw):
+        return GovernanceFinding.UNSUPPORTED_FEATURE
+    return None
+
+
+def _resting_wohlgeformt(raw: object, participants: set[bytes]) -> bool:
+    """``resting`` nach 04 §1.1."""
+    if not isinstance(raw, list) or not raw:
+        return False
+    if not all(isinstance(eintrag, bytes) and len(eintrag) == 32 for eintrag in raw):
+        return False
+    if any(links >= rechts for links, rechts in zip(raw, raw[1:])):
+        return False
+    return all(eintrag in participants for eintrag in raw)
+
+
+def _returned_wohlgeformt(raw: object, participants: set[bytes]) -> bool:
+    """``returned`` nach 04 §1.1."""
+    if not isinstance(raw, dict) or not raw:
+        return False
+    for key, value in raw.items():
+        if not isinstance(key, bytes) or len(key) != 32 or key not in participants:
+            return False
+        if not _ist_uint(value) or value <= 0:
+            return False
+    return True
+
+
+def _resting_returned_finding(obj: dict) -> GovernanceFinding | None:
+    """``resting``, ``returned`` und ``rest@1`` aus 04 §3.5."""
+    if not _has_participation(obj):
+        if "resting" in obj or "returned" in obj:
+            return GovernanceFinding.MALFORMED_RESTING
+        return None
+    participants = set(obj["participants"])
+    if "resting" in obj and not _resting_wohlgeformt(obj["resting"], participants):
+        return GovernanceFinding.MALFORMED_RESTING
+    if "returned" in obj and not _returned_wohlgeformt(obj["returned"], participants):
+        return GovernanceFinding.MALFORMED_RESTING
+    raw_irr = obj.get("irrevocable_predicates", [])
+    if not isinstance(raw_irr, (list, tuple)) or "rest@1" not in raw_irr:
+        return GovernanceFinding.REST_REVOCABLE
+    return None
+
+
 def constitution_governable(obj: dict) -> GovernanceFinding | None:
-    """Gibt die Vermerksart zurück, wenn ``obj`` keine Auszählung tragen kann (04-governance.md §3.5, D200)."""
+    """Gibt die Vermerksart zurück, wenn ``obj`` keine Auszählung tragen kann (04 §3.5, D200).
+
+    Die Zeilen zu ``required_features`` stehen vor ``participants``. Danach ``resting``,
+    ``returned`` und ``rest@1`` (04 §1.1, 04 §3.5). Bekannt ist genau ``participation@1``.
+    """
+    feature = _required_features_finding(obj)
+    if feature is not None:
+        return feature
     if "participants" not in obj:
         return GovernanceFinding.PARTICIPANTS_UNDECLARED
     if not participants_wellformed(obj):
@@ -289,7 +396,268 @@ def constitution_governable(obj: dict) -> GovernanceFinding | None:
         return GovernanceFinding.VOTE_REVOCABLE
     if "ratify@1" not in raw_irr:
         return GovernanceFinding.RATIFY_REVOCABLE
-    return None
+    return _resting_returned_finding(obj)
+
+
+def _ruhe_v(claim: Claim) -> tuple[dict | None, tuple[bytes, ...]]:
+    """``v`` einer Erklärung, oder ``(None, ())``, wenn Bedingung 3 scheitert (04 §2.6)."""
+    obj, kind = read_v(claim.v)
+    if kind is not None or obj is None:
+        return None, ()
+    if not _ist_uint(obj.get(0)):
+        return None, ()
+    if 1 not in obj:
+        return obj, ()
+    names, bad = read_replaces(obj)
+    if bad:
+        return None, ()
+    return obj, names
+
+
+def _ruhe_lage(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    participants: frozenset[bytes],
+    constitution_obj: dict,
+    by_cid: dict[bytes, Classification],
+    attr: Attribution,
+) -> tuple[frozenset[bytes], dict[bytes, list[Claim]], frozenset[bytes], tuple[Finding, ...]]:
+    """``resting``, die wirksamen Erklärungen und wer Unbekanntes nennt (04 §1.1, 04 §2.6)."""
+    resting = (
+        frozenset(constitution_obj["resting"]) if "resting" in constitution_obj else frozenset()
+    )
+    returned = constitution_obj.get("returned", {})
+    if not isinstance(returned, dict):
+        returned = {}
+    findings: list[Finding] = []
+    rests: dict[bytes, list[Claim]] = defaultdict(list)
+    unknown: set[bytes] = set()
+    for claim in store.all_claims():
+        if not is_nuc_name(claim, "rest") or claim.N != epoch.scope:
+            continue
+        root = vote_root(attr, claim)
+        if root not in participants:
+            continue
+        cid = claim_id(claim)
+        if claim.t_exp is not None:
+            findings.append(Finding(kind=GovernanceFinding.REST_WITH_EXPIRY, subject=cid))
+            continue
+        obj, names = _ruhe_v(claim)
+        if obj is None:
+            findings.append(Finding(kind=GovernanceFinding.MALFORMED_REST, subject=cid))
+            continue
+        classification = by_cid.get(cid)
+        if classification is None or classification.state is not State.ACTIVE:
+            continue
+        anfang = returned.get(root, 0)
+        if type(anfang) is not int:
+            anfang = 0
+        if not (anfang <= obj[0] <= epoch.index):
+            continue
+        rests[root].append(claim)
+        if any(store.get(name) is None for name in names):
+            unknown.add(root)
+    return resting, rests, frozenset(unknown), tuple(findings)
+
+
+def _nennt_eine(vote: Claim, ids: set[bytes] | frozenset[bytes]) -> bool:
+    """Ob Key 1 eine Id aus ``ids`` nennt. Ein formwidriger Key 1 nennt nichts (04 §3.1)."""
+    obj, kind = read_v(vote.v)
+    if kind is not None or not isinstance(obj, dict):
+        return False
+    names, bad = read_replaces(obj)
+    if bad:
+        return False
+    return any(name in ids for name in names)
+
+
+def _genannt(rests: list[Claim]) -> set[bytes]:
+    """``claim_id``, die wirksame Erklärungen nennen (04 §2.6, 04 §3.1)."""
+    named: set[bytes] = set()
+    for rest in rests:
+        _obj, names = _ruhe_v(rest)
+        named.update(names)
+    return named
+
+
+def _ohne_genannte_enthaltung(votes: list[Claim], abstentions: set[bytes]) -> list[Claim]:
+    """Wie ``maximal_votes``; ein Name auf eine Enthaltung bleibt ohne Wirkung (04 §3.1)."""
+    named: set[bytes] = set()
+    for vote in votes:
+        obj, kind = read_v(vote.v)
+        if kind is not None or obj is None:
+            continue
+        names, bad = read_replaces(obj)
+        if bad:
+            continue
+        named.update(name for name in names if name not in abstentions)
+    return [vote for vote in votes if claim_id(vote) not in named]
+
+
+def _zusammenfassen_beteiligung(
+    root: bytes,
+    group: list[Claim],
+    *,
+    resting: frozenset[bytes],
+    rests: list[Claim],
+    findings: list[Finding],
+    holding: set[bytes],
+    abstained: set[bytes],
+    counting: list[Claim],
+) -> None:
+    """Die drei Regeln unter ``participation@1``, vor der Zusammenfassung (04 §3.1)."""
+    rest_ids = {claim_id(rest) for rest in rests}
+    offen: list[Claim] = []
+    for vote in group:
+        if root in resting or _nennt_eine(vote, rest_ids):
+            findings.append(Finding(kind=GovernanceFinding.RESTING_VOTE, subject=claim_id(vote)))
+        else:
+            offen.append(vote)
+    if offen:
+        holding.add(root)
+    if rests and any(claim_id(vote) not in _genannt(rests) for vote in offen):
+        for vote in group:
+            findings.append(Finding(kind=GovernanceFinding.AMBIGUOUS_REST, subject=claim_id(vote)))
+        for rest in rests:
+            findings.append(Finding(kind=GovernanceFinding.AMBIGUOUS_REST, subject=claim_id(rest)))
+        return
+    abstention_ids = {claim_id(vote) for vote in offen if _choice(vote) == 2}
+    kept = _ohne_genannte_enthaltung(offen, abstention_ids)
+    choices = {_choice(vote) for vote in kept}
+    if len(choices) > 1:
+        for vote in kept:
+            findings.append(Finding(kind=GovernanceFinding.AMBIGUOUS_VOTE, subject=claim_id(vote)))
+        return
+    if choices == {2}:
+        abstained.add(root)
+        return
+    counting.extend(kept)
+
+
+def _verlaesst(
+    root: bytes,
+    *,
+    rests: dict[bytes, list[Claim]],
+    unknown: frozenset[bytes],
+    holding: set[bytes],
+    abstained: set[bytes],
+    yes_roots: set[bytes],
+    no_roots: set[bytes],
+) -> bool:
+    """Ob die Wurzel den Nenner verlässt, noch ohne die Sperre (04 §3.2)."""
+    if root in yes_roots or root in no_roots:
+        return False
+    if root in abstained:
+        return True
+    return root in rests and root not in holding and root not in unknown
+
+
+def _ja_sperrt(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    proposal: Proposal | Motion,
+    root: bytes,
+    by_cid: dict[bytes, Classification],
+    attr: Attribution,
+    constitution_obj: dict,
+    known_proposals: Mapping[bytes, Proposal | Motion],
+) -> bool:
+    """Aktives Ja auf ein mit dem Antrag unvereinbares oder unbekanntes Objekt (04 §3.2, 04 §4.4)."""
+    object_hash = proposal.motion_hash if isinstance(proposal, Motion) else proposal.proposal_hash
+    for other in store.all_claims():
+        if not is_nuc_name(other, "vote") or other.N != epoch.scope or other.t_exp is not None:
+            continue
+        if vote_root(attr, other) != root:
+            continue
+        cid = claim_id(other)
+        classification = by_cid.get(cid)
+        if classification is None or classification.state is not State.ACTIVE:
+            continue
+        if attr.status(other) is AttributionStatus.DISPUTED and not _reattributed(
+            store,
+            by_cid,
+            vote_cid=cid,
+            scope=epoch.scope,
+            constitution_obj=constitution_obj,
+        ):
+            continue
+        obj, kind = read_v(other.v)
+        if kind is not None or obj is None or not _is_yes_choice(obj.get(0)):
+            continue
+        if other.J == (3, object_hash):
+            continue
+        other_obj = resolve_object(known_proposals, other.J[1]) if other.J[0] == 3 else None
+        if other_obj is None or approvals_conflict(proposal, other_obj):
+            return True
+    return False
+
+
+def _unbesetzt(epoch: Epoch, ballot: int) -> Proposal:
+    """Ein Vorschlag des Wahlgangs, auf den keine Stimme zeigt (04 §4.7)."""
+    if ballot > 0:
+        return Proposal(
+            scope=epoch.scope,
+            predecessor=epoch.epoch_id,
+            constitution_hash=b"\x00" * 32,
+            ballot=ballot,
+        )
+    return Proposal(
+        scope=epoch.scope,
+        predecessor=epoch.epoch_id,
+        constitution_hash=b"\x00" * 32,
+    )
+
+
+def _ruhe_mehrdeutig(
+    store: ClaimStore,
+    *,
+    epoch: Epoch,
+    participants: frozenset[bytes],
+    resting: frozenset[bytes],
+    rests: dict[bytes, list[Claim]],
+    by_cid: dict[bytes, Classification],
+    attr: Attribution,
+    constitution_obj: dict,
+) -> set[tuple[bytes, bytes]]:
+    """``(wurzel, hash)``, auf denen Ruhe und Stimme ohne Reihenfolge sind (04 §3.1)."""
+    groups: dict[tuple[bytes, bytes], list[Claim]] = defaultdict(list)
+    for vote in store.all_claims():
+        if not is_nuc_name(vote, "vote") or vote.N != epoch.scope or vote.t_exp is not None:
+            continue
+        if vote.J[0] != 3:
+            continue
+        root = vote_root(attr, vote)
+        if root not in participants or root in resting or root not in rests:
+            continue
+        cid = claim_id(vote)
+        obj, kind = read_v(vote.v)
+        if kind is not None or obj is None or not _is_known_choice(obj.get(0), participation=True):
+            continue
+        if obj.get(0) == 2 and 1 in obj:
+            continue
+        classification = by_cid.get(cid)
+        if classification is None or classification.state is not State.ACTIVE:
+            continue
+        if attr.status(vote) is AttributionStatus.DISPUTED and not _reattributed(
+            store,
+            by_cid,
+            vote_cid=cid,
+            scope=epoch.scope,
+            constitution_obj=constitution_obj,
+        ):
+            continue
+        groups[(root, vote.J[1])].append(vote)
+    ambiguous: set[tuple[bytes, bytes]] = set()
+    for key, group in groups.items():
+        root, _hash = key
+        rest_ids = {claim_id(rest) for rest in rests[root]}
+        named = _genannt(rests[root])
+        offen = [vote for vote in group if not _nennt_eine(vote, rest_ids)]
+        if any(claim_id(vote) not in named for vote in offen):
+            ambiguous.add(key)
+    return ambiguous
 
 
 def approvals_conflict(own: Proposal | Motion, other: Proposal | Motion) -> bool:
@@ -525,6 +893,20 @@ def _decide(
     attr = attribution(store, by_cid, epoch.scope)
     findings: list[Finding] = []
     votes = [c for c in store.all_claims() if is_nuc_name(c, "vote")]
+    participation = _has_participation(constitution_obj)
+    resting: frozenset[bytes] = frozenset()
+    rests: dict[bytes, list[Claim]] = {}
+    unknown_rest: frozenset[bytes] = frozenset()
+    if participation:
+        resting, rests, unknown_rest, rest_findings = _ruhe_lage(
+            store,
+            epoch=epoch,
+            participants=participants,
+            constitution_obj=constitution_obj,
+            by_cid=by_cid,
+            attr=attr,
+        )
+        findings.extend(rest_findings)
     roots: dict[bytes, bytes] = {}
     disputed: set[bytes] = set()
 
@@ -571,9 +953,15 @@ def _decide(
             findings.append(Finding(kind=GovernanceFinding.NON_CANONICAL_V, subject=cid))
             continue
         choice = None if obj is None else obj.get(0)
-        if not _is_known_choice(choice):
+        if not _is_known_choice(choice, participation=participation):
             findings.append(
                 Finding(kind=GovernanceFinding.UNKNOWN_VOTE_CHOICE, subject=cid)
+            )
+            continue
+        # Enthaltung mit Key 1 zählt nicht (04 §2.2, 04 §3.1 Bedingung 5).
+        if participation and choice == 2 and isinstance(obj, dict) and 1 in obj:
+            findings.append(
+                Finding(kind=GovernanceFinding.ABSTENTION_WITH_REPLACES, subject=cid)
             )
             continue
         _names, malformed = read_replaces(obj)
@@ -590,7 +978,21 @@ def _decide(
     for vote in candidates:
         by_root[roots[claim_id(vote)]].append(vote)
     counting: list[Claim] = []
-    for group in by_root.values():
+    abstained_roots: set[bytes] = set()
+    holding: set[bytes] = set()
+    for root, group in by_root.items():
+        if participation:
+            _zusammenfassen_beteiligung(
+                root,
+                group,
+                resting=resting,
+                rests=rests.get(root, []),
+                findings=findings,
+                holding=holding,
+                abstained=abstained_roots,
+                counting=counting,
+            )
+            continue
         group = maximal_votes(group)
         if len({_is_yes_choice(_choice(vote)) for vote in group}) > 1:
             for vote in group:
@@ -671,7 +1073,37 @@ def _decide(
             no_roots.add(roots[cid])
     yes = tuple(sorted(yes_ids))
     no = tuple(sorted(no_ids))
-    n = len(participants)
+    denominator: int | None = None
+    if participation:
+        eligible = participants - resting
+        leavers: set[bytes] = set()
+        for root in eligible:
+            if not _verlaesst(
+                root,
+                rests=rests,
+                unknown=unknown_rest,
+                holding=holding,
+                abstained=abstained_roots,
+                yes_roots=yes_roots,
+                no_roots=no_roots,
+            ):
+                continue
+            if _ja_sperrt(
+                store,
+                epoch=epoch,
+                proposal=proposal,
+                root=root,
+                by_cid=by_cid,
+                attr=attr,
+                constitution_obj=constitution_obj,
+                known_proposals=known_proposals,
+            ):
+                continue
+            leavers.add(root)
+        denominator = len(eligible - leavers)
+        n = denominator
+    else:
+        n = len(participants)
     num, den = threshold
     if reached(len(yes_roots), n, num, den):
         state = TallyState.PASSED
@@ -688,6 +1120,8 @@ def _decide(
         findings=dedupe_sort(findings),
         epoch_id=epoch.epoch_id,
         proposal_hash=object_hash,
+        denominator=denominator,
+        abstained=frozenset(abstained_roots),
     )
 
 
@@ -792,7 +1226,7 @@ def stalemate(
 
     Kann die Auszählung der Epoche selbst nicht laufen, steht kein Wahlgang im Patt. Gebunden
     bindet jede Ja-Stimme, die die Einzelprüfungen aus 04 §3.1 besteht, ohne Zusammenfassung je
-    Wurzel und ohne 04 §4.4.
+    Wurzel und ohne 04 §4.4. Unter ``participation@1`` gilt der Absatz dort (04 §4.7).
     """
     if constitution_obj is None or constitution_hash(constitution_obj) != epoch.constitution_hash:
         return False
@@ -804,6 +1238,33 @@ def stalemate(
     participants = frozenset(constitution_obj["participants"])
     by_cid = classify_all(store, now, policy)
     attr = attribution(store, by_cid, epoch.scope)
+    participation = _has_participation(constitution_obj)
+    resting: frozenset[bytes] = frozenset()
+    rests: dict[bytes, list[Claim]] = {}
+    unknown_rest: frozenset[bytes] = frozenset()
+    ambiguous: set[tuple[bytes, bytes]] = set()
+    rest_ids: dict[bytes, set[bytes]] = {}
+    if participation:
+        resting, rests, unknown_rest, _rest_findings = _ruhe_lage(
+            store,
+            epoch=epoch,
+            participants=participants,
+            constitution_obj=constitution_obj,
+            by_cid=by_cid,
+            attr=attr,
+        )
+        ambiguous = _ruhe_mehrdeutig(
+            store,
+            epoch=epoch,
+            participants=participants,
+            resting=resting,
+            rests=rests,
+            by_cid=by_cid,
+            attr=attr,
+            constitution_obj=constitution_obj,
+        )
+        rest_ids = {root: {claim_id(rest) for rest in gruppe} for root, gruppe in rests.items()}
+    eligible = participants - resting
     bound: dict[bytes, set[bytes]] = {}
     for vote in store.all_claims():
         if not is_nuc_name(vote, "vote") or vote.N != epoch.scope or vote.t_exp is not None:
@@ -812,7 +1273,7 @@ def stalemate(
         if by_cid[cid].state is not State.ACTIVE:
             continue
         root = vote_root(attr, vote)
-        if root not in participants:
+        if root not in participants or root in resting:
             continue
         obj, v_kind = read_v(vote.v)
         if v_kind is not None or obj is None or not _is_yes_choice(obj.get(0)):
@@ -825,7 +1286,7 @@ def stalemate(
             continue
         target = resolve_object(known_proposals, vote.J[1])
         if target is None:
-            # Bedingung 2: unbekannt heisst möglicherweise zählend.
+            # Bedingung 2: unbekannt heisst möglicherweise zählend (04 §4.7).
             return False
         if (
             isinstance(target, Proposal)
@@ -833,15 +1294,43 @@ def stalemate(
             and target.predecessor == epoch.epoch_id
             and ballot_of(target) == ballot
         ):
+            # RESTING_VOTE und AMBIGUOUS_REST binden nicht (04 §4.7).
+            if participation and (
+                (root, target.proposal_hash) in ambiguous
+                or _nennt_eine(vote, rest_ids.get(root, frozenset()))
+            ):
+                continue
             bound.setdefault(root, set()).add(target.proposal_hash)
     # Bedingung 1.
     if not bound:
         return False
-    n = len(participants)
-    free = n - len(bound)
-    # Bedingung 3: ein Vorschlag, der noch nicht gestellt ist.
+    if participation:
+        # Wirksame Erklärung: nicht frei, ausser sie nennt Unbekanntes (04 §4.7).
+        nicht_frei = {root for root in rests if root in eligible and root not in unknown_rest}
+        free_roots = eligible - set(bound) - nicht_frei
+        leer = _unbesetzt(epoch, ballot)
+        gesperrt = {
+            root
+            for root in nicht_frei
+            if _ja_sperrt(
+                store,
+                epoch=epoch,
+                proposal=leer,
+                root=root,
+                by_cid=by_cid,
+                attr=attr,
+                constitution_obj=constitution_obj,
+                known_proposals=known_proposals,
+            )
+        }
+        n_neu = len(eligible - (nicht_frei - gesperrt))
+    else:
+        free_roots = participants - set(bound)
+        n_neu = len(participants)
+    free = len(free_roots)
+    # Bedingung 3: Nenner eines Vorschlags, auf den noch niemand gestimmt hat (04 §4.7).
     num, den = lowest
-    if free * den > num * n:
+    if free * den > num * n_neu:
         return False
     # Bedingung 4: jeder Vorschlag des Wahlgangs, der nicht an Feld 3 scheitert.
     for h in sorted(known_proposals):
@@ -865,7 +1354,14 @@ def stalemate(
         )
         num_x, den_x = tally.threshold if tally.threshold is not None else lowest
         only_here = sum(1 for hashes in bound.values() if hashes == {h})
-        if (only_here + free) * den_x > num_x * n:
+        # Unter participation@1: Nenner von X, F ohne Enthaltungen auf X (04 §4.7).
+        if participation and tally.n is not None:
+            n_x = tally.n
+            free_x = len(free_roots - tally.abstained)
+        else:
+            n_x = n_neu
+            free_x = free
+        if (only_here + free_x) * den_x > num_x * n_x:
             return False
     return True
 

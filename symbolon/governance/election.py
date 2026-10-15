@@ -14,6 +14,7 @@ from symbolon.domains import DOM_NUC_BALLOT_LIST, DOM_NUC_ELECTION
 from symbolon.governance.findings import Finding, GovernanceFinding, dedupe_sort
 from symbolon.governance.objects import Epoch
 from symbolon.governance.tally import (
+    _has_participation,
     _reattributed,
     constitution_governable,
     read_v,
@@ -143,15 +144,22 @@ class ElectionResult:
     rounds: tuple[RoundCount, ...] = ()
 
 
-def _ballot_choice(vote: Claim) -> tuple[bytes, int] | None:
-    """Kandidat und Wahlgang, wenn ``v`` kanonisch ist und beide Felder die Form haben (04 §9.4)."""
+def _ballot_choice(vote: Claim, *, participation: bool = False) -> tuple[bytes, int] | None:
+    """Kandidat und Wahlgang, wenn ``v`` kanonisch ist und beide Felder die Form haben (04 §9.4).
+
+    Unter ``participation@1`` ist ``h''`` eine Enthaltung.
+    """
     obj, kind = read_v(vote.v)
     if kind is not None or not isinstance(obj, dict):
         return None
     candidate, rnd = obj.get(0), obj.get(1)
-    if not _bstr32(candidate) or not _is_uint(rnd):
+    if not _is_uint(rnd):
         return None
-    return candidate, rnd
+    if _bstr32(candidate):
+        return candidate, rnd
+    if participation and candidate == b"":
+        return candidate, rnd
+    return None
 
 
 def _hashes_under_domain(known: Mapping[bytes, object], h: bytes) -> bool:
@@ -182,8 +190,10 @@ def tally_election(
     Bestätigung ist keine, es sei denn, ein Verdikt rechnet sie zu (04 §9.3, D671 Beschluss 1);
     sie fällt dann für die Bedingungen 3, 4 und 5 heraus. Eine Liste für ``E`` ist jede
     ``BallotList`` mit Feld ``0`` gleich ``election_hash``, formwidrig oder nicht (D671
-    Beschluss 2). Eine Stimme für einen fremden Kandidaten bindet und zählt nicht (D669
+    Beschluss 2).     Eine Stimme für einen fremden Kandidaten bindet und zählt nicht (D669
     Beschluss 3). Vermerke zu Stimmen stehen für jeden Wahlgang mit Stimmen.
+    Unter ``participation@1`` ist ``h''`` eine Enthaltung, ``n`` ist ``|P \\ resting|``,
+    und eine Erklärung nach 04 §2.6 wird nicht gelesen (04 §9.3, 04 §9.4).
     """
     e_hash = election.election_hash
 
@@ -214,6 +224,14 @@ def tally_election(
         return stop(GovernanceFinding.BALLOT_REVOCABLE, epoch.constitution_hash)
 
     participants = frozenset(constitution_obj["participants"])
+    participation = _has_participation(constitution_obj)
+    resting = (
+        frozenset(constitution_obj["resting"])
+        if participation and "resting" in constitution_obj
+        else frozenset()
+    )
+    # Unter participation@1 liegt die Liste in ``P \\ resting`` (04 §9.3, 04 §9.4).
+    eligible = participants - resting
     candidates = tuple(raw[3])
     candidate_set = set(candidates)
     by_cid = classify_all(store, now, policy)
@@ -261,7 +279,7 @@ def tally_election(
         if not list_wellformed(lst) or lst.obj[0] != e_hash:
             return False
         members, keys = lst.obj[1], lst.obj[2]
-        if any(member not in participants for member in members):
+        if any(member not in eligible for member in members):
             return False
         acks = [c for c in confirmations if c.J == (3, lst.list_hash)]
         roots = {root_of(c) for c in acks}
@@ -316,7 +334,7 @@ def tally_election(
         classification = by_cid.get(claim_id(vote))
         if classification is None or classification.state is not State.ACTIVE:
             continue
-        parsed = _ballot_choice(vote)
+        parsed = _ballot_choice(vote, participation=participation)
         if parsed is None:
             findings.append(
                 Finding(kind=GovernanceFinding.MALFORMED_BALLOT, subject=claim_id(vote))
@@ -327,6 +345,7 @@ def tally_election(
 
     gebunden_rounds: dict[int, set[bytes]] = defaultdict(set)
     counted: dict[tuple[int, bytes], set[bytes]] = defaultdict(set)
+    abstained: dict[int, set[bytes]] = defaultdict(set)
     for (key, rnd), group in by_key_round.items():
         # Bindet auch für einen fremden Kandidaten; der Schlüssel ist dann nicht frei
         # (04 §9.4, D669 Beschluss 3).
@@ -339,6 +358,10 @@ def tally_election(
                 )
             continue
         cand = next(iter(named))
+        # ``h''`` enthält sich: gebunden, kein Kandidat, verlässt den Nenner (04 §9.4).
+        if participation and cand == b"":
+            abstained[rnd].add(key)
+            continue
         if cand not in candidate_set:
             for vote, _cand in group:
                 findings.append(
@@ -354,19 +377,22 @@ def tally_election(
             return False
         # Wurzeln aus ``P`` ohne Liste bleiben frei, sonst höbe eine neue Liste ein Patt auf
         # (04 §9.4, 04 §9.5, D668 Befund 2).
-        frei = len(keys_k - gebunden) + len(participants - members_t)
+        frei = len(keys_k - gebunden) + len(eligible - members_t)
+        # Unter participation@1 rechnet Patt und „gewählt“ mit ``n(w)`` (04 §9.4).
+        n_w = len(eligible) - len(abstained.get(rnd, ()))
         return all(
-            2 * (len(counted.get((rnd, cand), ())) + frei) <= len(participants)
+            2 * (len(counted.get((rnd, cand), ())) + frei) <= n_w
             for cand in candidates
         )
 
     current = 0
     while current in gebunden_rounds and patt(current):
         current += 1
+    n_aktuell = len(eligible) - len(abstained.get(current, ()))
     winners = [
         cand
         for cand in candidates
-        if 2 * len(counted.get((current, cand), ())) > len(participants)
+        if 2 * len(counted.get((current, cand), ())) > n_aktuell
     ]
     elected = winners[0] if len(winners) == 1 else None
     state = ElectionState.ELECTED if elected is not None else ElectionState.OPEN

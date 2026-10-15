@@ -528,4 +528,6 @@ Gerechnet in D689: nur eine Wurzel ohne zählende Stimme darf den Nenner verlass
 stimmt nicht; die Ruhenden stehen in der Satzung, selbst ruhen gilt bis zur eigenen Rückkehr,
 und zurück ist man, wenn ein Antrag das aufnimmt. Offen: die Kennung der Liste in der Satzung,
 Enthaltung und Ruhen in Wahl und Patt, eine blockierte Rückkehr (D689 Befund 3).
-Nächster Schritt: ein Prototyp an der Bibliothek mit dem Verein aus D686.
+Im Prototyp (D690): es kippt nur der zweite Claim eines Mitglieds, und nur nach offen; eine
+Stimme, die die eigene Ruhe nennt, ist ein Lebenszeichen; die Liste braucht `threshold_class`.
+Nächster Schritt: Wahl und Patt auf dem Papier, dann der Normtext.

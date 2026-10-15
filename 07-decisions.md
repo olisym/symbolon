@@ -30871,3 +30871,76 @@ kippt, ausser im Widerspruch aus Beschluss 2. Offen bleiben Enthaltung und Ruhen
 (`04 §9.4`, `04 §4.7`).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D690 — Beteiligung im Prototyp: es kippt nur, wer zweimal spricht, und nur nach offen
+
+**Anlass.** D689 Nächster Schritt. Prototyp im Supervisor-Klon auf `70686fa`, nicht eingecheckt:
+eine Kopie von `symbolon/governance/tally.py` mit den Regeln aus D689, gerechnet mit `Identity`
+und `store_with` aus `tests/helpers.py`, `_decide` und `classify_all` unverändert darunter. Die
+Enthaltung ist `v[0] == 2`. Selbst ruhen ist ein Claim `nuc:N/rest@1` mit `J = (3, epoch_id)`,
+`v` Key `0` dem Index der Fassung und Key `1` den genannten Stimmen. Die Satzung führt `ruhend`
+und, für die Rückkehr, `zurueck` (je Wurzel der Index der Fassung, ab der sie wieder zählt).
+
+**Befund 1 — die Golden Numbers aus D689 halten am Code.** Der Verein mit 30 Mitgliedern, 10 auf
+der Liste: eine Satzungsänderung ist bei 13 Ja offen, bei 14 Ja durchgekommen, `n = 20`. Die 10
+auf die Liste zu setzen ist bei 15 Ja offen und bei 16 Ja durchgekommen, `n = 30`, `1/2`.
+
+**Befund 2 — ohne Änderung an `threshold_class` läuft D689 Beschluss 3 ins Leere.**
+`threshold_class` (`04 §3.4`, D113) gibt `membership` nur, wenn sich allein `participants`
+ändert; jede andere Änderung an der Satzung ist die Klasse aus `genesis[5]`. Der Antrag, die 10
+auf die Liste zu setzen, ist mit dem Code von heute `amendment` (`2/3`) und braucht 21 Ja, also
+genau den Stillstand aus D686. Im Prototyp stehen `ruhend` und `zurueck` neben `participants`;
+dann ist er `membership`.
+
+**Befund 3 — Eintreffreihenfolgen.** Fünf Mitglieder, je Mitglied eine Folge aus bis zu zwei
+Schritten (Ja, Nein, Enthaltung, ruhen mit Nennung der eigenen Stimmen, ruhen ohne Nennung),
+Klassen `amendment` (`2/3`) und `membership` (`1/2`), je Welt drei zufällige Reihenfolgen, in
+denen die Claims eintreffen; ein Claim, dessen Vorgänger in der Kette fehlt, ist nicht `ACTIVE`.
+Je Lauf rund 2000 Welten, `hypothesis`. Gemessen: kippt ein erreichtes Ergebnis, und an welchem
+Claim?
+1. Hat jedes Mitglied höchstens einen Claim, kippt nichts (270 bis 340 Welten je Lauf).
+2. Jedes Kippen löst der zweite Claim eines Mitglieds aus, das schon einen hat. Was andere
+   hinzufügen, kippt nie (die Eigenschaft aus D102).
+3. Jedes Kippen endet offen: `FAILED` nach `PENDING` oder `PASSED` nach `PENDING`. Keines ging
+   ins Gegenteil.
+Das ist die Klasse aus D529: zwei eigene Claims, die einander nicht nennen, nehmen einer Stimme die
+Wirkung, und die Richtung ist zurück nach offen.
+
+**Befund 4 — erst ruhen, dann abstimmen.** Im ersten Lauf kippte auch diese Folge, obwohl die
+Kette die Reihenfolge beweist: die Auszählung liest die Kette nicht, und eine Stimme, die die
+Ruhe nicht nennt, ist nach D689 Beschluss 2 ein Widerspruch. Der Prototyp ergänzt deshalb: eine
+Stimme, die eine Ruhe-Erklärung derselben Wurzel nennt, zählt nicht, und die Wurzel bleibt aus dem
+Nenner. Sie ist ein Lebenszeichen nach D689 Beschluss 1 Punkt 2. Mit einem Knoten, der beim
+Ruhen die eigenen Stimmen nennt und nach dem Ruhen die Ruhe, verschwinden diese Fälle.
+
+**Befund 5 — was mit einem ehrlichen Knoten übrig bleibt.**
+1. Der Wechsel von oder zu einer Enthaltung. Er ist nach D689 Beschluss 1 Punkt 1 ausgeschlossen,
+   wirkt als Widerspruch und lässt das Mitglied im Nenner ohne Stimme.
+2. Eine Enthaltung nach dem Ruhen. Sie kann die Ruhe nicht nennen, weil eine Enthaltung keinen
+   Key `1` trägt (D689 Beschluss 1 Punkt 1).
+3. Der Wechsel zwischen Ja und Nein ohne Nennung, wie heute (D547).
+Für die Seite folgt daraus: nach einer Enthaltung keine weitere Stimme auf denselben Antrag, nach
+dem Ruhen gar keine Stimme, sondern „Ich bin zurück“; jede Ruhe-Erklärung nennt die eigenen
+Stimmen. Der Knoten setzt die Nennungen, nicht der Mensch.
+
+**Befund 6 — ruhen über Fassungen.** Eine Ruhe aus Fassung 1 wirkt in Fassung 3, solange
+`zurueck` die Wurzel nicht nennt; mit `zurueck` ab Fassung 2 wirkt sie dort nicht mehr, eine
+neue Ruhe aus Fassung 3 wieder. Eine Ruhe mit dem Index einer späteren Fassung wirkt erst dort.
+
+**Beschluss 1 — eine Stimme, die die eigene Ruhe nennt, ist ein Lebenszeichen (Position).** Sie
+zählt nicht und hebt den Nenner nicht; Vermerk wie beim Prototyp, Name im Normtext. Verworfen:
+die Kette in der Auszählung lesen. Das ist neue Maschinerie für einen Fall, den eine Nennung
+schon trägt, und zwischen zwei Geräten hilft die Kette nicht.
+
+**Beschluss 2 — `ruhend` und `zurueck` zählen in `threshold_class` wie `participants`
+(Position).** Folgt aus D689 Beschluss 3 und Befund 2.
+
+**Befund 7 — nicht gemessen.** Mehrere Geräte einer Wurzel, also ein Widerspruch ohne Kette;
+Enthaltung und Ruhen in Wahl und Patt (`04 §9.4`, `04 §4.7`); die Kennung der Liste in der
+Satzung (D689 Befund 3 Punkt 3); eine Ruhe, die Unbekanntes nennt (im Prototyp bleibt die Wurzel
+dann im Nenner, ungeprüft).
+
+**Nächster Schritt.** Wahl und Patt auf dem Papier, dann der Normtext für `04 §2.2`, `§3.1`,
+`§3.2` und `§3.4` mit Vektoren, dann der Auftrag.
+
+**Geändert.** `07-decisions.md`, `offen.md`.

@@ -31148,3 +31148,59 @@ Eintrags: Normtext und Vektoren, mit der Rücknahmeprobe zu `UNSUPPORTED_FEATURE
 Beschluss 2) und zur Sperre (`BV-20`).
 
 **Geändert.** `04-governance.md`, `04-golden-anchors.md`, `07-decisions.md`, `offen.md`.
+
+### D694 — Abnahme `p63-beteiligung`: zwei Defekte aus dem Auftrag, ein Nachtrag auf dem Branch
+
+**Anlass.** Der Bericht zu `927d1e4` auf `p63-beteiligung`. Gelesen ist der ganze Diff gegen
+`9ad3361` aus dem Spiegel, nicht der Bericht. Nachgefahren im Supervisor-Klon, frischer
+Arbeitsbaum auf `927d1e4`: 1743 Tests grün, Ruff sauber, die Proben A und B mit genau den
+Vektoren aus dem Auftrag. Die Testdatei hat den Hash aus dem Auftrag.
+
+**Befund 1 — der Lauf folgt Auftrag und Norm.** Die neun Vermerke, die Regierbarkeit in der
+Reihenfolge aus `04 §3.5`, die Klasse, der Nenner mit der Sperre, die beiden Felder an
+`TallyResult`, die geheime Wahl. Ohne `participation@1` bleibt der alte Pfad. Bedingung 3 des
+Patts rechnet die Sperre gegen einen Vorschlag des Wahlgangs, auf den keine Stimme zeigt; das ist
+genau der Vorschlag aus `04 §4.7`.
+
+**Befund 2 — Defekt aus dem Auftrag: die drei Regelfelder fehlen in `RULE_FIELDS`.** Das Werkzeug
+hat es gemeldet; der Auftrag hatte `objects.py` gesperrt. `04 §1.1` nennt zehn Regelfelder,
+`RULE_FIELDS` in `symbolon/governance/objects.py` führt sieben. Ein Sachantrag auf
+`required_features`, `resting` oder `returned` ist damit nicht formwidrig (`04 §2.5`), und
+`protected_fields` darf sie nennen. Das öffnet einen Umweg: ein Sachantrag setzt mit `ordinary`
+eine Regel in den Stand, ein Vorschlag, der den Stand übernimmt, unterscheidet sich nur noch in
+`participants` und zählt als `membership` (`04 §3.4`, D567). Der Fehler liegt im Auftrag, nicht
+im Lauf.
+
+**Befund 3 — Defekt: eine bestrittene Stimme hält die ruhende Wurzel nicht im Nenner.** `04 §3.1`
+Punkt 3 und `04 §3.2` Punkt 2 sprechen von einer Stimme, die die Bedingungen 1 bis 6 erfüllt; die
+Sperre eines Geräts (D532) ist keine dieser Bedingungen. Der Lauf prüft gegen die Stimmen nach
+der Sperre: eine Wurzel, die ruht und deren einzige Stimme bestritten ist, verlässt den Nenner.
+Rechnet ein Verdikt die Stimme später zu (D533), steigt er wieder, und ein erreichtes Ergebnis
+fällt nach offen. Die Norm ist die sichere Fassung; der Auftrag hat den Unterschied nicht
+benannt, und kein Vektor sah ihn.
+
+**Befund 4 — Defekt aus dem Auftrag: `make check` rot.** `check-specs` meldet in
+`tests/governance/test_beteiligung.py` 14 bare Paragrafenverweise. Die Datei kam vom Supervisor,
+und ihre Prüfung lief dort nur über Ruff und `pytest`, nicht über `check-specs`. Das Werkzeug hat
+sie richtig unverändert gelassen.
+
+**Befund 5 — klein, ohne Folge.**
+1. Im Docstring von `tally_election` stehen fünf Leerzeichen mitten in einem bestehenden Satz, und
+   der Nenner ohne die Ruhenden ist mit einem Rückstrich geschrieben. Der Nachtrag bereinigt beides.
+2. `AMBIGUOUS_REST` nennt auch Stimmen mit `RESTING_VOTE` als Subjekt. `04 §3.1` sagt „alle
+   beteiligten `claim_id`“; die Lesart ist vertretbar und bleibt.
+3. `_ballot_choice` vergibt `MALFORMED_BALLOT` für einen Kandidaten, der kein Bytestring der
+   Länge 32 ist; `04 §9.4` nennt den Vermerk nur für ein unlesbares `v`. Das war vor dem Lauf so
+   und ist nicht Teil dieses Strangs.
+
+**Beschluss 1 — Nachtrag auf demselben Branch (D544).** Dieser Eintrag, die Vektoren `BV-44` bis
+`BV-46` in `04-golden-anchors.md §14` und die neue Testdatei kommen auf `p63-beteiligung`. Das
+Werkzeug ergänzt `RULE_FIELDS` um die drei Felder, zählt bestrittene Stimmen für `04 §3.1` Punkt
+3 und `04 §3.2` Punkt 2 mit und bereinigt den Docstring. Geprüft vorab an einem Prototyp im
+Supervisor-Klon, verworfen: mit beiden Reparaturen 47 von 47 grün, 616 in `tests/governance` und
+`tests/node`; ohne sie genau `BV-44`, `BV-45` und `BV-46` rot.
+
+**Prüfregel.** Eine Testdatei, die der Supervisor liefert, läuft vor der Lieferung durch
+`make check-specs`, nicht nur durch Ruff und `pytest`.
+
+**Geändert.** `07-decisions.md`, `04-golden-anchors.md`, auf `p63-beteiligung`.

@@ -1,7 +1,7 @@
-"""Beteiligung: Enthaltung, Ruhen, Rückkehr, Kennung (04 §1.1, §2.2, §2.6, §3.1, §3.2, §3.4,
-§3.5, §4.1, §4.4, §4.7, §9.3, §9.4; D689 bis D693).
+"""Beteiligung: Enthaltung, Ruhen, Rückkehr, Kennung (04 §1.1, 04 §2.2, 04 §2.5, 04 §2.6,
+04 §3.1, 04 §3.2, 04 §3.4, 04 §3.5, 04 §4.1, 04 §4.4, 04 §4.7, 04 §9.3, 04 §9.4; D689 bis D694).
 
-Vektoren ``BV-1`` bis ``BV-43`` aus ``04-golden-anchors.md §14``. Jede Identität frisch (D464).
+Vektoren ``BV-1`` bis ``BV-46`` aus ``04-golden-anchors.md §14``. Jede Identität frisch (D464).
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from symbolon.genesis import genesis_scope
 from symbolon.governance import decide, verify_ratification
 from symbolon.governance.election import BallotList, Election, ElectionState, tally_election
 from symbolon.governance.findings import Finding, GovernanceFinding as GF
-from symbolon.governance.objects import Epoch, Proposal
+from symbolon.governance.objects import Epoch, Motion, Proposal
 from symbolon.governance.tally import TallyState, current_ballot, reached
 from symbolon.policy import constitution_hash
 from tests.helpers import Identity, store_with
@@ -51,7 +51,8 @@ def _verfassung(pubs: list[bytes], thresholds: dict = TH_VEREIN, **aend: object)
 
 
 class Welt:
-    """Epoche 1 eines eigenen Genesis (wie ``§12``), sechs Wurzeln ALICE bis FRANK."""
+    """Epoche 1 eines eigenen Genesis wie in ``04-golden-anchors.md §12``, sechs Wurzeln ALICE
+    bis FRANK."""
 
     def __init__(self, *, extra: int = 0, thresholds: dict = TH_VEREIN, **aend: object) -> None:
         self.alice, self.bob, self.carol, self.dave = fresh_p1()
@@ -103,6 +104,22 @@ class Welt:
         self.claims.append(c)
         return c
 
+    def geraet(self, root: Identity, label: str) -> tuple[Identity, Claim]:
+        """Gerät, von ``root`` aufgenommen und gegengezeichnet (01 §7.3)."""
+        device = Identity(label)
+        add = root.claim(p=nuc(self.scope, "device-add"), J=(1, device.pub), t=self.t(),
+                         N=self.scope)
+        ack = device.claim(p=nuc(self.scope, "device-ack"), J=(2, claim_id(add)), t=self.t(),
+                           N=self.scope)
+        self.claims += [add, ack]
+        return device, ack
+
+    def beende(self, root: Identity, device: Identity, endpunkt: Claim) -> None:
+        """``device-end@1`` beim Endpunkt ``endpunkt`` (02 §2.1)."""
+        self.claims.append(root.claim(p=nuc(self.scope, "device-end"), J=(1, device.pub),
+                                      t=self.t(), N=self.scope,
+                                      v=cbor_canon.encode({0: claim_id(endpunkt)})))
+
     def vier(self, h: bytes) -> list[Claim]:
         return [self.stimme(w, h, 1) for w in (self.alice, self.bob, self.carol, self.dave)]
 
@@ -132,7 +149,8 @@ def _xb(w: Welt) -> tuple[Proposal, dict]:
 
 
 def test_schwellen_liegen_auf_verschiedenen_seiten() -> None:
-    """Vier Ja erreichen ``[2,3]`` bei ``n = 6`` nicht, bei ``n = 5`` schon (§14)."""
+    """Vier Ja erreichen ``[2,3]`` bei ``n = 6`` nicht, bei ``n = 5`` schon
+    (``04-golden-anchors.md §14``)."""
     assert not reached(4, 6, 2, 3) and reached(4, 5, 2, 3)
 
 
@@ -367,6 +385,43 @@ def test_bv_32() -> None:
     assert Finding(kind=GF.UNSUPPORTED_FEATURE, subject=p.constitution_hash) in r.findings
 
 
+@pytest.mark.parametrize(
+    ("vektor", "feld", "wert"),
+    [
+        ("BV-44", "required_features", [[[PART]], [[PART, "x-unbekannt@1"]]]),
+        ("BV-45", "resting", None),
+    ],
+)
+def test_bv_44_45(vektor: str, feld: str, wert: list | None) -> None:
+    """Ein Sachantrag nennt ein Regelfeld: formwidrig (04 §1.1, 04 §2.5, D694)."""
+    w = Welt()
+    if wert is None:
+        wert = [[], [[w.frank.pub]]]
+    m = Motion({0: w.scope, 1: w.epoch.epoch_id, 2: {feld: wert}})
+    for who in w.alle:
+        w.stimme(who, m.motion_hash, 1)
+    r = decide(store_with(*w.claims), epoch=w.epoch, proposal=m, genesis_obj=w.genesis,
+               constitution_obj=w.verfassung, target_constitution_obj=None,
+               known_proposals={m.motion_hash: m}, now=NOW,
+               policy=policy_of(w.verfassung, w.scope))
+    assert r.state is TallyState.UNEVALUABLE, vektor
+    assert r.findings == (Finding(kind=GF.MALFORMED_MOTION, subject=m.motion_hash),), vektor
+
+
+def test_bv_46() -> None:
+    """Ruhe und bestrittene Stimme: die Stimme erfüllt die Bedingungen 1 bis 6 aus 04 §3.1, die
+    Wurzel bleibt im Nenner (04 §3.1, 04 §3.2, D694)."""
+    w = Welt(); p, z = _xb(w); w.vier(p.proposal_hash)
+    g, ack = w.geraet(w.eve, "BV-46-G")
+    w.beende(w.eve, g, ack)
+    gv = w.stimme(g, p.proposal_hash, 1)
+    rest = w.ruhe(w.eve)
+    r = w.zaehle(p, z)
+    assert (r.state, r.n, len(r.yes)) == (TallyState.PENDING, 6, 4)
+    assert Finding(kind=GF.DISPUTED_VOTE, subject=claim_id(gv)) in r.findings
+    assert Finding(kind=GF.AMBIGUOUS_REST, subject=claim_id(rest)) in r.findings
+
+
 # --- 14.4 Patt ----------------------------------------------------------------------
 
 def _patt(w: Welt) -> tuple[dict, list[dict], Proposal, Proposal]:
@@ -407,7 +462,7 @@ IRR_WAHL_B = ["ballot-ack@1", "ballot@1", "obligation@1", "ratify@1", "rest@1", 
 
 
 class Wahl:
-    """Die Welt aus ``§13`` mit ``participation@1``."""
+    """Die Welt aus ``04-golden-anchors.md §13`` mit ``participation@1``."""
 
     def __init__(self, *, kennung: bool = True, resting: bool = False) -> None:
         self.alice, self.bob, self.carol, self.dave = fresh_p1()

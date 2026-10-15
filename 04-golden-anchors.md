@@ -747,12 +747,15 @@ und ohne Key `1`. Welche Erwartungen am Prototyp aus D690 nachgerechnet sind, sa
 | `BV-14` | vier Ja, EVEs Erklärung trägt `t_exp` | `REST_WITH_EXPIRY`; `PENDING`, `n = 6` |
 | `BV-15` | vier Ja, EVEs Erklärung mit `v[0] = 2` | wirkt erst in Epoche 2; `PENDING`, `n = 6` |
 | `BV-16` | vier Ja, EVE ruht, `returned: {EVE: 2}` | die Erklärung mit `v[0] = 1` wirkt nicht; `PENDING`, `n = 6` |
+| `BV-46` | vier Ja; EVE nimmt ein Gerät auf und beendet es beim Endpunkt seiner Gegenzeichnung, das Gerät stimmt Ja, danach ruht EVE | die Stimme ist bestritten, `DISPUTED_VOTE`, und erfüllt doch die Bedingungen 1 bis 6 aus `§3.1`: `AMBIGUOUS_REST`, EVE bleibt im Nenner; `PENDING`, `n = 6` |
 
 `BV-1` und `BV-2` sind das Paar um eine Enthaltung, `BV-2` und `BV-3` das Paar um die Kennung:
 dieselbe Stimme, einmal Enthaltung, einmal unbekannt. `BV-7` und `BV-8` sind das Paar um die
 Nennung: ohne sie nimmt die Erklärung dem Ja die Wirkung. `BV-9` ist das Lebenszeichen: ohne die
 Regel aus `§3.1` Punkt 1 wäre `AMBIGUOUS_REST` die Folge und EVE im Nenner. `BV-15` und `BV-16`
-brauchen eine Epoche mit Index 1 und die Regel `r <= v[0] <= e` aus `§2.6`.
+brauchen eine Epoche mit Index 1 und die Regel `r <= v[0] <= e` aus `§2.6`. `BV-46` ist D694
+Befund 3: zählte eine bestrittene Stimme nicht als Stimme nach Bedingung 1 bis 6, verließe EVE
+den Nenner, und ein Verdikt, das die Stimme später zurechnet (D533), höbe ihn wieder.
 
 ### 14.2 Rivalen (`§3.2`, `§4.4`)
 
@@ -784,11 +787,16 @@ ist D692 Befund 1: ohne die Sperre kommen `XB` mit `n = 7` (`8 > 7`) und `YB` mi
 | `BV-30` | `returned: {EVE: 0}` | `MALFORMED_RESTING` |
 | `BV-31` | `CB` ohne `rest@1` in `irrevocable_predicates` | `UNEVALUABLE`, `REST_REVOCABLE` |
 | `BV-32` | Ziel wie `BV-24`; ein `ratify@1` auf den Vorschlag mit genug Ja | Bedingung 6 aus `§4.1`: keine Epoche, `UNSUPPORTED_FEATURE`, Subjekt `proposal.constitution_hash` |
+| `BV-44` | ein Sachantrag ändert `required_features` von `["participation@1"]` auf `["participation@1", "x-unbekannt@1"]`; alle sechs Ja | `UNEVALUABLE`, `MALFORMED_MOTION`, Subjekt sein `motion_hash` |
+| `BV-45` | ein Sachantrag legt `resting: [FRANK]` an; alle sechs Ja | wie `BV-44` |
 
 `BV-21` ist D690 Befund 2: mit der Klasse von heute wäre der Vorschlag `amendment` und vier Ja
 reichten nicht. `BV-26` trägt die Reihenfolge aus `§3.5`: die unbekannte Regel steht vor jedem
 anderen Inhalt. `BV-24` braucht die Rücknahmeprobe aus D692 Beschluss 2: wer den Eintrag nicht
-prüft, rechnet `BV-24` wie `CB` und sieht `PENDING` statt `UNEVALUABLE`.
+prüft, rechnet `BV-24` wie `CB` und sieht `PENDING` statt `UNEVALUABLE`. `BV-44` und `BV-45`
+sind die drei neuen Regelfelder aus `§1.1` im Sachantrag (`§2.5`): ohne sie setzte ein Sachantrag
+mit `ordinary` eine Regel in den Stand, und ein Vorschlag, der ihn übernimmt, zählte als
+`membership` (D694 Befund 2).
 
 ### 14.4 Patt (`§4.7`)
 

@@ -530,4 +530,6 @@ und zurück ist man, wenn ein Antrag das aufnimmt. Offen: die Kennung der Liste 
 Enthaltung und Ruhen in Wahl und Patt, eine blockierte Rückkehr (D689 Befund 3).
 Im Prototyp (D690): es kippt nur der zweite Claim eines Mitglieds, und nur nach offen; eine
 Stimme, die die eigene Ruhe nennt, ist ein Lebenszeichen; die Liste braucht `threshold_class`.
-Nächster Schritt: Wahl und Patt auf dem Papier, dann der Normtext.
+Wahl und Patt in D691: Enthaltung je Wahlgang, auch geheim; in der geheimen Wahl zählt nur die
+Liste in der Satzung, selbst ruhen wirkt dort nicht. Offen: mehrere Geräte einer Wurzel.
+Nächster Schritt: der Normtext mit Kennung und Vektoren, dann der Auftrag.

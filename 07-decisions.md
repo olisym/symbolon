@@ -30944,3 +30944,70 @@ dann im Nenner, ungeprüft).
 `§3.2` und `§3.4` mit Vektoren, dann der Auftrag.
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D691 — Beteiligung in Wahl und Patt: Enthaltung je Wahlgang, in der geheimen Wahl nur die Liste
+
+**Anlass.** D690 Nächster Schritt: Enthaltung und Ruhen in Wahl und Patt, auf dem Papier gegen
+`04 §4.7` und `04 §9.4`. Oli: in einer Wahl kann man sich enthalten.
+
+**Befund 1 — Enthaltung in der geheimen Wahl bleibt geheim.** Enthalten wird mit dem Schlüssel
+der Liste, in einem `ballot@1`. Für den Nenner zählt, wie viele Schlüssel sich enthalten, nicht
+wer: jede tragende Liste hat so viele Schlüssel wie Teilnehmer (`04 §9.5`). Die Enthaltung gilt
+in ihrem Wahlgang; im nächsten ist der Schlüssel wieder frei. Sie bindet den Schlüssel in diesem
+Wahlgang, er ist also nicht mehr frei.
+
+**Befund 2 — gerechnet gegen `04 §9.4`.** Mit `n(w) = |P| - |enthalten(w)|`:
+1. Eine Enthaltung nimmt einen freien Schlüssel heraus: `n` und `frei(w)` sinken je um 1. „Gewählt“
+   (`2 * |Y(c, w)| > n`) bleibt wahr; das Patt (`2 * (|Y(c, w)| + frei(w)) <= n`) auch, denn
+   links sinkt es um 2, rechts um 1.
+2. Eine Enthaltung und eine Stimme für einen Kandidaten desselben Schlüssels im selben Wahlgang
+   sind `AMBIGUOUS_BALLOT`: der Schlüssel zählt im Nenner, ohne Stimme, und ist gebunden. „Gewählt“
+   kann dadurch nach offen fallen, wie bei zwei Stimmen heute; ein Patt bleibt. Das ist die Klasse
+   aus D529 und D690 Befund 3.
+
+**Befund 3 — Ruhen in der geheimen Wahl.** Wer auf der Liste der Ruhenden in der Satzung von
+`E.epoch` steht, ist nicht wahlberechtigt und steht in keiner tragenden Liste. Das ist fest, sobald
+die Epoche feststeht. Wer selbst ruht, ist es nicht: sein Schlüssel ist anonym. Ruht er, nachdem
+er in eine Liste kam, lässt sich seine Stimme ihm nicht zuordnen, also weder herausnehmen noch
+als Widerspruch werten (D689 Beschluss 2). Jede Regel, die ihn aus dem Nenner nimmt, kippt dann je
+nachdem, ob die Ruhe oder die Liste zuerst eintrifft.
+
+**Beschluss 1 — in der geheimen Wahl zählt nur die Liste in der Satzung (Oli).** Der Nenner ist
+`|P ∖ ruhend| - |enthalten(w)|`, mit `ruhend` aus der Satzung von `E.epoch`. Eine Erklärung nach
+D689 Beschluss 4 wirkt dort nicht. Wer verreist und nicht auf der Satzungsliste steht, zählt wie
+einer, der nicht stimmt, also gegen jeden Kandidaten; der Weg ist, vorher auf die Liste zu kommen.
+Verworfen: Ruhen vor der Liste wirkt, danach nicht. Das braucht eine Reihenfolge zwischen Ruhe und
+Liste, die die Liste beweisen müsste, also neue Maschinerie an der Mischrunde.
+
+**Befund 4 — Patt in der offenen Abstimmung (`04 §4.7`), ohne neue Frage.** Drei Ergänzungen zu
+`F(w)` und `n`:
+1. Wer auf der Satzungsliste steht, ist weder gebunden noch frei, und seine Ja-Stimme bindet
+   nicht; er zählt nicht im Nenner.
+2. Wer selbst ruht und keine Stimme in `w` hat, ist nicht frei und zählt nicht im Nenner.
+3. Wer sich zu `X` enthalten hat, kann für `X` kein Ja mehr bringen (D689 Beschluss 1 Punkt 1);
+   Bedingung 4 rechnet für `X` mit `F(w)` ohne diese Wurzeln und mit dem Nenner von `X`.
+Jede der drei senkt in Bedingung 3 oder 4 die linke Seite um `den` und die rechte um `num`; wegen
+`den >= num` bleibt ein Patt ein Patt. Die Monotonie aus `04 §4.7` hält.
+
+**Golden Numbers — der Verein aus D686 Befund 1, Vorstandswahl.**
+
+| Lage | `n` | gewählt ab |
+|---|---|---|
+| heute, 10 stumm | 30 | 16 |
+| 10 auf der Liste der Ruhenden | 20 | 11 |
+| dazu 2 Enthaltungen im Wahlgang | 18 | 10 |
+
+Drei Kandidaten, die 20 Aktiven stimmen 10, 5 und 5. Heute: `frei = 10`, für den ersten
+`2 * (10 + 10) = 40 > 30`, kein Patt, die Wahl bleibt ohne Ende offen (D686 Befund 1). Mit der
+Liste: `frei = 0`, `2 * 10 = 20 <= 20` und `10 <= 20`, Patt, der nächste Wahlgang gilt.
+
+**Befund 5 — die Form der Enthaltung ist eine Kennungsfrage.** Ein `ballot@1` bindet heute nur mit
+einem Bytestring der Länge 32 in `v[0]`. Ein Knoten ohne die Regel liest eine Enthaltung als
+nicht bindend, lässt den Schlüssel frei und behält den Nenner: ein anderes Ergebnis, wie bei
+`vote@1` (D686 Befund 5 Punkt 2). Die Kennung aus D689 Befund 3 Punkt 3 muss beide tragen.
+
+**Nächster Schritt.** Der Normtext für `04 §2.2`, `§3.1`, `§3.2`, `§3.4`, `§4.7` und `§9.4`, mit
+der Kennung, und Vektoren; dann der Auftrag. Bis dahin offen: mehrere Geräte einer Wurzel (D690
+Befund 7).
+
+**Geändert.** `07-decisions.md`, `offen.md`.

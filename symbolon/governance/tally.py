@@ -505,8 +505,14 @@ def _zusammenfassen_beteiligung(
     holding: set[bytes],
     abstained: set[bytes],
     counting: list[Claim],
+    nicht_zaehlend: frozenset[bytes] = frozenset(),
 ) -> None:
-    """Die drei Regeln unter ``participation@1``, vor der Zusammenfassung (04 §3.1)."""
+    """Die drei Regeln unter ``participation@1``, vor der Zusammenfassung (04 §3.1).
+
+    Eine bestrittene Stimme, die die Bedingungen 1 bis 6 erfüllt, steht in ``group`` und in
+    ``nicht_zaehlend``: sie hält die Wurzel und macht, ungenannt, die Ruhe zu ``AMBIGUOUS_REST``,
+    gezählt wird sie nicht (04 §3.1, 04 §3.2, D532).
+    """
     rest_ids = {claim_id(rest) for rest in rests}
     offen: list[Claim] = []
     for vote in group:
@@ -522,8 +528,9 @@ def _zusammenfassen_beteiligung(
         for rest in rests:
             findings.append(Finding(kind=GovernanceFinding.AMBIGUOUS_REST, subject=claim_id(rest)))
         return
-    abstention_ids = {claim_id(vote) for vote in offen if _choice(vote) == 2}
-    kept = _ohne_genannte_enthaltung(offen, abstention_ids)
+    zaehlend = [vote for vote in offen if claim_id(vote) not in nicht_zaehlend]
+    abstention_ids = {claim_id(vote) for vote in zaehlend if _choice(vote) == 2}
+    kept = _ohne_genannte_enthaltung(zaehlend, abstention_ids)
     choices = {_choice(vote) for vote in kept}
     if len(choices) > 1:
         for vote in kept:
@@ -931,6 +938,8 @@ def _decide(
         if attr.status(vote) is AttributionStatus.DISPUTED:
             disputed.add(cid)
     candidates: list[Claim] = []
+    # Bestritten, aber Bedingungen 1 bis 6: hält die Wurzel, zählt nicht (04 §3.1, 04 §3.2).
+    bestritten: list[Claim] = []
     for vote in votes:
         cid = claim_id(vote)
         on_this = vote.J == (3, object_hash)
@@ -971,12 +980,19 @@ def _decide(
             continue
         if counts_disputed(vote):
             findings.append(Finding(kind=GovernanceFinding.DISPUTED_VOTE, subject=cid))
+            if participation:
+                bestritten.append(vote)
             continue
         candidates.append(vote)
 
     by_root: dict[bytes, list[Claim]] = defaultdict(list)
     for vote in candidates:
         by_root[roots[claim_id(vote)]].append(vote)
+    nicht_zaehlend: set[bytes] = set()
+    if participation:
+        for vote in bestritten:
+            by_root[roots[claim_id(vote)]].append(vote)
+            nicht_zaehlend.add(claim_id(vote))
     counting: list[Claim] = []
     abstained_roots: set[bytes] = set()
     holding: set[bytes] = set()
@@ -991,6 +1007,7 @@ def _decide(
                 holding=holding,
                 abstained=abstained_roots,
                 counting=counting,
+                nicht_zaehlend=frozenset(nicht_zaehlend),
             )
             continue
         group = maximal_votes(group)

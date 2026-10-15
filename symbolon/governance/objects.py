@@ -18,6 +18,9 @@ RULE_FIELDS = frozenset(
         "arbitration",
         "enforcement_policy",
         "nucleus_keys",
+        "required_features",
+        "resting",
+        "returned",
     }
 )
 

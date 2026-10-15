@@ -190,9 +190,9 @@ def tally_election(
     Bestätigung ist keine, es sei denn, ein Verdikt rechnet sie zu (04 §9.3, D671 Beschluss 1);
     sie fällt dann für die Bedingungen 3, 4 und 5 heraus. Eine Liste für ``E`` ist jede
     ``BallotList`` mit Feld ``0`` gleich ``election_hash``, formwidrig oder nicht (D671
-    Beschluss 2).     Eine Stimme für einen fremden Kandidaten bindet und zählt nicht (D669
+    Beschluss 2). Eine Stimme für einen fremden Kandidaten bindet und zählt nicht (D669
     Beschluss 3). Vermerke zu Stimmen stehen für jeden Wahlgang mit Stimmen.
-    Unter ``participation@1`` ist ``h''`` eine Enthaltung, ``n`` ist ``|P \\ resting|``,
+    Unter ``participation@1`` ist ``h''`` eine Enthaltung, ``n`` ist ``|P|`` ohne ``resting``,
     und eine Erklärung nach 04 §2.6 wird nicht gelesen (04 §9.3, 04 §9.4).
     """
     e_hash = election.election_hash

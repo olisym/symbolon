@@ -31011,3 +31011,77 @@ der Kennung, und Vektoren; dann der Auftrag. Bis dahin offen: mehrere Geräte ei
 Befund 7).
 
 **Geändert.** `07-decisions.md`, `offen.md`.
+
+### D692 — Beteiligung vor dem Normtext: der Nenner hält Rivalen zusammen, die Satzung nennt Regeln
+
+**Anlass.** D691 Nächster Schritt: der Normtext. Gelesen vorher `04 §1.1`, `§2.2`, `§3.2` bis
+`§3.5`, `§4.4` und `§4.7`. Dabei fiel D689 Beschluss 1, und die Kennung aus D689 Befund 3 Punkt 3
+stand zur Entscheidung.
+
+**Befund 1 — Enthaltung und Ruhen je Antrag brechen D102.** Der Beweis in `04 §3.5` und `§4.4`
+(B1 bis B3) rechnet alle Anträge einer Epoche gegen dasselbe `n`: eine durchgekommene Ja-Menge
+enthält mehr als die Hälfte von `P`, zwei durchgekommene teilen also ein Mitglied. Mit einem
+Nenner je Antrag fällt das. Am Prototyp aus D690, zehn Mitglieder, Schwelle `1/2`, zwei Vorschläge
+`A` und `B` derselben Epoche und desselben Wahlgangs:
+1. Enthaltung: 4 Ja auf `A`, die sich bei `B` enthalten; 5 Ja auf `B`, von denen sich 3 bei `A`
+   enthalten. `A` mit `n = 7` (`8 > 7`) und `B` mit `n = 6` (`10 > 6`): beide durchgekommen.
+2. Ruhen: 6 Ja auf `A`, die danach ruhen und ihr Ja nennen; 3 Ja auf `B`. `A` mit `n = 10`
+   (`12 > 10`), `B` mit `n = 4` (`6 > 4`): beide durchgekommen.
+Zwei rivalisierende Nachfolger derselben Epoche, ohne dass jemand doppelt gestimmt hat. Der
+Prototyp aus D690 zählte immer nur einen Antrag und konnte das nicht sehen.
+
+**Beschluss 1 — wer anderswo bindet, bleibt im Nenner (Position).** Eine Wurzel verlässt den
+Nenner eines Antrags `X`, durch Enthaltung auf `X` oder durch Ruhen, nur wenn sie kein aktives Ja
+auf ein Objekt hat, das nach `04 §4.4` mit `X` unvereinbar oder lokal unbekannt ist. Aktiv heisst
+hier wie in `§4.4`: `ACTIVE`, ohne `t_exp`, nicht bestritten; ob das Ja selbst zählt, spielt keine
+Rolle. Unbekannt heisst möglicherweise unvereinbar, die Richtung aus `§4.4`.
+
+Warum das trägt: Seien `A` und `B` unvereinbar und beide durchgekommen, ihre Ja-Mengen disjunkt.
+Wer sich bei `A` enthält oder für `A` ruht, hat kein Ja auf `B`; also liegen `A` und `B` beide im
+Nenner von `A`, und ebenso im Nenner von `B`. Dann `|A| * den > num * n_A >= num * (|A| + |B|)`
+und dasselbe für `B`, zusammen `den > 2 * num`, gegen `04 §3.5`. Die Liste der Ruhenden in der
+Satzung ist für alle Anträge dieselbe und braucht die Sperre nicht.
+
+**Befund 2 — gemessen.** Der Prototyp mit dieser Sperre: beide Fälle aus Befund 1 kommen nicht
+mehr beide durch. Arithmetisch erschöpfend über 203 489 Verteilungen von dreizehn Profilen (Ja,
+Enthaltung und Ruhen gegen `A` und `B` kombiniert) auf bis zu acht Mitglieder, je mit den
+Schwellen `1/2`, `3/5`, `2/3`, `3/4`: ohne Sperre kommen schon bei zwei Mitgliedern beide durch,
+mit Sperre in keiner Verteilung.
+
+**Befund 3 — was die Sperre kostet.** Wer sich bei `A` enthält und `B` zustimmt, senkt den Nenner
+von `A` nicht; seine Enthaltung wirkt dort wie Schweigen. Wer für einen Rivalen ist, ist in der
+Sache gegen `A`, denn nur einer kommt durch. Kommt sein Ja auf `B` später an, steigt der Nenner
+von `A`, und ein erreichtes Ergebnis kann nach offen fallen: der zweite Claim derselben Wurzel,
+die Klasse aus D529 und D690 Befund 3. Die Seite sagt das bei der Enthaltung.
+
+**Befund 4 — die Kennung, nachgeschlagen.** Das Muster heisst kritische Erweiterung und ist
+verbreitet: `crit` in JWS (RFC 7515 `§4.1.11`), das Kennzeichen „kritisch“ in X.509 (RFC 5280),
+`required_capabilities` in MLS (RFC 9420), Raumversionen in Matrix mit dem Fehler
+`M_UNSUPPORTED_ROOM_VERSION` (MSC 1866). Wer einen Eintrag nicht kennt, lehnt ab, statt zu
+raten. Die Praxis zeigt auch, wie es bricht: PyJWT nahm bis 2026 unbekannte `crit`-Einträge an
+(CVE-2026-32597), zwei Programme bewerteten dasselbe Token verschieden. Die Regel hilft nur, wenn
+sie geprüft wird. Die Unterscheidung kritisch und unkritisch aus X.509 entfällt hier: was die
+Auszählung nicht ändert, braucht keinen Eintrag.
+
+**Beschluss 2 — die Satzung nennt ihre Regeln (Oli, auf Empfehlung).** Ein neues Regelfeld der
+Verfassung, eine Liste von Texten, sortiert, duplikatfrei, nicht leer. Kennt ein Knoten einen
+Eintrag nicht, ist die Verfassung nicht regierbar (`04 §3.5`), mit eigenem Vermerk: er rechnet
+sichtbar nicht, statt anders. Der erste Eintrag ist die Beteiligung aus D689 bis D692. Ohne ihn
+gilt alles wie heute: kein dritter Wert in `vote@1`, keine Ruhe, `n = |P|`. Gegen Knoten, die das
+Feld nicht kennen, ist es getragen wie D646 Beschluss 6; ab dann schützt es jede künftige Regel.
+Verworfen: keine Kennung und jedes Mal hinnehmen, dass Knoten verschieden zählen (D547 Befund 6,
+D646 Beschluss 6). Der Normtext bekommt einen Vektor mit unbekanntem Eintrag, und der Auftrag eine
+Rücknahmeprobe dazu.
+
+**Beschluss 3 — Namen und Form im Normtext (Position).** Englisch wie die übrigen Felder:
+`required_features` für die Liste, `participation@1` für den Eintrag, `resting` für die Liste der
+Ruhenden, `returned` für die Rückkehr (je Wurzel der Index der Fassung, ab der sie wieder zählt),
+`nuc:N/rest@1` für die Erklärung, `2` als dritter Wert in `vote@1`. Führt eine Verfassung
+`resting` oder `returned` ohne den Eintrag, ist sie formwidrig. Führt sie den Eintrag, muss
+`irrevocable_predicates` `rest@1` führen: eine widerrufbare Ruhe höbe den Nenner mitten in einer
+Fassung (D689 Befund 2, letzte Zeile).
+
+**Nächster Schritt.** Der Normtext für `04 §1.1`, `§2.2`, `§3.1`, `§3.2`, `§3.4`, `§3.5`, `§4.4`,
+`§4.7`, `§9.2` und `§9.4` mit Vektoren in `04-golden-anchors.md`; dann der Auftrag.
+
+**Geändert.** `07-decisions.md`.

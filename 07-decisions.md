@@ -31289,3 +31289,89 @@ sichtbar werden soll.
 
 **Geändert.** `sitzungsstart-00e2.md` (neu), `sitzungsstart-00e1.md` nach `archiv/`,
 `07-decisions.md`, `offen.md`.
+
+### D697 — Die Landkarte neu geschnitten: ein Filter, fünf Fälle, die Mitte, E zuerst
+
+**Anlass.** Zu Beginn von `00e2` ordnet der Supervisor die Kandidaten aus D696 Befund 3 und
+schlägt die Wohnungseigentümergemeinschaft vor. Oli verwirft den Sicherheitsdienst als eigenen
+Fall, fasst die Versicherung weiter und fragt, wie die Runde so zielt, dass Symbolon einmal den
+grössten Nutzen hat.
+
+**Befund 1 — Verein und Food-Koop haben das Problem nicht (Oli).** Die meisten Vereine,
+Food-Coops und privaten Gruppen laufen heute effizient genug; abstreitbare Aussagen sind dort
+kein Engpass. Sie zeigen, ob MaR trägt, nicht, ob es gebraucht wird.
+
+**Befund 2 — wer abstreiten will, muss nicht mitmachen.** Bisher galt: ein System, das
+Abstreitbarkeit sichtbar macht, setzen die nicht ein, denen sie nützt. Das ist kein Engpass, wenn
+die Ehrlichen es einsetzen und das Fehlen sichtbar wird. Wer glaubwürdig zusagen kann, gewinnt;
+wer nicht zusagt, fällt auf. Das entspricht dem Ergebnis zur freiwilligen Offenlegung (Grossman,
+Milgrom), aus dem Gedächtnis und nicht nachgeschlagen.
+
+**Beschluss 1 — der Filter.** Ein Fall kommt auf die Landkarte, wenn er vier Fragen besteht:
+(1) Vertrauen ist heute teuer, durch die Marge eines Mittlers, durch Ausfall oder Betrug;
+(2) die ehrliche Seite wählt das Werkzeug selbst und gewinnt durch Sichtbarkeit; (3) wer nicht
+mitmacht, fällt auf, weil zwischen Gegenübern wiederholt gewählt wird; (4) der Fall lässt sich
+klein beginnen. Jede Zeile der Landkarte nennt die vier Antworten neben „trägt“, „trägt mit
+Lücke“ oder „trägt nicht“.
+
+**Beschluss 2 — fünf Fälle (Oli).**
+
+- **A. Absicherung gegen Schaden.** Gesucht ist die Funktion der Versicherung, nicht ihre
+  Rechtsform; den Versicherungsverein auf Gegenseitigkeit nennt Oli zu eng. Mechanismen, als
+  Vermutung: Pool und Verwahrung (Olis Multisig), Preis des Risikos, Prüfung des Schadens,
+  Rückausschüttung zu viel gezahlter Beiträge am Ende einer Periode (Oli), grosse Schäden über
+  einen Verbund. Der Kern ist die Prüfung des Schadens: eine Schadensmeldung ist eine Aussage,
+  die mit anderen kollidieren kann. Dass die Haftpflicht für Fahrzeuge einen zugelassenen
+  Versicherer verlangt, ist nicht nachgeschlagen.
+- **B. Gemeinsam sparen und leihen.** Sparclubs, rotierende Spargemeinschaften, Gruppenkredit.
+- **C. Markt zwischen Fremden.** Zusage und Schuld ohne gemeinsame Satzung; MaR setzt bisher
+  einen Scope voraus.
+- **D. Recht und Ordnung ohne Zentrale (Oli).** Ein Sicherheitsdienst ist Exekutive und gehört
+  mit Regelsetzung und Streit zusammen; ein Fall mit drei Teilen. Die Regel tragen Satzung und
+  Anträge, den Streit Schiedsleute und `verdict@1`, beides gebaut; die Ausführung ist die Lücke,
+  was ein Gewählter darf (O105 Punkt 1).
+- **E. Gemeinsames Eigentum mit Verwalter (Oli).** Auf die Frage, wer die Autobahn baut, ist
+  Olis Antwort: die, die sie benutzen wollen; Kanalisation und Strasse sollen den Menschen
+  gehören, denn wem nichts gehört, der kümmert sich um nichts. Mechanismen, als Vermutung:
+  Anteile, Regeln der Nutzung, Umlage nach Anteil oder Nutzung, Rücklage, ein Verwalter, der
+  für alle handelt, Rechnung legt und abwählbar ist. Der Verwalter ist die Lücke aus D; E prüft
+  sie zuerst. Vorlagen, aus dem Gedächtnis und nicht nachgeschlagen: das
+  Wohnungseigentumsgesetz, Wasser- und Bodenverbände, Deich- und Jagdgenossenschaften,
+  Genossenschaften für Energie, Breitband und Nahwärme, die privaten Strassengenossenschaften in
+  Schweden; Ostrom als Vorarbeit (O105).
+
+Food-Koop, Versicherungsverein und Sicherheitsdienst als eigene Fälle fallen weg; der Verein
+bleibt Massstab (D696 Beschluss 3). Die Wohnungseigentümergemeinschaft ist der Versicherung nur
+über die Umlage nah; ihr Kern ist gemeinsames Eigentum mit einem Verwalter, sie gehört zu E.
+
+**Beschluss 3 — eine Rechercherunde zu Janich (Oli).** „Sicher ohne Staat“ ist Vorlage für A
+und D. Die Streitschrift ist Fundgrube nach D645 Beschluss 2: jedes Beispiel wird an seiner
+Quelle nachgelesen. Daneben, aus dem Gedächtnis und nicht nachgeschlagen: Leeson, Benson, Greif,
+Stringham. Das Buch legt Oli in den Projektspeicher.
+
+**Beschluss 4 — der Massstab ist die Mitte (Oli).** Olis Beobachtung an TikTok: jeder fängt mit
+einem Tablet an, und ein Teil der Bevölkerung hat dort ein Auskommen gefunden, obwohl die
+Plattform gewinnorientiert ist und niemand weiss, was mit den Daten geschieht. Daraus: der Mensch
+in der Mitte der Glockenkurve muss sofort sehen, dass Symbolon ihm nützt, sonst nutzt er es
+nicht; dann muss es einfach sein und Spass machen. Für den Bau gilt zugleich: technisch elegant,
+sicher und robust.
+
+**Befund 3 — wo Eigentum ohne Zentrale endet.** Dass sich kümmert, wem etwas gehört, trägt in
+kleinen Gruppen; das ist Ostroms Befund. Bei Netzen wie einer Strasse kommen zwei Probleme dazu:
+wer sein Land für die Trasse verweigert, blockiert alle, heute gelöst durch Enteignung; und wer
+nicht beteiligt ist, nutzt mit, ausser man schliesst ihn aus. An beiden entscheidet sich, ob E
+bei Netzen trägt oder nur mit Lücke.
+
+**Befund 4 — Spass ist nicht Bindung.** D645 Beschluss 3 schliesst aus, dass die Seite auf
+Wiederkommen zielt. Beschluss 4 widerspricht dem nicht: Spass kommt aus spürbarer Wirkung und
+Ansehen (Olis Satz in D645), nicht aus einer Mechanik, die Menschen zurückholt. Die Leichtigkeit
+der Plattformen ist zum Teil diese Mechanik; sie wird nicht übernommen. Was eine Plattform
+ausserdem verkauft, ist Reichweite; die schafft MaR nicht, und ein Fall unter C, der von
+Reichweite lebt, hängt weiter an ihr.
+
+**Beschluss 5 — die Reihenfolge (Oli).** E zuerst, weil die Vorarbeit liegt und der Fall ohne
+das Buch beginnen kann; A, sobald Janichs Buch im Projektspeicher liegt. Die Landkarte steht
+zuerst im Chat und kommt als Datei ins Repositorium, wenn die Zeilen für den Verein und für E
+stehen.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O108).

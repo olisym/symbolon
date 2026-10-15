@@ -541,6 +541,10 @@ Wartet auf die Landkarte (O108), die sagt, was zuerst sichtbar werden soll (D696
 
 Ziel nach D696: prüfen, ob MaR abbildet, was Menschen heute schon tun, gegen Vorlagen je
 Anwendungsfall (Recht, Normen, gelebte Praxis), und die Mechanismen darunter auf gemeinsame
-Wurzeln zusammenziehen. Je Fall eine Zeile: trägt, trägt mit Lücke, trägt nicht. Breite vor
-Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken. Kandidaten:
-Verein als Massstab, Food-Koop, Versicherung, Markt, Sicherheitsdienst (D696 Befund 3).
+Wurzeln zusammenziehen. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an
+derselben Wurzel haken. Seit D697 ein Filter mit vier Fragen (Vertrauen teuer, die ehrliche
+Seite wählt, wer fehlt, fällt auf, klein zu beginnen) und fünf Fälle: A Absicherung gegen
+Schaden, B gemeinsam sparen und leihen, C Markt zwischen Fremden, D Recht und Ordnung ohne
+Zentrale, E gemeinsames Eigentum mit Verwalter; der Verein als Massstab. Je Fall eine Zeile:
+trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. E zuerst, dann A mit einer
+Rechercherunde zu Janich (D697 Beschluss 3 und 5).

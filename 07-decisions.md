@@ -31911,3 +31911,76 @@ vorstellt, dann Nachschlagen, dann Papier.
 
 **Geändert.** `VISION.md`, `07-decisions.md`, `sitzungsstart-00e4.md` (neu),
 `sitzungsstart-00e3.md` nach `archiv/`.
+
+### D709 — Bausteine aus menschlichem Handeln: die Arbeitsweise, der Verwahrer, das Mandat zuerst
+
+**Anlass.** `00e4` beginnt mit dem Mandat mit Rahmen (O110, D708 Beschluss 2). Auf die Frage, wie
+er sich einen Verwalter vorstellt, wer ihn bestellt, was er allein darf und wie man ihn abruft,
+antwortet Oli mit einer Haltung zur Methode statt mit einem Bild.
+
+**Beschluss 1 — die Arbeitsweise (Oli).** Zuerst wird menschliches Handeln untersucht, wie
+Menschen es heute schon tun, und darin werden die grundlegenden Funktionen benannt. Sie sind der
+Eingang für MaR: gesucht wird mit den Mitteln von MaR und den neuesten kryptografischen Verfahren
+nach einer digitalen Abbildung jeder Funktion. Die Wette: am Ende steht ein überschaubarer
+Baukasten, aus dem sich Modelle wie die Eigentümergemeinschaft zusammensetzen lassen. Das schärft
+D696 und D700 Beschluss 1: die Landkarte liefert Bausteine, nicht Fälle; ein Fall prüft, ob die
+Bausteine tragen.
+
+**Beschluss 2 — Einzelheiten sind Parameter (Oli).** Wie ein Verwalter bestellt wird, was er
+allein darf und wie man ihn abruft, legen die Menschen fest, die ihn bestellen. Der Baustein
+trägt die Stellschrauben, die Satzung setzt sie; das ist Policy nach `08 §3`. Modular ist der
+Bestand dafür schon: Profile tragen eine Kennung mit Fassung, eine Satzung nennt in
+`required_features` die Regeln, die sie voraussetzt (D692 Beschluss 2), eine Vorlage ist eine
+Auswahl mit Parametern (D645, D648).
+
+**Beschluss 3 — das Wort.** Ein Teil des Baukastens heisst **Baustein**, wie in `VISION §3`
+(D661). „Werkzeug“ ist doppelt belegt: als Ort in `08 §3` und als Name für Claude Code. Jeder
+Baustein bekommt seinen Ort nach `08 §3`: Protokoll, Policy, Werkzeug oder die Wertschicht, die
+es noch nicht gibt.
+
+**Beschluss 4 — Verwahrung ohne Verwahrer (Oli).** Wo eine Gruppe Wert gemeinsam hält, sucht MaR
+eine kryptografische Form, die keinen Verwahrer braucht, etwa eine Adresse, über die nur eine
+Mehrheit der Mitglieder verfügt. Das schärft D467 Beschluss 2. Dort hiess es: einigt sich eine
+Gruppe auf einen Topf mit verteilter Verwahrung, ist das ihre Vereinbarung ausserhalb des
+Protokolls. Jetzt darf MaR selbst einen Baustein dafür liefern. Was bleibt: keine Stelle hält
+allein fremden Wert, und kein Einsatz gibt Gewicht. Eine Schwelle aus k von n Mitgliedern ist
+keine solche Stelle.
+
+**Beschluss 5 — wozu die Anwendungen da sind (Oli).** Die gebauten Anwendungen prüfen das
+Protokoll auf Vollständigkeit und dienen als Beispiel, wenn jemand etwas sehen will; eine fertige
+App ist nicht das Ziel. Das bestätigt D706 Beschluss 1.
+
+**Beschluss 6 — die Reihenfolge (Oli).** Zuerst das Mandat: wer für die Gruppe anweisen und
+sprechen darf, in welchem Rahmen. Es braucht keine neue Kryptografie. Dann die Kasse mit einem
+Gruppenschlüssel in MaR, zuletzt echtes Geld, weil dort der Standard noch nicht steht (Befund 3).
+Eine Kasse, die auszahlt, braucht beides: wer anweist (Mandat) und wer zeichnet (Verwahrer).
+
+**Befund 1 — eine Zeile im Sitzungsstart war falsch.** `sitzungsstart-00e4.md` sagt, `01 §1`
+kenne Delegation im Kern. `01 §8` schliesst sie aus: Delegation bleibt in der
+Interpretationsschicht. Das einzige gebaute Muster ist die Aufnahme eines Geräts (`01 §7.3`,
+D529 ff.): eine Wurzel delegiert je Scope an einen Schlüssel, `device-end@1` sperrt ihn. Beim
+Mandat stellt ein Beschluss aus statt einer Wurzel.
+
+**Befund 2 — FROST steht schon in `00`.** `key_mode = 1` erlaubt einen FROST-Gruppenschlüssel als
+Wurzel, `vote_mode = 1` die Stimme als Gruppensignatur, `00 §6.5` das Re-Keying. Eine
+FROST-Signatur prüft sich wie eine gewöhnliche Ed25519-Signatur; das Atom bleibt. Für eine Kasse
+in MaR hiesse das: der Schlüssel der Kasse ist ein Gruppenschlüssel, ein Amtswechsel ein
+Re-Keying. Das ist die Stelle, an der O89 sich lösen kann.
+
+**Befund 3 — nachgeschlagen, in Auszügen.** Vollmacht mit Rahmen ist ein bearbeitetes Feld.
+Macaroons (Birgisson u. a., NDSS 2014): Berechtigungen mit eingebetteten Einschränkungen nach
+Zeit, Ort, Person und Zweck, die ein Halter nur enger machen kann. UCAN in der Fassung
+1.0.0-rc.1: eine Delegation nennt Aussteller, Empfänger, Gegenstand, Befehl, eine Policy als
+Prädikatbaum über die Argumente und eine Gültigkeit in der Zeit; der Widerruf ist eine empfohlene
+Teil-Spec und in go-ucan nicht gebaut. Der Unterschied zu MaR: dort prüft ein Dienst, bevor er
+Zugang gewährt; MaR hat keinen Torwächter, jeder Leser prüft einen Akt hinterher gegen den
+Rahmen, und ein Akt ausserhalb ist als solcher sichtbar (`08 §2.2`). Den Rahmen sieht auch ein
+Dritter, was WEG 9b Abs. 1 nicht leistet. Für die Verwahrung: FROST ist seit 2024 RFC 9591.
+Bitcoin rechnet auf secp256k1, MaR auf Ed25519; der Schlüssel eines Mitglieds ist also nicht
+unmittelbar Mitzeichner einer Bitcoin-Adresse, ein unterschriebener Claim muss beide verbinden.
+Heute trägt k von n über Taproot-Skripte, n von n über MuSig2; FROST für Bitcoin (BIP445) ist ein
+offener Pull Request, der nur das Signieren regelt, die Schlüsselerzeugung kommt aus ChillDKG.
+Aus dem Gedächtnis, nicht nachgeschlagen: Ostroms viertes Bauprinzip verlangt, dass die
+Überwacher den Nutzern rechenschaftspflichtig sind.
+
+**Geändert.** `07-decisions.md`.

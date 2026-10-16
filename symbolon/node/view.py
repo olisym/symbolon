@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -516,6 +517,12 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
     aufgenommenes Gerät ist, ``ELECTION_JOIN``, solange sie nicht unter ``members`` steht, sonst
     ``ELECTION_VOTE``, wenn ihr Wahlschlüssel im geltenden Wahlgang noch nicht gestimmt hat
     (04 §9.4, D681 Beschluss 2).
+
+    In einem Scope mit Vereinsleben, dessen Genesis unter Key ``8`` einen Scope nennt, für den
+    ``sparrunde_view`` eine Tafel liefert und deren Vereinsleben dieser Scope ist, entfallen
+    ``CONTRIBUTION_OPEN`` und ``RECEIPT`` für jede Obligation, die in einer Zeile eines Monats
+    ausser dem laufenden unter ``zusagen`` steht (D704 Beschluss 4). Für jede andere Obligation
+    gilt die Regel wie bisher.
     """
     tasks: list[TaskView] = []
     for scope in store.all_genesis():
@@ -570,8 +577,22 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                     elif tally.state is TallyState.PASSED:
                         tasks.append(TaskView(scope=scope, art="RATIFY", detail=digest))
         if view.vereinsleben is not None and not geraet:
+            ausgelassen: set[bytes] = set()
+            ziel = store.all_genesis()[scope].get(8)
+            if isinstance(ziel, bytes):
+                tafel = sparrunde_view(store, ziel, now)
+                if tafel is not None and tafel.vereinsleben == scope:
+                    ausgelassen = {
+                        zusage
+                        for monat in tafel.monate
+                        if monat.monat != tafel.laufend
+                        for zeile in monat.zeilen
+                        for zusage in zeile.zusagen
+                    }
             for cid, result in view.vereinsleben.settlements:
                 if result.state is not SettlementState.OPEN:
+                    continue
+                if cid in ausgelassen:
                     continue
                 claim = store.get(cid)
                 if claim is None:
@@ -696,6 +717,146 @@ def obligations_view(store: SqliteStore, scope: bytes, now: int) -> tuple[Obliga
             )
         )
     return tuple(result)
+
+
+@dataclass(frozen=True, slots=True)
+class SparrundeZeile:
+    """Zahler, Zustand und Zusagen eines Monats (D704 Beschluss 3)."""
+
+    zahler: bytes
+    zustand: str
+    zusagen: tuple[bytes, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SparrundeMonat:
+    """Ein Monat der Tafel (D704 Beschluss 3)."""
+
+    monat: int
+    empfaenger: bytes
+    zeilen: tuple[SparrundeZeile, ...]
+    fertig: bool
+
+
+@dataclass(frozen=True, slots=True)
+class SparrundeView:
+    """Die Tafel einer Sparrunde (D704 Beschluss 3)."""
+
+    verein: bytes
+    vereinsleben: bytes
+    rate: int
+    monate: tuple[SparrundeMonat, ...]
+    laufend: int | None
+    seit: int | None
+
+
+def sparrunde_view(store: SqliteStore, scope: bytes, now: int) -> SparrundeView | None:
+    """Tafel einer Sparrunde, sonst ``None`` (D704 Beschluss 3).
+
+    Kein Genesis, keine lesbare Reihenfolge oder Rate und kein eindeutiges Vereinsleben ergeben
+    ``None`` und keinen Fehler. ``seit`` ist der grösste Zeitstempel der Quittungen, die im
+    Vormonat tilgen, und nur wenn der laufende Monat nach dem ersten liegt.
+    """
+    # gruendung braucht view für den Probelauf. Der Import steht im Rumpf, damit sich die
+    # Module beim Laden nicht im Kreis ziehen.
+    from symbolon.node.gruendung import VORLAGEN, reihenfolge_lesen, vorlage_der_satzung
+
+    if scope not in store.all_genesis():
+        return None
+    stand = scope_view(store, scope, now).stand.stand_obj
+    if vorlage_der_satzung(stand) is not VORLAGEN["sparrunde"]:
+        return None
+    folge = reihenfolge_lesen(stand.get("reihenfolge"))
+    rate_text = stand.get("rate")
+    rate_muster = (
+        re.fullmatch(r"(0|[1-9][0-9]{0,6}),([0-9]{2}) EUR im (Monat|Jahr)", rate_text)
+        if isinstance(rate_text, str)
+        else None
+    )
+    if folge is None or rate_muster is None:
+        return None
+    rate = int(rate_muster.group(1)) * 100 + int(rate_muster.group(2))
+    leben = [
+        digest
+        for digest, genesis in store.all_genesis().items()
+        if isinstance(genesis, dict) and genesis.get(8) == scope
+    ]
+    if len(leben) != 1:
+        return None
+    leben_scope = leben[0]
+    leben_sicht = scope_view(store, leben_scope, now)
+    if leben_sicht.vereinsleben is None:
+        return None
+    nach_paar: dict[tuple[bytes, bytes], list[tuple[bytes, SettlementResult]]] = defaultdict(list)
+    ergebnis_von: dict[bytes, SettlementResult] = {}
+    for cid, ergebnis in leben_sicht.vereinsleben.settlements:
+        claim = store.get(cid)
+        if claim is None or claim.J[0] != 1:
+            continue
+        betrag, einheit = _obligation_amount_unit(claim.v)
+        if (betrag, einheit) != (rate, "EUR-Cent"):
+            continue
+        nach_paar[(claim.I, claim.J[1])].append((cid, ergebnis))
+        ergebnis_von[cid] = ergebnis
+    monate: list[SparrundeMonat] = []
+    for nummer, empfaenger in enumerate(folge, start=1):
+        zeilen: list[SparrundeZeile] = []
+        for zahler in folge:
+            if zahler == empfaenger:
+                continue
+            eintraege = nach_paar.get((zahler, empfaenger), [])
+            getilgt = sorted(
+                cid for cid, ergebnis in eintraege if ergebnis.state is SettlementState.SETTLED
+            )
+            offen = sorted(
+                cid for cid, ergebnis in eintraege if ergebnis.state is SettlementState.OPEN
+            )
+            if getilgt:
+                zustand = "bezahlt"
+            elif offen:
+                zustand = "offen"
+            else:
+                zustand = "fehlt"
+            zeilen.append(
+                SparrundeZeile(zahler=zahler, zustand=zustand, zusagen=tuple(getilgt + offen))
+            )
+        monate.append(
+            SparrundeMonat(
+                monat=nummer,
+                empfaenger=empfaenger,
+                zeilen=tuple(zeilen),
+                fertig=all(zeile.zustand == "bezahlt" for zeile in zeilen),
+            )
+        )
+    laufend = next((monat.monat for monat in monate if not monat.fertig), None)
+    seit: int | None = None
+    if laufend is not None and laufend > 1:
+        vormonat = next(monat for monat in monate if monat.monat == laufend - 1)
+        zeiten: list[int] = []
+        for zeile in vormonat.zeilen:
+            if not zeile.zusagen:
+                continue
+            ergebnis = ergebnis_von.get(zeile.zusagen[0])
+            if (
+                ergebnis is None
+                or ergebnis.state is not SettlementState.SETTLED
+                or ergebnis.receipt_claim_id is None
+            ):
+                continue
+            quittung = store.get(ergebnis.receipt_claim_id)
+            if quittung is None:
+                continue
+            zeiten.append(quittung.t)
+        if zeiten:
+            seit = max(zeiten)
+    return SparrundeView(
+        verein=scope,
+        vereinsleben=leben_scope,
+        rate=rate,
+        monate=tuple(monate),
+        laufend=laufend,
+        seit=seit,
+    )
 
 
 def fork_evidence(store: SqliteStore, now: int) -> tuple[ForkGroup, ...]:

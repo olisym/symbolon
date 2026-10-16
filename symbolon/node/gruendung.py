@@ -16,8 +16,7 @@ from symbolon.node.view import scope_view
 from symbolon.policy import constitution_hash
 from symbolon.profiles.membership import MembershipState
 
-# Heute nur verein. Gelesen wird bei jedem Aufruf, die Tests tauschen den Eintrag aus
-# (D641 Beschluss 2).
+# Gelesen wird bei jedem Aufruf, die Tests tauschen den Eintrag aus (D641 Beschluss 2).
 VORLAGEN: dict[str, dict[str, object]] = {
     "verein": {
         "mindestens": 3,
@@ -36,20 +35,54 @@ VORLAGEN: dict[str, dict[str, object]] = {
         "amendment_rule": 2,
         "trust_params": {0: 100, 1: 1, 2: 2, 3: 100},
     },
+    "sparrunde": {
+        "mindestens": 3,
+        "felder": ("name", "rate", "reihenfolge"),
+        "pflicht": ("name", "rate", "reihenfolge"),
+        "geschuetzt": ("name", "rate", "reihenfolge", "vorlage"),
+        "fassung": 1,
+        "typen": {"name": "text", "rate": "betrag", "reihenfolge": "reihenfolge"},
+        "thresholds": {
+            "ordinary": [1, 2],
+            "membership": [1, 2],
+            "amendment": [2, 3],
+        },
+        "irrevocable_verein": ["ballot-ack@1", "ballot@1", "obligation@1", "ratify@1", "vote@1"],
+        "irrevocable_vereinsleben": ["obligation@1"],
+        "amendment_rule": 2,
+        "trust_params": {0: 100, 1: 1, 2: 2, 3: 100},
+    },
 }
 
 
 # Ziffern 0 bis 9, nicht die Unicode-Klasse \d (D648 Beschluss 2, D648 Befund 4).
 _BETRAG = re.compile(r"(0|[1-9][0-9]{0,6}),[0-9]{2} EUR im (Monat|Jahr)")
+_SCHLUESSEL = re.compile(r"[0-9a-f]{64}(?: [0-9a-f]{64})*")
+
+
+def reihenfolge_lesen(wert: object) -> tuple[bytes, ...] | None:
+    """Die Schlüssel, wenn ``wert`` eine nicht leere Zeichenkette ist, deren Teile, getrennt
+    durch genau ein Leerzeichen, je genau 64 Zeichen aus ``0`` bis ``9`` und ``a`` bis ``f``
+    sind und keiner doppelt vorkommt; sonst ``None``. Wirft nie (D704 Beschluss 2)."""
+    if not isinstance(wert, str) or wert == "" or _SCHLUESSEL.fullmatch(wert) is None:
+        return None
+    try:
+        schluessel = tuple(bytes.fromhex(teil) for teil in wert.split(" "))
+    except ValueError:
+        return None
+    if len(set(schluessel)) != len(schluessel):
+        return None
+    return schluessel
 
 
 def wert_gueltig(typ: object, wert: object) -> bool:
-    """Ob ``wert`` zum Typ der Vorlage passt (D648 Beschluss 2, D496).
+    """Ob ``wert`` zum Typ der Vorlage passt (D648 Beschluss 2, D496, D704 Beschluss 2).
 
     Falsch, wenn ``wert`` kein Text ist, leer ist, Leerraum am Rand oder einen Zeilenumbruch
     trägt oder nicht in NFC steht. ``text`` ist sonst wahr, ``betrag`` nur in der Form
-    ``(0|[1-9][0-9]{0,6}),[0-9]{2} EUR im (Monat|Jahr)`` und nicht ``0,00``. Jeder andere Typ
-    ist falsch. Kein Wert und kein Typ wirft.
+    ``(0|[1-9][0-9]{0,6}),[0-9]{2} EUR im (Monat|Jahr)`` und nicht ``0,00``. ``reihenfolge``
+    gilt genau dann, wenn ``reihenfolge_lesen`` Schlüssel liefert. Jeder andere Typ ist falsch.
+    Kein Wert und kein Typ wirft.
     """
     if not isinstance(wert, str) or wert == "" or wert != wert.strip():
         return False
@@ -59,6 +92,8 @@ def wert_gueltig(typ: object, wert: object) -> bool:
         return False
     if typ == "text":
         return True
+    if typ == "reihenfolge":
+        return reihenfolge_lesen(wert) is not None
     if typ != "betrag":
         return False
     if _BETRAG.fullmatch(wert) is None or wert.startswith("0,00"):
@@ -130,7 +165,9 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
     Führt die Vorlage ``geschuetzt`` und ist es nicht leer, steht ``protected_fields`` nach den
     Bytes der UTF-8-Kodierung sortiert in der Satzung des Vereins, nie im Vereinsleben
     (04 §1.1, D646). Jeder gereichte Wert muss zu seinem Typ passen, sonst ``INVALID_VALUE``;
-    die Satzung des Vereins nennt ``vorlage`` als ``<vorlage>@<fassung>`` (D648).
+    ein Feld vom Typ ``reihenfolge`` muss jeden Gründer genau einmal nennen, sonst ebenfalls
+    ``INVALID_VALUE`` (D704 Beschluss 2). Die Satzung des Vereins nennt ``vorlage`` als
+    ``<vorlage>@<fassung>`` (D648).
     """
     if not isinstance(vorlage, str) or vorlage not in VORLAGEN:
         raise Abgewiesen("UNKNOWN_TEMPLATE")
@@ -170,6 +207,13 @@ def gruenden(vorlage: object, gruender: object, felder: object) -> Gruendung:
     typen = muster["typen"]
     for name, wert in werte.items():
         if not wert_gueltig(typen[name], wert):
+            raise Abgewiesen("INVALID_VALUE")
+    # Jeder Gründer genau einmal (D704 Beschluss 2).
+    for name, wert in werte.items():
+        if typen[name] != "reihenfolge":
+            continue
+        folge = reihenfolge_lesen(wert)
+        if folge is None or set(folge) != set(schluessel):
             raise Abgewiesen("INVALID_VALUE")
     schwellen = {
         name: list(paar) for name, paar in muster["thresholds"].items()

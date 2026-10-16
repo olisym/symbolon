@@ -48,6 +48,7 @@ from symbolon.node.view import (
     obligations_view,
     proposals_view,
     scope_view,
+    sparrunde_view,
     tasks_view,
 )
 from symbolon.policy import constitution_hash
@@ -1163,6 +1164,12 @@ def _handler(
                 if scope not in store.all_genesis():
                     raise _Missing()
                 self._send(200, obligations_view(store, scope, clock()))
+                return
+            if not post and path.startswith("/sparrunde/"):
+                scope = _hex(path[len("/sparrunde/") :], 32)
+                if scope not in store.all_genesis():
+                    raise _Missing()
+                self._send(200, sparrunde_view(store, scope, clock()))
                 return
             if not post and path.startswith("/claims/"):
                 cid = _hex(path[len("/claims/") :], 32)

@@ -31749,3 +31749,49 @@ Aufgaben (`p64`). Danach die Seite: Gründung mit Reihenfolge, „Ich mache mit�
 der alle eigenen Zusagen unterschreibt, und die Tafel mit „wartet seit …“ (`p65`).
 
 **Geändert.** `07-decisions.md`.
+
+### D705 — Abnahme `p64`: die Sparrunde im Knoten, Vorlage, Reihenfolge, Tafel und Aufgaben
+
+**Lauf.** Branch `p64-sparrunde`, Commit `707ed92`, Basis `bf5faec` (D704). Auftrag mit den
+Tests als Diff, vorher im Klon als Prototyp gebaut: die ganze Reihe grün mit 1765 Tests, alle
+sechs Rücknahmeproben rot an den Tests, die der Auftrag nennt (D704 Beschluss 5).
+
+**Befund 1 — der Diff trägt den Auftrag.** Gelesen im Spiegel, ganz: `VORLAGEN["sparrunde"]`
+mit den Werten aus D704 Beschluss 2, `verein` unverändert; `reihenfolge_lesen` mit einem Muster
+über die ganze Zeichenkette und der Prüfung auf doppelte Schlüssel; in `gruenden` die Prüfung
+„jeder Gründer genau einmal“ über Mengen, was reicht, weil `reihenfolge_lesen` doppelte
+Schlüssel schon abweist; `sparrunde_view` in der Reihenfolge der Regeln 1 bis 7 aus dem
+Auftrag, mit dem Import von `gruendung` im Rumpf und dem Kommentar dazu; in `tasks_view` das
+Auslassen ausserhalb des laufenden Monats und ein Absatz im Docstring; die Route
+`GET /sparrunde/<scope>`. Vier Dateien, wie verlangt. Die Testdatei ist bytegleich mit der
+Lieferung (Hash des Diffs gleich).
+
+**Befund 2 — Abnahme im frischen Arbeitsbaum.** Auf `707ed92`, sauber: Ruff ohne Befund, die vier
+Markdown-Prüfungen grün, die ganze Reihe grün mit 1765 Tests, wie gemeldet und wie im Prototyp.
+Die Rücknahmeproben des Berichts nennen dieselben roten Tests wie die des Prototyps; R6 wird
+an einer Ausnahme rot, nicht an der Zusicherung, und das ist die Sache, denn verlangt ist
+„kein Fehler“.
+
+**Befund 3 — eine Kürzung im Bericht.** Der Auftrag verlangte die roten Tests ungekürzt. Der
+Bericht kürzt die Tracebacks von R6 auf die Fehlerzeile und sagt das; die Namen der roten Tests
+und die Fehlerarten sind vollständig. Für die Abnahme genügt das, weil der Supervisor die Probe
+selbst gefahren hat.
+
+**Befund 4 — eine Abweichung vom Wortlaut von D704 Beschluss 4.** Die Aufgabe „Mitmachen“ steht
+nicht im Knoten; der Auftrag hat sie nach `p65` verschoben, weil die Seite jede Art von Aufgabe
+kennen muss, die der Knoten nennt. Sie kommt dort mit der Seite (D618 Befund 2: eine Abweichung,
+die die Form erlaubt, bleibt eine Abweichung und steht im Register).
+
+**Befund 5 — was offen bleibt.** `tasks_view` rechnet je Vereinsleben die Tafel und damit zwei
+Sichten mehr; wie bei `elections_view` wird die Kette je Aufruf neu gerechnet (`offen.md` zu
+`00df`). Ein zweites Genesis, das denselben Verein unter Key `8` nennt, nimmt einer Sparrunde
+die Tafel, und die Aufgaben fallen auf die alte Regel zurück; das ist der Preis von „genau ein
+Vereinsleben“, nicht geprüft gegen die Seite. Eine Aufnahme nach der Gründung steht nicht auf
+der Tafel (D704 Beschluss 2). Die Seite kennt die Sparrunde noch nicht und zeigt sie wie einen
+Verein.
+
+**Beschluss — angenommen.** `p64-sparrunde` wird nach `main` vorgespult. Weiter mit `p65`, der
+Seite: Gründung mit Reihenfolge, „Ich mache mit“ und die Aufgabe „Mitmachen“, die Tafel mit
+„wartet seit …“ (D704 Beschluss 5).
+
+**Geändert.** `07-decisions.md`.

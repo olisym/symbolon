@@ -523,6 +523,10 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
     ``CONTRIBUTION_OPEN`` und ``RECEIPT`` für jede Obligation, die in einer Zeile eines Monats
     ausser dem laufenden unter ``zusagen`` steht (D704 Beschluss 4). Für jede andere Obligation
     gilt die Regel wie bisher.
+
+    Steht ``wer`` unter ``participants`` und ist ``I`` kein aufgenommenes Gerät, kommt
+    ``ROUND_JOIN`` mit dem Scope, wenn ``sparrunde_view`` eine Tafel liefert, in der eine Zeile
+    ``zahler`` gleich ``wer`` und ``zustand`` ``fehlt`` hat (D706 Beschluss 2).
     """
     tasks: list[TaskView] = []
     for scope in store.all_genesis():
@@ -576,6 +580,14 @@ def tasks_view(store: SqliteStore, I: bytes, now: int) -> tuple[TaskView, ...]:
                             tasks.append(TaskView(scope=scope, art="VOTE", detail=digest))
                     elif tally.state is TallyState.PASSED:
                         tasks.append(TaskView(scope=scope, art="RATIFY", detail=digest))
+                if not geraet:
+                    tafel = sparrunde_view(store, scope, now)
+                    if tafel is not None and any(
+                        zeile.zahler == wer and zeile.zustand == "fehlt"
+                        for monat in tafel.monate
+                        for zeile in monat.zeilen
+                    ):
+                        tasks.append(TaskView(scope=scope, art="ROUND_JOIN", detail=scope))
         if view.vereinsleben is not None and not geraet:
             ausgelassen: set[bytes] = set()
             ziel = store.all_genesis()[scope].get(8)

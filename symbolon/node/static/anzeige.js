@@ -13,6 +13,8 @@
 // (D651 Beschluss 3 bis 5, D648 Beschluss 2 und 5, 04 §3.2). Gleiche Namen, die Regie ohne
 // simulierte Personen, Sachfelder mit Typ (D654 Beschluss 2 bis 4). Die Wahl: Titel, Ergebnis,
 // Beteiligung, der Schritt und die Frage vor der Stimme (D681 Beschluss 3, 04 §9.4).
+// Die Sparrunde: Rate und Reihenfolge in Worten, die Sätze der Tafel und wem die Zusage fehlt
+// (D704 Beschluss 3, D706 Beschluss 3).
 
 // Stand eines Antrags in Worten, aus yes, no, needed, n von GET /proposals (D486 Beschluss 2,
 // szenario-verein §3, szenario-verein §4).
@@ -633,13 +635,15 @@ export function schwelleInWorten(paar) {
   return `mehr als ${paar[0]} von ${paar[1]} Teilen`;
 }
 
-// „Name“, „Sitz“, „Zweck“, „Beitrag“; jedes andere Feld in den Anführungszeichen der Seite
-// (D654 Beschluss 4).
+// „Name“, „Sitz“, „Zweck“, „Beitrag“, „Rate“, „Reihenfolge“; jedes andere Feld in den
+// Anführungszeichen der Seite (D654 Beschluss 4, D706 Beschluss 3).
 export function sachfeldName(feld) {
   if (feld === "name") return "Name";
   if (feld === "sitz") return "Sitz";
   if (feld === "zweck") return "Zweck";
   if (feld === "beitrag") return "Beitrag";
+  if (feld === "rate") return "Rate";
+  if (feld === "reihenfolge") return "Reihenfolge";
   return `„${feld}“`;
 }
 
@@ -738,21 +742,40 @@ export function schwellenSaetze(thresholds, n) {
   return saetze;
 }
 
-// name, sitz, zweck, beitrag, nur Textwerte; der Beitrag über beitragInWorten
-// (D651 Beschluss 4).
-export function satzungZeilen(stand) {
+// „1. Anna, 2. Bruno, 3. Chris“ über nameVon. Ist ein Teil keine 64 Zeichen aus 0 bis 9 und
+// a bis f, der Text roh; kein Text „–“. Ist es kein Text, „–“ (D704 Beschluss 2, D706 Beschluss 3).
+export function reihenfolgeInWorten(text, namen) {
+  if (typeof text !== "string") return "–";
+  const teile = text.split(" ");
+  if (!teile.every((teil) => /^[0-9a-f]{64}$/.test(teil))) return text;
+  return teile.map((teil, index) => `${index + 1}. ${nameVon(namen, teil)}`).join(", ");
+}
+
+// Wahr, wenn stand.vorlage ein Text ist, der mit „sparrunde@“ beginnt (D706 Beschluss 3).
+export function istSparrunde(stand) {
+  const vorlage = stand !== null && typeof stand === "object" ? stand.vorlage : undefined;
+  return typeof vorlage === "string" && vorlage.startsWith("sparrunde@");
+}
+
+// name, sitz, zweck, beitrag, dann rate und reihenfolge, nur Textwerte. Beitrag und Rate über
+// beitragInWorten, die Reihenfolge über reihenfolgeInWorten (D651 Beschluss 4, D706 Beschluss 3).
+export function satzungZeilen(stand, namen = new Map()) {
   if (stand === null || stand === undefined || typeof stand !== "object") return [];
   const felder = [
     ["name", "Name"],
     ["sitz", "Sitz"],
     ["zweck", "Zweck"],
     ["beitrag", "Beitrag"],
+    ["rate", "Rate"],
+    ["reihenfolge", "Wer den Topf bekommt"],
   ];
   const zeilen = [];
   for (const [feld, label] of felder) {
     const wert = stand[feld];
     if (typeof wert !== "string") continue;
-    const gezeigt = feld === "beitrag" ? beitragInWorten(wert) : wert;
+    let gezeigt = wert;
+    if (feld === "beitrag" || feld === "rate") gezeigt = beitragInWorten(wert);
+    else if (feld === "reihenfolge") gezeigt = reihenfolgeInWorten(wert, namen);
     zeilen.push(`${label}: ${gezeigt}`);
   }
   return zeilen;
@@ -1120,7 +1143,8 @@ export function fassungSatz(index) {
 
 // Der Stand im Tab „Im Verein“, stand wie ScopeView.stand: die Fassung, die Zahl der angewandten
 // Sachbeschlüsse und je Textfeld des Stands ein Satz (D580 Beschluss 1, D575 Beschluss 1, 04 §4.6).
-export function standSaetze(index, stand) {
+// rate wie beitrag in Worten, reihenfolge über reihenfolgeInWorten (D706 Beschluss 3).
+export function standSaetze(index, stand, namen = new Map()) {
   const saetze = [fassungSatz(index)];
   const angewandt = stand?.applied?.length ?? 0;
   if (angewandt === 1) saetze.push("Dazu gilt 1 Sachbeschluss.");
@@ -1128,10 +1152,88 @@ export function standSaetze(index, stand) {
   for (const [feld, wert] of Object.entries(stand?.stand_obj ?? {})) {
     // vorlage bekommt keinen Satz; der Beitrag in Worten (D651 Beschluss 4).
     if (feld === "vorlage" || typeof wert !== "string") continue;
-    const gezeigt = feld === "beitrag" ? beitragInWorten(wert) : wert;
+    let gezeigt = wert;
+    if (feld === "beitrag" || feld === "rate") gezeigt = beitragInWorten(wert);
+    else if (feld === "reihenfolge") gezeigt = reihenfolgeInWorten(wert, namen);
     saetze.push(`Es gilt zu ${feld}: „${gezeigt}“`);
   }
   return saetze;
+}
+
+// Kopf und Monate der Tafel. Ohne Tafel beide leer. Der Topf ist die Rate mal die Zahl der
+// Zeilen, über betrag in EUR-Cent. „du“ und im Satz zum fehlenden Geld „dir“ stehen für ich
+// (D704 Beschluss 3, D706 Beschluss 3).
+export function tafelSaetze(tafel, namen, ich, jetzt) {
+  if (tafel === null || tafel === undefined) return { kopf: [], monate: [] };
+  const monate = tafel.monate.map((monat) => {
+    const topf = betrag(tafel.rate * monat.zeilen.length, "EUR-Cent");
+    const selbst = monat.empfaenger === ich;
+    const empfaenger = selbst ? "du" : nameVon(namen, monat.empfaenger);
+    const verb = selbst ? "bekommst" : "bekommt";
+    const zeilen = monat.zeilen.map((zeile) => {
+      const wer = zeile.zahler === ich ? "du" : nameVon(namen, zeile.zahler);
+      const zustand =
+        zeile.zustand === "bezahlt"
+          ? "bezahlt"
+          : zeile.zustand === "offen"
+            ? "noch nicht bezahlt"
+            : "hat nicht zugesagt";
+      return `${wer}: ${zustand}`;
+    });
+    return {
+      titel: `Monat ${monat.monat}: ${empfaenger} ${verb} ${topf}`,
+      zeilen,
+      laufend: monat.monat === tafel.laufend,
+      fertig: monat.fertig,
+    };
+  });
+  const kopf = [];
+  if (tafel.laufend === null) {
+    kopf.push("Die Runde ist fertig. Jeder hatte den Topf einmal.");
+  } else {
+    const laufend = tafel.monate.find((monat) => monat.monat === tafel.laufend);
+    const selbst = laufend.empfaenger === ich;
+    const wer = selbst ? "du" : nameVon(namen, laufend.empfaenger);
+    const verb = selbst ? "bekommst" : "bekommt";
+    kopf.push(`Jetzt ist Monat ${tafel.laufend} dran: ${wer} ${verb} den Topf.`);
+    if (tafel.seit !== null) {
+      kopf.push(`Monat ${tafel.laufend - 1} wurde ${zeitpunktInWorten(tafel.seit, jetzt)} fertig.`);
+    }
+    const offen = laufend.zeilen.filter((zeile) => zeile.zustand !== "bezahlt");
+    if (offen.length > 0) {
+      const werOffen = offen.map((zeile) => (zeile.zahler === ich ? "dir" : nameVon(namen, zeile.zahler)));
+      kopf.push(`Es fehlt noch das Geld von ${aufzaehlung(werOffen)}.`);
+    }
+  }
+  const fehlend = [];
+  const gesehen = new Set();
+  for (const monat of tafel.monate) {
+    for (const zeile of monat.zeilen) {
+      if (zeile.zustand !== "fehlt" || gesehen.has(zeile.zahler)) continue;
+      gesehen.add(zeile.zahler);
+      fehlend.push(zeile.zahler === ich ? "du" : nameVon(namen, zeile.zahler));
+    }
+  }
+  if (fehlend.length > 0) kopf.push(`Noch nicht zugesagt: ${aufzaehlung(fehlend)}.`);
+  return { kopf, monate };
+}
+
+// Die Empfänger der Monate, in denen ich als Zahler mit „fehlt“ steht, in der Reihenfolge der
+// Tafel, ohne Doppelte; ohne Tafel leer (D706 Beschluss 2 und 3).
+export function zusagenFehlen(tafel, ich) {
+  if (tafel === null || tafel === undefined) return [];
+  const empfaenger = [];
+  const gesehen = new Set();
+  for (const monat of tafel.monate) {
+    for (const zeile of monat.zeilen) {
+      if (zeile.zahler !== ich || zeile.zustand !== "fehlt" || gesehen.has(monat.empfaenger)) {
+        continue;
+      }
+      gesehen.add(monat.empfaenger);
+      empfaenger.push(monat.empfaenger);
+    }
+  }
+  return empfaenger;
 }
 
 // Die Beschriftung eines Tabs: „ · <n> offen“ hinter dem Namen, wenn n nicht null ist; bei null

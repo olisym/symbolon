@@ -4,7 +4,7 @@
 // D498 Beschluss 1 und 2, D500 Beschluss 2, D501 Beschluss 2,
 // D503 Beschluss 1 und 3, D504 Beschluss 1, D506 Beschluss 4, D507 Beschluss 3, D509 Beschluss 3,
 // D525 Golden Numbers, D542 Beschluss 6, D543, D651 Beschluss 3 bis 5, D652 Beschluss 2 und 3,
-// D654 Beschluss 2 bis 4, 01 §4).
+// D654 Beschluss 2 bis 4, D704, D706, 01 §4).
 
 import {
   artInWorten,
@@ -89,6 +89,10 @@ import {
   widerspruchSatz,
   zeitpunktInWorten,
   zustimmungSatz,
+  istSparrunde,
+  reihenfolgeInWorten,
+  tafelSaetze,
+  zusagenFehlen,
 } from "./anzeige.js";
 
 function bytesFromHex(text) {
@@ -1796,6 +1800,115 @@ function wahlFaelle() {
   return results;
 }
 
+// Die Sparrunde: Reihenfolge, Satzung, Tafel und wem man noch zusagt (D704, D706).
+function sparrundeFaelle() {
+  const results = [];
+  const gleich = (satz, got, want) =>
+    results.push({ ok: JSON.stringify(got) === JSON.stringify(want), expect: satz, detail: JSON.stringify(got) });
+  const anna = "a1".repeat(32);
+  const bruno = "b1".repeat(32);
+  const chris = "c1".repeat(32);
+  const namen = new Map([
+    [anna, "Anna"],
+    [bruno, "Bruno"],
+    [chris, "Chris"],
+  ]);
+  const folge = `${anna} ${bruno} ${chris}`;
+  const zeile = (zahler, zustand) => ({ zahler, zustand, zusagen: [] });
+  const monat = (nummer, empfaenger, zeilen) => ({
+    monat: nummer,
+    empfaenger,
+    zeilen,
+    fertig: zeilen.every((eintrag) => eintrag.zustand === "bezahlt"),
+  });
+  const tafel = (monate, laufend, seit) => ({ verein: "v", vereinsleben: "l", rate: 2000, monate, laufend, seit });
+
+  gleich("reihenfolgeInWorten: drei Namen", reihenfolgeInWorten(folge, namen), "1. Anna, 2. Bruno, 3. Chris");
+  gleich("reihenfolgeInWorten: unlesbar roh", reihenfolgeInWorten("kaputt", namen), "kaputt");
+  gleich("reihenfolgeInWorten: kein Text", reihenfolgeInWorten(7, namen), "–");
+  gleich("istSparrunde: sparrunde@1", istSparrunde({ vorlage: "sparrunde@1" }), true);
+  gleich("istSparrunde: verein@1", istSparrunde({ vorlage: "verein@1" }), false);
+  gleich("istSparrunde: ohne Stand", istSparrunde(null), false);
+  gleich(
+    "satzungZeilen: Sparrunde mit Rate und Reihenfolge in Namen",
+    satzungZeilen({ name: "Runde", rate: "20,00 EUR im Monat", reihenfolge: folge, vorlage: "sparrunde@1" }, namen),
+    ["Name: Runde", "Rate: 20,00 € im Monat", "Wer den Topf bekommt: 1. Anna, 2. Bruno, 3. Chris"],
+  );
+  gleich(
+    "standSaetze: Rate in Worten, Reihenfolge in Namen",
+    standSaetze(1, { stand_obj: { rate: "20,00 EUR im Monat", reihenfolge: folge } }, namen),
+    [
+      "Es gilt die 1. Fassung der Satzung.",
+      "Es gilt zu rate: „20,00 € im Monat“",
+      "Es gilt zu reihenfolge: „1. Anna, 2. Bruno, 3. Chris“",
+    ],
+  );
+  gleich("sachfeldName: Rate und Reihenfolge", ["rate", "reihenfolge"].map(sachfeldName), ["Rate", "Reihenfolge"]);
+
+  // Monat 2: Anna hat Bruno nicht bezahlt; Monat 1 wurde bei 1000 fertig, jetzt ist 1180.
+  const haengt = tafel(
+    [
+      monat(1, anna, [zeile(bruno, "bezahlt"), zeile(chris, "bezahlt")]),
+      monat(2, bruno, [zeile(anna, "offen"), zeile(chris, "bezahlt")]),
+      monat(3, chris, [zeile(anna, "offen"), zeile(bruno, "offen")]),
+    ],
+    2,
+    1000,
+  );
+  const alsChris = tafelSaetze(haengt, namen, chris, 1180);
+  gleich("tafelSaetze: als Chris, Monat 2 hängt an Anna", alsChris.kopf, [
+    "Jetzt ist Monat 2 dran: Bruno bekommt den Topf.",
+    "Monat 1 wurde vor 3 Minuten fertig.",
+    "Es fehlt noch das Geld von Anna.",
+  ]);
+  gleich(
+    "tafelSaetze: als Chris, die Monate",
+    alsChris.monate.map((eintrag) => [eintrag.titel, eintrag.zeilen, eintrag.laufend, eintrag.fertig]),
+    [
+      ["Monat 1: Anna bekommt 40,00 €", ["Bruno: bezahlt", "du: bezahlt"], false, true],
+      ["Monat 2: Bruno bekommt 40,00 €", ["Anna: noch nicht bezahlt", "du: bezahlt"], true, false],
+      ["Monat 3: du bekommst 40,00 €", ["Anna: noch nicht bezahlt", "Bruno: noch nicht bezahlt"], false, false],
+    ],
+  );
+  gleich("tafelSaetze: als Anna fehlt ihr eigenes Geld", tafelSaetze(haengt, namen, anna, 1180).kopf[2], "Es fehlt noch das Geld von dir.");
+
+  // Monat 1: Bruno hat Anna und Chris nichts zugesagt, Chris hat Anna zugesagt.
+  const anfang = tafel(
+    [
+      monat(1, anna, [zeile(bruno, "fehlt"), zeile(chris, "offen")]),
+      monat(2, bruno, [zeile(anna, "offen"), zeile(chris, "offen")]),
+      monat(3, chris, [zeile(anna, "offen"), zeile(bruno, "fehlt")]),
+    ],
+    1,
+    null,
+  );
+  const alsAnna = tafelSaetze(anfang, namen, anna, 1180);
+  gleich("tafelSaetze: als Anna im ersten Monat, ohne seit", alsAnna.kopf, [
+    "Jetzt ist Monat 1 dran: du bekommst den Topf.",
+    "Es fehlt noch das Geld von Bruno und Chris.",
+    "Noch nicht zugesagt: Bruno.",
+  ]);
+  gleich("tafelSaetze: wer nicht zugesagt hat", alsAnna.monate[0].zeilen, ["Bruno: hat nicht zugesagt", "Chris: noch nicht bezahlt"]);
+  gleich("zusagenFehlen: Bruno sagt Anna und Chris noch zu", zusagenFehlen(anfang, bruno), [anna, chris]);
+  gleich("zusagenFehlen: Chris hat allen zugesagt", zusagenFehlen(anfang, chris), []);
+  gleich("zusagenFehlen: ohne Tafel", zusagenFehlen(null, bruno), []);
+
+  const fertig = tafel(
+    [
+      monat(1, anna, [zeile(bruno, "bezahlt"), zeile(chris, "bezahlt")]),
+      monat(2, bruno, [zeile(anna, "bezahlt"), zeile(chris, "bezahlt")]),
+      monat(3, chris, [zeile(anna, "bezahlt"), zeile(bruno, "bezahlt")]),
+    ],
+    null,
+    null,
+  );
+  gleich("tafelSaetze: die Runde ist fertig", tafelSaetze(fertig, namen, anna, 1180).kopf, [
+    "Die Runde ist fertig. Jeder hatte den Topf einmal.",
+  ]);
+  gleich("tafelSaetze: ohne Tafel", tafelSaetze(null, namen, anna, 1180), { kopf: [], monate: [] });
+  return results;
+}
+
 export async function run(vectors, subtle) {
   const results = await vektorFaelle(vectors, subtle);
   results.push(...(await funktionsFaelle(vectors, subtle)));
@@ -1808,6 +1921,7 @@ export async function run(vectors, subtle) {
   results.push(...gruendungFaelle(vectors));
   results.push(...durchlaufFaelle());
   results.push(...wahlFaelle());
+  results.push(...sparrundeFaelle());
   return results;
 }
 

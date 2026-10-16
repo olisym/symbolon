@@ -6,7 +6,7 @@
 // D494 Beschluss 1 bis 6, D492 Beschluss 1 bis 5, D490 Beschluss 1 und 3, D489 Beschluss 3,
 // D487 Beschluss 1 und 2, D482 Beschluss 3 bis 5, D481 Beschluss 3 und 5, D479 Beschluss 6,
 // D651 Beschluss 2 bis 6, D652 Beschluss 2 bis 4, D654 Beschluss 2 bis 4, D681 Beschluss 1 bis 3,
-// D684 Beschluss 1 bis 3).
+// D684 Beschluss 1 bis 3, D704 Beschluss 3 und 5, D706 Beschluss 2 und 3).
 
 import {
   ablauf,
@@ -43,6 +43,7 @@ import {
   gruendungSatz,
   gruendungStand,
   hinweisSatzungGeaendert,
+  istSparrunde,
   kassenZeilen,
   laufend,
   laufendeGruppen,
@@ -63,6 +64,7 @@ import {
   standZeile,
   stimmenPunkte,
   tabTitel,
+  tafelSaetze,
   tageAusKern,
   textFeld,
   tilgungInWorten,
@@ -72,6 +74,7 @@ import {
   widerspruchOben,
   widerspruchSatz,
   zeitpunktInWorten,
+  zusagenFehlen,
   zustimmungSatz,
   NICHT_GEHEIM,
   stimmeErfolg,
@@ -107,9 +110,13 @@ let gezeichneteScopes = null;
 let gezeichneteNamen = null;
 
 // Der Weg der Gründung überdauert Zurück und Weiter, nicht ein Neuladen (D651 Beschluss 3).
+// Die gewählte Vorlage gilt für die folgenden Schritte; Abbrechen setzt sie auf verein zurück
+// (D706 Beschluss 3).
 let gruendungSchritt = 0;
+let gruendungVorlage = "verein";
 let gruendungGewaehlt = new Set();
-let gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr" };
+let gruendungReihenfolge = [];
+let gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr", rate: "" };
 
 // Nach dem Gründen die eigene accept-rules, ohne weiteren Klick (D651 Beschluss 3).
 let nachGruendung = null;
@@ -626,6 +633,7 @@ function handelnFabrik(record, kontext) {
     } else if (danach === "melden") {
       await meldungZeigen();
     }
+    return ausgang;
   };
 }
 
@@ -991,11 +999,12 @@ function jetztBereich(tasks, kontext, handeln, lage) {
         const verb = andere.length === 1 ? "gründet" : "gründen";
         const satzung = lage.view.stand?.stand_obj ?? {};
         const schwellen = schwellenSaetze(satzung.thresholds, lage.stand.gruender.length);
+        const was = istSparrunde(satzung) ? "eine Sparrunde" : "einen Verein";
         const teile = [
           marke("Gründung"),
-          element("div", "satz", `${aufzaehlung(andere)} ${verb} mit dir einen Verein.`),
+          element("div", "satz", `${aufzaehlung(andere)} ${verb} mit dir ${was}.`),
           marke("Die Satzung"),
-          liste(satzungZeilen(satzung)),
+          liste(satzungZeilen(satzung, namen)),
         ];
         if (schwellen.length === 0) {
           teile.push(
@@ -1090,6 +1099,38 @@ function jetztBereich(tasks, kontext, handeln, lage) {
         element("div", "satz", `Die Wahl ${wahlTitel(wahl)} ist offen.`),
         element("div", "warnung", NICHT_GEHEIM),
         ...wahlSchritt(aufgabe, wahl, kontext, handeln),
+      );
+    } else if (aufgabe.art === "ROUND_JOIN") {
+      // Nur zur Tafel dieser Runde und nur, solange eigene Zusagen fehlen (D706 Beschluss 2).
+      const tafel = kontext.tafel;
+      const fehlen = tafel && tafel.verein === aufgabe.sparrunde ? zusagenFehlen(tafel, kontext.identitaet) : [];
+      if (fehlen.length === 0) continue;
+      const namenZu = fehlen.map((wer) => nameVon(namen, wer));
+      block.append(
+        marke("Sparrunde"),
+        element(
+          "div",
+          "satz",
+          `Mach mit: du sagst ${aufzaehlung(namenZu)} je ${betrag(tafel.rate, "EUR-Cent")} zu.`,
+        ),
+        zeile("Jede Zusage unterschreibst du einzeln. Zurücknehmen kannst du sie nicht."),
+        knopfReihe(
+          knopf(
+            "Ich mache mit …",
+            async () => {
+              for (const creditor of fehlen) {
+                const ausgang = await handeln("obligation", {
+                  scope: tafel.vereinsleben,
+                  creditor,
+                  amount: tafel.rate,
+                  unit: "EUR-Cent",
+                });
+                if (!ausgang?.ok) return;
+              }
+            },
+            "haupt",
+          ),
+        ),
       );
     }
     bereich.append(block);
@@ -1191,6 +1232,18 @@ function zustimmungKarten(kontext) {
   return karten;
 }
 
+// Die Tafel oben im Tab „Im Verein“: die Sätze aus kopf und je Monat Titel und Zeilen
+// (D706 Beschluss 3).
+function rundeAbschnitt(kontext) {
+  const { kopf, monate } = tafelSaetze(kontext.tafel, kontext.namen, kontext.identitaet, kontext.jetzt);
+  const abschnitt = abschnittOffen("Die Runde");
+  abschnitt.append(liste(kopf));
+  for (const monat of monate) {
+    abschnitt.append(zeile(monat.fertig ? `${monat.titel} ✓` : monat.titel), liste(monat.zeilen));
+  }
+  return abschnitt;
+}
+
 // Der Verein in Sätzen, ohne eigene Marke: der Tab nennt den Bereich (D507 Beschluss 2,
 // D492 Beschluss 5, D487 Beschluss 2).
 function vereinGerade(view, kontext) {
@@ -1201,7 +1254,7 @@ function vereinGerade(view, kontext) {
   }
   const { namen, antraege, obligationen } = kontext;
   // Die Fassung und der Stand zuerst (D580 Beschluss 1).
-  const saetze = standSaetze(view.state.epoch.index, view.stand);
+  const saetze = standSaetze(view.state.epoch.index, view.stand, namen);
   const mitglieder = view.verein.membership;
   saetze.push(`Auf der Mitgliederliste: ${aufzaehlung(mitglieder.map(([s]) => nameVon(namen, s)))}.`);
   // In der ersten Fassung der eine Satz der Gründung, später wie bisher (D651 Beschluss 4).
@@ -1738,8 +1791,10 @@ function mitgliederAbschnitt(view, namen) {
 
 function gruendungLeeren() {
   gruendungSchritt = 0;
+  gruendungVorlage = "verein";
   gruendungGewaehlt = new Set();
-  gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr" };
+  gruendungReihenfolge = [];
+  gruendungFelder = { name: "", sitz: "", zweck: "", beitrag: "", faelligkeit: "Jahr", rate: "" };
 }
 
 function textEingabe(wert, beiAenderung) {
@@ -1823,6 +1878,16 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
         knopf(
           "Einen Verein gründen",
           () => {
+            gruendungVorlage = "verein";
+            gruendungSchritt = 1;
+            void zeichnen();
+          },
+          "haupt",
+        ),
+        knopf(
+          "Eine Sparrunde gründen",
+          () => {
+            gruendungVorlage = "sparrunde";
             gruendungSchritt = 1;
             void zeichnen();
           },
@@ -1833,7 +1898,7 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
   } else if (gruendungSchritt === 1) {
     bereich.append(marke("Gründen · Schritt 1 von 2"));
     block.append(
-      element("div", "satz", "Wer gründet mit?"),
+      element("div", "satz", gruendungVorlage === "sparrunde" ? "Wer spart mit?" : "Wer gründet mit?"),
       zeile(
         `Du und mindestens ${vorlage.mindestens - 1} weitere. Ab drei könnt ihr abstimmen.`,
       ),
@@ -1843,6 +1908,12 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
       "Weiter zur Satzung",
       () => {
         gruendungSchritt = 2;
+        gruendungReihenfolge = [
+          identitaet,
+          ...namenListe
+            .filter((eintrag) => eintrag.I !== identitaet && gruendungGewaehlt.has(eintrag.I))
+            .map((eintrag) => eintrag.I),
+        ];
         void zeichnen();
       },
       "haupt",
@@ -1880,6 +1951,93 @@ function gruendungBereich(vorlage, namenListe, namen, identitaet) {
     block.append(
       zeile("Wer gründet, steht für immer fest. Wer später dazukommt, wird aufgenommen.", "leise"),
       knopfReihe(weiter, abbrechenKnopf()),
+    );
+  } else if (gruendungVorlage === "sparrunde") {
+    bereich.append(marke("Gründen · Schritt 2 von 2"));
+    const name = textEingabe(gruendungFelder.name, (wert) => {
+      gruendungFelder.name = wert;
+    });
+    const rate = textEingabe(gruendungFelder.rate, (wert) => {
+      gruendungFelder.rate = wert;
+    });
+    const ol = element("ol");
+    gruendungReihenfolge.forEach((schluessel, index) => {
+      const gezeigt = schluessel === identitaet ? "du" : nameVon(namen, schluessel);
+      const item = element("li");
+      item.append(document.createTextNode(`Monat ${index + 1}: ${gezeigt}`));
+      if (index >= 1) {
+        item.append(
+          document.createTextNode(" "),
+          knopf("früher", () => {
+            const vorher = gruendungReihenfolge[index - 1];
+            gruendungReihenfolge[index - 1] = gruendungReihenfolge[index];
+            gruendungReihenfolge[index] = vorher;
+            void zeichnen();
+          }),
+        );
+      }
+      ol.append(item);
+    });
+    block.append(
+      element("div", "satz", "Die Sparrunde"),
+      feldBeschriftung("Name der Runde", name),
+      feldBeschriftung("Rate in Euro im Monat", rate),
+      marke("Wer den Topf wann bekommt"),
+      ol,
+      zeile(
+        "Jeden Monat zahlen alle anderen dem, der dran ist, eine Rate. " +
+          "Am Anfang sagt jeder jedem eine Rate zu.",
+      ),
+      marke("Abstimmungen"),
+      liste(schwellenSaetze(vorlage.thresholds, gruendungGewaehlt.size + 1)),
+      zeile("Diese Regeln stehen fest. Ändern könnt ihr sie später wie die Satzung.", "leise"),
+      knopfReihe(
+        knopf(
+          "Gründen …",
+          async () => {
+            const nameText = textFeld(name.value);
+            if (nameText === null) {
+              meldung("Der Name fehlt.");
+              await meldungZeigen();
+              return;
+            }
+            const rateText = betragText(rate.value, "Monat");
+            if (rateText === null) {
+              meldung(
+                "Die Rate geht nur in Euro, größer als null, mit höchstens zwei Stellen nach dem Komma.",
+              );
+              await meldungZeigen();
+              return;
+            }
+            const gesperrt = sperren();
+            try {
+              const antwort = await senden("/gruenden", {
+                vorlage: "sparrunde",
+                gruender: [identitaet, ...gruendungGewaehlt],
+                felder: {
+                  name: nameText,
+                  rate: rateText,
+                  reihenfolge: gruendungReihenfolge.join(" "),
+                },
+              });
+              gruendungLeeren();
+              nachGruendung = { scope: antwort.verein, constitution: antwort.constitution };
+              await zeichnen();
+            } catch (error) {
+              meldung(error.antwort ? abweisungInWorten(error.name) : "Der S-Node antwortet nicht.");
+              await meldungZeigen();
+            } finally {
+              entsperren(gesperrt);
+            }
+          },
+          "haupt",
+        ),
+        knopf("Zurück", () => {
+          gruendungSchritt = 1;
+          void zeichnen();
+        }),
+        abbrechenKnopf(),
+      ),
     );
   } else {
     bereich.append(marke("Gründen · Schritt 2 von 2"));
@@ -2022,6 +2180,7 @@ async function zeichnenInhalt() {
   const govView = gov === null ? null : sichten.get(gov);
   const resView = res === null ? null : sichten.get(res);
   const antraege = gov === null ? [] : await holen(`/proposals/${gov}`);
+  const tafel = gov === null ? null : await holen(`/sparrunde/${gov}`);
   // Nur angekündigte Wahlen; ohne Verein die leere Liste (D681 Beschluss 2 und 3).
   const wahlen =
     gov === null ? [] : (await holen(`/wahlen/${gov}`)).filter((zeile) => zeile.announced);
@@ -2092,6 +2251,7 @@ async function zeichnenInhalt() {
     felder: null,
     wahlen,
     listen: new Map(),
+    tafel,
   };
   const handeln = handelnFabrik(record, kontext);
 
@@ -2115,7 +2275,15 @@ async function zeichnenInhalt() {
   // offenen Schritte der Wahl (D506 Beschluss 2, D681 Beschluss 3). Nur der gewählte Tab wird
   // gebaut.
   const tabs = [
-    ["Im Verein", 0, () => [vereinGerade(govView, kontext), ...unten]],
+    [
+      "Im Verein",
+      0,
+      () => [
+        ...(kontext.tafel === null ? [] : [rundeAbschnitt(kontext)]),
+        vereinGerade(govView, kontext),
+        ...unten,
+      ],
+    ],
     [
       "Anträge",
       // Nur PENDING in der laufenden Abstimmung (04 §4.7, D605 Beschluss 2).
@@ -2181,7 +2349,7 @@ async function zeichnenInhalt() {
     : inGruendung
       ? gruendungSatz(gruendungsStand, namen, identitaet)
       : mitgliedschaftVon(govView, identitaet);
-  const vorlage = ohneVerein && hatNamen ? vorlagen.verein : null;
+  const vorlage = ohneVerein && hatNamen ? vorlagen[gruendungVorlage] : null;
   links.append(
     neuesBereich(),
     kopfBereich(titel, kopfInfo),

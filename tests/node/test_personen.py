@@ -105,6 +105,9 @@ def test_regeln() -> None:
                     # Simulierte Personen wählen nicht; eine Stimme läuft über /wahl/stimme,
                     # nicht über /sim/intent (D681 Beschluss 4).
                     soll = []
+                elif art == "ROUND_JOIN":
+                    # Simulierte Personen machen in keiner Sparrunde mit (D706 Befund 3).
+                    soll = []
                 else:
                     raise AssertionError(f"Art ohne Regel: {art}")
                 assert erhalten == soll, (geraet, person, art)

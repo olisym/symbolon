@@ -1373,6 +1373,7 @@ _TASK_DETAIL_FIELD = {
     "RECEIPT": "obligation",
     "ELECTION_JOIN": "election",
     "ELECTION_VOTE": "election",
+    "ROUND_JOIN": "sparrunde",
 }
 
 

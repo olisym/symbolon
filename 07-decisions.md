@@ -31527,3 +31527,38 @@ anderen (`04 §7`). Die Reichweite einer Plattform schafft MaR nicht.
 Fremden. Die Feststellung eines Ereignisses tragen jetzt vier Fälle. Das Mandat bleibt bei vier.
 
 **Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).
+
+### D701 — Schluss der Sitzung `00e2`: der Platz als Dienst, D zuerst in `00e3`
+
+**Anlass.** C steht auf der Landkarte (D700). Oli ergänzt einen Gedanken zum Markt und schliesst
+die Sitzung; D wird der erste Schritt in `00e3`.
+
+**Befund 1 — der Platz als Dienst (Oli).** Ein Markt ist ein Ort, an dem Angebot und Nachfrage
+zusammenkommen, im einfachsten Fall der Dorfplatz; der Standbetreiber zahlt dem Platzbesitzer
+eine Gebühr und bekommt Infrastruktur. Das bildet das Protokoll allein nicht ab; es ist ein
+eigener Lebensraum, wie das Atom einen im Knoten gefunden hat. Die Spec hat dafür schon die Form:
+ein Knoten ist eine Identität, die einen Dienst ankündigt (`06 §2`), und Mieten ist selbst ein
+Dienst mit Schuld und Quittung (`06 §2.2`). Der Platzbetreiber ist ein Dienst im Nukleus des
+Markts, die Standgebühr eine Schuld. Neu ist nur die Art des Dienstes.
+
+**Befund 2 — was anders ist als heute.** Ein Händler nimmt seinen Ruf mit: Angebote,
+Lieferungen, Quittungen und Bewertungen sind Aussagen, die ihm und seinen Kunden gehören, nicht
+dem Platz. Plätze konkurrieren über Leistung, nicht über Bindung. Das schärft D697 Befund 4:
+MaR schafft keine Reichweite, nimmt aber dem, der sie verkauft, die Macht über den Ruf. Die
+Marktordnung kann dem Betreiber gehören oder den Händlern, die ihn anstellen wie Eigentümer
+ihren Verwalter in E; der zweite Weg verteilt Macht und braucht das Mandat. Wie ein solcher
+Dienst ohne Pfand glaubwürdig wird, bleibt offen (`VISION §3`).
+
+**Beschluss 1 — `LANDKARTE §9`** bekommt den Absatz „Der Platz als Dienst“.
+
+**Beschluss 2 — der nächste Schritt.** `00e3` beginnt mit D, Recht und Ordnung ohne Zentrale
+(Oli). Danach werden die Wurzeln zusammengezogen und es wird entschieden, was gebaut wird;
+vorn liegen das Mandat mit Rahmen und die Sparrunde zu dritt. `VISION §3` wird angepasst, wenn
+D steht.
+
+**Befund 3 — was `00e2` hinterlässt.** Fünf Einträge, D697 bis D701, eine neue Datei
+`LANDKARTE.md` mit Verein, E, A, B und C, kein Code. Ein Fall kostete rund eine halbe Stunde;
+die Breite aus D696 Beschluss 3 hielt.
+
+**Geändert.** `LANDKARTE.md`, `07-decisions.md`, `sitzungsstart-00e3.md` (neu),
+`sitzungsstart-00e2.md` nach `archiv/`.

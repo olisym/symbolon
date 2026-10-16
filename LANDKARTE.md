@@ -264,6 +264,18 @@ einer Marktordnung, offenem Zugang und einer Liste von Schiedsstellen. Nach Edwa
 blühten die Messen, solange die Herren der Messe allen Händlern dieselben Garantien gaben, und
 verfielen mit Vorrechten für einzelne Gruppen.
 
+**Der Platz als Dienst (Oli, D701).** Ein Markt ist ein Ort, an dem Angebot und Nachfrage
+zusammenkommen, im einfachsten Fall der Dorfplatz; der Standbetreiber zahlt dem Platzbesitzer
+eine Gebühr und bekommt dafür Infrastruktur. Das Protokoll allein bildet das nicht ab; es ist
+ein eigener Lebensraum, in dem Handel stattfindet. In MaR ist der Platzbetreiber ein Dienst, der
+im Nukleus des Markts angekündigt wird (`06 §2`), und die Standgebühr ist eine Schuld mit
+Quittung, wie die Miete eines Lebensraums (`06 §2.2`). Die Marktordnung gehört entweder dem
+Betreiber oder den Händlern, die ihn anstellen wie Eigentümer ihren Verwalter in E; der zweite
+Weg verteilt Macht. Anders als heute nimmt ein Händler seinen Ruf mit: Angebote, Lieferungen,
+Quittungen und Bewertungen sind Aussagen, die ihm und seinen Kunden gehören, nicht dem Platz.
+Plätze konkurrieren dann über Leistung, nicht über Bindung. Wie ein solcher Dienst ohne Pfand
+glaubwürdig wird, ist offen (`VISION §3`).
+
 **Mechanismen.**
 
 - **Angebot und Annahme, Versand und Empfang.** MaR: unterschriebene Aussagen, nicht abstreitbar;

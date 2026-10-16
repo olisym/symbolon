@@ -31881,3 +31881,33 @@ braucht dazu den Weg zum Knoten vom Telefon (D657); offen in O109 bleiben die Ve
 Abbruch und die Gestaltung.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O109).
+
+### D708 — Schluss der Sitzung `00e3`: Olis Durchlauf der Sparrunde, `VISION §3`, das Mandat zuerst
+
+**Anlass.** D707 ist auf `main` (`685d9c4`). Oli spielt die Sparrunde selbst in drei Tabs durch
+und schliesst die Sitzung.
+
+**Befund 1 — Olis Durchlauf (D490).** Die Sparrunde auf `main` sieht bei Oli aus wie auf den
+Bildern aus Playwright, und sie gefällt ihm. Damit ist die Abnahme der Seite auch vom Menschen
+her durch. Die Sparrunde ist der erste Fall der Landkarte, der vom Papier bis auf die Seite
+ging: D703 auf Papier, D704 gerechnet und gemessen, `p64` im Knoten (D705), `p65` auf der Seite
+(D707).
+
+**Befund 2 — was `00e3` hinterlässt.** Sieben Einträge, D702 bis D708. Fall D auf der Landkarte,
+alle fünf Fälle stehen (D702). Die Sparrunde gebaut: 1768 Tests, der Selbsttest bei 444 Fällen.
+O108 ist erledigt, O109 und O110 sind neu. Die volle Reihe auf dem Prototyp fand vor dem Auftrag
+eine übersehene Aufzählung der Arten von Aufgaben (D706 Befund 3).
+
+**Beschluss 1 — `VISION §3` angepasst** (D701 Beschluss 2). Die Risikoteilung nennt Olis Bild
+statt des Broodfonds (D698 Beschluss 1); die Schlichtung nennt die Diamantenhändler statt des
+Law Merchant (D700 Befund 2, D702 Befund 4). Neu steht die Sparrunde als zweite gebaute
+Anwendung neben dem Verein, und die Annahme „was gebaut ist, trägt“ ist an zwei Anwendungen
+geprüft statt an einer. Abschnittsnummern und eingehende Verweise bleiben; `LAGE.md` nennt den
+Law Merchant noch und wird neu geschrieben, wenn sie dran ist (D658 Beschluss 2).
+
+**Beschluss 2 — der nächste Schritt.** `00e4` beginnt mit dem Mandat mit Rahmen (O110), der
+Wurzel, an der vier Fälle hängen. Zuerst Olis Haltung, wie er sich einen Verwalter mit Rahmen
+vorstellt, dann Nachschlagen, dann Papier.
+
+**Geändert.** `VISION.md`, `07-decisions.md`, `sitzungsstart-00e4.md` (neu),
+`sitzungsstart-00e3.md` nach `archiv/`.

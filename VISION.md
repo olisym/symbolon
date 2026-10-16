@@ -54,7 +54,8 @@ Wichtig: **Keine dieser Anwendungen soll neues Protokoll brauchen.** Alle sind K
 den bestehenden Bausteinen: Identität, Nukleus mit Verfassung, Bürgschaft (`vouch@1`), Schuld und
 Quittung (`obligation@1`, `receipt@1`), Anklage und Verdikt, Abstimmung über Epochen und
 Trust-Flow. Braucht eine Anwendung doch etwas Neues, ist das ein Befund und kommt ins Register
-(`ROADMAP §1`). Das ist eine **Annahme**, geprüft bisher an einer Anwendung, dem Verein. Stellen,
+(`ROADMAP §1`). Das ist eine **Annahme**, geprüft bisher an zwei Anwendungen, dem Verein und der
+Sparrunde. Stellen,
 an denen sie absehbar nicht trägt, sind benannt: eine geheime Wahl gibt es nicht, weil jede Stimme
 unterschrieben ist; Preise und Tausch brauchen eine Wertschicht, die es nicht gibt (`08 §3`).
 
@@ -65,8 +66,14 @@ verwahrt oder einzieht. Was der Bond lösen sollte, beantwortet jedes Szenario f
   Satzung und Sachanträge werden abgestimmt, der Beitrag ist eine Schuld, die Quittung der Kasse
   tilgt sie, und eine Doppelstimme ist für alle als Beweis sichtbar (`szenario-verein.md`, D468
   bis D655). Er ist das Modell jeder Gruppe, die sich auf Regeln einigt und zielgerichtet handelt.
-- **Risikoteilung statt Versicherungskonzern.** Eine kleine Gruppe teilt Risiken unter sich, wie
-  ein Broodfonds mit 20 bis 50 Personen (D467). Klein ist sie nicht aus technischen Gründen,
+- **Die Sparrunde.** Die zweite Anwendung, und gebaut: drei gründen mit einer Rate und einer
+  Reihenfolge, jeder sagt jedem anderen am ersten Tag eine Rate zu, und jeden Monat bekommt einer
+  den Topf. Wer den Topf schon hatte und nicht zahlt, steht für alle sichtbar offen; der nächste
+  Monat beginnt, wenn der laufende bezahlt ist (D703 bis D707, `LANDKARTE §8`).
+- **Risikoteilung statt Versicherungskonzern.** Eine kleine Gruppe teilt Risiken unter sich: ein
+  fester Beitrag geht in einen Topf, ein Katalog nennt die Leistungen, ob ein Fall gedeckt ist,
+  klärt eine Schiedsstelle, und was am Ende einer Periode zu viel war, geht zurück (D698
+  Beschluss 1, `LANDKARTE §5`). Klein ist sie nicht aus technischen Gründen,
   sondern weil Menschen, die einander kennen, Missbrauch selbst bemerken. Größere Risiken tragen
   viele solcher Gruppen gemeinsam, nicht eine große; wie sie sich zusammenschließen, ist offen
   (`04 §7`). Ob es einen gemeinsamen Topf gibt, wer ihn verwahrt und wer die Fälle prüft,
@@ -75,8 +82,8 @@ verwahrt oder einzieht. Was der Bond lösen sollte, beantwortet jedes Szenario f
   (`08 §2.1`).
 - **Schlichtung als Dienst.** Schiedsstellen konkurrieren. Ein Urteil bindet nur, wer sich der
   Schlichtung vorher unterworfen hat (`03 §2`). Auch ohne Bindung trägt es: wer ein Urteil
-  missachtet, verliert Bürgen, wie bei den Händlern des Law Merchant (D333). Die Wahl des Forums
-  ist Teil des Marktes.
+  missachtet, verliert Bürgen, wie bei den Diamantenhändlern (D333, D702 Befund 4). Die Wahl
+  des Forums ist Teil des Marktes.
 - **Schutz ohne Gewaltmonopol.** Das Protokoll tut nie Physisches. Es kann ein mehrfach
   unterschriebenes **Mandat** tragen; *Menschen*, konkurrierende Schutzgemeinschaften, handeln
   darauf, und jede prüft die Legitimität selbst. Rein defensiv; Angriff ist nie legitim. Diese

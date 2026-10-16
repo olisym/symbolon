@@ -31698,3 +31698,54 @@ hatten Gruppen mit dieser Regel weniger Probleme, als Zusammenhang, nicht als Ur
 kommt nicht in die erste Fassung: wer gründet, könnte am Namen drehen, bis es passt.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O108 erledigt, O109 und O110 neu).
+
+### D704 — Die Sparrunde auf Papier: weiter, wenn bezahlt; die Tafel; die Zeit aus der Kette
+
+**Anlass.** Beim Rechnen der Vorlage `sparrunde` gegen den Code (O109, D703) fällt auf: der
+Knoten zeigt jede offene Zusage sofort als Aufgabe (`CONTRIBUTION_OPEN`, `RECEIPT` in
+`view.py`). Unterschreiben alle am ersten Tag, sieht jeder am ersten Tag alle Zahlungen der
+Runde. Die Seite muss wissen, welcher Monat dran ist; sie kennt kein Datum, und in der
+Vorführung läuft eine gespielte Uhr.
+
+**Beschluss 1 — weiter, wenn bezahlt, mit der Zeit aus der Kette (Oli).** Der nächste Monat ist
+dran, sobald der Empfänger des laufenden von allen sein Geld hat. Kein Kalender. Wie lange ein
+Monat hängt, zeigt der Zeitstempel der Kette: seit der letzten Quittung des Vormonats. Olis
+Begründung: wenn die anderen sehen, an wem es hängt, weiss man, an wen man sich wenden muss,
+damit es weitergeht. Der Preis ist bewusst getragen: wer nicht zahlt, hält die Runde für alle
+an, gegen „Schweigen soll nicht lähmen“ (D645 Beschluss 3). Lösen wird das der Abbruch durch
+Verrechnung (D703 Befund 4). Ein Kalender kommt dazu, wenn eine echte Gruppe Termine will.
+
+**Befund 1 — der Prototyp trägt.** Im Klon auf `e1bbed3`: eine zweite Vorlage in `VORLAGEN`
+gründet über `gruenden` mit Probelauf ohne Änderung des Wegs; sechs Zusagen und die Quittungen
+laufen mit dem Gebauten; die Tafel ist reine Sicht, ohne neuen Claim und ohne Normtext. Nach
+„Bruno und Chris zahlen Anna, Chris zahlt Bruno, Anna nicht“ zeigt sie Monat 1 fertig, Monat 2
+offen bei Anna, Monat 3 offen bei beiden, und „seit“ den Zeitstempel der letzten Quittung von
+Monat 1.
+
+**Beschluss 2 — die Vorlage `sparrunde`.** Felder `name`, `rate` und `reihenfolge`, alle drei
+Pflicht und geschützt wie `vorlage`. `rate` hat den Typ `betrag` (D648). `reihenfolge` hat einen
+neuen Typ: die Schlüssel der Gründer als Hex, durch je ein Leerzeichen getrennt, jeder genau
+einmal; bei der Gründung gegen die Gründer geprüft, sonst `INVALID_VALUE`. Mindestens drei
+Gründer, Schwellen und Prädikate wie `verein`. Wer später aufgenommen wird, steht nicht in der
+Reihenfolge und nicht auf der Tafel; er kommt in die nächste Runde (D703 Befund 3).
+
+**Beschluss 3 — die Tafel.** Eine Sicht des Knotens je Sparrunde. Je Monat `k` der Empfänger
+`reihenfolge[k]` und je anderes Mitglied der Reihenfolge eine Zeile: „bezahlt“, wenn eine
+Zusage von ihm an den Empfänger in Höhe der Rate in Cent und Einheit `EUR-Cent` getilgt ist;
+„offen“, wenn es eine solche Zusage gibt; „fehlt“, wenn nicht. Zusagen in anderer Höhe zählen
+auf der Tafel nicht; sie bleiben im Abschnitt „Beiträge“. Der laufende Monat ist der erste,
+der nicht ganz bezahlt ist; „seit“ ist der grösste Zeitstempel der tilgenden Quittungen des
+Vormonats, im ersten Monat keiner. Eine Satzung, deren `reihenfolge` oder `rate` nicht lesbar
+ist, ergibt keine Tafel und keinen Fehler (D652 Beschluss 5).
+
+**Beschluss 4 — Aufgaben nur im laufenden Monat.** In einer Sparrunde nennt der Knoten
+`CONTRIBUTION_OPEN` und `RECEIPT` für eine Zusage, die auf der Tafel steht, nur im laufenden
+Monat. Für Zusagen, die nicht auf der Tafel stehen, gilt die Regel wie bisher. Dazu eine neue
+Aufgabe: wer in der Reihenfolge steht und nicht jedem anderen eine Zusage in Höhe der Rate
+unterschrieben hat, bekommt „Mitmachen“.
+
+**Beschluss 5 — zwei Aufträge.** Zuerst der Knoten: Vorlage, Typ, Tafel als Route und die
+Aufgaben (`p64`). Danach die Seite: Gründung mit Reihenfolge, „Ich mache mit“ als ein Klick,
+der alle eigenen Zusagen unterschreibt, und die Tafel mit „wartet seit …“ (`p65`).
+
+**Geändert.** `07-decisions.md`.

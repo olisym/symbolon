@@ -31984,3 +31984,70 @@ Aus dem Gedächtnis, nicht nachgeschlagen: Ostroms viertes Bauprinzip verlangt, 
 Überwacher den Nutzern rechenschaftspflichtig sind.
 
 **Geändert.** `07-decisions.md`.
+
+### D710 — Das Mandat mit Rahmen auf Papier, `LANDKARTE §6` als Baukasten, drei feste Grenzen
+
+**Anlass.** D709 Beschluss 6: das Mandat zuerst. Das Papier steht in `LANDKARTE §11`; `§6`
+ist nach dem Vorschlag aus D709 zum Baukasten umgebaut. Oli hat beides gelesen.
+
+**Beschluss 1 — `LANDKARTE §6` ist der Baukasten (Oli).** Der Abschnitt heisst „Bausteine“ und
+ordnet in drei Gruppen: gebaut, auf Papier, fehlt. Jeder Baustein nennt seinen Ort nach `08 §3`,
+die Fälle, die ihn brauchen, den Stand und die kryptografischen Kandidaten. Alle Wurzeln aus
+D697 bis D703 stehen darin; neu sind fünf gebaute Bausteine (Beschluss und Sachantrag, Wahl,
+Beteiligung, die Sparrunde, die Vorlage) und die Verwahrung ohne Verwahrer (D709 Beschluss 4).
+Ein Baustein mit eigenem Abschnitt kommt hinten an; dessen Aufbau steht in `LANDKARTE §1`. Die
+Abschnittsnummern bleiben.
+
+**Beschluss 2 — die Form des Mandats, als Vermutung.** Drei Teile. Die Bestellung ist ein
+Sachantrag, der ein Feld der Satzung mit Inhaber und Rahmen setzt; der Inhaber zeichnet gegen
+(`mandate-ack@1`, Muster aus `00 §6.1` und `01 §7.3`). Ein Akt des Inhabers gilt als Akt der
+Gruppe, wenn das Mandat steht und der Akt im Rahmen liegt; sonst bleibt er seine eigene Aussage,
+für jeden als ausserhalb sichtbar. Das Ende ist der Abruf durch einen Sachantrag, der das Feld
+entfernt, oder der Rücktritt (`mandate-end@1`); beide nennen den letzten gedeckten Akt wie
+`device-end@1`, so braucht es weder Uhr noch Ordnung zwischen zwei Ketten. Ort: Protokoll für
+die Zurechnung, in der Interpretationsschicht wie bei den Geräten (`02 §2.1`); Policy für den
+Rahmen.
+
+**Beschluss 3 — drei feste Grenzen (Oli).** Keine Satzung kann abschalten: den Abruf durch
+Beschluss zu jeder Zeit, den Rücktritt zu jeder Zeit und die Gegenzeichnung. Alles Übrige ist
+Stellschraube (D709 Beschluss 2). Begründung: die drei verteilen Macht (D645 Beschluss 2); ohne
+sie könnte eine Mehrheit einen Verwalter auf Lebenszeit eintragen, den spätere Mitglieder nicht
+mehr los werden, oder einen Fremden gegen seinen Willen. Das Gesetz schreibt den Abruf ebenso
+zwingend vor (WEG 26 Abs. 5).
+
+**Beschluss 4 — die Grenze nach Betrag ist eine Regel der Vorlage.** Sie liest Beträge, und das
+Protokoll liest keine (`03 §3.1`); sie steht wie der Typ Betrag aus D648 in der Vorlage.
+
+**Beschluss 5 — der nächste Schritt.** Das Mandat hakt an fünf Fällen (E, A, B, D, Verein);
+nach D696 Beschluss 3 ist damit Code erlaubt. Zuerst ein Prototyp der Bibliothek im Klon:
+Bestellung über einen Sachantrag, Gegenzeichnung, Zurechnung eines Akts, Abruf und Rücktritt
+mit dem letzten gedeckten Akt; die Fälle aus `LANDKARTE §11` als Vektoren. Dann Normtext und
+Auftrag.
+
+**Befund 1 — Olis Bild: die Fourier-Transformation.** Gesucht werden Werkzeuge und Methoden,
+die später auch anderen eine bessere Lösung erlauben; je freier das Denken, desto besser für die
+Aufgabe (Oli). Die Lesart des Supervisors: die Fourier-Transformation zerlegt ein Signal in
+wenige Grundfunktionen, und sie trägt, weil die Grundfunktionen voneinander unabhängig sind.
+Für den Baukasten heisst das: leisten zwei Bausteine dasselbe, werden sie zusammengezogen; ein
+Modell wie die Eigentümergemeinschaft ist dann eine Mischung weniger Bausteine mit eigenen
+Stellschrauben.
+
+**Befund 2 — im Wortlaut gelesen.** WEG 25 Abs. 3 (Vollmachten in Textform), WEG 26 Abs. 1 bis 5
+(Bestellung auf höchstens fünf Jahre, jederzeit abrufbar, keine Abweichung zulässig, Nachweis
+durch eine Niederschrift mit beglaubigten Unterschriften), WEG 27 (Kleines und Eiliges, durch
+Beschluss enger oder weiter), GenG 40 (vorläufige Enthebung durch den Aufsichtsrat), GenG 42
+(Prokura und Handlungsvollmacht), alle aus dem Projektspeicher. WEG 9b und GenG 27 sind aus
+`00e2` übernommen und nicht neu gelesen.
+
+**Befund 3 — was die Form neu braucht.** Zwei Profile, eine Regel der Zurechnung und einen
+Feldtyp für die Vorlage; alles Übrige ist gebaut: Sachantrag (`04 §2.5`), Kosignatur über eine
+Schwelle (`ratify@1`, `vote_mode`), das Muster der Geräte (`01 §7.3`).
+
+**Befund 4 — offen, in `LANDKARTE §11`.** Wer zahlt, wenn der Inhaber im Rahmen einen Auftrag
+erteilt; das ist der Baustein Verwahrung. Akte zwischen dem Antrag auf Abruf und dem Beschluss;
+der Rahmen begrenzt den Schaden, eine Sperre im Eilfall wie in GenG 40 wäre eine Stellschraube.
+Ob eine Wahl einen Inhaber bestellen kann, wo sie doch eine Tatsache liefert und kein Feld
+(D667).
+
+**Geändert.** `LANDKARTE.md` (Kopf, `§1`, `§6`, `§11` neu), `offen.md` (O110),
+`07-decisions.md`.

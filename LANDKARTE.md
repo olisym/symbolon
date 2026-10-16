@@ -4,7 +4,9 @@ Die Probe aus D696: bildet MaR ab, was Menschen heute schon tun, weil es ihr Zus
 reibungsloser macht? Je Fall wird eine Vorlage nachgeschlagen (Recht, Normen, gelebte Praxis),
 die Mechanismen daraus werden gegen die Bausteine gelegt (`VISION §3`), und am Ende steht eine
 Zeile. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken
-(D696 Beschluss 2 und 3). Stand: Verein, E, A, B, C und D (D702).
+(D696 Beschluss 2 und 3). Stand: Verein, E, A, B, C und D (D702). Seit D709 liefert die
+Landkarte Bausteine: menschliches Handeln zuerst, darin die Funktion, dann ihre Abbildung in
+MaR (`LANDKARTE §6`).
 
 ## 1. Methode
 
@@ -26,6 +28,14 @@ bewusst anders löst, ist kein Mangel.
 Regel besser ausdrücken, als ein Gesetz es ohne sie konnte, nimmt MaR das Werkzeug und baut das
 Gesetz nicht nach. Die Landkarte nennt es beim Mechanismus; gebaut wird es erst, wenn eine
 Wurzel es braucht (D639 Beschluss 3).
+
+**Bausteine (Oli, D709 Beschluss 1 und 2).** Aus den Fällen werden die grundlegenden
+Funktionen benannt; jede wird ein Baustein mit eigenem Abschnitt: die Funktion im menschlichen
+Handeln, wo sie vorkommt, was die Vorlagen zeigen, was es im Bestand schon gibt, die Form als
+Vermutung, die Stellschrauben, der Ort nach `08 §3`, die kryptografischen Kandidaten und was
+offen ist. Einzelheiten legen die Menschen in ihrer Satzung fest; der Baustein trägt die
+Stellschrauben. Die Wette: ein überschaubarer Baukasten, aus dem sich Modelle wie die
+Eigentümergemeinschaft zusammensetzen.
 
 **Belege.** Was im Wortlaut gelesen ist, nennt Gesetz und Paragraf ohne Paragrafenzeichen (WEG 27).
 Was aus dem Gedächtnis kommt, sagt das. Die Gesetze liegen im Projektspeicher.
@@ -170,32 +180,64 @@ gebraucht, selten nur im Einzelfall. Eine Ersparnis kommt aus Verwaltung, Vertri
 und aus weniger Betrug, nicht aus den Schäden; eine Rückzahlung gibt es nur in Jahren mit wenig
 Schaden.
 
-## 6. Wurzeln
+## 6. Bausteine
 
-Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschluss 2).
+Der Baukasten (D709, D710). Je Baustein: der Ort nach `08 §3`, die Fälle, die ihn brauchen, der
+Stand und die Kandidaten. Bis D709 hiess der Abschnitt „Wurzeln“; wer die Liste fortschreibt,
+nennt den Ort, und ein Baustein mit eigenem Abschnitt steht hinten an.
 
-- **Feststellung eines Ereignisses durch zurechenbare Aussagen.** A (Schaden), E (Begehung),
-  C (Lieferung, Mangel), D (Tat, Zeugen), Verein (Doppelstimme). Der Kern von MaR; trägt.
-- **Mandat mit Rahmen.** E (Verwalter), A (Verwahrer), B (Vorstand, Kasse), D (Ausführung).
-  Fehlt (O105). In WEG und Genossenschaft wirkt eine Beschränkung des Vertreters nach aussen
-  nicht (WEG 9b Abs. 1, GenG 27 Abs. 2); in MaR wäre sie für jeden sichtbar.
-- **Zusage für einen künftigen Fall.** A (Leistung im Schadensfall), B (Nachschuss). Fehlt.
-- **Umlage nach Schlüssel.** E, A, B (Gewinn nach Guthaben). Als Regel der Vorlage, nicht als
-  Normtext.
-- **Stimmgewicht mit Obergrenze.** E (nach Vorteil, keiner über zwei Fünftel), B (bis zu drei
-  Stimmen für besonders Fördernde). Offen, ob MaR es will; die Obergrenze verteilt Macht.
-- **Zug um Zug.** C; dazu jeder Tausch in B und A, sobald Geld durch MaR geht. Fehlt (`03 §3.4`).
-  Besser mit Kryptografie: eine Kopplung über Adaptor-Signaturen statt eines Treuhänders.
-- **Ruf unter Fremden.** C; dazu jede Aufnahme in A und B. Bewertungen als unterschriebene
-  Meinungen, gewichtet über das eigene Netz (`VISION §3`); ungemessen.
-- **Prüfung als Dienst.** E (Beirat), A (Gutachter), B (Prüfungsverband). Rechnen kann jeder
-  Knoten; ob die Kasse wirklich hält, was sie sagt, prüfen Menschen.
-- **Verbund kleiner Gruppen.** E (Ober- und Unterverband), A (Rückversicherung), D (ein
-  Spruch reist in eine andere Gruppe). Ungebaut.
-- **Die Vorlage als Standardsatz.** Verein, D; dazu Katalog und Umlage in A, B und E. Zum Teil
-  gebaut (D645, D648); die Bindung an einen Hash fehlt (D702 Beschluss 3).
-- **Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige.** A; verwandt mit der geheimen
-  Wahl (O106). Fehlt.
+**Gebaut.**
+
+- **Feststellung eines Ereignisses durch zurechenbare Aussagen.** Ort: Protokoll. Fälle: A
+  (Schaden), E (Begehung), C (Lieferung, Mangel), D (Tat, Zeugen), Verein (Doppelstimme). Stand:
+  der Kern von MaR; trägt.
+- **Beschluss und Sachantrag.** Ort: Protokoll (`04`). Fälle: alle. Stand: gebaut, mit
+  Wahlgängen bei Patt (D594 bis D604) und Sachanträgen (D564 bis D581).
+- **Wahl einer Person.** Ort: Protokoll (`04 §9`). Fälle: Verein, B (Vorstand). Stand: gebaut
+  ohne Mischrunde und damit nicht geheim (D671 bis D679); die Mischrunde fehlt (O106).
+- **Beteiligung: Enthaltung und Ruhen.** Ort: Policy über `required_features` (D692). Fälle:
+  Verein und jede grosse Gruppe. Stand: Norm und Bibliothek; die Seite fehlt (O107).
+- **Jeder zahlt jedem einmal, in fester Reihenfolge.** Ort: Policy, Vorlage `sparrunde`. Fälle:
+  B. Stand: gebaut bis auf die Seite (D703 bis D708).
+- **Die Vorlage als Standardsatz.** Ort: Policy. Fälle: Verein, D; dazu Katalog und Umlage in A,
+  B und E. Stand: zum Teil gebaut (D645, D648); die Bindung an einen Hash fehlt (D702
+  Beschluss 3).
+
+**Auf Papier.**
+
+- **Mandat mit Rahmen.** Ort: Protokoll für die Zurechnung, Policy für den Rahmen. Fälle: E
+  (Verwalter), A (Verwahrer), B (Vorstand, Kasse), D (Ausführung), Verein (Vorstand). Stand: auf
+  Papier (`LANDKARTE §11`). Kandidaten: das Muster der Geräteaufnahme (`01 §7.3`), der Rahmen als
+  Prädikatbaum nach UCAN, k von n als Kosignatur oder FROST. In WEG und Genossenschaft wirkt eine
+  Beschränkung des Vertreters nach aussen nicht (WEG 9b Abs. 1, GenG 27 Abs. 2); in MaR ist sie
+  für jeden sichtbar.
+
+**Fehlt.**
+
+- **Verwahrung ohne Verwahrer.** Ort: Werkzeug, für echtes Geld die Wertschicht. Fälle: A
+  (Topf), B (Kasse), E (Rücklage). Stand: FROST steht in `00` für Wurzel und Stimme (D709 Befund
+  2). Kandidaten: FROST nach RFC 9591 in MaR; für Bitcoin k von n über Taproot-Skripte, MuSig2,
+  BIP445 als offener Entwurf (D709 Befund 3).
+- **Zusage für einen künftigen Fall.** Ort: offen. Fälle: A (Leistung im Schadensfall), B
+  (Nachschuss).
+- **Umlage nach Schlüssel.** Ort: Policy, als Regel der Vorlage, nicht als Normtext. Fälle: E,
+  A, B (Gewinn nach Guthaben).
+- **Stimmgewicht mit Obergrenze.** Ort: Policy (`08 §3`, gewichtete Auszählung). Fälle: E (nach
+  Vorteil, keiner über zwei Fünftel), B (bis zu drei Stimmen für besonders Fördernde). Offen, ob
+  MaR es will; die Obergrenze verteilt Macht.
+- **Zug um Zug.** Ort: Wertschicht (`03 §3.4`, `08 §3`). Fälle: C; dazu jeder Tausch in B und
+  A, sobald Geld durch MaR geht. Kandidaten: eine Kopplung über Adaptor-Signaturen statt eines
+  Treuhänders.
+- **Ruf unter Fremden.** Ort: Protokoll für den Fluss (`02`), Policy für die Gewichte. Fälle:
+  C; dazu jede Aufnahme in A und B. Bewertungen als unterschriebene Meinungen, gewichtet über das
+  eigene Netz (`VISION §3`); ungemessen.
+- **Prüfung als Dienst.** Ort: Policy, ein Dienst nach `06`. Fälle: E (Beirat), A (Gutachter), B
+  (Prüfungsverband). Rechnen kann jeder Knoten; ob die Kasse wirklich hält, was sie sagt, prüfen
+  Menschen.
+- **Verbund kleiner Gruppen.** Ort: Protokoll (`04 §7`). Fälle: E (Ober- und Unterverband), A
+  (Rückversicherung), D (ein Spruch reist in eine andere Gruppe). Stand: normiert, ungebaut.
+- **Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige.** Ort: offen. Fälle: A.
+  Kandidaten: verwandt mit der Mischrunde der geheimen Wahl (O106).
 
 ## 7. Offen
 
@@ -396,3 +438,88 @@ nach einer Besprechung von Ellicksons Buch (Reason 1992).
 einen Rückhalt im Gericht, sie setzt räumliche Nähe, eine homogene Gruppe und wiederholten
 Handel voraus, und der Spruch reist über einen Verbund der Börsen. Neulinge kommen nur mit
 Bürgen und Probezeit hinein; das ist `vouch@1`.
+
+## 11. Baustein: Mandat mit Rahmen
+
+**Die Funktion im menschlichen Handeln.** Eine Gruppe beauftragt einen oder mehrere aus ihrer
+Mitte oder von aussen, für sie zu handeln, ohne jedes Mal alle zu fragen. Sie setzt einen
+Rahmen, kann ihn ändern und den Auftrag zurücknehmen. Drei Teile: die Bestellung, das Handeln im
+Rahmen, das Ende.
+
+**Wo es vorkommt.** E: der Verwalter. A: wer den Topf hält und auszahlt. B: Vorstand und Kasse
+einer Genossenschaft. D: wer einen Spruch ausführt (`05 §7`). Verein: der gewählte Vorstand
+(O105 Punkt 1).
+
+**Was die Vorlagen zeigen.**
+
+- Bestellt wird durch Beschluss, auf höchstens fünf Jahre; eine Wiederbestellung braucht einen
+  neuen Beschluss (WEG 26 Abs. 1 und 2).
+- Der Verwalter kann jederzeit abberufen werden, und davon darf die Gemeinschaft nicht abweichen
+  (WEG 26 Abs. 3 und 5).
+- Er handelt allein bei Kleinem und Eiligem; die Eigentümer machen das durch Beschluss enger oder
+  weiter (WEG 27).
+- Nach aussen wirkt eine Beschränkung nicht (WEG 9b Abs. 1, GenG 27 Abs. 2).
+- Im Eilfall enthebt der Aufsichtsrat ein Vorstandsmitglied vorläufig, bis die Versammlung
+  entscheidet (GenG 40).
+- Vollmachten brauchen Textform (WEG 25 Abs. 3); die Bestellung weist eine Niederschrift mit
+  beglaubigten Unterschriften nach (WEG 26 Abs. 4).
+
+**Was es im Bestand schon gibt.** Die Aufnahme eines Geräts (`01 §7.3`): Aufnahme durch die
+Wurzel, Gegenzeichnung durch das Gerät, ein Ende, das den letzten zugerechneten Claim nennt. Der
+Sachantrag (`04 §2.5`): ein Feld durch Beschluss setzen und entfernen. Die Wahl (`04 §9`): wer
+gewählt ist, als Tatsache. Die Kosignatur über eine Schwelle (`ratify@1`, `vote_mode`).
+
+**Die Form, als Vermutung.**
+
+1. **Bestellung.** Ein Sachantrag setzt ein Feld der Satzung, das den Inhaber und den Rahmen
+   nennt. Der Inhaber zeichnet gegen (`mandate-ack@1`, Muster aus `00 §6.1` und `01 §7.3`):
+   niemand wird gegen seinen Willen Verwalter, und niemand kann sich einen Fremden als Verwalter
+   eintragen.
+2. **Handeln.** Ein Akt ist ein Claim des Inhabers im Scope der Gruppe, mit einem Prädikat, das
+   der Rahmen nennt. Er gilt als Akt der Gruppe, wenn das Mandat steht und der Akt im Rahmen
+   liegt. Liegt er ausserhalb, bleibt er die eigene Aussage des Inhabers, für jeden als
+   ausserhalb sichtbar; die Gruppe ist nicht gebunden. Ein Dritter prüft vor dem Geschäft mit der
+   Kette von der Gründung bis zum Stand und der Gegenzeichnung: die Niederschrift aus WEG 26
+   Abs. 4, ohne Notar.
+3. **Ende.** Der Abruf ist ein Sachantrag, der das Feld entfernt; der Rücktritt ein Claim des
+   Inhabers (`mandate-end@1`). Beide nennen den letzten gedeckten Akt, wie `device-end@1`. So
+   braucht es keine Uhr und keine Ordnung zwischen der Kette des Inhabers und der Kette der
+   Epochen.
+
+**Die Stellschrauben** (Policy, D709 Beschluss 2). Wer bestellt und mit welcher Schwelle, als
+Sachantrag oder als Wahl; welche Arten von Akten; mit wem; wie lange, gemessen an der Kette wie
+bei der Sparrunde (D704 Beschluss 1); wie viele zeichnen müssen, k von n, etwa vier Augen; eine
+Grenze je Akt und in der Summe. Die Grenze liest Beträge, sie ist deshalb eine Regel der Vorlage
+wie der Typ Betrag aus D648, nicht des Protokolls (`03 §3.1`).
+
+**Was keine Stellschraube ist, als Position.** Der Abruf durch Beschluss, jederzeit; der
+Rücktritt, jederzeit; die Gegenzeichnung. Sie verteilen Macht (D645 Beschluss 2). Das Gesetz
+schreibt den Abruf ebenso zwingend vor (WEG 26 Abs. 5); Ostroms viertes Bauprinzip, aus dem
+Gedächtnis, verlangt Überwacher, die den Nutzern rechenschaftspflichtig sind.
+
+**Der Ort nach `08 §3`.** Ob ein Akt der Gruppe zugerechnet wird, senkt die Kosten
+festzustellen, wer was für wen gesagt hat: Protokoll, in der Interpretationsschicht wie die
+Zurechnung der Geräte (`02 §2.1`). Der Rahmen verteilt Macht: Policy. Die Grenze nach Betrag:
+Vorlage.
+
+**Kryptografische Kandidaten.** Der Rahmen als Prädikatbaum über die Felder eines Akts, wie die
+Policy einer UCAN-Delegation. Mehrere Zeichner heute als Kosignatur über eine Schwelle, später
+als ein FROST-Gruppenschlüssel (`00`, `key_mode`). Eine Untervollmacht, die nur enger werden
+kann, wie bei Macaroons; nicht in der ersten Fassung.
+
+**Am Beispiel.** Fünf Nachbarn teilen einen Privatweg (E) und bestellen Bruno. Rahmen: Aufträge
+für den Weg, je Auftrag bis 500,00 EUR. Bruno erteilt einen Auftrag über 300,00 EUR: ein Akt der
+Gruppe, den der Handwerker vorher prüfen kann. Einen über 800,00 EUR: Brunos eigene Aussage,
+für alle als ausserhalb sichtbar. Anna beantragt den Abruf und nennt Brunos letzten Akt; gilt
+der Abruf, ist nichts danach gedeckt.
+
+**Offen.**
+
+- Wer zahlt, wenn Bruno im Rahmen einen Auftrag erteilt. Das Mandat sagt, dass er es darf; wer
+  zahlt, ist der Baustein Verwahrung (`LANDKARTE §6`).
+- Akte zwischen dem Antrag auf Abruf und dem Beschluss. In der Form oben deckt der Abruf nur bis
+  zum genannten Akt; was danach kommt, ist nicht gedeckt, wenn er gilt. Der Rahmen begrenzt den
+  Schaden in der Zwischenzeit; eine Sperre im Eilfall wie in GenG 40 wäre eine Stellschraube.
+- Die gewählte Person als Inhaber. Die Wahl liefert eine Tatsache, kein Feld (D667); ob die
+  Satzung sagen kann „Inhaber ist, wer die Wahl gewinnt“.
+- Ein Feldtyp für das Mandat in der Vorlage (D648).

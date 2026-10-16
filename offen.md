@@ -557,3 +557,5 @@ der Weg zum Knoten vom Telefon (D657).
 Die Wurzel, an der vier Fälle hängen: E, A, B und D (`LANDKARTE §6`, D703). Wer für die Gruppe
 handeln darf, in welchem Rahmen, sichtbar auch für Dritte, und wie abrufbar; dazu Vertretung
 nach aussen (O105 Punkt 1). Ein eigener Strang nach O109, zuerst auf Papier und nachgeschlagen.
+Auf Papier in `LANDKARTE §11` (D710); drei Grenzen sind fest: Abruf, Rücktritt, Gegenzeichnung.
+Nächster Schritt: ein Prototyp der Bibliothek.

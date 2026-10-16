@@ -31795,3 +31795,49 @@ Seite: Gründung mit Reihenfolge, „Ich mache mit“ und die Aufgabe „Mitmach
 „wartet seit …“ (D704 Beschluss 5).
 
 **Geändert.** `07-decisions.md`.
+
+### D706 — Die Sparrunde auf der Seite: Funktionstest, „Mitmachen“ im Knoten, die Tafel
+
+**Anlass.** Nach D705 baut der Supervisor die Seite der Sparrunde als Prototyp im Klon auf
+`08cf5ec` und fährt einen Durchlauf zu dritt in Playwright. Oli sieht vier Bildschirmfotos
+vor dem Auftrag (D684) und antwortet mit einer Haltung zum Zweck dieser Runde.
+
+**Befund 1 — der Durchlauf trägt.** Drei Personen unter `.localhost`, ohne Fehler der Seite:
+Anna gründet eine Sparrunde mit Rate und Reihenfolge, Bruno und Chris bestätigen, alle drei
+machen mit (sechs Zusagen), Anna quittiert beide, Monat 2 rückt nach, Bruno quittiert eine.
+Die Aufgaben stehen nur bei dem, der im laufenden Monat zahlt oder quittiert; die Tafel nennt,
+an wem es hängt. Im Selbsttest 19 neue Fälle, 444 statt 425; drei neue Tests im Knoten.
+
+**Befund 2 — was nicht geprüft ist.** Eine Runde bis zum Ende von Monat 3 auf der Seite; ein
+Abbruch mitten in „Ich mache mit …“; ein aufgenommenes Gerät, das für seine Person handelt; der
+Abbruch einer Runde durch Verrechnung, der nicht gebaut ist (D703 Befund 4).
+
+**Befund 3 — eine Aufzählung der Arten von Aufgaben übersehen.** Die ganze Reihe auf dem
+Prototyp war einmal rot: `test_regeln` in `tests/node/test_personen.py` fährt jede Art aus
+`_TASK_DETAIL_FIELD` und verlangt für jede eine Regel. Gesucht hatte der Supervisor nach den
+Namen der Arten, diese Aufzählung läuft über die Tabelle. Der Test bekommt eine Regel für
+`ROUND_JOIN`: simulierte Personen machen in keiner Sparrunde mit; `tools/personen.py` übergeht
+die Art ohnehin. Zum dritten Mal belegt nach D537 und D681 Befund 6: wer eine aufgezählte Menge
+erweitert, sucht auch die Stellen, die über sie laufen, nicht nur die, die ihre Glieder nennen.
+
+**Beschluss 1 — Funktionstest, nicht Gestaltung (Oli).** Gerade wird geprüft, ob es
+funktioniert. Was wo auf der Seite steht, wird entschieden, wenn die App wirklich gebaut wird.
+Für `p65` folgt daraus: gebaut wird, was die Funktion braucht; drei Befunde am Bild bleiben
+liegen, ohne Auftrag: die Tafel steht ohne Abstand über den Sätzen zum Verein, „6 Beiträge sind
+offen“ zählt in einer Sparrunde auch spätere Monate, und Kopf und Sätze sagen weiter „Verein“.
+
+**Beschluss 2 — „Mitmachen“ im Knoten.** Die Aufgabe aus D704 Beschluss 4, nach `p65`
+verschoben (D705 Befund 4): `ROUND_JOIN` für eine Wurzel unter `participants`, die kein
+aufgenommenes Gerät ist und auf der Tafel als Zahler mit `fehlt` steht; das Feld der Aufgabe
+heisst `sparrunde` und trägt den Scope der Sparrunde. Auf der Seite sagt „Ich mache mit …“ jedem
+fehlenden Empfänger eine Rate zu, je Zusage mit eigener Frage (D492 Beschluss 1: ohne Satz kein
+Unterschreiben); wer eine Frage verneint, beendet die Reihe.
+
+**Beschluss 3 — die Tafel auf der Seite.** Oben im Tab „Im Verein“: was gerade dran ist, seit
+wann der Vormonat fertig ist, wessen Geld fehlt, wer noch nicht zugesagt hat; darunter je Monat
+der Empfänger mit dem Topf und je Zahler „bezahlt“, „noch nicht bezahlt“ oder „hat nicht
+zugesagt“. Die Sätze stehen in `anzeige.js` und sind im Selbsttest wörtlich festgehalten. Bei
+der Gründung wählt man zwischen Verein und Sparrunde; für die Sparrunde Name, Rate im Monat und
+die Reihenfolge, die man mit „früher“ ändert.
+
+**Geändert.** `07-decisions.md`.

@@ -31483,3 +31483,47 @@ deutlichsten und braucht keinen neuen Baustein. Sie ist ein Kandidat für die Vo
 Telefonen (D696 Beschluss 2); entschieden wird, wenn C und D gerechnet sind.
 
 **Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).
+
+### D700 — Fall C auf der Landkarte; Kryptografie vor Nachbau; das Vorbild Law Merchant bestritten
+
+**Anlass.** Oli wählt C, Markt zwischen Fremden, und wiederholt einen Grundsatz. Der Supervisor
+rechnet C auf dem Papier, mit einer Studie zu Bewertungen auf eBay, den Handelsprotokollen von
+Bisq und einer Arbeit zu den Champagner Messen (`LANDKARTE §9`).
+
+**Beschluss 1 — Kryptografie vor Nachbau (Oli).** Wo die kryptografischen Werkzeuge eine Regel
+besser ausdrücken, als ein Gesetz es ohne sie konnte, nimmt MaR das Werkzeug und baut das Gesetz
+nicht nach; manche Regelung lässt sich heute genauer fassen, weil es diese Werkzeuge gibt. Das
+schärft D698 Beschluss 2. D639 Beschluss 3 bleibt: gebaut wird ein Werkzeug je Strang, nicht auf
+Vorrat. Die Landkarte nennt es deshalb beim Mechanismus (`LANDKARTE §1`), und gebaut wird es,
+wenn eine Wurzel es braucht.
+
+**Befund 1 — der Markt braucht einen Kontext.** `obligation@1` verlangt einen Nukleus `N`
+(`03 §3.3.1`), eine Mitgliedschaft verlangt sie nicht. Zwei Fremde handeln deshalb in einem
+Markt als Nukleus, einer Messe mit Marktordnung, offenem Zugang und einer Liste von
+Schiedsstellen. Ob offener Zugang mit der gegenseitigen Mitgliedschaft aus `03 §4` geht, ist
+nicht geprüft.
+
+**Befund 2 — das Vorbild des Law Merchant ist bestritten.** D332 stützt die Durchsetzung ohne
+Bindung auf private Richter der Champagner Messen (Milgrom, North und Weingast 1990), und
+`VISION §3` nennt die Händler des Law Merchant als Beispiel. Edwards und Ogilvie (2012) finden
+dort öffentliche Gerichte der Grafen, Messwächter mit Berufung und städtische und kirchliche
+Gerichte, keine privaten Richter; die Messen blühten, solange alle Händler dieselben Garantien
+hatten. Die Regel aus D332 hängt nicht an diesem Beispiel, wohl aber ihre Begründung; die
+Diamantenhändler und Shasta County sind nicht nachgeschlagen. `VISION §3` wird angepasst, wenn
+D gerechnet ist.
+
+**Befund 3 — wo Kryptografie mehr kann als das Gesetz.** Zug um Zug ohne Treuhänder: wo beide
+Seiten digital sind, über Adaptor-Signaturen (`03 §3.4`); bei Ware über ein Konto, das nur
+beide gemeinsam öffnen, wie bei Bisq seit 2019. Bewertungen ohne Rache: beide legen ihre
+Bewertung verdeckt fest und decken gleichzeitig auf; auf eBay hingen die Bewertungen beider
+Seiten eng zusammen. Beides ist bekannt, nichts davon ist gebaut.
+
+**Beschluss 2 — Zeile C.** Trägt mit Lücke. Filter: alle vier ja. Stärkste Stelle: Angebot,
+Annahme, Versand und Empfang als Aussagen, die kollidieren können. Grösste Lücken: Zug um Zug,
+der Ruf unter Fremden ohne gemeinsamen Pfad, der Weg eines Urteils von einem Markt in einen
+anderen (`04 §7`). Die Reichweite einer Plattform schafft MaR nicht.
+
+**Beschluss 3 — Wurzeln fortgeschrieben** (`LANDKARTE §6`). Neu: Zug um Zug und Ruf unter
+Fremden. Die Feststellung eines Ereignisses tragen jetzt vier Fälle. Das Mandat bleibt bei vier.
+
+**Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).

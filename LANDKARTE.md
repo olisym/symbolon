@@ -4,7 +4,7 @@ Die Probe aus D696: bildet MaR ab, was Menschen heute schon tun, weil es ihr Zus
 reibungsloser macht? Je Fall wird eine Vorlage nachgeschlagen (Recht, Normen, gelebte Praxis),
 die Mechanismen daraus werden gegen die Bausteine gelegt (`VISION §3`), und am Ende steht eine
 Zeile. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken
-(D696 Beschluss 2 und 3). Stand: Verein, E, A und B (D699).
+(D696 Beschluss 2 und 3). Stand: Verein, E, A, B und C (D700).
 
 ## 1. Methode
 
@@ -21,6 +21,11 @@ Gesetz schliesst den Weg.
 neben dem Urteil eine Angabe, ob MaR ihn übernehmen will. Übernommen wird, was den Grundsätzen von
 MaR entspricht, vor allem Macht zu verteilen (D645 Beschluss 2). Ein Mechanismus, den MaR
 bewusst anders löst, ist kein Mangel.
+
+**Besser als das Gesetz (Oli, D700 Beschluss 1).** Wo die kryptografischen Werkzeuge eine
+Regel besser ausdrücken, als ein Gesetz es ohne sie konnte, nimmt MaR das Werkzeug und baut das
+Gesetz nicht nach. Die Landkarte nennt es beim Mechanismus; gebaut wird es erst, wenn eine
+Wurzel es braucht (D639 Beschluss 3).
 
 **Belege.** Was im Wortlaut gelesen ist, nennt Gesetz und Paragraf ohne Paragrafenzeichen (WEG 27).
 Was aus dem Gedächtnis kommt, sagt das. Die Gesetze liegen im Projektspeicher.
@@ -42,7 +47,11 @@ Was aus dem Gedächtnis kommt, sagt das. Die Gesetze liegen im Projektspeicher.
   (2) ja; (3) ja; (4) ja, schon zu dritt. Stärkste Stelle: wer den Topf erhalten hat, schuldet
   sichtbar die übrigen Raten. Grösste Lücken: das Mandat für Vorstand und Kasse, das Recht bei
   Einlagen und Krediten im Grossen (`LANDKARTE §8`).
-- **C, D.** Offen (`LANDKARTE §7`).
+- **C. Markt zwischen Fremden.** Trägt mit Lücke. Filter: (1) ja; (2) ja; (3) ja; (4) ja, ein
+  Kauf zu zweit. Stärkste Stelle: Angebot, Annahme, Versand und Empfang als unterschriebene
+  Aussagen, die kollidieren können. Grösste Lücken: Zug um Zug, ohne dass einer vorleistet; der
+  Ruf unter Fremden ohne gemeinsamen Pfad (`LANDKARTE §9`).
+- **D.** Offen (`LANDKARTE §7`).
 
 ## 3. Verein
 
@@ -161,7 +170,7 @@ Schaden.
 Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschluss 2).
 
 - **Feststellung eines Ereignisses durch zurechenbare Aussagen.** A (Schaden), E (Begehung),
-  Verein (Doppelstimme). Der Kern von MaR; trägt.
+  C (Lieferung, Mangel), Verein (Doppelstimme). Der Kern von MaR; trägt.
 - **Mandat mit Rahmen.** E (Verwalter), A (Verwahrer), B (Vorstand, Kasse), D (Ausführung).
   Fehlt (O105). In WEG und Genossenschaft wirkt eine Beschränkung des Vertreters nach aussen
   nicht (WEG 9b Abs. 1, GenG 27 Abs. 2); in MaR wäre sie für jeden sichtbar.
@@ -170,6 +179,10 @@ Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschl
   Normtext.
 - **Stimmgewicht mit Obergrenze.** E (nach Vorteil, keiner über zwei Fünftel), B (bis zu drei
   Stimmen für besonders Fördernde). Offen, ob MaR es will; die Obergrenze verteilt Macht.
+- **Zug um Zug.** C; dazu jeder Tausch in B und A, sobald Geld durch MaR geht. Fehlt (`03 §3.4`).
+  Besser mit Kryptografie: eine Kopplung über Adaptor-Signaturen statt eines Treuhänders.
+- **Ruf unter Fremden.** C; dazu jede Aufnahme in A und B. Bewertungen als unterschriebene
+  Meinungen, gewichtet über das eigene Netz (`VISION §3`); ungemessen.
 - **Prüfung als Dienst.** E (Beirat), A (Gutachter), B (Prüfungsverband). Rechnen kann jeder
   Knoten; ob die Kasse wirklich hält, was sie sagt, prüfen Menschen.
 - **Verbund kleiner Gruppen.** E (Ober- und Unterverband), A (Rückversicherung). Ungebaut.
@@ -178,7 +191,6 @@ Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschl
 
 ## 7. Offen
 
-- **C. Markt zwischen Fremden.**
 - **D. Recht und Ordnung ohne Zentrale.** Das Mandat aus E ist sein Ausführungsteil.
 - **Janich.** Das Buch liegt nicht digital vor; seine Beispiele werden selbst erarbeitet (D698).
 
@@ -238,3 +250,55 @@ die Ehrlichen gewinnen den früheren Topf und die nächste Runde, Wiederholung i
 eine Sparrunde beginnt zu dritt. Sie braucht nur Gebautes: Satzung, Bürgschaft, Schuld und
 Quittung, Beschluss. Damit ist sie ein Kandidat für die Vorführung auf drei Telefonen (D696
 Beschluss 2).
+
+## 9. C — Markt zwischen Fremden
+
+**Vorlagen.** Die Studie zu Bewertungen auf eBay (Resnick und Zeckhauser, Daten von 1999, nach
+ihrer Zusammenfassung); die Handelsprotokolle von Bisq nach eigener Darstellung; die Champagner
+Messen nach Edwards und Ogilvie (2012); dazu aus dem Register Law Merchant und Diamantenhändler
+(D332). Das Kaufrecht des BGB ist nicht im Wortlaut gelesen; es liegt nicht mehr im Speicher.
+
+**Der Markt als Nukleus.** Zwei Fremde haben keine gemeinsame Satzung, aber `obligation@1`
+braucht einen Kontext `N` (`03 §3.3.1`). Die naheliegende Form ist die Messe: ein Nukleus mit
+einer Marktordnung, offenem Zugang und einer Liste von Schiedsstellen. Nach Edwards und Ogilvie
+blühten die Messen, solange die Herren der Messe allen Händlern dieselben Garantien gaben, und
+verfielen mit Vorrechten für einzelne Gruppen.
+
+**Mechanismen.**
+
+- **Angebot und Annahme, Versand und Empfang.** MaR: unterschriebene Aussagen, nicht abstreitbar;
+  eine Lieferung, die beide verschieden darstellen, kollidiert sichtbar. Trägt. Übernehmen: ja.
+- **Zug um Zug, damit keiner vorleistet.** Heute über Treuhänder oder Plattform. Bisq koppelt beide
+  Seiten seit 2019 über ein Konto, das nur beide Händler gemeinsam öffnen, mit einem Pfand je
+  Seite; im Streit geht das Geld zeitversetzt an eine Gemeinschaft, die nach dem Spruch eines
+  Schiedsmanns entschädigt. MaR: der atomare Tausch ist vertagt (`03 §3.4`), die Wertschicht
+  fehlt (`08 §3`). Trägt nicht. Übernehmen: ja. Besser mit Kryptografie: wo beide Seiten digital
+  sind, die Kopplung über Adaptor-Signaturen ohne Dritten; bei Ware ein gemeinsames Konto, das
+  keiner allein hält.
+- **Mängel und Streit.** Heute Gewährleistung und Gericht. MaR: Schiedsstelle als Dienst,
+  gebunden ist, wer sich vorher unterworfen hat (`03 §2.4`). Trägt mit Lücke, auf der Seite
+  nicht erreichbar (O105). Übernehmen: ja.
+- **Bewertungen.** Auf eBay waren sie fast immer positiv, sagten künftiges Verhalten voraus und
+  hingen bei Käufer und Verkäufer eng zusammen, was die Autoren als Gegenseitigkeit und Rache
+  deuten. MaR: unterschriebene Meinungen, gewichtet über das eigene Netz (`VISION §3`). Trägt mit
+  Lücke, ungemessen. Übernehmen: ja. Besser mit Kryptografie: beide Seiten legen ihre Bewertung
+  verdeckt fest und decken gleichzeitig auf, so kann keiner auf die des anderen reagieren.
+- **Ruf für Neulinge.** Bisq Easy verzichtet auf das Pfand; den Ruf belegt ein Verkäufer mit
+  verbranntem oder gebundenem Wert und dem Alter seines Kontos, mit Obergrenzen je Handel. MaR:
+  Bürgschaft und Trust-Flow; ein Fremder hat keinen Pfad. Trägt mit Lücke. Übernehmen: offen;
+  verbrannter Wert verwahrt nichts (D467), bindet aber Geld.
+- **Ausschluss Betrügender durch eine Gemeinschaft von Händlern** (Law Merchant, Diamanten,
+  Maghrebiner). MaR: wer ein Urteil missachtet, verliert Bürgen (D332, D333). Trägt mit Lücke:
+  ob ein Urteil aus einem Markt in einen anderen reist, hängt an der Föderation (`04 §7`).
+  Übernehmen: ja.
+- **Preis und Zahlung.** MaR ist preisblind (`03 §3.1`); gezahlt wird ausserhalb, die Quittung
+  bestätigt den Empfang. Trägt mit Lücke. Übernehmen: ja.
+- **Reichweite.** Eine Plattform verkauft vor allem Aufmerksamkeit; die schafft MaR nicht
+  (D697 Befund 4). Trägt nicht. Übernehmen: nein.
+
+**Befund: das Vorbild des Law Merchant ist bestritten** (D700 Befund 2). D332 stützt die
+Durchsetzung ohne Bindung auf private Richter der Champagner Messen (Milgrom, North und
+Weingast 1990). Edwards und Ogilvie finden dort keine privaten Richter, sondern öffentliche
+Gerichte der Grafen, Messwächter mit Berufung und städtische und kirchliche Gerichte; Konsuln
+der Händler kamen spät und schlichteten nur innerhalb ihrer Gruppe. Die Diamantenhändler und
+Shasta County aus D332 sind davon nicht berührt; nicht nachgeschlagen.

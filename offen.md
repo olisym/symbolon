@@ -549,4 +549,6 @@ Zentrale, E gemeinsames Eigentum mit Verwalter; der Verein als Massstab. Je Fall
 trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. Seit D698 steht die Landkarte in
 `LANDKARTE §2`, mit Verein, E und A; je Mechanismus auch, ob MaR ihn übernehmen will. Die
 Wurzeln stehen in `LANDKARTE §6`. Seit D699 auch B (`LANDKARTE §8`): die Sparrunde trägt und ist
-ein Kandidat für die Vorführung. Offen sind C und D; Janichs Beispiele werden selbst erarbeitet.
+ein Kandidat für die Vorführung. Seit D700 auch C (`LANDKARTE §9`), und wo Kryptografie eine
+Regel besser fasst als ein Gesetz, nimmt MaR das Werkzeug. Offen ist D; Janichs Beispiele werden
+selbst erarbeitet.

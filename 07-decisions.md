@@ -31647,3 +31647,54 @@ und Umlage in A, B und E), zum Teil gebaut. Der Verbund kleiner Gruppen bekommt 
 Spruch reist nur über ihn.
 
 **Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).
+
+### D703 — Die Wurzeln gesichtet: die Sparrunde zuerst, jeder zahlt jedem einmal, feste Reihenfolge
+
+**Anlass.** Alle fünf Fälle stehen auf der Landkarte (D702). Der Supervisor legt die Wurzeln aus
+`LANDKARTE §6` nach der Zahl der Fälle vor und zwei Wege zur Wahl: das Mandat mit Rahmen oder
+die Sparrunde zu dritt als Vorführung. Oli folgt der Position des Supervisors.
+
+**Befund 1 — die Wurzeln nach Zahl der Fälle.** Die Feststellung durch zurechenbare Aussagen
+tragen fünf Fälle, sie ist gebaut. Das Mandat mit Rahmen brauchen vier (E, A, B, D), es fehlt
+(O105 Punkt 1). Die Vorlage als Standardsatz brauchen der Verein und D, dazu Katalog und Umlage
+in A, B und E; sie ist zum Teil gebaut. Den Verbund brauchen drei, er ist ungebaut und der
+schwerste Brocken. Die übrigen Wurzeln tragen ein oder zwei Fälle oder sind offen, ob MaR sie
+will.
+
+**Beschluss 1 — die Sparrunde zuerst, dann das Mandat (Oli).** Die Sparrunde braucht nur
+Gebautes, zeigt dem Menschen in der Mitte am schnellsten einen Nutzen (D697 Beschluss 4) und
+prüft nebenbei die Vorlage als Standardsatz an einem zweiten Fall neben `verein`. Sie wird
+erst als Vorlage `sparrunde` auf Papier gerechnet, dann im Knoten gebaut. Das Mandat mit
+Rahmen folgt als eigener Strang. Neue Posten O109 und O110; O108 ist erledigt.
+
+**Befund 2 — jeder zahlt jedem anderen genau einmal.** In einer Runde mit `n` Mitgliedern
+bekommt jedes Mitglied den Topf einmal, und in seinem Monat zahlen ihm alle anderen eine Rate.
+Also schuldet jedes Mitglied jedem anderen genau eine Rate, `n · (n − 1)` Zusagen, zu dritt
+sechs, und das gilt unabhängig von der Reihenfolge. Daraus folgt: alle Zusagen lassen sich am
+ersten Tag als `obligation@1` unterschreiben, bevor feststeht, wer wann dran ist. Weil eine
+Zusage nicht widerrufbar ist (`03 §3.3.3`), hat wer den Topf früh bekommt seine Schuld an die
+anderen schon unterschrieben, bevor er Geld sieht. Zahlt er später nicht, steht seine Zusage
+offen, während die der anderen an ihn quittiert sind; das sieht jeder, ohne dass jemand etwas
+behaupten muss. Eine Quittung tilgt ganz (`03 §3.3.2`), und das passt, weil jede Rate ganz
+gezahlt wird. Damit trifft MaR das Kernproblem aus Cotonou (`LANDKARTE §8`).
+
+**Befund 3 — was gebaut ist und was fehlt.** Der Knoten legt Zusagen und Quittungen über die
+Schnittstelle an (`api.py`), die Seite hat den Abschnitt „Beiträge“ mit „Quittieren …“
+(`app.js`), der Betrag hat einen Typ (D648). Neu wären eine Vorlage `sparrunde` mit Name, Rate
+und den Gründern als festen Mitgliedern; ein Klick „Ich mache mit“, der alle eigenen Zusagen
+unterschreibt; und eine Sicht je Monat, wer dran ist, wer gezahlt hat und wer offen ist. Wer
+neu dazukommt, kommt erst in die nächste Runde, sonst geht „jeder zahlt jedem einmal“ nicht
+auf.
+
+**Befund 4 — eine Lücke beim Abbruch.** Bricht eine Runde ab, stehen gegenseitige Zusagen offen,
+die niemand mehr bedienen soll. Ehrlich gelöst wird das durch Verrechnung: wer einander je eine
+Rate schuldet, quittiert die Zusage des anderen. Das gehört nicht in den ersten Schritt.
+
+**Beschluss 2 — die Reihenfolge ist fest (Oli).** Wer wann den Topf bekommt, legen die Gründer
+bei der Gründung gemeinsam fest, und jeder sieht es von Anfang an. Für die Zusagen spielt die
+Reihenfolge keine Rolle (Befund 2); die Vorlage kann deshalb später andere Wege anbieten. Eine
+Abstimmung je Monat, wer es am nötigsten hat, kommt als Wahl in der Vorlage später: in Cotonou
+hatten Gruppen mit dieser Regel weniger Probleme, als Zusammenhang, nicht als Ursache. Das Los
+kommt nicht in die erste Fassung: wer gründet, könnte am Namen drehen, bis es passt.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O108 erledigt, O109 und O110 neu).

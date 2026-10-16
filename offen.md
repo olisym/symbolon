@@ -537,19 +537,20 @@ Die Bibliothek zählt es seit `p63` (D694, D695). Offen: die Seite und `particip
 Vorlage `verein`.
 Wartet auf die Landkarte (O108), die sagt, was zuerst sichtbar werden soll (D696 Beschluss 4).
 
-### O108 Die Landkarte der Anwendungsfälle
+### O108 Die Landkarte der Anwendungsfälle — erledigt (D703)
 
-Ziel nach D696: prüfen, ob MaR abbildet, was Menschen heute schon tun, gegen Vorlagen je
-Anwendungsfall (Recht, Normen, gelebte Praxis), und die Mechanismen darunter auf gemeinsame
-Wurzeln zusammenziehen. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an
-derselben Wurzel haken. Seit D697 ein Filter mit vier Fragen (Vertrauen teuer, die ehrliche
-Seite wählt, wer fehlt, fällt auf, klein zu beginnen) und fünf Fälle: A Absicherung gegen
-Schaden, B gemeinsam sparen und leihen, C Markt zwischen Fremden, D Recht und Ordnung ohne
-Zentrale, E gemeinsames Eigentum mit Verwalter; der Verein als Massstab. Je Fall eine Zeile:
-trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. Seit D698 steht die Landkarte in
-`LANDKARTE §2`, mit Verein, E und A; je Mechanismus auch, ob MaR ihn übernehmen will. Die
-Wurzeln stehen in `LANDKARTE §6`. Seit D699 auch B (`LANDKARTE §8`): die Sparrunde trägt und ist
-ein Kandidat für die Vorführung. Seit D700 auch C (`LANDKARTE §9`), und wo Kryptografie eine
-Regel besser fasst als ein Gesetz, nimmt MaR das Werkzeug. Seit D702 auch D (`LANDKARTE §10`):
-MaR ersetzt den Apparat, nicht das Gesetz, und bindet nur durch Zustimmung. Offen: die Wurzeln
-zusammenziehen und entscheiden, was gebaut wird.
+Fünf Fälle und der Verein in `LANDKARTE.md`, die Wurzeln gesichtet; zuerst die Sparrunde (D703).
+
+### O109 Die Sparrunde zu dritt
+
+Eine Vorlage `sparrunde` neben `verein` (D703 Beschluss 1): Name, Rate, die Gründer als feste
+Mitglieder, die Reihenfolge bei der Gründung festgelegt (D703 Beschluss 2). Jedes Mitglied
+schuldet jedem anderen genau eine Rate und unterschreibt alle Zusagen am ersten Tag (D703
+Befund 2); offen sind die Vorlage auf Papier, ein Klick „Ich mache mit“, die Sicht je Monat
+und der Abbruch durch Verrechnung (D703 Befund 4). Danach die Vorführung auf drei Telefonen.
+
+### O110 Das Mandat mit Rahmen
+
+Die Wurzel, an der vier Fälle hängen: E, A, B und D (`LANDKARTE §6`, D703). Wer für die Gruppe
+handeln darf, in welchem Rahmen, sichtbar auch für Dritte, und wie abrufbar; dazu Vertretung
+nach aussen (O105 Punkt 1). Ein eigener Strang nach O109, zuerst auf Papier und nachgeschlagen.

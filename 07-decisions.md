@@ -31841,3 +31841,43 @@ der Gründung wählt man zwischen Verein und Sparrunde; für die Sparrunde Name,
 die Reihenfolge, die man mit „früher“ ändert.
 
 **Geändert.** `07-decisions.md`.
+
+### D707 — Abnahme `p65`: die Sparrunde auf der Seite, eine Runde zu dritt bis zum Ende
+
+**Lauf.** Branch `p65-sparrunde-seite`, Commit `fe39d9a`, Basis `39aacca` (D706). Der Auftrag
+prüfte seine Basis über den Hash des Registers (D631); die Basis stimmt. Acht Dateien, wie
+verlangt.
+
+**Befund 1 — der Diff trägt den Auftrag.** Gelesen im Spiegel, ganz. Im Knoten `ROUND_JOIN` im
+Block der Teilnehmenden, nur ohne aufgenommenes Gerät, und `sparrunde` in
+`_TASK_DETAIL_FIELD`. In `anzeige.js` die sechs Funktionen und zwei Erweiterungen mit dem
+Wortlaut der Fälle; `tafelSaetze` ist anders gebaut als im Prototyp, mit demselben Ergebnis. In
+`app.js` die Gründung mit Vorlage und Reihenfolge, „Ich mache mit …“ mit Ende der Reihe beim
+ersten nicht erfolgreichen Schritt, der Abschnitt „Die Runde“ über `abschnittOffen`, `handeln`
+gibt den Ausgang zurück. Die Gründung der Sparrunde zeigt zusätzlich den Satz „Diese Regeln
+stehen fest. Ändern könnt ihr sie später wie die Satzung.“ wie die des Vereins; der Auftrag
+sagte „die Abstimmungen wie beim Verein“, das deckt ihn. Die Testdateien sind gleich der
+Lieferung; `selbsttest.js` weicht nur im Kopfkommentar ab, den Abschnitt 4 des Auftrags verlangt.
+
+**Befund 2 — Abnahme im frischen Arbeitsbaum.** Auf `fe39d9a`, sauber: Ruff ohne Befund, die
+vier Markdown-Prüfungen grün, der Selbsttest 444 von 444, die ganze Reihe grün mit 1768 Tests.
+Die Rücknahmeproben des Berichts nennen dieselben roten Fälle wie die des Prototyps.
+
+**Befund 3 — die Runde bis zum Ende, auf dem Branch.** Der Durchlauf zu dritt in Playwright
+gegen den Knoten des Branchs, ohne Fehler der Seite: gründen, bestätigen, mitmachen, Monat 1,
+Monat 2 und Monat 3 quittiert; danach „Die Runde ist fertig. Jeder hatte den Topf einmal.“ und
+bei Chris keine Aufgabe; Anna und Bruno sind am Ende nicht fotografiert. Damit ist der erste
+Punkt aus D706 Befund 2 geprüft. Offen bleiben der Abbruch mitten in „Ich mache mit …“, ein Gerät
+und die Verrechnung.
+
+**Befund 4 — was das Bild zeigt.** Quittiert ein Empfänger eine Zusage, rückt der Monat vor,
+ob Geld geflossen ist oder nicht; das Protokoll trägt die Aussage des Empfängers, nicht die
+Zahlung (`03 §3.1`). Im Durchlauf hat Bruno beide Zusagen quittiert, auch die von Anna, die im
+Bild davor fehlte.
+
+**Beschluss — angenommen.** `p65-sparrunde-seite` wird nach `main` vorgespult. Die Sparrunde ist
+damit bereit für einen Durchlauf mit Oli in drei Tabs (D490). Die Vorführung auf drei Telefonen
+braucht dazu den Weg zum Knoten vom Telefon (D657); offen in O109 bleiben die Verrechnung beim
+Abbruch und die Gestaltung.
+
+**Geändert.** `07-decisions.md`, `offen.md` (O109).

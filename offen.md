@@ -548,6 +548,9 @@ Mitglieder, die Reihenfolge bei der Gründung festgelegt (D703 Beschluss 2). Jed
 schuldet jedem anderen genau eine Rate und unterschreibt alle Zusagen am ersten Tag (D703
 Befund 2); offen sind die Vorlage auf Papier, ein Klick „Ich mache mit“, die Sicht je Monat
 und der Abbruch durch Verrechnung (D703 Befund 4). Danach die Vorführung auf drei Telefonen.
+Gebaut: der Knoten in `p64` (D705), die Seite in `p65` (D707); eine Runde zu dritt läuft auf der
+Seite bis zum Ende. Offen: die Verrechnung beim Abbruch, die Gestaltung (D706 Beschluss 1) und
+der Weg zum Knoten vom Telefon (D657).
 
 ### O110 Das Mandat mit Rahmen
 

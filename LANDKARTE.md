@@ -4,7 +4,7 @@ Die Probe aus D696: bildet MaR ab, was Menschen heute schon tun, weil es ihr Zus
 reibungsloser macht? Je Fall wird eine Vorlage nachgeschlagen (Recht, Normen, gelebte Praxis),
 die Mechanismen daraus werden gegen die Bausteine gelegt (`VISION §3`), und am Ende steht eine
 Zeile. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken
-(D696 Beschluss 2 und 3). Stand: Verein, E, A, B und C (D700).
+(D696 Beschluss 2 und 3). Stand: Verein, E, A, B, C und D (D702).
 
 ## 1. Methode
 
@@ -51,7 +51,12 @@ Was aus dem Gedächtnis kommt, sagt das. Die Gesetze liegen im Projektspeicher.
   Kauf zu zweit. Stärkste Stelle: Angebot, Annahme, Versand und Empfang als unterschriebene
   Aussagen, die kollidieren können. Grösste Lücken: Zug um Zug, ohne dass einer vorleistet; der
   Ruf unter Fremden ohne gemeinsamen Pfad (`LANDKARTE §9`).
-- **D.** Offen (`LANDKARTE §7`).
+- **D. Recht und Ordnung ohne Zentrale.** Trägt mit Lücke innerhalb einer Gruppe; trägt
+  nicht gegen Aussenstehende und für Zwang, dort bleibt der Staat. Filter: (1) ja; (2) ja
+  für Opfer und Zeugen; (3) nur innerhalb einer Gruppe; (4) ja, Haus oder Nachbarschaft.
+  Stärkste Stelle: der von beiden unterschriebene Vergleich und die sichtbare
+  Wiedergutmachung. Grösste Lücken: das Mandat, die Schlichtung auf der Seite, der Weg
+  eines Spruchs in eine andere Gruppe (`LANDKARTE §10`).
 
 ## 3. Verein
 
@@ -170,7 +175,7 @@ Schaden.
 Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschluss 2).
 
 - **Feststellung eines Ereignisses durch zurechenbare Aussagen.** A (Schaden), E (Begehung),
-  C (Lieferung, Mangel), Verein (Doppelstimme). Der Kern von MaR; trägt.
+  C (Lieferung, Mangel), D (Tat, Zeugen), Verein (Doppelstimme). Der Kern von MaR; trägt.
 - **Mandat mit Rahmen.** E (Verwalter), A (Verwahrer), B (Vorstand, Kasse), D (Ausführung).
   Fehlt (O105). In WEG und Genossenschaft wirkt eine Beschränkung des Vertreters nach aussen
   nicht (WEG 9b Abs. 1, GenG 27 Abs. 2); in MaR wäre sie für jeden sichtbar.
@@ -185,13 +190,16 @@ Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschl
   Meinungen, gewichtet über das eigene Netz (`VISION §3`); ungemessen.
 - **Prüfung als Dienst.** E (Beirat), A (Gutachter), B (Prüfungsverband). Rechnen kann jeder
   Knoten; ob die Kasse wirklich hält, was sie sagt, prüfen Menschen.
-- **Verbund kleiner Gruppen.** E (Ober- und Unterverband), A (Rückversicherung). Ungebaut.
+- **Verbund kleiner Gruppen.** E (Ober- und Unterverband), A (Rückversicherung), D (ein
+  Spruch reist in eine andere Gruppe). Ungebaut.
+- **Die Vorlage als Standardsatz.** Verein, D; dazu Katalog und Umlage in A, B und E. Zum Teil
+  gebaut (D645, D648); die Bindung an einen Hash fehlt (D702 Beschluss 3).
 - **Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige.** A; verwandt mit der geheimen
   Wahl (O106). Fehlt.
 
 ## 7. Offen
 
-- **D. Recht und Ordnung ohne Zentrale.** Das Mandat aus E ist sein Ausführungsteil.
+- **D** steht in `LANDKARTE §10` (D702).
 - **Janich.** Das Buch liegt nicht digital vor; seine Beispiele werden selbst erarbeitet (D698).
 
 ## 8. B — Gemeinsam sparen und leihen
@@ -314,3 +322,77 @@ Weingast 1990). Edwards und Ogilvie finden dort keine privaten Richter, sondern 
 Gerichte der Grafen, Messwächter mit Berufung und städtische und kirchliche Gerichte; Konsuln
 der Händler kamen spät und schlichteten nur innerhalb ihrer Gruppe. Die Diamantenhändler und
 Shasta County aus D332 sind davon nicht berührt; nicht nachgeschlagen.
+
+## 10. D — Recht und Ordnung ohne Zentrale
+
+**Olis Haltung (D702 Beschluss 1 und 2).** Eine Gruppe soll tun dürfen, worauf sie sich
+geeinigt hat. Anarchie ist die Abwesenheit eines Herrschers, nicht die von Regeln; man muss
+wissen, was geschieht, wenn sich jemand nicht an eine Regel hält. Oli ist kein Feind des
+Staates; abschaffen will er Ineffizienz und Lüge, so weit es geht. Eine Regel bindet, wer ihr
+zugestimmt hat. Für alle anderen bleibt das Recht des Staates; MaR steht neben ihm.
+
+**Was das für den Fall heisst.** Die Vorlage ist nicht ein Gesetz, sondern der Apparat: der Weg
+von der Tat zur Folge, also Anzeige, Feststellung, Schlichtung oder Verfahren, Folge und
+Vollstreckung. Je Schritt fragt die Landkarte, ob MaR ihn billiger oder ehrlicher macht.
+
+**Der Standardsatz (Oli, D702 Beschluss 3).** Möglich soll sein, dass Gemeinschaften einen Satz
+an Regeln immer mitnehmen, weil er bei allen funktioniert, wie einen Standardmietvertrag;
+festgelegt wird er nicht. Die Form ist die Vorlage (D645, D648). Heute nennt die Satzung sie
+als Name mit Fassung, und den Text hält der Knoten; an einen Hash gebunden sähe jeder, welchen
+Text eine Gruppe übernommen hat.
+
+**Vorlagen.** Das Schiedsamtsgesetz NRW in der Fassung vom 1.10.2024 und eine Evaluation der
+Streitschlichtung in NRW von 1999 bis 2003 (Röhl und Weiß 2005); StGB 46a, StPO 127 Abs. 1 und
+BGB 229 über lxgesetze.de; die Aufklärung von Fahrraddiebstählen nach der PKS 2024 in einem
+Bericht des Bike-Magazins; die Diamantenhändler im Volltext (Bernstein 1992); Shasta County
+nach einer Besprechung von Ellicksons Buch (Reason 1992).
+
+**Mechanismen.**
+
+- **Ein Satz an Regeln, den viele Gruppen teilen.** MaR: die Vorlage. Trägt mit Lücke, die
+  Bindung an einen Hash fehlt. Übernehmen: ja, als Möglichkeit.
+- **Jeder weiss vorher, was beim Bruch folgt.** MaR: die Folgen stehen in der Satzung. Trägt.
+  Übernehmen: ja.
+- **Anzeige und Feststellung unter Bekannten.** MaR: Aussagen von Opfer und Zeugen, die
+  kollidieren können. Trägt. Übernehmen: ja.
+- **Ermittlung gegen Unbekannt.** 2024 wurden bundesweit rund 246.600 Fahrraddiebstähle
+  erfasst, weniger als 10 % aufgeklärt. MaR findet niemanden. Trägt nicht. Übernehmen: nein,
+  das bleibt beim Staat.
+- **Schlichtung vor dem Gericht durch gewählte Laien.** Der Gemeinderat wählt die Schiedsperson
+  für fünf Jahre (SchAG NRW 3); sie schlichtet bürgerliche Streitigkeiten und ist
+  Vergleichsbehörde vor der Privatklage (SchAG NRW 13, SchAG NRW 34); Gebühr 20 bis 30 EUR
+  (SchAG NRW 45). Wenn beide erschienen, einigten sich 54 bis 66 %, in vier bis sechs Wochen.
+  MaR: Schiedsleute in der Satzung, `verdict@1`. Trägt mit Lücke, auf der Seite nicht
+  erreichbar (O105 Punkt 6). Übernehmen: ja.
+- **Vergleich, von beiden unterschrieben.** Aus ihm wird vollstreckt (SchAG NRW 33); rund drei
+  Viertel wurden freiwillig erfüllt. MaR: die Zusage beider als `obligation@1`, nicht
+  abstreitbar. Trägt. Übernehmen: ja.
+- **Wiedergutmachung statt Strafe.** Wer sich um Ausgleich mit dem Verletzten bemüht oder
+  erheblich wiedergutmacht, bekommt eine mildere Strafe, bis zu einem Jahr auch keine
+  (StGB 46a). In Shasta County: sich entschuldigen, das Tier holen, beim Schaden selbst
+  mithelfen. MaR: Schuld und Quittung, die Erfüllung ist sichtbar. Trägt. Übernehmen: ja.
+- **Durchsetzung über den Ruf.** An der Diamantenbörse wird ein unerfüllter Spruch nach zehn
+  Werktagen mit Foto ausgehängt und an alle Börsen des Weltverbands gemeldet, die ihn
+  vollstrecken; eine Bestätigung vor Gericht gibt es, sie ist selten nötig. Vorher legt eine
+  Schlichtung etwa 85 % der Fälle bei. MaR: wer ein Urteil missachtet, verliert Bürgen (D333);
+  in eine andere Gruppe reist ein Spruch nur über einen Verbund (`04 §7`). Trägt mit Lücke.
+  Übernehmen: ja.
+- **Ausschluss gegen den eigenen Willen.** MaR: gibt es nicht, die Antwort ist Exit, und Bürgen
+  gehen (D236). Trägt mit Lücke. Übernehmen: bewusst so.
+- **Festnahme, Selbsthilfe, Wache.** Festnehmen darf jeder auf frischer Tat bei Fluchtverdacht
+  oder unklarer Identität (StPO 127 Abs. 1), Selbsthilfe ist erlaubt, wenn obrigkeitliche Hilfe
+  nicht rechtzeitig zu haben ist (BGB 229). Eine Gruppe darf physisch nicht mehr als jedes
+  Mitglied. MaR: das Protokoll tut nie Physisches; das Mandat aus `05 §7` macht sichtbar, wer
+  handelt. Trägt nicht. Übernehmen: nur, was jeder darf.
+- **Wer die Handelnden kontrolliert.** MaR: das Mandat mit Rahmen, abrufbar, wie der Verwalter
+  in E. Fehlt (O105). Übernehmen: ja.
+- **Berufung.** An der Börse nur innerhalb des Clubs. MaR: über ein Panel der Föderation, nur
+  wenn die Satzung es aufnimmt (`04 §7`). Trägt mit Lücke, ungebaut. Übernehmen: ja.
+- **Zwangsvollstreckung gegen Unwillige.** Trägt nicht. Übernehmen: nein; die Schuld bleibt
+  sichtbar.
+
+**Befund: Bernstein hält, mit Einschränkungen** (D702 Befund 4). Anders als beim Law Merchant
+(`LANDKARTE §9`) trägt die Durchsetzung über den Ruf bei den Diamantenhändlern. Aber sie hat
+einen Rückhalt im Gericht, sie setzt räumliche Nähe, eine homogene Gruppe und wiederholten
+Handel voraus, und der Spruch reist über einen Verbund der Börsen. Neulinge kommen nur mit
+Bürgen und Probezeit hinein; das ist `vouch@1`.

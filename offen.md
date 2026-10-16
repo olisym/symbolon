@@ -550,5 +550,6 @@ trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. Seit D698 steht
 `LANDKARTE §2`, mit Verein, E und A; je Mechanismus auch, ob MaR ihn übernehmen will. Die
 Wurzeln stehen in `LANDKARTE §6`. Seit D699 auch B (`LANDKARTE §8`): die Sparrunde trägt und ist
 ein Kandidat für die Vorführung. Seit D700 auch C (`LANDKARTE §9`), und wo Kryptografie eine
-Regel besser fasst als ein Gesetz, nimmt MaR das Werkzeug. Offen ist D; Janichs Beispiele werden
-selbst erarbeitet.
+Regel besser fasst als ein Gesetz, nimmt MaR das Werkzeug. Seit D702 auch D (`LANDKARTE §10`):
+MaR ersetzt den Apparat, nicht das Gesetz, und bindet nur durch Zustimmung. Offen: die Wurzeln
+zusammenziehen und entscheiden, was gebaut wird.

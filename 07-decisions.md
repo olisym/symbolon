@@ -31562,3 +31562,88 @@ die Breite aus D696 Beschluss 3 hielt.
 
 **Geändert.** `LANDKARTE.md`, `07-decisions.md`, `sitzungsstart-00e3.md` (neu),
 `sitzungsstart-00e2.md` nach `archiv/`.
+
+### D702 — Fall D auf der Landkarte: der Apparat, nicht das Gesetz; Zustimmung; Standardsatz
+
+**Anlass.** `00e3` beginnt mit D, Recht und Ordnung ohne Zentrale (D701 Beschluss 2). Der
+Supervisor fragt Oli, was nach einem Diebstahl im Viertel geschehen soll und wer es tut, und
+schlägt danach das Schiedsamt in NRW, den Sühneversuch, den Täter-Opfer-Ausgleich, die Rechte
+jedes Einzelnen, die Diamantenhändler und Shasta County nach (`LANDKARTE §10`).
+
+**Befund 1 — eine Haltung Olis stand seit dem 11.7. nicht im Register.** Erst die Suche in
+früheren Gesprächen fand sie: auch die Exekutive heute ist Gewaltausübung, und das muss man
+nicht negativ sehen; es geht vor allem um die Abwehr von Gewalt, die wegen der Natur des
+Menschen nötig ist. Die Antwort des Supervisors damals, Gewalt sei letzte Instanz und nicht
+Grundlage, und Kryptografie senke die Kosten, dass viele Schwache sich vorher gemeinsam binden,
+ist der Ursprung von `05 §7`. Das bestätigt D698 Befund 1 zum zweiten Mal.
+
+**Beschluss 1 — Olis Haltung (Oli).** Eine Gruppe soll tun dürfen, worauf sie sich geeinigt
+hat. Anarchie ist die Abwesenheit eines Herrschers, nicht die von Regeln; Regeln sind gut, und
+man muss wissen, was geschieht, wenn sich jemand nicht an sie hält. Oli ist kein Feind des
+Staates und will ihn nicht abschaffen; abschaffen will er Ineffizienz und Lüge, so weit es
+geht. Wie er die heutigen Gesetze findet, ist dafür nicht ausschlaggebend. Menschen sollen sich
+einigen können, worauf sie wollen; das ist die Bedeutung eines freien Markts.
+
+**Beschluss 2 — Bindung nur durch Zustimmung (Oli).** Einem Vertrag muss man zugestimmt haben,
+sonst ist seine Gültigkeit schwierig. Eine Regel in MaR bindet, wer ihr zugestimmt hat
+(`accept-rules@1`); für alle anderen bleibt das Recht des Staates. MaR steht damit neben dem
+Staat, nicht an seiner Stelle. Das ist die Grenze aus E (D697 Befund 3), von Olis Seite
+bestätigt.
+
+**Beschluss 3 — ein Standardsatz an Regeln, möglich und nicht festgelegt (Oli).** Es soll
+möglich sein, dass es einmal einen Satz an Regeln gibt, den Gemeinschaften immer mitnehmen,
+weil er bei allen funktioniert, wie einen Standardmietvertrag. „Du sollst nicht stehlen“ war
+ein Beispiel, kein Vorschlag; wer sich auf was einigt, bleibt offen. Die Form gibt es schon:
+die Vorlage (D645, D648). Heute nennt eine Satzung sie als Name mit Fassung (`verein@…`), und
+den Text hält der Knoten. An einen Hash gebunden sähe jeder, welchen Text eine Gruppe
+übernommen hat, und viele Gruppen könnten denselben Satz teilen, ohne einen Bund zu gründen.
+Ob und wann das gebaut wird, entscheidet das Zusammenziehen der Wurzeln.
+
+**Befund 2 — D ersetzt den Apparat, nicht das Gesetz.** Mit Beschluss 1 und 2 ist die Vorlage
+für D der Weg von der Tat zur Folge: Anzeige, Feststellung, Schlichtung oder Verfahren, Folge,
+Vollstreckung. Je Schritt fragt die Landkarte, ob MaR ihn billiger oder ehrlicher macht. Wo der
+Apparat schwach ist, zeigt eine Zahl: 2024 wurden bundesweit rund 246.600 Fahrraddiebstähle
+erfasst und weniger als 10 % aufgeklärt (PKS, nach einem Bericht des Bike-Magazins). Gegen
+Unbekannt hilft MaR nicht; unter Bekannten macht es Aussagen zurechenbar.
+
+**Befund 3 — das Schiedsamt ist das nächste Muster.** Ehrenamtliche Schiedspersonen, vom
+Gemeinderat für fünf Jahre gewählt, schlichten bürgerliche Streitigkeiten und sind
+Vergleichsbehörde vor der Privatklage; der unterschriebene Vergleich ist vollstreckbar, die
+Gebühr 20 bis 30 EUR (SchAG NRW 3, SchAG NRW 13, SchAG NRW 33, SchAG NRW 34, SchAG NRW 45, in
+der Fassung vom 1.10.2024). In NRW einigten sich von 1999 bis 2003 54 bis 66 % der Parteien, wenn
+beide erschienen; rund drei Viertel der Vergleiche wurden freiwillig erfüllt; als Pflicht vor
+Geldklagen wurde das Verfahren über das Mahnverfahren umgangen und entlastete die Gerichte um
+weniger als 2 % (Röhl und Weiß 2005). Der Weg ist billig und wirkt bei Nachbarn; was ihm fehlt,
+ist Reichweite, nicht Form.
+
+**Befund 4 — Bernstein hält die Begründung von D332, mit zwei Einschränkungen.** Im Volltext
+gelesen: die Händler unterwerfen sich vorher dem Schiedsgericht ihrer Börse, eine Schlichtung
+legt etwa 85 % der Fälle bei, ein unerfüllter Spruch wird mit Foto ausgehängt und von allen
+Börsen des Weltverbands vollstreckt. Der Ruf ist das eigentliche Mittel. Aber es gibt einen
+Rückhalt, die Bestätigung vor staatlichem Gericht, selten nötig, und ein Gericht der
+Gemeinde; und die Voraussetzungen sind räumliche Nähe, eine homogene Gruppe und wiederholter
+Handel. Ein Spruch reist über einen Verbund, nicht von selbst. Shasta County ist nur nach einer
+Besprechung gelesen: eine Norm unter Nachbarn, Entschuldigung und Wiedergutmachung, Klatsch
+und Selbsthilfe, kaum Gerichte, in einer engen Gemeinschaft. Für `VISION §3` sind die
+Diamantenhändler das tragende Beispiel, nicht der Law Merchant (D700 Befund 2).
+
+**Befund 5 — physisch darf eine Gruppe nicht mehr als jedes Mitglied.** Festnahme auf frischer
+Tat darf jeder bei Fluchtverdacht oder unklarer Identität (StPO 127 Abs. 1); Selbsthilfe nur,
+wenn obrigkeitliche Hilfe nicht rechtzeitig zu haben ist (BGB 229). Beides über lxgesetze.de
+gelesen. Das Mandat aus `05 §7` trägt deshalb nur, was jeder ohnehin darf, und macht sichtbar,
+wer handelt; die Frage, wer die Handelnden kontrolliert, ist das Mandat mit Rahmen aus E.
+
+**Beschluss 4 — Zeile D.** Trägt mit Lücke innerhalb einer Gruppe: Regel, Feststellung,
+Schlichtung, Wiedergutmachung, Ruf. Trägt nicht gegen Aussenstehende und für Zwang; dort bleibt
+der Staat, und nach Beschluss 1 und 2 ist das kein Mangel. Filter: (1) ja; (2) ja für Opfer und
+Zeugen; (3) nur innerhalb einer Gruppe; (4) ja, Haus oder Nachbarschaft. Stärkste Stelle: der
+von beiden unterschriebene Vergleich und die sichtbare Wiedergutmachung. Grösste Lücken: das
+Mandat, die Schlichtung auf der Seite (O105 Punkt 6), der Weg eines Spruchs in eine andere
+Gruppe (`04 §7`).
+
+**Beschluss 5 — Wurzeln fortgeschrieben** (`LANDKARTE §6`). Die Feststellung tragen jetzt fünf
+Fälle, das Mandat bleibt bei vier. Neu: die Vorlage als Standardsatz (Verein, D; dazu Katalog
+und Umlage in A, B und E), zum Teil gebaut. Der Verbund kleiner Gruppen bekommt D dazu: ein
+Spruch reist nur über ihn.
+
+**Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).

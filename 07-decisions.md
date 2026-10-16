@@ -31375,3 +31375,70 @@ zuerst im Chat und kommt als Datei ins Repositorium, wenn die Zeilen für den Ve
 stehen.
 
 **Geändert.** `07-decisions.md`, `offen.md` (O108).
+
+### D698 — Die Landkarte angelegt: Verein, E und A; Olis Bild der Versicherung; die Wurzeln
+
+**Anlass.** Nach D697 rechnet der Supervisor E und A auf dem Papier. Oli legt das
+Wohnungseigentumsgesetz, das Wasserverbandsgesetz und das Genossenschaftsgesetz in den
+Projektspeicher; Janichs Buch liegt nicht digital vor. Zu A widerspricht Oli: das Muster des
+Broodfonds hatte er schon einmal verworfen.
+
+**Befund 1 — eine Haltung Olis stand nicht im Register.** Am 24.9. verwarf Oli im Gespräch das
+Muster des Broodfonds, bei dem jeder auf ein eigenes Konto spart und davon schenkt. Die Haltung
+kam nie in einen Eintrag; D467 und `VISION §3` nennen den Broodfonds weiter als Vorbild, und der
+Supervisor legte ihn in `00e2` ein zweites Mal vor. Kandidat für eine Prüfregel, Schwester von
+D640 Beschluss 4: eine Haltung Olis aus einem Gespräch kommt ins Register, wenn sie fällt, und
+wer einen Gegenstand wieder aufgreift, sucht vorher in früheren Gesprächen.
+
+**Beschluss 1 — Olis Bild der Versicherung (Oli).** Ein fester Betrag wird monatlich gezahlt und
+ist dann weg. Wer wann was in Anspruch nimmt, sieht man nicht; sonst beginnt man zu urteilen, ob
+eine Hilfe nötig war. Wer Hilfe braucht, ist versichert wie heute, mit einem Katalog von
+Leistungen; ob der Fall gedeckt ist, klärt eine Schiedsstelle. Am Ende einer Periode wird
+zurückgezahlt, was zu viel war, wie bei einem Sparvertrag, dessen Stand man nicht kennt; man
+weiss nur, dass genug da ist. Grösse entsteht, wenn viele sich auf gleiche Regeln einigen und
+föderieren. Es ist ein System von Diensten, die ineinandergreifen. Das Muster des Broodfonds ist
+verworfen; `VISION §3` nennt es noch und wird angepasst, wenn A tiefer geht.
+
+**Beschluss 2 — die Vorlage ist Prüfliste, nicht Bauplan (Oli).** MaR baut ein Gesetz nicht
+nach; es sieht sich den vorhandenen Rahmen an und fragt, welche Mechanismen nötig sind. Ob einer
+übernommen wird, entscheidet, ob er den Grundsätzen von MaR entspricht, vor allem Macht zu
+verteilen. Das schärft D645 Beschluss 2. Die Landkarte nennt deshalb je Mechanismus neben dem
+Urteil, ob MaR ihn übernehmen will.
+
+**Befund 2 — Schweigen als Zustimmung (WVG 15 Abs. 3).** Bei der Gründung eines Wasserverbands
+zählt, wer geladen ist, nicht teilnimmt und nicht vorher widerspricht, als Ja. Für O107 bewusst
+nicht gewählt (Oli): nur die Enthaltung ist neutral, ein stilles Ja lädt zum Missbrauch ein.
+
+**Befund 3 — woher eine Ersparnis käme.** Nachgeschlagen in einem Bericht von cash-online und
+einer Meldung von autohaus.de: die Verwaltungskosten lagen 2024 bei 3,9 % der Leistungen in der
+gesetzlichen und rund 3 % in der privaten Krankenversicherung, mit Abschluss und Vertrieb nach
+Angabe des GKV-Spitzenverbands rund 11 %; in der Kfz-Versicherung deckten die Einnahmen von 2021
+bis 2024 Schäden und Kosten nicht, für 2025 erwartet der Verband 97 %. Der Topf wird im Ganzen
+fast vollständig gebraucht. Eine Ersparnis kommt aus Verwaltung, Vertrieb, Gewinn und weniger
+Betrug, nicht aus den Schäden; eine Rückzahlung gibt es nur in Jahren mit wenig Schaden. Olis
+Einschätzung, dass Janich zum Teil recht hat, bleibt damit stehen; der Teil ist begrenzt.
+
+**Befund 4 — Vertraulichkeit gegen Kollision.** Olis Bild verlangt, dass die Mitglieder nicht
+sehen, wer was bekommt. MaR macht Erklärtes für den Scope sichtbar (`VISION §4`), und eine
+Aussage, die niemand sieht, kann mit keiner kollidieren. Eine Auflösung als Vermutung: die
+Meldung ist sichtbar für Schiedsstelle, Gutachter und Verwahrer, die Gruppe sieht die
+Abrechnung im Ganzen. Das ist eine Wurzel, verwandt mit der geheimen Wahl (O106), und ungebaut.
+
+**Beschluss 3 — `LANDKARTE.md`.** Die Landkarte steht als Datei im Repositorium (D697
+Beschluss 5): Methode und Filter (`LANDKARTE §1`), je Fall eine Zeile (`LANDKARTE §2`), der
+Verein als Massstab, E und A mit ihren Mechanismen (`LANDKARTE §4`, `LANDKARTE §5`) und die
+Wurzeln (`LANDKARTE §6`). Die Zeilen: der Verein trägt; E trägt mit Lücke, mit der Grenze beim
+Zwang zur Mitgliedschaft; A trägt mit Lücke für kleine Schäden und nicht für grosse und für
+Pflichtversicherungen. Beim Lesen von WEG und WVG im Wortlaut korrigiert gegenüber der ersten
+Rechnung im Chat: das Stimmgewicht nach Vorteil im Verband, der fehlende freie Austritt in WEG
+und Verband und die nach aussen unbeschränkte Vertretung des Verwalters (WEG 9b Abs. 1).
+
+**Beschluss 4 — die Wurzeln, als Vermutung.** Feststellung eines Ereignisses durch zurechenbare
+Aussagen (trägt), Mandat mit Rahmen, Zusage für einen künftigen Fall, Umlage nach Schlüssel als
+Regel der Vorlage, Verbund kleiner Gruppen, Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch
+wenige. Das Mandat haken drei Fälle an: E, A und D.
+
+**Beschluss 5 — weiter mit B.** Das Genossenschaftsgesetz bleibt im Projektspeicher; B braucht
+es. Die Beispiele aus Janichs Buch werden selbst erarbeitet.
+
+**Geändert.** `LANDKARTE.md` (neu), `07-decisions.md`, `offen.md` (O108).

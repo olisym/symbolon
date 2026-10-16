@@ -546,5 +546,6 @@ derselben Wurzel haken. Seit D697 ein Filter mit vier Fragen (Vertrauen teuer, d
 Seite wählt, wer fehlt, fällt auf, klein zu beginnen) und fünf Fälle: A Absicherung gegen
 Schaden, B gemeinsam sparen und leihen, C Markt zwischen Fremden, D Recht und Ordnung ohne
 Zentrale, E gemeinsames Eigentum mit Verwalter; der Verein als Massstab. Je Fall eine Zeile:
-trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. E zuerst, dann A mit einer
-Rechercherunde zu Janich (D697 Beschluss 3 und 5).
+trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. Seit D698 steht die Landkarte in
+`LANDKARTE §2`, mit Verein, E und A; je Mechanismus auch, ob MaR ihn übernehmen will. Die
+Wurzeln stehen in `LANDKARTE §6`. Weiter mit B; Janichs Beispiele werden selbst erarbeitet.

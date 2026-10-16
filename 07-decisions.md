@@ -31442,3 +31442,44 @@ wenige. Das Mandat haken drei Fälle an: E, A und D.
 es. Die Beispiele aus Janichs Buch werden selbst erarbeitet.
 
 **Geändert.** `LANDKARTE.md` (neu), `07-decisions.md`, `offen.md` (O108).
+
+### D699 — Fall B auf der Landkarte: die Sparrunde trägt, das Mandat haken vier Fälle an
+
+**Anlass.** Nach D698 rechnet der Supervisor B, gemeinsam sparen und leihen, auf dem Papier. Das
+Genossenschaftsgesetz liegt im Projektspeicher und ist im Wortlaut gelesen; dazu eine Studie zu
+rotierenden Sparrunden in Cotonou, ein Feldversuch zum Gruppenkredit auf den Philippinen und das
+Kreditwesengesetz nach einer Kanzleiseite (`LANDKARTE §8`).
+
+**Befund 1 — die Sparrunde trägt ganz.** Jeder zahlt je Treffen in einen Topf, den einer
+bekommt; der Topf wechselt jedes Mal die Hand, niemand verwahrt Geld über die Zeit (D467). Das
+Kernproblem ist der Ausfall dessen, der den Topf schon hatte; in Cotonou hatte etwa jede dritte
+von 97 Gruppen solche Probleme. In MaR schuldet, wer den Topf hatte, die übrigen Raten sichtbar,
+und wer für ihn bürgte, verliert. Gebraucht werden nur gebaute Bausteine: Satzung, Bürgschaft,
+Schuld und Quittung, Beschluss.
+
+**Befund 2 — Sichtbarkeit statt Haftung ist belegt.** Im Feldversuch von Giné und Karlan zahlten
+Kreditnehmer unter Einzelhaftung so zuverlässig zurück wie unter Gruppenhaftung, und mehr
+Zentren hielten. Das stützt den Weg von MaR, Ausfall sichtbar zu machen, statt die Gruppe
+haften zu lassen.
+
+**Befund 3 — die Genossenschaft wiederholt Muster aus E.** Der Vorstand vertritt, und eine
+Beschränkung wirkt nach aussen nicht (GenG 27 Abs. 2, wie WEG 9b Abs. 1). Mehrstimmrechte bis
+drei für besonders Fördernde (GenG 43 Abs. 3) stehen neben dem Stimmgewicht nach Vorteil mit
+Obergrenze im Wasserverband. Die Pflichtprüfung durch einen Verband (GenG 53, GenG 54) steht
+neben Beirat und Gutachter. Der Nachschuss nach Köpfen (GenG 105) ist eine Zusage für einen
+künftigen Fall wie die Leistung in A.
+
+**Beschluss 1 — Zeile B.** Trägt mit Lücke; die Sparrunde trägt ganz. Filter: alle vier ja. Die
+Lücken: das Mandat für Vorstand und Kasse, der Nachschuss als künftige Zusage, und im Grossen das
+Recht für Einlagen und Kredite (KWG 32); wo eine kleine Runde ohne Gewinnabsicht unter dieser
+Grenze bleibt, ist nicht nachgeschlagen.
+
+**Beschluss 2 — die Wurzeln fortgeschrieben** (`LANDKARTE §6`). Das Mandat mit Rahmen haken jetzt
+vier Fälle an: E, A, B und D. Neu: Stimmgewicht mit Obergrenze (E, B), offen, ob MaR es will;
+Prüfung als Dienst (E, A, B).
+
+**Beschluss 3 — ein Kandidat für die Vorführung.** Die Sparrunde zu dritt besteht den Filter am
+deutlichsten und braucht keinen neuen Baustein. Sie ist ein Kandidat für die Vorführung auf drei
+Telefonen (D696 Beschluss 2); entschieden wird, wenn C und D gerechnet sind.
+
+**Geändert.** `LANDKARTE.md`, `07-decisions.md`, `offen.md` (O108).

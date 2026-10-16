@@ -4,7 +4,7 @@ Die Probe aus D696: bildet MaR ab, was Menschen heute schon tun, weil es ihr Zus
 reibungsloser macht? Je Fall wird eine Vorlage nachgeschlagen (Recht, Normen, gelebte Praxis),
 die Mechanismen daraus werden gegen die Bausteine gelegt (`VISION §3`), und am Ende steht eine
 Zeile. Breite vor Tiefe, nur auf Papier; Code erst, wenn mehrere Fälle an derselben Wurzel haken
-(D696 Beschluss 2 und 3). Stand: Verein, E und A (D698).
+(D696 Beschluss 2 und 3). Stand: Verein, E, A und B (D699).
 
 ## 1. Methode
 
@@ -38,7 +38,11 @@ Was aus dem Gedächtnis kommt, sagt das. Die Gesetze liegen im Projektspeicher.
   für grosse Schäden und Pflichtversicherungen. Filter: (1) ja; (2) ja; (3) ja; (4) ja, für
   kleine Schäden. Stärkste Stelle: die Schadensmeldung als zurechenbare Aussage. Grösste Lücken:
   die Zusage für einen künftigen Fall, die Vertraulichkeit, der Verbund (`LANDKARTE §5`).
-- **B, C, D.** Offen (`LANDKARTE §7`).
+- **B. Gemeinsam sparen und leihen.** Trägt mit Lücke; die Sparrunde trägt ganz. Filter: (1) ja;
+  (2) ja; (3) ja; (4) ja, schon zu dritt. Stärkste Stelle: wer den Topf erhalten hat, schuldet
+  sichtbar die übrigen Raten. Grösste Lücken: das Mandat für Vorstand und Kasse, das Recht bei
+  Einlagen und Krediten im Grossen (`LANDKARTE §8`).
+- **C, D.** Offen (`LANDKARTE §7`).
 
 ## 3. Verein
 
@@ -158,16 +162,79 @@ Was mehrere Fälle brauchen, als Vermutung; Code entsteht erst hier (D696 Beschl
 
 - **Feststellung eines Ereignisses durch zurechenbare Aussagen.** A (Schaden), E (Begehung),
   Verein (Doppelstimme). Der Kern von MaR; trägt.
-- **Mandat mit Rahmen.** E (Verwalter), A (Verwahrer), D (Ausführung). Fehlt (O105).
-- **Zusage für einen künftigen Fall.** A. Fehlt.
-- **Umlage nach Schlüssel.** E, A. Als Regel der Vorlage, nicht als Normtext.
+- **Mandat mit Rahmen.** E (Verwalter), A (Verwahrer), B (Vorstand, Kasse), D (Ausführung).
+  Fehlt (O105). In WEG und Genossenschaft wirkt eine Beschränkung des Vertreters nach aussen
+  nicht (WEG 9b Abs. 1, GenG 27 Abs. 2); in MaR wäre sie für jeden sichtbar.
+- **Zusage für einen künftigen Fall.** A (Leistung im Schadensfall), B (Nachschuss). Fehlt.
+- **Umlage nach Schlüssel.** E, A, B (Gewinn nach Guthaben). Als Regel der Vorlage, nicht als
+  Normtext.
+- **Stimmgewicht mit Obergrenze.** E (nach Vorteil, keiner über zwei Fünftel), B (bis zu drei
+  Stimmen für besonders Fördernde). Offen, ob MaR es will; die Obergrenze verteilt Macht.
+- **Prüfung als Dienst.** E (Beirat), A (Gutachter), B (Prüfungsverband). Rechnen kann jeder
+  Knoten; ob die Kasse wirklich hält, was sie sagt, prüfen Menschen.
 - **Verbund kleiner Gruppen.** E (Ober- und Unterverband), A (Rückversicherung). Ungebaut.
 - **Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige.** A; verwandt mit der geheimen
   Wahl (O106). Fehlt.
 
 ## 7. Offen
 
-- **B. Gemeinsam sparen und leihen.** Das Genossenschaftsgesetz liegt im Projektspeicher.
 - **C. Markt zwischen Fremden.**
 - **D. Recht und Ordnung ohne Zentrale.** Das Mandat aus E ist sein Ausführungsteil.
 - **Janich.** Das Buch liegt nicht digital vor; seine Beispiele werden selbst erarbeitet (D698).
+
+## 8. B — Gemeinsam sparen und leihen
+
+**Vorlagen.** Das Genossenschaftsgesetz im Wortlaut; die rotierende Sparrunde nach einer Studie
+zu 97 Gruppen in Cotonou, Benin, 2004 bis 2006 (Enforcement Problems in ROSCAs, Vorabdruck
+2019); der Gruppenkredit nach einem Feldversuch auf den Philippinen (Giné und Karlan, in der
+Zusammenfassung des Poverty Action Lab); das Kreditwesengesetz nach einer Kanzleiseite.
+
+**Die Sparrunde.** Jedes Mitglied zahlt bei jedem Treffen einen festen Betrag in einen Topf, den
+ein Mitglied bekommt; wer ihn hatte, zahlt weiter, bis alle ihn hatten. Der Topf wechselt bei
+jedem Treffen die Hand; niemand verwahrt Geld über die Zeit (D467). Das Problem: wer den Topf
+früh hatte, hört auf zu zahlen. In Cotonou hatte etwa jede dritte Gruppe solche Probleme, 23
+von 33 zerfielen daran. Weniger Probleme hatten Gruppen, die den Topf nach Bedarf vergaben,
+neue Mitglieder nur über Bekannte aufnahmen, schriftliche Regeln und härtere Sanktionen hatten
+und schon mehrere Runden hinter sich hatten; die Studie nennt Korrelationen, keine Ursachen.
+
+**Mechanismen.**
+
+- **Beitritt mit Erklärung und Zulassung, Kündigung zum Jahresende** (GenG 15, GenG 65). MaR:
+  Aufnahme und Austritt. Trägt. Übernehmen: ja.
+- **Aufnahme nur über Bekannte** (Sparrunde). MaR: Bürgschaft (`vouch@1`). Trägt. Übernehmen: ja.
+- **Wer den Topf hatte, schuldet die übrigen Raten.** MaR: eine Schuld je Rate, eine Quittung je
+  Zahlung; ein Ausfall ist für alle sichtbar, und wer bürgte, verliert. Trägt. Übernehmen: ja,
+  hier ist MaR stark. Eine Fälligkeit kennt `obligation@1` nicht als Feld; die Rate nennt sie im
+  Text.
+- **Vergabe des Topfs nach Bedarf, Los oder Gebot.** MaR: ein Beschluss oder eine Regel der
+  Vorlage. Trägt. Übernehmen: ja.
+- **Geschäftsanteil, Guthaben, Auszahlung beim Austritt** (GenG 7, GenG 73). MaR: Schuld und
+  Quittung; das Geld liegt ausserhalb bei einer Kasse. Trägt mit Lücke, die Lücke ist das Mandat.
+  Übernehmen: ja.
+- **Gesetzliche Rücklage, Gewinn nach Guthaben** (GenG 7 Nr. 2, GenG 19). MaR: Regel der Vorlage
+  (`03 §3.1`). Trägt mit Lücke. Übernehmen: ja.
+- **Nachschuss in der Insolvenz nach Köpfen, Ausfälle tragen die übrigen** (GenG 105 Abs. 2 und
+  3; die Satzung kann ihn ausschliessen, GenG 6 Nr. 3). Eine Zusage für einen künftigen Fall.
+  Trägt mit Lücke. Übernehmen: offen.
+- **Gruppenhaftung beim Kredit.** Auf den Philippinen zahlten Kreditnehmer unter Einzelhaftung
+  nach drei Jahren genauso zuverlässig zurück wie unter Gruppenhaftung, die Reichweite wuchs, und
+  bestehende Zentren lösten sich um 37 % seltener auf. MaR: Bürgschaft und Sichtbarkeit statt
+  Haftung. Trägt. Übernehmen: nein, die Haftung der Gruppe; ja, die Sichtbarkeit.
+- **Eine Stimme je Mitglied, bis zu drei für besonders Fördernde** (GenG 43 Abs. 3). MaR: eine
+  Stimme. Trägt mit Lücke. Übernehmen: offen (`LANDKARTE §6`).
+- **Vorstand vertritt, eine Beschränkung wirkt nach aussen nicht; bis 20 Mitglieder kann er an
+  Weisungen der Versammlung gebunden sein** (GenG 24, GenG 27). MaR: fehlt (O105). Trägt nicht.
+  Übernehmen: ja, mit sichtbarem Rahmen.
+- **Pflichtprüfung durch einen Prüfungsverband, dem die Genossenschaft angehören muss**
+  (GenG 53, GenG 54). MaR: Rechnen kann jeder Knoten; die Prüfung der Kasse ist ein Dienst.
+  Trägt mit Lücke. Übernehmen: die Prüfung ja, die Pflicht zu einem Verband offen.
+- **Erlaubnis für Einlagen und Kredite.** Wer Einlagen annimmt oder Kredite gibt, gewerbsmässig
+  oder in kaufmännischem Umfang, braucht eine Erlaubnis (KWG 1 Abs. 1, KWG 32, nach einer
+  Kanzleiseite). Wo eine kleine Runde ohne Gewinnabsicht diese Grenze unterschreitet, ist nicht
+  nachgeschlagen. Trägt nicht im Grossen, Recht.
+
+**Befund.** B besteht den Filter von allen Fällen am deutlichsten: Ausfall ist das Kernproblem,
+die Ehrlichen gewinnen den früheren Topf und die nächste Runde, Wiederholung ist eingebaut, und
+eine Sparrunde beginnt zu dritt. Sie braucht nur Gebautes: Satzung, Bürgschaft, Schuld und
+Quittung, Beschluss. Damit ist sie ein Kandidat für die Vorführung auf drei Telefonen (D696
+Beschluss 2).

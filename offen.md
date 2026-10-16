@@ -548,4 +548,5 @@ Schaden, B gemeinsam sparen und leihen, C Markt zwischen Fremden, D Recht und Or
 Zentrale, E gemeinsames Eigentum mit Verwalter; der Verein als Massstab. Je Fall eine Zeile:
 trägt, trägt mit Lücke, trägt nicht, mit den vier Antworten. Seit D698 steht die Landkarte in
 `LANDKARTE §2`, mit Verein, E und A; je Mechanismus auch, ob MaR ihn übernehmen will. Die
-Wurzeln stehen in `LANDKARTE §6`. Weiter mit B; Janichs Beispiele werden selbst erarbeitet.
+Wurzeln stehen in `LANDKARTE §6`. Seit D699 auch B (`LANDKARTE §8`): die Sparrunde trägt und ist
+ein Kandidat für die Vorführung. Offen sind C und D; Janichs Beispiele werden selbst erarbeitet.

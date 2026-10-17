@@ -1,0 +1,1166 @@
+# Sitzungsstart: 00e5 (MaR / symbolon)
+
+**Mensch als Republik (MaR)**, ein dezentrales Koordinationsprotokoll. Python-Referenz-
+implementierung, Repositorium **`symbolon`**, Gitea (`git.h.error13.de/oli/symbolon`,
+LAN-only) und GitHub-Spiegel (`github.com/olisym/symbolon`). Lokaler Ordner bleibt
+bewusst `~/mensch-als-republik`.
+
+**Deine Rolle:** Spec-Supervisor und Prompt-Autor. Du prüfst gegen die Spec, schreibst eng
+gefasste Aufträge, führst die Abnahmen und schreibst die Registereinträge. Produktivcode schreibt
+das Werkzeug.
+
+**Supervisor-Zugriff:** Klon über den öffentlichen Spiegel, Commit-Hash vor jedem Lesen gegen den
+geklonten `HEAD` prüfen. Der Spiegel übernimmt gelöschte Branches nicht sofort; ob ein Branch auf
+Gitea noch existiert, entscheidet nicht der Spiegel.
+
+## Das Ziel
+
+**Die Probe (Oli, D696 Beschluss 1):** Bildet MaR ab, was Menschen heute schon tun, weil es ihr
+Zusammenleben reibungsloser und für alle besser macht? Keine Grundlagenforschung. Zu jedem
+Anwendungsfall gibt es Vorlagen, an denen sich ablesen lässt, welche Mechanismen er braucht: Recht,
+Normen, gelebte Praxis, wie das Vereinsrecht für den Verein (D645). Gegen diese Vorlagen läuft das
+Protokoll. Die Mechanismen darunter werden erkannt und auf gemeinsame Wurzeln zusammengezogen; für
+diese Wurzeln soll das Protokoll besonders effizient und schlank sein.
+
+**Bausteine aus menschlichem Handeln (Oli, D709 Beschluss 1 und 2).** Zuerst wird untersucht,
+wie Menschen heute handeln, und darin die grundlegenden Funktionen benannt. Sie sind der Eingang
+für MaR: gesucht wird mit den Mitteln von MaR und den neuesten kryptografischen Verfahren nach
+einer digitalen Abbildung jeder Funktion. Die Wette: ein überschaubarer Baukasten, aus dem sich
+Modelle wie die Eigentümergemeinschaft zusammensetzen. Einzelheiten legen die Menschen in ihrer
+Satzung fest; der Baustein trägt die Stellschrauben. Der Baukasten ist `LANDKARTE §6`; ein
+Baustein hat einen eigenen Abschnitt nach dem Aufbau aus `LANDKARTE §1`. Olis Bild ist die
+Fourier-Transformation: wenige, voneinander unabhängige Grundfunktionen; leisten zwei Bausteine
+dasselbe, werden sie zusammengezogen (D710 Befund 1).
+
+**Verwahrung ohne Verwahrer (Oli, D709 Beschluss 4).** Wo eine Gruppe Wert gemeinsam hält,
+sucht MaR eine kryptografische Form ohne Verwahrer, etwa eine Mehrheit der Mitglieder über eine
+Adresse; MaR darf den Baustein dafür liefern. Die Anwendungen prüfen das Protokoll auf
+Vollständigkeit und sind Beispiel zum Zeigen, keine fertige App (D709 Beschluss 5).
+
+**Der Weg: die Landkarte (D696 Beschluss 2 und 3, O108).** Breite vor Tiefe, nur auf Papier. Je
+Fall: Vorlage nachschlagen, Mechanismen auflisten, jeden gegen die Bausteine legen, eine Zeile
+„trägt“, „trägt mit Lücke“ oder „trägt nicht“. Kein Normtext, kein Prototyp, keine Vektoren; ein
+Fall in einer Sitzungsstunde. Code erst, wenn mehrere Fälle an derselben Wurzel haken. Die
+Vorführung zu dritt auf drei Telefonen kommt danach.
+
+**Der Filter (D697 Beschluss 1).** Ein Fall zählt, wenn Vertrauen heute teuer ist, die ehrliche
+Seite das Werkzeug selbst wählt und durch Sichtbarkeit gewinnt, wer nicht mitmacht, auffällt, und
+er sich klein beginnen lässt. Wer abstreiten will, muss nicht mitmachen; es reicht, dass die
+Ehrlichen es tun und das Fehlen sichtbar wird (D697 Befund 2).
+
+**Der Massstab ist die Mitte (Oli, D697 Beschluss 4).** Der Mensch in der Mitte der
+Glockenkurve muss sofort sehen, dass Symbolon ihm nützt; dann muss es einfach sein und Spass
+machen, Spass aus Wirkung und Ansehen, nicht aus Bindung (D697 Befund 4). Für den Bau zugleich
+elegant, sicher und robust.
+
+**Die Vorlage ist Prüfliste, nicht Bauplan (Oli, D698 Beschluss 2, D700 Beschluss 1).**
+Übernommen wird, was Macht verteilt; wo Kryptografie eine Regel besser fasst als ein Gesetz, nimmt
+MaR das Werkzeug. Gebaut wird es erst an einer Wurzel (D639 Beschluss 3).
+
+**Warum der Wechsel (D696 Befund 2):** In `00e1` wurde aus einem Fall eine Kette bis in die
+Bibliothek: sechs Einträge, Normtext, 47 Tests, ein Nachtrag. Der Fund war echt (D692 Befund 1),
+aber eine Sitzung trug genau einen Fall.
+
+## Die Richtung
+
+- **Das Mandat mit Rahmen in `00e4` (O110, D709 bis D711):** der erste Baustein nach der neuen
+  Arbeitsweise. Auf Papier in `LANDKARTE §11`: ein Sachantrag bestellt, der Inhaber zeichnet
+  gegen (`mandate-ack@1`), ein Akt im Rahmen gilt als Akt der Gruppe, sonst bleibt er seine
+  eigene Aussage, für jeden sichtbar, auch für Dritte; Abruf und Rücktritt nennen den letzten
+  gedeckten Akt wie `device-end@1`. Fest und nicht abschaltbar sind Abruf, Rücktritt und
+  Gegenzeichnung (Oli, D710 Beschluss 3). Gemessen im Prototyp auf dem Branch `proto-mandat`:
+  sechzehn Fälle, dreizehn Rücknahmeproben (D711). Der Abruf wirkt ab jetzt, nicht zurück
+  (D711 Beschluss 1).
+- **Die Sparrunde in `00e3` (O109, D703 bis D708):** die erste Wurzel der Landkarte, gebaut vom
+  Papier bis auf die Seite. Jeder schuldet jedem anderen genau eine Rate, unabhängig von der
+  Reihenfolge; alle Zusagen werden am ersten Tag unterschrieben (D703 Befund 2). Die Reihenfolge
+  steht fest in der Satzung (Oli, D703 Beschluss 2); weiter geht es, wenn bezahlt ist, und die
+  Zeit kommt aus der Kette (Oli, D704 Beschluss 1). Im Knoten die Vorlage `sparrunde`, der Typ
+  `reihenfolge`, die Tafel unter `GET /sparrunde/<scope>` und die Aufgaben nur im laufenden Monat
+  (`p64`, D705), dazu `ROUND_JOIN`; auf der Seite die Gründung mit Reihenfolge, „Ich mache mit …“
+  und die Tafel „Die Runde“ (`p65`, D707). Oli hat sie in drei Tabs durchgespielt (D708).
+- **Funktionstest, nicht Gestaltung (Oli, D706 Beschluss 1).** Was wo auf der Seite steht, wird
+  entschieden, wenn die App wirklich gebaut wird.
+- **Fall D in `00e3` (D702):** MaR ersetzt den Apparat, nicht das Gesetz, und bindet nur durch
+  Zustimmung (Oli, D702 Beschluss 1 und 2). Oli ist kein Feind des Staates; abschaffen will er
+  Ineffizienz und Lüge. Ein Standardsatz an Regeln ist möglich und nicht festgelegt; seine Form
+  ist die Vorlage, an einen Hash gebunden (D702 Beschluss 3). Die Diamantenhändler tragen die
+  Begründung von D332, mit Rückhalt im Gericht und in einer engen Gruppe (D702 Befund 4).
+- **Die Landkarte in `00e2` (O108, D697 bis D701):** `LANDKARTE.md` mit Verein, E (gemeinsames
+  Eigentum mit Verwalter), A (Absicherung gegen Schaden), B (gemeinsam sparen und leihen) und C
+  (Markt zwischen Fremden). Die Wurzeln in `LANDKARTE §6`: das Mandat mit Rahmen brauchen vier
+  Fälle; die Feststellung eines Ereignisses durch zurechenbare Aussagen trägt schon. Die
+  Sparrunde zu dritt braucht nur Gebautes und ist Kandidat für die Vorführung (D699 Beschluss 3).
+  Olis Bild der Versicherung steht in D698 Beschluss 1; das Muster des Broodfonds ist verworfen.
+- **Die Beteiligung in `00e1` (O107, D689 bis D695):** unter der Kennung `participation@1` in
+  der Satzung gibt es Enthaltung, selbst ruhen (`rest@1`), ruhen durch Beschluss (`resting`) und
+  die Rückkehr (`returned`). Nur wer auf einen Antrag keine zählende Stimme hat, verlässt dessen
+  Nenner; wer einem Rivalen zustimmt, bleibt drin (D692). Normtext in `04`, Vektoren `BV-1` bis
+  `BV-46`, die Bibliothek seit `p63`. Offen: die Seite und die Vorlage `verein`.
+- **Die Kennung `required_features` (D692 Beschluss 2):** eine Satzung nennt die Regeln, die sie
+  voraussetzt; ein Knoten, der eine nicht kennt, zählt sichtbar nicht. Muster wie `crit` in JWS.
+- **Fälle vor Oberfläche (Oli, nach D685)** bleibt für den Fall, den die Landkarte als Wurzel
+  auswählt (D696 Beschluss 3).
+- **Die Wahl auf der Seite in `00e0` (D681 bis D685):** Tab „Wahlen“, die Schritte unter „Jetzt
+  zu tun“, eine Frage vor jeder Stimme, das Ergebnis als Kopf der Karte und der Verlauf je
+  Wahlgang. Olis Vorstandswahl zu dritt lief durch; sein Befund „das Ergebnis sieht man nicht“
+  führte zu D684.
+
+Seit D466 ist der Maßstab eine Anwendung, die man bedienen und sehen kann (`ROADMAP.md`).
+
+- **Textrunde in `00dd` (D658 bis D664):** `LAGE.md` ist neu, ein Lagebild mit Verweisen, was
+  gelöst und offen ist und warum (D658). `VISION.md` ist neu gefasst: ohne Bond und Ruf-Konto,
+  Aussagen statt Handeln, die selektive Stille in `§4` (D659, D660). Die Bausteine sind gegen
+  Fiske und Ostrom quer geprüft, sechs Lücken stehen in O105 (D661). Die README ist neu, direkt
+  auf Englisch und sachlich (D662, D663); `ROADMAP.md` trägt die Phasen mit Stand (D664).
+- **Die Reihenfolge (Oli, D664 Beschluss 3):** die geheime Wahl als eigener Strang mit
+  gründlicher Recherche, vor Schritt 3 der Gründung.
+- **Die geheime Wahl in `00de` (D666 bis D669, O106):** Normtext `04 §9` und Golden Anchors
+  `WV-1` bis `WV-13` stehen. Eine Wahl ist ein eigener Vorgang neben dem Loop: feste Kandidaten,
+  Wahlberechtigte aus `P` einer Epoche, gewählt ist, wer mehr als die Hälfte von `P` hat, sonst
+  ein nächster Wahlgang nach Patt. Das Ergebnis ist eine Tatsache, kein Sachfeld (D667). Die
+  Geheimhaltung kommt aus einer Mischrunde nach CoinShuffle, die eine Liste frischer Schlüssel
+  ergibt; gestimmt wird mit gewöhnlichen Claims, das Atom bleibt (D666). Ob ein Verein geheim
+  wählen kann, steht in seiner Satzung: `ballot-ack@1` und `ballot@1` in
+  `irrevocable_predicates` (D669).
+- **Die Wahl gebaut in `00df` (D671 bis D679):** die Auszählung in der Bibliothek
+  (`tally_election`), die Vorlage `verein` mit beiden Prädikaten, Wahl und Liste im Knoten mit
+  `GET /wahlen/<scope>`, und der Ablauf ohne Mischrunde: jedes Mitglied bildet eine Liste mit
+  sich allein, über `POST /wahl/liste` und `POST /wahl/stimme`. So ist die Wahl nicht geheim.
+  Der Wahlschlüssel liegt im Knoten, nicht in der Seite (Oli, D678 Beschluss 2). Eine Epoche ist
+  nur aufgelöst, wenn sie in der Kette steht, und es gilt die Policy der Epoche der Wahl (D675).
+  Offen: die Seite, die Mischrunde zwischen Knoten.
+
+- Phase 0 bis 4: abgeschlossen (D466 bis D526). Mehrere Geräte einer Person, die Lücken zwischen
+  Norm und Bau und O96 (Sachanträge) sind erledigt (D529 bis D581).
+- **Phase 5: Reticulum, Strang O97** (D583). (1) Bestandsaufnahme, (2) der Bote, (3) das Lab auf
+  einer Maschine: gebaut (D583 bis D592). (4) Verlust und Bandbreite nach Art von LoRa: läuft, mit
+  einem geteilten Kanal im Userspace statt `netem` (D607). Gebaut: Trickle und Fristen nach
+  Bitrate (D611, D612), das Bündel (D614 bis D616), der Abgleich nach Bereichen (D617, D618, O90
+  erledigt) und die Zahl der Einträge in der Ankündigung (D619, D620). In `00cx`: der Rundruf
+  gemessen und vertagt (D622, O103), der Stillstand behoben (D623 bis D626), die Streuung ohne
+  Stillstand gemessen (D627). In `00cy`: die zweite Bestandsaufnahme zu Reticulum (D629), der
+  einseitige Link gemessen und repariert (D630 bis D632), die Sendezeit je Gerät (D630), IFAC am
+  Kanal (D633). In `00cz`: der Rundruf an der Quelle gemessen, gebaut und angenommen (D635 bis
+  D638, O103 erledigt); ein Wahlgang kostet rund ein Drittel der Sendezeit. Stufe 4 ruht damit.
+  (5) Funk über Olis T-Beams; die Hardware fehlt, und der Funk ist zurückgestellt (D639). Es
+  bleibt nur das Band 869,4 bis 869,65 MHz mit 10 % (D630 Beschluss 3), mit IFAC am
+  Funk-Interface (D629 Beschluss 1).
+- **Governance nebenbei:** Wahlgänge mit Patt in Norm, Bibliothek und Knoten (O98 erledigt, D594
+  bis D604). Die Seite sagt, wenn eine Abstimmung vorbei ist (D605, D606).
+- **Die Gründung (O101, D640 bis D655):** Bestandsaufnahme gefahren; drei gründen gemeinsam am
+  Tisch, alle drei sind Anker; der Schlüssel reist per Scan, die Einladung aus der Ferne kommt
+  danach. Vier Schritte (D641 Beschluss 1): (1) der Weg im Knoten, gebaut (`POST /gruenden`,
+  D641, D642); (2) die Bildschirme auf einem Knoten, gebaut und von Oli durchgespielt (D651 bis
+  D655); (3) der Scan mit Schlüssel und Adresse, dazu der Knoten am Telefon, gemessen (D657)
+  und **nach der geheimen Wahl** (D664 Beschluss 3);
+  (4) der Knoten hält nur eigene Scopes. Das zweite
+  Beispiel ist die Verabredung zu zweit (D640 Beschluss 3). Der Verlust eines Schlüssels bleibt
+  ein eigener Strang (D640 Beschluss 5). Kryptografische Werkzeuge nicht auf Vorrat. Die T-Beams,
+  wenn die Hardware da ist. O102 ist entschieden: IFAC, als Regel des Betriebs (D629).
+- **Eine Gründung verwerfen (Oli, D651 Beschluss 6):** eine Regel des Knotens, kein Akt der
+  Norm. Der Knoten merkt sich, was er nicht mehr zeigt, und entfernt nichts; es gilt für alle an
+  diesem Knoten und nur, solange nicht alle bestätigt haben. Andere Knoten erfahren nichts.
+- **Olis Urteil nach dem Durchlauf (D654 Befund 1):** der Weg läuft, „aber der Maschine scheinen
+  noch Teile zu fehlen“. Das Adressbuch des Knotens ist der Platzhalter für den Scan. Sein
+  Gedanke zur Gründung ohne gemeinsamen Ort: einer unterschreibt die Absicht und lädt ein (D654
+  Befund 5, eine Überlegung dazu, kein Beschluss).
+- **Die Vorlage `verein` seit `00db`:** Das deutsche Vereinsrecht ist Prüfliste, nicht Norm
+  (D645). Zweck, Name und das Feld `vorlage` sind geschützte Sachfelder: ein Sachantrag darauf
+  zählt mit der Schwelle für Satzungsänderungen (`04 §1.1`, `04 §3.4`, D646). Die Felder haben
+  Typen als Regel der Vorlage: Text, und der Beitrag in der Form „24,00 EUR im Jahr“; der Knoten
+  prüft bei Gründung, Sachantrag und Satzungsantrag (D648). Die Schwellen sind fest (D648
+  Beschluss 5). Der Sitz ist nicht geschützt (Oli, D646 Beschluss 5).
+- **Rangfolge der Gründe (Oli, D645 Beschluss 2):** zuerst die Invarianten von MaR; darunter
+  entscheidet, was über das Verhalten von Menschen in Gruppen belegt ist, mit der Art des Belegs;
+  ein Gesetz ist Fundgrube und Prüfliste. Olis Satz: Menschen setzen sich ein, wo es spürbar
+  wirkt und Ansehen bringt; MaR muss für die ehrliche Mehrheit Sinn ergeben. Vier Folgen als
+  Position (D645 Beschluss 3): das Tun ist die Hauptfläche, Alltägliches fällt leicht und
+  Grundlegendes schwer, Schweigen soll nicht lähmen, die Seite baut nichts, das auf Wiederkommen
+  zielt.
+- **Grundsatz (D617 Beschluss 1):** Reticulum macht das Netz, der Bote trägt nur, was ein Verein
+  weiss. Was Reticulum kann, baut MaR nicht nach.
+
+## Stand
+
+Am Ende von `00e4`: **1768 Tests**, darin der Selbsttest der Seite mit **444 Fällen**; auf
+`main` ist in `00e4` kein Code geändert. Register **D1–D711**, Prüfregeln **1–83**, `main` beim
+Commit, der diesen Sitzungsstart trägt. **37 Wurzel-Markdown-Dateien, alle gebunden**;
+`archiv/` steht bei 174 mit `sitzungsstart-00e4.md`. Der Branch `proto-mandat` trägt den
+Prototyp des Mandats und wird nie gemergt (D711 Beschluss 3).
+`offen.md` führt **110 Posten**, davon **22 offen**: die 13
+Wartestände, O97, O100, O101, O104, O105, O106, O107, O109 und O110.
+
+`rns 1.5.4` ist Teil von `dev` (D584 Beschluss 4). `make check` braucht es, wie es Node braucht.
+Die Testreihe dauert acht bis elf Minuten.
+
+## Was in dieser Sitzung geschah
+
+- **D709 — Bausteine aus menschlichem Handeln.** Olis Haltung zur Methode statt eines Bilds
+  vom Verwalter; Einzelheiten sind Parameter; das Wort „Baustein“; Verwahrung ohne Verwahrer
+  schärft D467 Beschluss 2; das Mandat zuerst (Oli). Nachgeschlagen: Macaroons, UCAN,
+  RFC 9591, BIP445. Eine Zeile im Sitzungsstart `00e4` war falsch: `01 §8` schliesst
+  Delegation im Kern aus (Befund 1).
+- **D710 — das Mandat auf Papier.** `LANDKARTE §6` als Baukasten (Oli), `LANDKARTE §11` neu;
+  drei feste Grenzen (Oli); die Grenze nach Betrag ist Regel der Vorlage; WEG 26 und 27, GenG 40
+  und 42 im Wortlaut. Olis Bild der Fourier-Transformation (Befund 1).
+- **D711 — der Prototyp.** Sechzehn Fälle, dreizehn Rücknahmeproben; der Stand endet mit der
+  Epoche, das Ende steht im Wert, die Gegenzeichnung zeigt auf den Eintrag; der Abruf ohne Ende
+  (MV-15) und die Position „ab jetzt“; Gegenzeichnung und Rücktritt unwiderruflich, als
+  Position; Schluss.
+
+## Arbeitsweise, bestätigt
+
+- **Ein Baustein in einer Sitzung** (`00e4`): Olis Haltung, Nachschlagen in Auszügen, Papier
+  als eigener Abschnitt der Landkarte, den Oli vor dem Commit liest, dann ein Prototyp im Klon
+  mit Fällen und je einer Rücknahmeprobe je Mechanismus. Drei Registereinträge, kein Auftrag.
+- **Ein Prototyp, den eine spätere Sitzung braucht, liegt auf einem eigenen Branch** (D711
+  Beschluss 3); der Sitzungsstart nennt ihn, statt Code zu tragen.
+- **Modulcode vor dem Papier.** Erst das Lesen von `chain.py` und `objects.py` zeigte, dass der
+  Stand mit der Epoche endet und ein Abruf durch Löschen kein Ende nennen kann (D711 Befund 2).
+- **Ein Fall von Papier bis Seite in einer Sitzung** (`00e3`): Haltung Olis, Papier, Prototyp
+  der Bibliothek im Klon mit der vollen Reihe, Auftrag mit Tests als Diff; dann Prototyp der Seite,
+  Bilder an Oli, Auftrag; je Abnahme die volle Reihe im frischen Arbeitsbaum.
+- **Die Abnahme einer Seite fährt den Durchlauf auf dem Branch,** nicht auf dem Prototyp
+  (D707 Befund 3); dort lief die Runde zum ersten Mal bis zum Ende.
+- **Ein Auftrag, dessen Basis ein Registercommit bei Oli ist,** prüft den Hash des Registers
+  (D631); in `p65` hielt das.
+- **Die volle Reihe auf dem Prototyp vor dem Auftrag** fand in `00e3` eine übersehene Aufzählung
+  (D706 Befund 3); die Testdateien des Prototyps gehen als Diff in den Auftrag.
+- **Eine Haltung Olis kommt ins Register, wenn sie fällt** (D698 Befund 1). Wer einen Gegenstand
+  wieder aufgreift, sucht vorher in früheren Gesprächen; der Broodfonds kam ein zweites Mal.
+- **Ein Fall auf der Landkarte:** Vorlage im Wortlaut, wo sie im Projektspeicher liegt, sonst
+  nachgeschlagen mit Quelle; je Mechanismus Urteil und „übernehmen?“; die vier Fragen des
+  Filters; die Wurzeln fortschreiben. Ein Fall kostete in `00e2` rund eine halbe Stunde.
+- **Abschnittsnummern einer zitierten Datei bleiben;** ein neuer Fall kommt hinten an
+  (`LANDKARTE §8`, `LANDKARTE §9`).
+- **Breite vor Tiefe (Oli, D696).** Für die Landkarte kein Normtext und kein Code; ein Fall ist
+  fertig, wenn seine Zeile steht. Die volle Kette nur für eine Wurzel, die mehrere Fälle brauchen.
+- **Eine Testdatei vom Supervisor läuft vor der Lieferung durch `make check-specs`** (D694
+  Prüfregel), nicht nur durch Ruff und `pytest`.
+- **Eine Regel am Nenner wird an zwei rivalisierenden Anträgen geprüft,** nicht an einem
+  (D692 Befund 1): der Prototyp aus D690 zählte immer nur einen und sah den Bruch von D102 nicht.
+- **Ein Test, der gegen den unreparierten Stand grün ist, wird gelesen, bevor er geliefert wird**
+  (D694): `BV-44` war zuerst aus einem falschen Grund grün.
+- **Fälle vor Oberfläche (Oli, nach D685).** Ein Fall wird erst in Sätzen erzählt, dann auf dem
+  Papier gegen die Norm gerechnet, dann nachgeschlagen, dann im Code geprüft. Oli antwortet auf
+  eine Frage nach seiner Haltung, bevor gesucht wird; sie bestimmt, wonach gesucht wird.
+- **Bilder vom Prototyp an Oli vor dem Auftrag** (D684): drei Bildschirmfotos aus Playwright
+  kosteten nichts und hätten eine Änderung vor dem Lauf erlaubt.
+- **Ein Auftrag, der Wortlaut verlangt, schreibt ihn in den Fall** (D682, D683 Befund 2).
+
+- **Englisch für Lesende von aussen wird auf Englisch entworfen,** neutral, sachlich und knapp,
+  und vor der Lieferung einmal nur auf Sprache und Ton gelesen (D663 Beschluss 2).
+- **Ein Befehl in einer öffentlichen Datei wird vorher in einem frischen Klon gefahren** (D662).
+- **Vor dem Umbau einer zitierten Datei** werden alle eingehenden Abschnittsverweise gesucht
+  und gegen den neuen Text gelesen; Nummern und Gegenstände bleiben (D659, D664).
+- **Vorschläge aus anderen Sprachmodellen** werden gegen Register und Spec gelegt, bevor etwas
+  davon übernommen wird; sie kommen gut begründet zurück (`08 §4`, D658).
+- **Oli liest Lieferungen vor dem Commit** und kommentiert direkt in der Datei. Kreuzen sich
+  zwei Lieferungen, prüft der Supervisor im Spiegel per Hash, welche eingesetzt wurde (D660).
+- **Prototyp vor dem Auftrag, Tests wörtlich im Auftrag, Rücknahmeproben vorher gegen diese
+  Fassung**, der Prototyp fährt `make check` ganz. Tests eines Nachtrags gehen als Diff in den
+  Auftrag, das Werkzeug wendet ihn mit `git apply` an.
+- **Oli bekommt jeden Git-Befehl vollständig**, auch Merge, Push und das Löschen von Branches, je
+  Schritt ein eigener Block mit Prüfungen vorher und der erwarteten Ausgabe. Er kopiert, er tippt
+  nicht (00cu). Nach einem abgebrochenen Block zuerst lesen, nie blind wiederholen.
+- **`main` vorher prüfen.** Ein Block, der auf `main` schreibt, prüft den Merge des Laufs mit ab;
+  zweimal fing die Basisprüfung einen fehlenden Merge.
+- **Ein Lauf, den kein Test fährt, fährt der Supervisor vor der Abnahme** (`main` von `tools.netz`,
+  D589 Befund 4, D590).
+- **Eine Abnahme der Seite braucht einen Durchlauf mit Oli** (D490); das Lab hat er gesehen.
+- **Oli entscheidet, was er sieht, und wählt den nächsten Strang**; eine Frage je Antwort.
+- **Was automatisch laufen kann, läuft vorher** (D643 Beschluss 1): der Supervisor klickt die
+  Seite mit Playwright durch, ein Context je Person, und liest die Bildschirmfotos. Oli bekommt
+  einen Durchlauf erst, wenn die Frage ist, ob ein Mensch es benutzen kann.
+- **Nachschlagen, bevor eine Position steht,** wo andere seit Jahren an derselben Frage arbeiten
+  (D640); gelesen sind dann Auszüge, vor einem Normtext die Quelle ganz.
+- **Kein Auftrag verlangt einen Push**, und die Deny-Regeln aus D592 verbieten ihn dem Werkzeug.
+- **Das Werkzeug darf auch Cursor sein** (D606 Befund 1). Die Deny-Regeln aus D592 gelten dort
+  nicht; die Abnahme liest ohnehin den Diff.
+- **Last von unten aufbauen.** Nach zwei erfolglosen Anläufen am selben Symptom erst zwei, dann
+  drei, dann fünf Geräte, mit einer Zählung je Paketart (D610).
+- **Oli misst die Seite mit einem Satz:** was er als Anna denkt (D605, D606).
+- **Ein Schritt am Boten wird über Funk gemessen, vor dem Auftrag und vor der Abnahme:**
+  `--wahlgang --funk` bei 1200 bit/s, mit Zählung je Paketart im Kanal und einer Zeile je Abgleich
+  (D617, D619). Ein Nutzen, den ein Schritt behauptet, wird vorher gemessen (D619 Befund 1).
+- **`make check` des Prototyps zweimal, wenn ein Lab-Test einmal rot war,** und `main` daneben unter
+  gleicher Last (D617 Befund 8).
+- **Ein Lauf über Funk mit Wächter.** Ein Prozess fragt alle 10 s `/peer/bestand` und `/stand` jedes
+  Geräts ab; so sieht man, wer zurückliegt und wie lange (D623). Diagnosezeilen je Anfrage (Grund,
+  Dauer, Sendungen, Laufzeit) und je Ankündigung zeigen, warum (D623 Befund 2, D625).
+- **Lange Messungen gehen als Messpaket an Claude Code in der Cloud** (D627 Beschluss 2): Auftrag,
+  Diagnose-Patch und Skripte in `messung/`, mit `git add` vorgemerkt, dann
+  `env CCR_FORCE_BUNDLE=1 claude --cloud "…"`; danach `messung/` wieder entfernen. Kein Commit, kein
+  Push; der Auftrag schliesst `AGENTS.md` §5 ausdrücklich aus. Gedeutet wird im Supervisor-Chat.
+- **Der Massstab eines Schritts am Boten ist die Lebendigkeit, nicht die Zeit** (D623 Beschluss 4).
+  Die Zeiten streuen so stark, dass ein Lauf je Fassung nichts zeigt; ein Stillstand schon.
+- **Vor einer Messung steht, was bei welchem Ergebnis geschieht** (D630). Rechnet die Regel hoch,
+  nennt sie die Annahme der Hochrechnung (D630 Beschluss 4 und 6).
+- **Ein seltener Fall wird für die Messung erzwungen** (D631): der Kanal verwarf jedes dritte
+  `LRRTT`, so zeigte ein Lauf je Fassung den Unterschied zwischen `main` und Prototyp.
+- **Eine Entscheidung für Oli nennt, was ein Mensch davon sieht, was sie kostet und wie fest sie
+  ist** (`00cy`, O102); „(a) oder (b)“ ohne das war keine Grundlage.
+- **Ein Auftrag, dessen Basis erst bei Oli entsteht,** prüft Branch, Commit-Nachricht und den Hash
+  des Registers statt eines Commit-Hashes (D631, `p50`).
+- **Eine Frage aus dem Sitzungsstart wird an der Einheit der Kosten gemessen,** bevor zwischen den
+  dort genannten Wegen gewählt wird; D634 fragte nach zwei Wegen, der dritte trug (D635 Befund 3).
+- **Der Prototyp entsteht in der Form des Auftrags** und fährt denselben Lauf über Funk, den der
+  Supervisor vor der Abnahme auf dem Branch wiederholt (D636 Befund 3, D637 Befund 3).
+- **Zahlen für Oli werden bis zum selben Schnitt gezählt** wie die Zahlen daneben (D635 Befund 8).
+- **Eine Abnahme läuft in einem frischen Arbeitsbaum** auf dem Commit des Laufs; ihr erster Job
+  prüft `HEAD` und einen sauberen Stand (D647 Befund 5). Einmal prüfte die Kette den Prototyp,
+  weil `git checkout` abbrach.
+- **Rücknahmeproben drucken die roten Tests ungekürzt;** die Liste im Auftrag wird aus dieser
+  Ausgabe geschrieben (D647 Befund 4).
+- **Ein Gesetz kommt je Strang in den Projektspeicher,** nicht auf Vorrat; das Register nennt
+  Gesetz und Stand und schreibt „BGB 33“ ohne Paragrafenzeichen (D645).
+- **Eine Position nennt die Art ihres Belegs** und was nur aus dem Gedächtnis kommt (D645
+  Beschluss 2).
+- **Ein Durchlauf mit mehreren Personen läuft in Tabs unter `.localhost`** (D654 Befund 2 und
+  Beschluss 5): `http://anna.localhost:8470/`, `bruno.localhost`, `chris.localhost`, ein Fenster,
+  ein Browser. Verschiedene Browser oder Profile sind Oli zu umständlich.
+- **Nimmt Code fremden Inhalt an, führt der Supervisor den formwidrigen Fall am Prototyp vor,**
+  bevor der Auftrag hinausgeht (D652 Beschluss 5): dort eine Satzung mit Nenner null, über
+  `POST /objects` eingeliefert und im Browser geöffnet.
+- **Die ganze Reihe läuft allein** (D652 Befund 1): kein Knoten, kein Browser und kein
+  Aufräumskript daneben; ein Lauf, in dem das Aufräumen Knoten der Tests beendete, zählte nicht.
+- **Ein Block, der einen Knoten wieder startet, trägt kein `test ! -e`** (D654 Beschluss 5); nur
+  der erste Start eines frischen Bestands prüft, dass die Datei fehlt.
+- **Eine Abnahme der Bibliothek rechnet zufällige Bestände gegen den Prototyp** und vergleicht
+  Zustand, Ergebnis und Vermerke (D672 Befund 2). Was dabei abweicht, wird am Normtext
+  entschieden, nicht am Prototyp.
+- **Ein Branch, der zur Abnahme ansteht, wird gepusht,** bevor der Bericht kommt; ohne ihn im
+  Spiegel gibt es keine Abnahme (D676).
+
+
+## Der nächste Schritt
+
+**Das Mandat mit Rahmen weiter im Prototyp (O110, D711 Beschluss 4).** Ausgangspunkt ist der
+Branch `proto-mandat`: `symbolon/governance/mandate.py` und `tests/governance/test_mandat.py`
+mit MV-1 bis MV-16. Im Klon einen Arbeitsbaum darauf anlegen und zuerst die sechzehn Fälle
+grün sehen. Die Form steht in `LANDKARTE §11` und D711 Befund 3.
+
+1. **Die Geschichte über Epochen** (D711 Beschluss 1): ein Mandat, das in einem früheren Stand
+   stand und ohne Ende verschwunden ist, lässt die Akte davor offen. Der Leser braucht dafür die
+   Stände der Epochen aus `EpochResolution.chain`; MV-15 bleibt der Fall innerhalb einer Epoche.
+2. **Ein Fall über den Epochenwechsel:** eine Aufnahme nach der Bestellung, die neue Verfassung
+   aus dem Stand gebaut; das Mandat deckt weiter, weil `mandate_id` nicht an der Epoche hängt.
+3. **Die Unwiderruflichkeit** (D711 Beschluss 2): `mandate-ack@1` und `mandate-end@1` in den
+   Boden; vorher jede Stelle suchen, die `PROTOCOL_IRREVOCABLE` oder den Boden aus `00 §5.2`
+   nennt, Tests und Anker eingeschlossen.
+4. **Danach:** wo der Normtext steht (Kandidaten `04` neben dem Sachantrag oder `02 §2.1` neben
+   den Geräten), Golden Anchors, die volle Reihe auf dem Prototyp, ein Auftrag. Präfix
+   `mandat:` oder Feldtyp der Vorlage ist dort zu entscheiden (D711 Befund 3).
+
+Dann der Baustein Verwahrung ohne Verwahrer: zuerst die Kasse mit einem FROST-Gruppenschlüssel
+in MaR (`00`, `key_mode`, `00 §6.5`; O89), echtes Geld zuletzt (D709 Beschluss 6).
+
+Daneben klein: die Sparrunde auf dem Telefon braucht den Weg zum Knoten (D657, Schritt 3 der
+Gründung); die Verrechnung beim Abbruch einer Runde (D703 Befund 4).
+
+Vorher gegen `offen.md` und das Register-Ende prüfen (D409).
+
+## Die Demo starten
+
+**Ein Knoten, die Geschichte der Aufnahme:**
+
+```fish
+cd ~/mensch-als-republik
+and source .venv/bin/activate.fish
+and python -m tools.verein_node ~/mar-daten/verein4.sqlite
+and python -m symbolon.node ~/mar-daten/verein4.sqlite --uhr-ab 1000
+```
+
+Dann `http://127.0.0.1:8470/`. Ein frischer Bestand braucht eine neue Datei. In `verein3.sqlite`
+ist die Geschichte durch.
+
+**Sachanträge:** derselbe Ein-Knoten-Verein; der Ablauf aus D580 und D581 steht in der Abnahme zu
+`p35-seite`: Sachantrag stellen, drei Ja, feststellen, Stand im Tab „Im Verein“, Satzungsantrag
+mit `S`, zweites Ja nach Regel 3.
+
+**Fünf Geräte, das Bild der Lüge:**
+
+```fish
+cd ~/mensch-als-republik
+and source .venv/bin/activate.fish
+and python -m tools.netz ~/mar-daten/netz2
+```
+
+Dann die fünf gedruckten Adressen in je einem Tab und der gedruckte Ablauf. Ein frischer Anfang
+braucht ein neues Verzeichnis. In `~/mar-daten/netz1` ist der Ablauf durch.
+
+**Personen, die selbst handeln:** derselbe Befehl mit `--personen` (Bild a, fünf Geräte),
+`--versehen` (Bild b, sechs Geräte, geteilter Schlüssel) oder `--geraete` (Bild c, sechs Geräte,
+Zweitgeräte mit eigenem, aufgenommenem Schlüssel; D542), je mit neuem Verzeichnis. Nach etwa 12 oder
+16 Sekunden ist der Lauf durch; dann die Tabs öffnen und nur ansehen. `--aufloesen` ist Bild (c)
+mit Annas Warten und Brunos Auflösung (D551). Durch sind `netz-p1`, `netz-v1`, `netz-v2`,
+`netz-g1`, `netz-a1`, `netz-v3`; im Ein-Knoten-Verein `verein5.sqlite`,
+`verein6.sqlite` und `verein7.sqlite` (der Durchlauf zu den Sachanträgen, D581).
+
+**Das Lab über Reticulum** (D588 bis D591): derselbe Befehl mit einer Geschichte und `--reticulum`
+am Ende, je mit neuem Verzeichnis, etwa
+
+```fish
+cd ~/mensch-als-republik
+and source .venv/bin/activate.fish
+and test ! -e ~/mar-daten/lab2
+and python -m tools.netz ~/mar-daten/lab2 --aufloesen --reticulum
+```
+
+Im Terminal „Gerät ← Nachbar: geholt=…“ und nach jedem Takt „gleicher Stand nach … s“; der ganze
+Lauf in `verlauf.txt`. Beim Start kann RNS zwei `AttributeError` melden, beim Beenden gibt es Lärm
+(D590 Befund 2 und 3). Durch ist `lab1`.
+
+**Die Bilder dieser Sitzung**, je mit neuem Verzeichnis und `--reticulum` am Ende: `--spaltung`
+(West und Ost, vereint fallen beide Beschlüsse, D594), `--ausweg` (danach sperren Bruno und Dora
+ihr Zweitgerät, D596), `--wahlgang` (danach beantragt Anna neu, und es gilt ohne Sperre, D603).
+Nach der Vereinigung sagt „Im Verein“, dass die Abstimmung vorbei ist (D605).
+
+**Über simulierten Funk:** statt `--reticulum` am Ende `--funk`. Ein Kanal mit 9600 bit/s und 5 %
+Verlust, je Gerät eine eigene RNS-Instanz; alle 10 s eine Zeile `funk pakete=… ankuendigungen=…`.
+Ein Takt dauert Minuten (D611 Befund 3). Olis Verzeichnisse aus `00cw`: `wahlgang1`, `spalt2`,
+`spalt3`, `ausweg1`, `funk1`, soweit gefahren; ein neuer Lauf braucht ein neues. Gemessen wird bei
+1200 bit/s: ein kleines Skript setzt `tools.netz.FUNK_BITRATE = 1200` und ruft `main` mit
+`--wahlgang --funk` (so im Messpaket aus D627).
+
+
+**Der Rundruf im Lab:** jede Geschichte mit `--reticulum` oder `--funk` zeigt seit D636 Zeilen
+der Form „Gerät ← Nachbar: rundruf geholt=1 abgewiesen={}“; ein Holen kommt nur noch, wo ein
+Rundruf fehlte.
+
+**Eine Gründung über die Schnittstelle** (D641, D648): auf einem frischen Knoten `POST /gruenden`
+mit `vorlage` „verein“, `gruender` (drei Schlüssel als Hex) und `felder` (`name`, `sitz`, `zweck`,
+dazu `beitrag` in der Form „24,00 EUR im Jahr“); danach je Gründer `accept-rules`. Ein Sachantrag
+auf `zweck` oder `name` nennt dann `needed` 3 bei `n` 3, einer auf `sitz` oder `beitrag` 2 (D646).
+
+**Die Sparrunde zu dritt** (D703 bis D708): ein frischer Knoten,
+
+```fish
+cd ~/mensch-als-republik
+and source .venv/bin/activate.fish
+and test ! -e ~/mar-daten/spar2.sqlite
+and python -m symbolon.node ~/mar-daten/spar2.sqlite --uhr-ab 1000
+```
+
+dann drei Tabs unter `.localhost` wie bei der Gründung; als Anna „Eine Sparrunde gründen“,
+Bruno und Chris anhaken, Name, Rate und Reihenfolge, „Gründen …“; als Bruno und Chris „Satzung
+bestätigen …“; dann jeder „Ich mache mit …“ und die Quittungen in der Reihenfolge der Tafel.
+Die Tafel steht oben im Tab „Im Verein“. Durch ist `spar1.sqlite`.
+
+**Eine Gründung über die Seite** (D651 bis D655): ein frischer Knoten ohne Verein,
+
+```fish
+cd ~/mensch-als-republik
+and source .venv/bin/activate.fish
+and test ! -e ~/mar-daten/gruenden3.sqlite
+and python -m symbolon.node ~/mar-daten/gruenden3.sqlite --uhr-ab 1000
+```
+
+dann drei Tabs: `http://anna.localhost:8470/`, `http://bruno.localhost:8470/` und
+`http://chris.localhost:8470/`, in jedem den Namen eintragen und den Schlüssel anlegen. Als Anna
+„Aktualisieren“, „Einen Verein gründen“, Bruno und Chris anhaken, die Satzung ausfüllen,
+„Gründen …“ und unterschreiben; als Bruno und Chris „Satzung bestätigen …“ oder „Nicht
+mitgründen …“. Danach im Tab „Anträge“ der Block „Die Satzung ändern:“. Ein Neustart desselben
+Bestands läuft ohne die Zeile mit `test`. Durch sind `gruenden1.sqlite` und, soweit gefahren,
+`gruenden2.sqlite`; in `gruenden1` steht eine zweite Anna aus einem privaten Fenster.
+
+## Werkzeugnotizen
+
+- **Ein frischer Supervisor-Klon** braucht `pip install --break-system-packages cbor2
+  cryptography pytest hypothesis ruff 'rns==1.5.4'`, sonst bricht schon der Import ab (`00e4`).
+- **Die Gesetze im Projektspeicher** findet `project_search` mit einer Frage in Worten; WEG 26
+  und 27 kamen so in einem Aufruf (`00e4`).
+- **Chromium für Playwright liegt unter `/opt/pw-browsers`** (`PLAYWRIGHT_BROWSERS_PATH`);
+  `playwright install` lädt nichts. Im Klon fehlte `rns`, bis es nachinstalliert war; ohne `rns`
+  bricht die Reihe beim Einsammeln ab (`00e3`).
+- **Der Durchlauf der Sparrunde in Playwright:** „Aktualisieren“ über
+  `button.person:has-text('Aktualisieren')`; das erste „Aktualisieren“ der Seite ist das
+  verborgene unter „Es ist Neues angekommen“. Das Skript lag im Scratchpad, in keinem
+  Repositorium.
+- **Ein Hilfsskript, das durch Ersetzen eines Pfads aus einem anderen entsteht,** ersetzt auch
+  Dateinamen mit demselben Stamm; in `00e3` wartete ein Wächter auf eine Datei, die nie geschrieben
+  wurde. Die Namen der Ausgabedateien nach dem Ersetzen lesen.
+- **`gesetze-im-internet.de` und `lexetius.com` weist das Abrufwerkzeug ab** (robots); nicht
+  umgehen. Das BGB als XML legt Oli in den Projektspeicher, wenn ein Strang den Wortlaut braucht.
+  Sekundärquellen zum Vereinsrecht über die Suche ergaben Zusammenfassungen, die sich teils
+  widersprachen (D687 Befund 2); vor einer Position die Quelle mit Datum lesen.
+- **Rote Fälle des Selbsttests in Sekunden:** ein Node-Skript lädt `selbsttest.js`, fährt `run`
+  über `vektoren.json` und druckt `faelle=…` und je rotem Fall `expect` und `detail`; Proben an
+  `anzeige.js` laufen damit gegen eine Kopie, ohne die Reihe.
+- **Ein Durchlauf zu dritt in Playwright** als Skript: drei Contexts unter `.localhost`, je
+  Person Schlüssel anlegen, gründen, dann die Geschichte; `page.on("pageerror")` sammelt Fehler.
+  Der Knoten läuft dabei in einem eigenen Aufruf; die ganze Reihe danach allein.
+- **`read_v` heisst zweimal verschieden:** in `api.py` die Fassung aus `governance.tally`, in
+  `view.py` die aus `profiles.payload` (dort heisst die erste `read_vote_v`, D681 Befund 4).
+
+- **Google Drive ist verbunden.** Ein Dokument dort findet die Suche über den Titel und liest
+  das Abrufwerkzeug (D658 Anlass).
+- **`pip install -e .` scheitert** an mehreren Paketen in der Wurzel (D662 Befund 1). Im
+  frischen Klon: `venv`, dann `cbor2` und `cryptography` direkt.
+- **`check_specs` prüft, dass ein Abschnitt existiert, nicht, was er sagt** (D229); ein Verweis
+  auf einen Inhalt, den es nie gab, stand drei Monate grün (D659 Befund 2).
+
+- **Mehrere Personen in einem Context:** in Playwright je Person eine Seite unter
+  `http://<name>.localhost:8470/`; Chromium löst `.localhost` selbst auf (D654 Befund 2). Drei
+  Contexts unter `127.0.0.1` gehen weiter.
+- **Aufräumen ohne Selbsttreffer:** ein Skript mit `pkill -f "m [s]ymbolon[.]node"` und je einer
+  Zeile für `[r]nsd`, `[t]ools.funk` und `symbolon[.]bote`; das Muster `[s]ymbolon.node` mit
+  freiem Punkt traf die eigene Shell, weil der Punkt auch `/` trifft (`00dc`). Start- und
+  Klickskripte als Dateien anlegen, nie als Heredoc im selben Aufruf wie das Aufräumen.
+- **Die roten Fälle des Selbsttests beim Namen:** ein Node-Skript, das `run` aus `selbsttest.js`
+  über `vektoren.json` fährt und `expect` der Fälle mit `ok` falsch druckt; Proben an
+  `anzeige.js` laufen damit gegen eine Kopie von `static/` in Sekunden (`00dc`).
+- **`gleich` im Selbsttest vergleicht über `JSON.stringify`:** `Infinity` und `NaN` werden dort
+  zu `null`. Ein Fall, der `null` erwartet, vergleicht streng mit `=== null` (D652 Befund 4).
+- **`vektoren.json` ist die Ausgabe von `tools/geraet_vektoren.py`** und wird bytegleich geprüft;
+  neue Vektoren kommen in das Werkzeug, nie in die Datei (D651 Befund 6).
+- **Eine formwidrige Gründung zum Vorführen:** `gruenden` aus `symbolon.node.gruendung` rufen,
+  die Satzung ändern, `genesis[4]` auf ihren neuen Hash setzen, beide über `POST /objects`
+  einliefern (D652 Befund 2).
+- **Der Sitzungsstart entsteht aus der Fassung im Repositorium** über ein Skript mit Paaren aus
+  altem und neuem Text; so bleibt jede nicht berührte Zeile, wie sie war (D650 Befund 2, D656).
+
+- **Abnahme und Prototyp je in einem eigenen Arbeitsbaum:** `git worktree add /tmp/abn <commit>`
+  im Supervisor-Klon, danach `git worktree remove --force /tmp/abn`; der Klon selbst bleibt
+  sauber auf `origin/main` (`00db`).
+- **Die ganze Reihe im Klon:** ein Skript, das `python3 -m pytest -q` in eine Datei schreibt und
+  den Status in eine zweite, gestartet als eigener Aufruf mit `setsid nohup … < /dev/null`; rund
+  sechs Minuten, in Abständen unter 300 s nachsehen. Mit `timeout 10` davor ging der Status
+  verloren (`00db`).
+- **Zeilenlängen in Zeichen zählen,** mit Python; `awk` zählt Bytes und meldet Zeilen mit
+  Umlauten falsch. `check_specs` liest einen Rückstrich mit Buchstabe im Register als Escape.
+- **Die Gesetze liegen als XML im Projektspeicher:** WEG, Wasserverbandsgesetz und
+  Genossenschaftsgesetz (`00e2`), gelesen mit dem Werkzeug für Projekte (`project_read`); das
+  BGB liegt dort nicht mehr. `gesetze-im-internet.de` und `dejure.org` waren aus dem Klon nicht
+  erreichbar; `lxgesetze.de` liefert einzelne Paragrafen über das Abrufwerkzeug.
+- **Das Muster der Proben:** ein kleines Python-Skript mit Paaren aus altem und neuem Text je
+  Datei, das je Probe die Testdateien fährt und die roten Tests ungekürzt druckt (`00db`).
+
+- **Playwright im Supervisor-Klon:** `pip install --break-system-packages playwright`, dann
+  `python3 -m playwright install firefox`. Je Person `browser.new_context(viewport=…)`; der Knoten
+  startet davor in einem eigenen Aufruf. `page.on("pageerror", …)` sammelt Fehler der Seite.
+- **Für Olis Durchlauf mit mehreren Personen:** drei Tabs unter `.localhost` (D654 Befund 2);
+  die drei Profile aus D644 Beschluss 3 waren ihm zu umständlich. Ein privates Fenster teilt
+  seinen Speicher mit jedem anderen privaten. Firefox nutzt Oli nicht.
+- **Chromium für Playwright:** `python3 -m playwright install chromium`; der Selbsttest liegt
+  unter `/app/selbsttest.html` und schreibt „380 von 380 bestanden“ nach `#ausgabe`.
+- **Ein Prototyp mit neuen Dateien** braucht `git add` vor `check-tree`, sonst ist das Ziel rot.
+- **Der Auftrag liegt ausserhalb des Repositoriums** in `~/auftraege`, die Tests als Diff
+  daneben; der Block legt beide ab und schiebt Älteres nach `erledigt/`.
+
+- **Werkstatt ist Claude Code.** Start in `~/mensch-als-republik`, erste Nachricht: „Lies
+  ~/auftraege/<auftrag>.md und führe den Auftrag aus. Es gilt AGENTS.md.“ Der Bericht enthält
+  keinen Diff (D491); der Supervisor liest ihn aus dem Spiegel.
+- **Registereinträge kommen als Anhang** `/tmp/dNNN.md` (D495); der Block prüft den Hash vorher
+  und nachher. Lieferungen in `/tmp` mit festen Namen, `rm` als letzter Job. Oben im Block
+  `== HASH ==` und `== BASIS ==`.
+- **Blöcke, die nur Markdown ändern,** prüfen mit `make check-tree check-specs check-offen
+  check-fragen` (D480). Den vollen Lauf fährt das Werkzeug vor dem Commit.
+- **Abgelegte Aufträge:** `find ~/auftraege -maxdepth 1 -name '*.md' -exec mv -t
+  ~/auftraege/erledigt/ {} +` verschiebt auch, wenn nichts da ist, ohne die Kette zu brechen.
+- **JavaScript der Seite** im Klon mit Node prüfen: `run` aus `selbsttest.js` über
+  `vektoren.json` mit `globalThis.crypto.subtle`. Den Stil prüft `test_stil.py`; geerbte
+  Farbpaare sieht er nicht (D512), wer dunkle Werte ändert, misst sie nach.
+- **Messungen im Supervisor-Klon** mit `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.`, `make PY=python3`
+  für die Markdown-Prüfungen; Serverläufe mit `timeout`.
+- **fish:** `"(cmd)"` in Anführungszeichen wird nicht ersetzt. `count` gibt bei null Zeilen den
+  Status 1: nur als `test (… | count) -eq 0`, nie als nackte Pipe in der Kette. `test
+  $pipestatus[1] -eq 0` hinter einer Pipe auf `tail`. Eine `for`-Schleife taugt in einer
+  `and`-Kette nicht als Prüfung.
+- **Supervisor-Klon:** `cbor2 cryptography pytest hypothesis` per `pip --break-system-packages`.
+  Vollständig holen mit `git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune`.
+- **`check_specs`** liest ein `§` hinter einer Registernummer als Verweis ohne Datei. Überschriften
+  im Register höchstens 100 Zeichen.
+- **Rücknahmeproben vor dem Auftrag:** Die Python-Teile im Klon als Prototyp bauen, die Tests in
+  der Fassung des Auftrags schreiben, jede verlangte Probe dagegen fahren, den Prototyp verwerfen
+  (D517, D518).
+- **Einen Ablauf für Oli** vorher über die Schnittstelle fahren (`/sim/intent`, `/getrennt`), mit
+  dem echten Startbefehl im Hintergrund über `setsid timeout`. Zweimal fand das eine Falle, die
+  kein Test sah (D518).
+- **Rust-Fassung:** Isolat `~/mar-rs` auf `77f572d`, Anker `573db57`, ruht (D409 Beschluss 3).
+- **Das Werkzeug fährt Rücknahmeproben ohne Bytecode-Cache.** Zweimal zeigte ein veralteter
+  `.pyc` eine Probe grün (D538, D540). Im Supervisor-Klon gilt `PYTHONDONTWRITEBYTECODE=1`
+  ohnehin.
+- **`tests/governance/fixtures.py`:** `fresh_p2()` liefert ALICE, BOB, CAROL, DAVE, EVE in dieser
+  Reihenfolge. Eine Verfassung mit anderem Boden baut man dort ohne neue Epoche.
+- **Ein laufender Auftrag bekommt einen Nachtrag, keinen neuen Auftrag,** wenn eine Rückfrage die
+  Spec ändert: Arbeit parken (`git stash`), Spec auf `main`, Branch vorspulen, Arbeit zurück (D537).
+- **Ein Nachtrag auf demselben Branch** trägt seinen Registereintrag auf dem Branch, nicht auf
+  `main`: dann bleibt die Historie linear und der Merge ein Vorspulen (D544, D545).
+- **Der Selbsttest läuft in `make check`** (`tests/node/test_selbsttest.py`, D555). Ein Auftrag,
+  der Fälle hinzufügt, nennt die neue Zahl `_FAELLE`; ohne Node ist `make check` rot.
+- **Rote Fälle des Selbsttests benennen:** ein Node-Skript nach dem Muster aus
+  `tests/node/test_selbsttest.py`, das `expect` der Fälle mit `ok` falsch druckt; so zeigt eine
+  Rücknahmeprobe den Fall, nicht nur den einen Python-Test (D580).
+- **Der Prototyp einer Seite** wird im Klon mit dem echten Knoten im Hintergrund gefahren
+  (`python3 -m tools.verein_node`, dann `setsid timeout … python3 -m symbolon.node`), die Absicht
+  über `/intent` wie die Seite, danach `/sim/intent`. So fand D580 Befund 2.
+- **Merge als eigener Befehl vor dem Registerblock.** Die Basisprüfung des Blocks fängt einen
+  vergessenen Merge ab (der Block prüft `HEAD` gegen den Commit des Laufs).
+- **RNS im Supervisor-Klon:** `pip install --break-system-packages rns`. Mehrere Knoten mit Boten
+  laufen dort als Prozesse; die Geschichten über ein Skript in einer Datei mit `setsid timeout -s
+  INT`, sonst hängt der Aufruf.
+- **`pkill -f` trifft die eigene Shell**, wenn das Muster in der Befehlszeile des Aufrufs steht;
+  Muster als `'[r]nsbote'` schreiben oder den Aufruf in eine Skriptdatei legen (D584).
+- **Eine RNS-Instanz ist bereit**, wenn `@rns/<instance_name>` in `/proc/net/unix` steht; nie mit
+  einem RNS-Programm prüfen (D589 Befund 1).
+- **Diagnose am Boten:** eine Zeile beim Ablauf einer Frist mit Pfad, Status der Quittung und
+  Laufzeit des Links; `loglevel = 6` in der Konfiguration der Instanz zeigt den Aufbau der Links
+  (D591).
+- **`.claude/settings.local.json` in Olis Klon** trägt seine Freigaben und die Deny-Regeln aus D592;
+  sie ist über Olis globale Ignore-Liste ausgeblendet. Nie überschreiben; ändern nur mit einem
+  Block, der das JSON einliest und eine Sicherung anlegt.
+- **Gibt der Auto-Modus kein Urteil**, startet Oli `env CLAUDE_CODE_AUTO_MODE_SERVER=0 claude`.
+- **fish:** `"(cmd)"` in Anführungszeichen wird nicht ersetzt; im Block zu D592 selbst noch einmal
+  so geschrieben und vor der Ausführung nicht bemerkt. `test (… | count) -eq 0` statt `test -z`.
+
+- **Aufträge mit Boten dauern.** Die Testreihe sechs bis acht Minuten, eine Rücknahmeprobe mit
+  Boten bis zu einer Minute. Nach einer Probe `rnsd`, `tools.funk` und `symbolon.bote` beenden.
+- **Der Kanal im Supervisor-Klon:** `tools/funk.py` mit einem Eingang je Teilnehmer; RNS sendet
+  über `UDPInterface` aus einem neuen Socket je Paket (D610 Befund 1). Zum Messen zählt man im
+  Kanal die Paketart aus dem ersten Byte und bei Daten den Kontext aus Byte 18.
+- **RNS ruft Rückrufe mit Namen auf** (`Transport.py`, D611 Befund 1); ein Fehler darin wird still
+  verschluckt.
+- **`check_specs`** liest `§` in „RFC 6206 §4.2“ als baren Verweis; „Abschnitt 4.2“ schreiben.
+- **Lange Läufe im Klon** in den Hintergrund legen und in Abständen unter 300 s nachsehen; ein
+  einzelner Aufruf darf nicht länger laufen.
+- **Ein Lauf im Hintergrund überlebt das Ende eines Zuges nicht** (f2 in `00cx`). Jeder Lauf beginnt
+  und endet im selben Zug: rund 10 Minuten für `--wahlgang --funk` bis zum ersten Urteil.
+- **Vor jedem Lauf aufräumen.** Zweimal belegten die Knoten eines noch laufenden Laufs die Ports,
+  der neue lief ohne Takt 0 (d2, f1). Das Startskript ruft zuerst das Aufräumskript.
+- **`pkill -f` traf die eigene Shell fünfmal in `00cx`,** jedes Mal, weil ein Pfad wie
+  `symbolon/bote/…` in derselben Befehlszeile stand wie der Aufruf des Aufräumskripts (auch über
+  ein Startskript, das aufräumt). Aufräumen und Starten nur in Aufrufen ohne solchen Pfad.
+- **Das Messpaket aus D627** (`lauf.sh`, `stopp.sh`, `mess.py`, `waechter.py`, `auswert.py`,
+  `diag.patch`, `AUFTRAG.md`) ist die Vorlage für die nächste Messung; der Patch muss zur Basis
+  passen.
+- **Das Messpaket aus D630** kam als `messung.tar.gz`: der Kanal schreibt eine Zeile je Paket
+  (Sender, Art aus `daten[0] & 0b11`, Ziel aus Byte 2 bis 17, Kontext aus Byte 18, wer es hörte,
+  Sendezeit, Stau), der Bote Zeilen je Link über Haken an `RNS.Link` (`validate_request`,
+  `rtt_packet`, `handle_request`, `link_closed`). `auswert.py` verbindet beides über die Kennung
+  des Links. Es liegt in keinem Repositorium; die nächste Messung baut es neu.
+- **Mit IFAC ist der Kopf maskiert:** Art, Ziel und Kontext liest der Kanal dann nicht, und
+  `Kanal.senden` zählt die Ankündigungen falsch (D633 Befund 5).
+- **Ein Start im Hintergrund** geht im Supervisor-Klon nur als eigener Aufruf, mit `< /dev/null`
+  und `timeout 10` davor; im selben Aufruf mit anderem hängt er bis zum Zeitlimit (`00cy`).
+- **`pgrep -f` mit `symbolon` im Muster** findet die eigene Shell, wenn sie in
+  `/home/claude/symbolon` wechselt; ein Rest von einem Prozess ist dann keiner.
+- **Zwei Fassungen nebeneinander** über `git worktree add /tmp/<name> <commit>`, den Patch je Baum
+  mit einem kleinen Skript; danach `git worktree remove --force`.
+- **`ruff` fehlt im frischen Supervisor-Klon;** `pip install --break-system-packages ruff`, dann
+  `python3 -m ruff check symbolon tests tools` statt des Ziels `check-lint`.
+- **IFAC in der Konfiguration eines Interfaces:** `network_name`, `passphrase`, `ifac_size = 64`
+  (Bit; 8 Byte wie am RNode). Das gilt für jedes Interface, auch `UDPInterface` (D633).
+
+- **`rns` im Supervisor-Klon festlegen:** `pip install --break-system-packages 'rns==1.5.4'`; ohne
+  Version kam 1.5.6 (`00cz`).
+- **`make PY=python3 check` scheitert im Klon am Lint-Ziel** (`.venv/bin/ruff`). Stattdessen
+  `make PY=python3 test`, `python3 -m ruff check symbolon tests tools` und die vier
+  Markdown-Ziele einzeln.
+- **Die Ausgabe von `make` in eine Datei, den Status aus `$?`.** Hinter `| tail` stand in `00cz`
+  einmal ein rotes `check-specs`, und die letzte Zeile sah grün aus (D573).
+- **Das Messpaket aus D635** liegt in keinem Repositorium: der Kanal schreibt je Paket Zeit,
+  Sender, Länge, Art, Ziel und Kontext; der Bote je Anfrage die Kennung des Links und den Pfad;
+  die Auswertung ordnet jedes Paket an eine Link-Kennung der letzten Anfrage auf diesem Link zu.
+  Geschnitten wird am fünften „gleicher Stand“ (Takte 0 bis 4).
+- **Ein Lauf über Funk im Klon** braucht drei Aufrufe: starten (allein), in Abständen unter 300 s
+  nachsehen, auswerten. Im selben Aufruf mit anderem hing der Start wieder; ein Lauf über das
+  Zugende hinaus war wieder verloren (`00cz`, je zum zweiten Mal).
+- **Testdaten für eine Grösse im Bündel** müssen sich nicht packen lassen; 400 gleiche Bytes
+  wurden zu 48 (`00cz`).
+- **Der Knoten antwortet beim Einliefern** mit `claim_id` und `hash`; `/stand` antwortet dem
+  Verhalten nach auch, wenn der Knoten getrennt ist, `/peer/bestand` nicht (D636 Befund 2).
+- **Eine Zeile über 100 Zeichen im Registeranhang** findet `check_specs` erst nach dem Anhängen;
+  den Anhang im Klon an das Register hängen und die vier Markdown-Ziele fahren, bevor er hinausgeht.
+
+## Prüfregel-Kandidaten, weiter nicht übernommen
+
+- **Neu aus D709 Befund 1:** Ein Verweis im Sitzungsstart auf eine Stelle der Spec wird gegen
+  ihren Wortlaut gelesen, bevor er Grundlage einer Frage wird; „`01 §1` kennt Delegation“ stand
+  für „`01 §8` schliesst sie aus“.
+- **Neu aus D711 Befund 2:** Wer einen Wert über eine Epoche hinaus tragen will, liest `04 §4.3`;
+  der Stand endet mit der Epoche.
+- **Neu aus D711 Befund 4:** Ein Ende, das einen Punkt nennen muss, braucht einen Ort für den
+  Punkt; ein Abruf durch Löschen hat keinen.
+- **Zum dritten Mal belegt, zur Übernahme vorgeschlagen (D537, D681 Befund 6, D706 Befund 3):**
+  Wer eine aufgezählte Menge erweitert, sucht jede Stelle, die sie nennt oder über sie läuft,
+  Tests eingeschlossen; `test_regeln` lief über `_TASK_DETAIL_FIELD`.
+- **Zum zweiten Mal belegt (D698 Befund 1, D702 Befund 1):** Eine Haltung Olis kommt ins
+  Register, wenn sie fällt; wer einen Gegenstand wieder aufgreift, sucht vorher in früheren
+  Gesprächen.
+- **Neu aus D707 Befund 4:** Was die Seite als bezahlt zeigt, ist die Aussage des Empfängers; ein
+  Satz auf der Seite, der „bezahlt“ sagt, wird gegen `03 §3.1` gelesen.
+- **Neu aus D698 Befund 1:** Eine Haltung Olis aus einem Gespräch kommt ins Register, wenn sie
+  fällt; wer einen Gegenstand wieder aufgreift, sucht vorher in früheren Gesprächen (Schwester
+  von D640 Beschluss 4).
+- **Neu aus D700 Befund 2:** Ein historisches Beispiel, auf das ein Beschluss seine Begründung
+  stützt, wird gegen neuere Forschung geprüft, bevor es weiter zitiert wird.
+- **Neu aus D698 Befund 3:** Eine Annahme über Zahlen, auf der ein Bild ruht („der Topf wird
+  selten genutzt“), wird nachgeschlagen, bevor das Bild in die Landkarte geht.
+- **Neu aus D682:** Ein Fall, der gegen eine importierte Konstante vergleicht, legt ihren Wortlaut
+  nicht fest; ein Auftrag, der Wortlaut verlangt, schreibt ihn in den Fall.
+- **Neu aus D684 Befund 3:** Eine Rücknahmeprobe zur Reihenfolge braucht einen Fall, in dem die
+  falsche Reihenfolge eine andere ist; zuerst stand der Kandidat mit mehr Stimmen ohnehin vorn.
+- **Neu aus D681 Befund 6, zum dritten Mal belegt (D537, D574):** Wer eine aufgezählte Menge
+  erweitert (Arten von Aufgaben), sucht jede Aufzählung derselben Menge, Tests eingeschlossen.
+- **Neu aus D686 Befund 2:** Ein Ausweg, den ein Beschluss nennt, wird gegen spätere Beschlüsse
+  geprüft, die ihn schliessen können; D100 nannte die Wahl der Schwelle, D648 legte sie fest.
+- **Neu aus D687 Befund 2:** Eine Aussage über geltendes Recht aus dem Gedächtnis wird vor der
+  Lieferung mit Datum nachgeschlagen; „die Hälfte bis zum Termin“ war ausgelaufen.
+
+- **Neu aus D676:** Die Anmerkungen eines Berichts werden gegen den Auftrag gelesen wie seine
+  Meldungen; der Defekt in `p59` stand unter „Anmerkungen“.
+- **Neu aus D675 Befund 1:** Eine Regel, die ein Objekt „lokal auflöst“, wird gegen ein
+  eingeliefertes, erfundenes Objekt geprüft (Schwester von „fremder Inhalt“, D652).
+- **Neu aus D671 Befund 2:** Eine neue Art zu unterschreiben wird gegen jede Lage der Zurechnung
+  aus `02 §2.1` geprüft, die bei Stimmen schon geregelt ist.
+
+- **Neu aus D666 Befund 8:** Wer „das einzige Verfahren“ sagt, hat in mehr als einer Literatur
+  gesucht (Schwester von D640).
+- **Neu aus D667 Befund 7:** Eine Frage an Oli nennt, was ein Mensch sieht, ohne Fachwörter;
+  „geheime Fassung der Satzung“ las er als Verschlüsselung der Satzung.
+- **Neu aus D669 Befund 1:** Wer einen Ort für eine Norm vorschlägt (den Boden), sucht vorher jede
+  Aufzählung dieses Orts in Code, Tests und Ankern (Schwester von D537).
+- **Neu aus D667 Befund 6:** Eine Regel, die zwei Stimmen derselben Person verknüpfen muss, wird
+  gegen jeden Weg geprüft, auf dem dieselbe Person unverknüpft stimmen kann.
+
+- **Neu aus D659 Befund 2:** Ein Verweis, der eine Norm an eine andere Datei übergibt, wird am
+  Inhalt des Ziels geprüft, nicht an seiner Existenz (Schwester von D229 und D233).
+- **Neu aus D660:** Ein Satz, der zusammenfasst, was das Protokoll leistet, wird gegen
+  `08 §2.1` gelesen; „macht Handeln nachprüfbar“ stand seit Juli in `VISION §1`.
+- **Neu aus D662:** Ein Befehl in einer öffentlichen Datei wird vorher in einem frischen Klon
+  gefahren (Schwester von D518).
+- **Neu aus D663:** Ein englischer Text für Lesende von aussen wird auf Englisch entworfen,
+  nicht aus einem deutschen Gedanken übertragen.
+
+- **Zum vierten Mal verletzt, zur Übernahme vorgeschlagen (D474, D526, D572, D652):** Nimmt Code
+  fremden Inhalt an, nennt der Auftrag den formwidrigen Fall, und der Supervisor führt ihn vor
+  dem Auftrag am Prototyp vor.
+- **Neu aus D652 Befund 3:** Sagt ein Auftrag, wie Namen stehen, nennt er den Fall ohne Namen;
+  „nach `nachNamen`“ liess den vollen Schlüssel zu.
+- **Neu aus D652 Befund 4:** Ein Fall, der `null` erwartet, vergleicht mit `=== null`.
+- **Neu aus D652 Befund 1, Schwester von D623:** Ein Aufräumskript, das neben einer Testreihe
+  läuft, macht den Lauf ungültig.
+- **Neu aus D651 Befund 6:** Vor dem Ändern einer Datei unter `static/` prüfen, ob ein Werkzeug
+  sie erzeugt.
+- **Neu aus D654 Befund 2:** Ein Block für Oli wird auch für den zweiten Aufruf gelesen; eine
+  Prüfung auf einen frischen Bestand bricht dann still ab.
+- **Neu aus D654 Befund 4 (Schwester von D605, D606):** Eine Anleitung für einen Durchlauf, die
+  ein Mensch nicht auf der Seite findet, ist ein Befund an der Seite.
+- **Neu aus D653 Befund 3:** Eine Probe, die den Selbsttest abbrechen lässt, nennt keinen Fall;
+  der Auftrag sagt dann, dass der Abbruch zählt.
+
+- **Neu aus D645 Befund 6:** Wer eine Lücke nennt, sucht vorher im Register, ob sie eine
+  Entscheidung ist; „der Fork zur Mehrheit“ und „das Stimmverbot fehlt“ waren beide entschieden
+  (Schwester von D514 und D527).
+- **Neu aus D647 Befund 5:** Eine Abnahme läuft in einem frischen Arbeitsbaum, und ihr erster Job
+  prüft `HEAD` und einen sauberen Stand.
+- **Zum zweiten Mal belegt (`00cy`, D647 Befund 4):** Eine Zahl im Auftrag wird gegen die
+  ungekürzte Ausgabe nachgerechnet; „sechs rote Fälle“ waren acht.
+- **Neu aus D648 Befund 4:** Ein Vektor gegen eine Zeichenklasse steht an einer Stelle, die nur
+  diese Klasse prüft (Schwester von D557).
+- **Zum dritten Mal belegt (D544, D545, D649 Befund 3):** Wer einen Satz über eine Stelle im
+  Code schreibt, zählt, wie oft es sie gibt.
+- **Neu aus D646 Befund 2:** Ein Test, der mehrere Anträge nacheinander stellt, prüft, ob sie
+  eine Vorbedingung teilen.
+
+- **Zum zweiten Mal belegt (D637, D642 Befund 4):** Sagt ein Auftrag, was bei einer Ausnahme
+  geschieht, nennt er jede Stelle, an der sie auftreten kann.
+- **Neu aus D641 Befund 1:** Wer zwei Objekte aus denselben Angaben baut, prüft, ob zwei Aufrufe
+  mit verschiedener Absicht dasselbe Objekt ergeben.
+- **Neu aus D641 Befund 2:** Eine Schwelle aus einem Bild wird an der kleinsten Gruppe gemessen,
+  bevor sie in eine Vorlage geht; zwei Drittel sind zu dritt alle.
+- **Neu aus D640 Beschluss 4:** Eine Aussage aus einem früheren Gespräch, die nicht im Register
+  steht, wird beim Wiederaufgreifen gegen die Norm geprüft; „ein Genesis mit Lücken“ war falsch.
+
+- **Neu aus D637:** Sagt ein Auftrag, was bei einer Ausnahme geschieht, nennt er jede Stelle, an
+  der sie auftreten kann (Schwester von D586).
+- **Neu aus D635 Befund 5:** Ein Prototyp, der auf einen Zustand einer fremden Bibliothek baut
+  (ein bekannter Schlüssel), wird ab dem kalten Start gemessen.
+- **Neu aus D635 Befund 8:** Zahlen aus einem Lauf werden alle bis zum selben Schnitt gezählt.
+- **Neu aus `00cz`, Prüfregel 27 verletzt:** ein Verweis im Entwurf zu D636 zeigte auf den falschen
+  Beschluss (D615 Beschluss 2); vor der Lieferung beim Öffnen bemerkt.
+- **Zum zweiten Mal belegt (D573, `00cz`):** Grün ist ein Exit-Status, keine Ausgabezeile.
+
+- **Neu aus D629:** Eine Eigenschaft einer fremden Bibliothek, die nur im Quelltext steht und nicht
+  in ihrer Dokumentation, wird als solche benannt; sie kann sich ohne Ankündigung ändern.
+- **Neu aus D630:** Eine Entscheidungsregel, die eine Messung hochrechnet, nennt die Annahme der
+  Hochrechnung, bevor gemessen wird.
+- **Neu aus D630:** Ein Beschluss, der einen früheren wieder öffnet, sagt das; D629 Beschluss 4
+  öffnete D627 Beschluss 1, ohne ihn zu nennen.
+- **Neu aus `00cy`:** Eine Vermutung über eine fremde Bibliothek wird zu Ende gelesen, bevor sie
+  ausgesprochen wird; „eine verlorene kleine Antwort bleibt unbemerkt“ war falsch, weil der Status
+  einer Anfrage als Paket `SENT` bleibt.
+- **Neu aus `00cy`:** Eine Zahl in einem Registereintrag wird gegen die Ausgabe nachgerechnet;
+  „71 kamen an“ waren 68.
+- **Neu aus D623:** Ein Befund, der einer Fassung einen Fehler zuschreibt, wird gegen dieselbe
+  Messung auf `main` geprüft; der Stillstand von (a) in D622 kam aus `main` selbst.
+- **Neu aus D623, D625:** Ein Lauf, dessen Prozesse mit einem anderen überlappen, zählt nicht; vor
+  der Auswertung prüfen, dass Takt 0 überhaupt lief.
+- **Neu aus D625:** Eine Frist, die an einem Ort bemessen wurde (lokal), wird am neuen Ort gemessen,
+  bevor sie dort gilt (Schwester von D503).
+- **Neu aus D628:** Eine Aussage über eine fremde Bibliothek („`GROUP` statt `SINGLE`“) wird im
+  Quelltext geprüft, bevor sie Oli zur Entscheidung vorgelegt wird (schärft D585 bis D591).
+- **Zum dritten Mal belegt, aus `00cx`:** ein Hash im Block wird aus dem Spiegel kopiert, nie
+  ergänzt; im Block zu D623 noch einmal ergänzt und erst in der Antwort bemerkt.
+
+- **Neu aus D615 Befund 1:** Ein Auftrag nennt auch den Grenzfall einer Ausgabe (die gekürzte
+  Datei), nicht nur den formwidrigen Eingang (Schwester von D474).
+- **Neu aus D615 Befund 2:** Ein Test, der eine Lesart nahelegt (`Formwidrig` ist ein `ValueError`),
+  wird so gebaut; was gefangen wird, sagt der Auftrag ausdrücklich.
+- **Neu aus D617:** Eine Zahl im Docstring eines Tests wird gemessen, nicht aus einem früheren
+  Prototyp übernommen; „neun Runden“ waren fünf (Schwester von D457).
+- **Neu aus D618 Befund 2:** Eine Abweichung, die die Form erlaubt, bleibt eine Abweichung vom
+  Wortlaut des Beschlusses; die Abnahme schreibt sie ins Register.
+- **Neu aus D619 Befund 1:** Ein Schritt, dessen Nutzen ich begründet habe, wird gemessen, bevor er
+  gebaut wird; die Anregung durch den Nachbarn fiel weg.
+- **Neu aus D620 Befund 3:** Ein Prüfkriterium per `grep` ist so eng wie die Sache.
+- **Neu aus `00cw`:** Eine Annahme über Sicherheit (der Inhalt sei verschlüsselt) wird gegen Spec
+  und Code geprüft, bevor auf ihr gebaut wird.
+
+- An zwei Fällen Gemessenes nicht „durchgehend“ nennen (D390 → D396).
+- Eine Karte aus Wortsuche ist eine Vermutung; vor dem Schreiben den Wortlaut lesen (D397 → D398).
+- Eine Flächenzeile vor dem Lesen des Codes ist eine Schätzung (D408).
+- Der nächste Schritt eines Sitzungsstarts wird gegen `offen.md` und das Register-Ende geprüft
+  (D409).
+- Ein Strang über mehr als eine Sitzung hat eine O-Nummer oder einen Registereintrag (D412).
+- Eine Beschreibung, die eine Zahl aus einem anderen Eintrag wiederholt, veraltet mit ihm (D420).
+- Ein Vergleichs-`diff` wird nicht mit `head` gekürzt (D440).
+- Eine Bedingung, an die ein vertagter Posten geknüpft ist, wird gegen alle Einträge seit ihrer
+  Setzung geprüft (D437).
+- Ein Auftrag, der eine frühere Schnittstelle für gültig erklärt, übernimmt die Befunde über sie
+  (D447).
+- Ein Vektor im Register wird aus der Messausgabe kopiert, nicht abgeschrieben (D457).
+- Eine Lücke, deren Normspalte auf einen Satz zeigt, wird gegen dessen Wortlaut geprüft (D459).
+- Eine Rücknahmeprobe zählt nur, wenn der Test an der Sache scheitert (D463).
+- Eine Welt baut jede Identität frisch (D464).
+- Nimmt Code fremden Inhalt an, nennt der Auftrag die Lage, dass dieser Inhalt formwidrig ist
+  (D474).
+- Ein Lader nennt jedes Objekt, das seine Welt braucht; ein Werkzeug ist wiederholbar (D477).
+- Eine Rücknahmeprobe, die an einer vorgelagerten Zusicherung scheitert, zeigt nicht, dass der
+  Test die Sache sieht (D478).
+- Wer „das ist die Regel“ sagt, trennt die Regel des Protokolls von der Wahl einer
+  Implementierung (D489).
+- Eine Oberfläche wird an dem Satz gemessen, den ein Mensch nach dem Klick sagen kann; eine
+  Abnahme der Seite braucht einen Durchlauf mit Oli (D490).
+- Die Abnahme einer Seite liest auch, was sie zeigt und verbirgt, also die Stilregeln (D494).
+- Was ein Mensch eintippt, bindet keine Rechnung an seine Schreibweise (D496).
+- Die Fälle eines Beschlusses decken jede Rechenstelle und jeden Weg zur Stelle ab; der
+  Supervisor prüft sie mit einer eigenen Probe gegen den naheliegenden Fehler, bevor der Auftrag
+  hinausgeht (D501, D504, D512). **Geschärft aus D517:** eine Rücknahmeprobe, die ein Auftrag
+  verlangt, fährt der Supervisor gegen den Test in der Fassung des Auftrags, nicht nur gegen die
+  Implementierung.
+- Aus D503: Wer ein Muster auf einen neuen Gegenstand überträgt, misst es dort; was für
+  ganze Zahlen hält, bricht an Gleitkommazahlen.
+- Aus D512: Ein Test, der Paare aus einer Datei liest, sieht nur, was die Datei
+  ausdrücklich paart.
+- **Neu aus D514:** Ein Weg, den ein Beschluss verworfen hat, wird im Code gesucht, bevor darauf
+  gebaut wird; D473 hatte den Store beim Einlesen nicht ausgeschlossen, und der Code nahm ihn.
+- Aus D518: Ein Ablauf, den ein Mensch Schritt für Schritt bedient, wird vorher selbst
+  gefahren; die Reihenfolge ist Teil des Bildes.
+- **Neu aus D527:** Ein neuer Posten in `offen.md` wird vorher gegen das Register gesucht, mit den
+  Wörtern der Frage und den Namen, die er nennen will (schärft D514).
+- **Neu aus D527:** Ein Hash in einem Block wird aus dem Spiegel kopiert, nie aus einem Kurzhash
+  ergänzt (Schwester von D457). Einmal ergänzt, brach der Block an der Basis ab.
+- **Neu aus D526:** Nimmt Code fremden Inhalt an, nennt der Auftrag den formwidrigen Fall (D474);
+  diesmal fehlte er, und das Werkzeug fand die Lücke.
+- **Neu aus D537:** Wer eine aufgezählte Menge der Spec ändert, sucht jede Aufzählung derselben
+  Menge, Golden Anchors und Tests eingeschlossen (Schwester von D420). Übersehen hatte ich die
+  Anker P-A bis P-H.
+- **Neu aus D536:** Wirkt eine Regel an zwei Stellen, nimmt die Rücknahmeprobe sie an der Quelle
+  zurück; an einer Stelle zurückgenommen, greift die andere, und die Probe bleibt grün.
+- **Neu aus D539:** Ein Test an einer Schwelle prüft selbst, dass die richtige und die falsche
+  Zählung auf verschiedenen Seiten der Schwelle liegen.
+- **Neu aus D534, D539:** Eine Norm, die ein Ergebnis zurücknehmen kann, wird gegen die
+  Invarianten gelesen, die es festhalten (`INV-04.7`); dort fehlte das widerrufbare Verdikt.
+- **Neu aus D544, D545, geschärft aus D537:** Wer einen Satz ändert, sucht jede Stelle, die
+  denselben Sachverhalt ausspricht, auch in anderer Form: eine Warnung und ihre Folgezeile, eine
+  Regel und die Reihenfolge ihrer Prüfungen. Beide Nachträge zu `p27` kamen aus meinem Wortlaut.
+- **Neu aus D548:** Ein Eigenschaftstest, den jede Regel einer Klasse von selbst erfüllt, schützt
+  nicht; die Rücknahmeprobe zeigt es, wenn sie gegen ihn grün bleibt.
+- **Neu aus D547, D548:** Eine neue Regel an einer Stelle der Auszählung wird an jeder Stelle
+  gesucht, die dieselbe Menge selbst rechnet (Sicht, Vorschau, Karte); die Gruppierung aus D542
+  hätte den aufgelösten Widerspruch weiter gezeigt.
+- **Neu aus D556:** Ein Wortlaut, den Oli bestätigen soll, wird vorher gegen die Wortregeln der
+  Seite gelesen; „Epoche“ war seit D494 „Fassung der Satzung“.
+- **Neu aus D552:** Eine Meldung, die ein Bild nur einmal auslöst, braucht einen eigenen Test; das
+  Bild sieht nicht, ob sie einmal oder jedes Mal käme.
+- **Neu aus D555:** Eine Zählung als Golden Number schützt vor einer verschwundenen Gruppe von
+  Fällen, die ein Test „alle grün“ nicht sieht.
+- **Neu aus D557:** Eine Rücknahmeprobe nimmt die benannte Wirkung zurück, nicht eine benachbarte;
+  sonst wird sie am falschen Test rot.
+- **Neu aus D562:** Ein Befund wird dort im Code gesucht, wo sein Bild entsteht, bevor eine
+  Reparatur entworfen wird; D502 nannte sein Bild im Titel, und D561 reparierte einen anderen Weg
+  (schärft D514).
+- **Zweimal verletzt, zur Übernahme vorgeschlagen (D557, D560):** Eine Rücknahmeprobe nimmt die
+  benannte Wirkung zurück, nicht eine benachbarte. In D559 änderte K6 den Schlüssel der Zählung und
+  damit die Titelsuche.
+- **Neu aus D564 Befund 3:** Eine Aussage über Nebenläufigkeit wird an zwei Beobachtern geprüft, die
+  dieselben Feststellungen in verschiedener Reihenfolge sehen.
+- **Neu aus D569:** Ein Vektor für eine Ausnahme braucht einen Fall, den die Regel ohne die
+  Ausnahme träfe; sonst bleibt die Rücknahmeprobe grün (Schwester von D548).
+- **Neu aus D572:** Der Prototyp eines Auftrags fährt die Prüfungen von `make check` ganz, nicht nur
+  die Tests.
+- **Neu aus D572, zum dritten Mal verletzt:** Nimmt Code fremden Inhalt an, nennt der Auftrag den
+  formwidrigen Fall (D474, D526).
+- **Neu aus D573, zur Übernahme vorgeschlagen:** Grün ist ein Exit-Status, keine Ausgabezeile; eine
+  gekürzte Ausgabe trägt nur, wenn der Status des gekürzten Befehls geprüft wird.
+- **Neu aus D574, zur Übernahme vorgeschlagen:** Wer einen Begriff ausmustert, sucht jede Datei, die
+  ihn trägt, über das ganze Repositorium (Schwester von D537).
+- **Neu aus D575:** Ein neuer Begriff der Norm wird vorher im ganzen Repositorium und auf der Seite
+  gesucht.
+- **Neu aus D570:** Ein Hash in einem Block wird aus dem Spiegel kopiert; auch ich habe einmal einen
+  Kurzhash ergänzt und es vor der Ausführung bemerkt (Schwester von D527).
+- **Neu aus D578:** Wer eine Lücke mit einem Wert kodiert, prüft, ob dieser Wert im Format
+  vorkommen kann (`None` für „Feld 3 fehlt“, aber CBOR kennt `null`).
+- **Zum dritten Mal belegt, zur Übernahme vorgeschlagen (D582):** einen Ablauf vor dem Durchlauf
+  selbst über die Schnittstelle fahren (D518, D580 Befund 2); wer eine Menge der Kette an einer
+  zweiten Stelle rechnet, sucht jede solche Stelle (D547, D548, D577 Befund 1); einen Hash im Block
+  nie aus einem Kurzhash ergänzen (D527, D570, D582).
+- **Aus D577 Befund 2:** Wird eine Rücknahmeprobe vor der erwarteten Stelle rot, wird gelesen,
+  warum; dort war es die Norm selbst (`UNKNOWN_PROPOSAL`), nicht ein Fehler des Tests.
+- **Neu aus D587:** Eine Rücknahmeprobe nimmt die Wirkung in jeder Form zurück, in der man sie bauen
+  kann, nicht nur in der Form des eigenen Prototyps; im `elif` des Werkzeugs sah der Test den Fehler
+  nicht.
+- **Neu aus D586:** Verlangt ein Auftrag „ohne Antwort → X“, stellt ein Test die fehlende Antwort
+  her; der Bau verliess sich auf die Bibliothek, und die schloss die Anfrage nie ab.
+- **Neu aus D589:** Eine Probe der Bereitschaft darf den Zustand nicht herstellen, den sie prüft.
+- **Zum zweiten Mal belegt (D390, D590 Befund 1):** Eine Ursache, die in zwei Läufen „nicht mehr
+  gesehen“ wurde, ist nicht bestätigt; D589 Befund 2 war falsch.
+- **Neu aus D585 bis D591:** Ein Fehler in einer fremden Bibliothek wird im Quelltext der
+  Bibliothek nachgelesen, bevor ein Test angepasst oder eine Umgehung gebaut wird (zwei Wettläufe
+  in RNS, D586 Befund 3, D590 Befund 2).
+
+- **Neu aus D610:** Ein Messwerkzeug wird gegen die Wirklichkeit geprüft, bevor seine Zahlen
+  gelten; mein Kanal gab jedem Sender seine Pakete zurück, und zwei Registereinträge standen auf
+  verfälschten Zahlen.
+- **Neu aus D599, D601:** Eine Position wird vor dem Normtext an einem Prototyp gemessen; die
+  Messung änderte das Patt von den zählenden auf die gebundenen Ja (D600).
+- **Neu aus D603 Befund 2:** Ein Test, dessen Wächter an einer Aufgabe hängt, verliert ihn, wenn
+  die Aufgabe entfällt; die Probe hat dann keinen Gegenstand mehr.
+- **Neu aus D611 Befund 1, Schwester von D586 Befund 3:** Wer einer fremden Bibliothek einen
+  Rückruf gibt, liest nach, wie sie ihn aufruft.
+- **Neu aus D605, D606:** Eine richtige Aussage auf der Seite genügt nicht; sie muss dort stehen, wo
+  ein Mensch hinsieht (Olis Anna-Satz).
+
+## Offene Punkte
+
+**Aus `00e4`, ohne Auftrag:** Wer zahlt, wenn ein Inhaber im Rahmen einen Auftrag erteilt (der
+Baustein Verwahrung). Akte zwischen dem Antrag auf Abruf und dem Beschluss; eine Sperre im
+Eilfall wie GenG 40 wäre eine Stellschraube (D710 Befund 4). Ob eine Wahl einen Inhaber
+bestellen kann (D667). Die Grenze nach Betrag und mehrere Zeichner sind nicht im Prototyp. Der
+Sachantrag über die Schnittstelle nimmt nur Text als Wert (`symbolon/node/api.py`); ein Mandat
+ist eine Map. Eine Untervollmacht, die nur enger werden kann (Macaroons), ist nicht in der
+ersten Fassung. WEG 9b und GenG 27 sind aus `00e2` übernommen, nicht neu gelesen. Die volle
+Reihe lief auf dem Prototyp nicht.
+
+**Aus `00e3`, ohne Auftrag:** Die Verrechnung beim Abbruch einer Sparrunde (D703 Befund 4).
+Ein Abbruch mitten in „Ich mache mit …“ und ein Gerät in der Sparrunde sind nicht durchgespielt
+(D707 Befund 3). Drei Befunde an der Gestaltung: die Tafel ohne Abstand, „… Beiträge sind
+offen“ zählt spätere Monate, Kopf und Sätze sagen „Verein“ (D706 Beschluss 1). `tasks_view`
+rechnet je Vereinsleben die Tafel und damit zwei Sichten mehr; ein zweites Genesis mit
+demselben Verein unter Key `8` nimmt einer Sparrunde die Tafel (D705 Befund 5). Eine Aufnahme
+nach der Gründung steht nicht auf der Tafel (D704 Beschluss 2). „Ich mache mit …“ fragt je
+Zusage einzeln; bei zehn Personen neunmal (D706 Beschluss 2). `LAGE.md` nennt den Law Merchant
+noch (D708 Beschluss 1). Die Vorlage als Standardsatz an einen Hash binden (D702 Beschluss 3).
+Shasta County ist nur nach einer Besprechung gelesen (D702 Befund 4).
+
+**Aus `00e2`, ohne Auftrag:** Ob offener
+Zugang zu einem Markt mit der gegenseitigen Mitgliedschaft aus `03 §4`
+geht (D700 Befund 1). Wo eine kleine Sparrunde unter der Erlaubnispflicht nach KWG 32 bleibt
+(D699). Das Kaufrecht des BGB ist nicht im Wortlaut gelesen. Ein Nachweis, dass genug Geld da
+ist, ohne den Stand zu verraten, ist nicht nachgeschlagen; ebenso der gemeinsam getragene
+Selbstbehalt (`LANDKARTE §5`). Wie ein Dienst wie der Marktplatz ohne Pfand glaubwürdig wird
+(`LANDKARTE §9`). Die Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige (D698 Befund
+4). Stimmgewicht mit Obergrenze: ob MaR es will (`LANDKARTE §6`).
+
+**22 offene Posten:** O110 (das Mandat mit Rahmen, D703), O109 (die Sparrunde: Knoten und
+Seite gebaut; offen die Verrechnung, die Gestaltung und das Telefon), O107 (Beteiligung: in
+Norm und Bibliothek gebaut; offen die Seite und `participation@1` in der Vorlage `verein`), O106
+(geheime Abstimmung: Norm, Bibliothek, Knoten und Seite ohne Mischrunde gebaut; offen die
+Mischrunde), O97 (Phase 5, ruht bis zu den T-Beams), O100 (das Patt kostet Zeit), O101 (was ein
+Mensch zuerst sieht), O104 (Anfragen über den Link scheitern unter Verlust; offen sind die gehäuft
+scheiternden Aufbauten), O105 (was die Bausteine nicht abbilden, sechs Lücken, D661) und 13
+Wartestände: O31, O34 bis O40 und O42 vertagt mit Bedingung; O25 (Sicherungsblob) ein Bau ohne
+Anlass; O56 der PyPI-Name; O74 ein Stolperdraht; O89 (Amtswechsel der Kasse).
+
+**Aus `00e1`, ohne Auftrag:** `_ballot_choice` vergibt `MALFORMED_BALLOT` weiter, als `04 §9.4`
+es sagt (D694 Befund 5 Punkt 3). `AMBIGUOUS_REST` nennt auch Stimmen mit `RESTING_VOTE` (D694
+Befund 5 Punkt 2). Mehrere Geräte einer Wurzel sind für die Beteiligung nur über `wurzel()`
+abgedeckt, nicht durchgespielt (D693 Befund 2). Die Seite der Beteiligung: Enthaltung, „Ich
+ruhe“, „Ich bin zurück“, keine Stimme nach dem Ruhen, Hinweis bei Enthaltung neben einem Ja auf
+einen Rivalen (D690 Befund 5, D692 Befund 3). Die Prototypen aus `00e1` liegen in keinem
+Repositorium, nur ihre Tests.
+
+**Aus `00e0`, ohne Auftrag:** Eine abgebrochene Wahl liegt weiter im Bestand, die Seite zeigt sie
+nur nicht (D681 Befund 2). Ein Gerät kann nicht für seine Wurzel an einer Wahl teilnehmen
+(D681 Beschluss 4). Eine Stimme in einem veralteten Wahlgang ist verloren, ohne Hinweis
+(D681 Befund 3). Was ein Gewählter darf (O105 Punkt 1). Der Hinweis „Es ist Neues angekommen“
+bei einem neuen Namen ist gewollt (D684 Befund 2). Der Tab „Im Verein“ nennt keine laufenden
+Wahlen.
+
+**Aus `00df`, ohne Auftrag:** Ein Satzungsantrag für Vereine, die vor D673 gegründet wurden,
+damit sie geheim wählen können (D673 Beschluss 4). Der Wahlschlüssel liegt unverschlüsselt in
+der Datei des Bestands, und die Schnittstelle prüft niemanden (D678 Beschluss 2). `elections_view`
+und die Routen der Wahl rechnen die Kette je Aufruf neu. Die Prototypen der Auszählung und der
+Sicht liegen in keinem Repositorium, nur ihre Tests.
+
+**Aus `00de`, ohne Auftrag:** Wahlgänge für Sachanträge (D667 Befund 5, D600); ohne sie hängt
+eine Wahl zwischen mehreren Sachanträgen auf dasselbe Feld bis zum Ende der Epoche. Ein Ersetzen
+von Stimmen in der Wahl (D669 Beschluss 3). Was ein gewählter Vorstand darf (O105 Punkt 1). Die
+Mischrunde über Funk ist ab etwa zehn Teilnehmern zu teuer (D667 Befund 2). Das Recht zur geheimen
+Abstimmung im Verein ist nur aus einer Sekundärquelle gelesen, deren Beleg nicht trug (D666
+Befund 7); der Normtext des BGB liegt im Projektspeicher. Die Prototypen der Mischrunde und der
+Auszählung liegen in keinem Repositorium.
+
+**Aus `00dd`, ohne Auftrag:** Die Paketierung für `pip install` (D662 Beschluss 2). Die
+Vorbehalte zum Bond in `02 §6.1`, `03 §2.3`, `05 §1` und `06 §7` bleiben, bis ein Szenario sie
+anfasst (D659 Beschluss 3). `LAGE.md` steht auf D657 und nennt O105 noch nicht; sie wird neu
+geschrieben, wenn ein Bedarf da ist (D658 Beschluss 2). `CONTRIBUTING.md` und `docs/METHOD.md`
+stammen vom 5.9. und folgen dem Ton aus D663, wenn sie dran sind. Die Kurzfassung für Oli liegt
+ausserhalb des Repositoriums.
+
+**Aus `00dc`, ohne Auftrag:** Verwerfen erreicht keinen anderen Knoten, und ein verworfener
+Scope geht über `/peer` weiter hinaus (D651 Beschluss 7); beides gehört zu Schritt 3 und 4. Der
+Knoten nimmt eine Satzung mit unlesbaren Schwellen ohne Vermerk an; ob er sie prüfen soll, ist
+eine Frage an die Norm (D652 Beschluss 2). Die Regel „in Gründung“ steht zweimal, in
+`anzeige.js` und in `api.py` (D651 Beschluss 7). „Gründung verwerfen …“ steht nur, wenn sonst
+keine Aufgabe ansteht (D652 Befund 5). Der Titel eines Antrags nennt das Feld klein, „beitrag
+ändern“; ihn zu ändern berührt 21 Fälle des Selbsttests und die Geschichte der Demonstration
+(D654 Befund 7). Die freie Reihe für Anträge steht neben der typisierten und nimmt jeden Text
+(D655 Beschluss 2). Der Satz zur Schwelle nimmt für geschützte Felder `amendment` an, die Norm
+nennt die Klasse aus `genesis[5]` (D654 Beschluss 4). Ein Selbsttest, der an einem Wurf endet,
+nennt den Fall nicht; ein Fänger je Fall wäre ein kleiner Auftrag (D653 Befund 3). `app.js`
+fährt kein Test; der Durchlauf in Playwright liegt in keinem Repositorium (D651 Befund 8). Die
+übrigen Abweisungen von `/gruenden` erscheinen mit ihrem Namen (D651 Beschluss 7). Olis Blick
+auf die Regie, die Kürzel und „Die Satzung ändern:“ nach `p56` steht aus (D655 Beschluss 2).
+Olis Gedanke zur Einladung aus der Ferne (D654 Befund 5).
+
+**Aus `00db`, ohne Auftrag:** Die Beteiligung: der Nenner ist `|P|`, und je Abstimmung stimmt oft
+weniger als die Hälfte ab; zu dritt ohne Folge, bei dreissig steht ein Verein still (D645
+Beschluss 6, `04 §8`, O38). Offene Stimmen nacheinander und Mitläufer (D640 Beschluss 6). Wer
+austritt, zählt im Nenner weiter, bis ein Vorschlag ihn streicht (D645 Befund 3). Die Auflösung
+eines Vereins hat keinen Akt (BGB 41). Ein hängendes Bündel bindet seine Ja gegen einen zweiten
+Sachantrag mit derselben Vorbedingung (D646 Befund 2). `04 §4.1` Bedingung 6 prüft die Liste der
+geschützten Felder nicht (D646 Beschluss 3). Knoten ohne D646 zählen einen geschützten Sachantrag
+als `ordinary` (D646 Beschluss 6). Vereine, die vor D646 und D648 gegründet wurden, haben weder
+Schutz noch Typen. Im Zweig `set` von `_change` steht die Frage an die Vorlage zwischen den beiden
+Prüfungen auf `RESERVED_FIELD` (D649 Befund 3). Ein Tabulator im Inneren eines Texts gilt (D649
+Befund 5). Andere Währungen und Fälligkeiten des Beitrags (D648 Beschluss 2). Eine Aufgabe
+übernehmen und bestätigt bekommen als Beispiel neben der Verabredung zu zweit (D645 Beschluss 3).
+Nicht gelesen: die Mustersatzung der Abgabenordnung, das Genossenschaftsgesetz, die Gesellschaft
+ab BGB 705. Nicht nachgeschlagen: Zugehörigkeit als Grundbedürfnis, Olson, erlebte Wirksamkeit,
+Konformität und Kaskaden, die Nachprüfungen zu Ostroms Bauprinzipien (D645 Befund 5).
+
+**Aus `00da`, ohne Auftrag:** Die Seite nimmt den ersten Verein nach Hash, und `/peer/objects`
+nimmt jedes Genesis an (D640 Befund 8; Schritt 4). Genesis vor der Satzung lässt eine blinde
+Bestätigung zu (D640 Befund 5). Schwellen und Schiedsleute weist die Schnittstelle als
+`RESERVED_FIELD` ab (D640 Befund 6). Ein Gründer muss kein gültiger Schlüssel sein; eine
+formwidrige Vorlage kann Status 500 liefern (D642 Befund 4 und 5). Der Probelauf prüft
+`epoch_findings` nicht (D642 Befund 2). `00 §6.1` zu `rotate-key@1` lesen, bevor zum
+Schlüsselverlust eine Position steht (D640 Beschluss 5). Ob ein Scope ohne eingetragene
+Schiedsleute zulässig ist, und Schuld und Quittung zu zweit ohne Verein daneben (D640 Befund 11).
+NFC-Tags mit eigenem Schlüssel und der Versuch mit Termux (D641 Beschluss 7). Verdeckte Wahl und
+Los (D640 Beschluss 6). Die Mindestzahl beim nicht eingetragenen Verein und die geschichtlichen
+Beispiele sind nicht nachgeschlagen.
+
+**Aus `00cz`, ohne Auftrag:** Rundruf und IFAC zusammen und der Rundruf unter Kollisionen, beides
+mit den T-Beams (D636 Beschluss 7). Ein wiederholt abgespielter Rundruf zählt gegen die Grenze
+seines Absenders. Dass der Hörer das Nachholen ruft, prüft kein Test. Ein Eintrag über 384 Byte im
+Bündel geht nie als Rundruf (zwei je Wahlgang). Weniger Runden im Abgleich bleibt der kleinere
+Hebel (D636 Beschluss 6). Im Lauf auf dem Branch 14 statt 15 Rundrufe, nicht untersucht (D637
+Befund 3). In `kern.py` und `reticulum.py` drei ältere Zeilen über 100 Zeichen.
+
+**Aus `00cy`, ohne Auftrag:** Von 107 Linkanfragen kamen 11 nicht an, mehr als 5 % Verlust erwarten
+lassen (D630 Befund 2). Nach zwei neuen Links bleiben der dritten Anfrage rund 30 s; eine kürzere
+Zustellfrist für frische Links wartet auf einen Anlass (D631 Beschluss 3, D632 Befund 3). Ob Oli
+das unquittierte `LRRTT` bei Reticulum meldet (D631 Beschluss 4). `Kanal.senden` zählt mit IFAC die
+Ankündigungen falsch (D633 Befund 5). Die Anleitung zu den T-Beams braucht die drei Zeilen für IFAC
+und `airtime_limit_long = 10` (D630 Beschluss 3, D633 Beschluss 2). Der simulierte Kanal war zu 61
+bis 71 % belegt und kennt keine Kollisionen (D630 Beschluss 5). Ein Wechsel der Passphrase macht ein
+Gerät, das ihn verpasst, am Funk taub; der Rückweg ist ein anderes Interface (D629 Befund 4).
+
+**Aus `00cx`, ohne Auftrag:** Im Docstring von `Trickle.ankuendigen` meint „darin“ das abgelaufene
+Intervall (D624 Befund 2). Ein Gerät lag in einzelnen Läufen 100 bis 190 s länger zurück als die
+übrigen (D624, D626, D627; die Fälle an der Antwortfrist erklärt D630). `AGENTS.md` §5
+verlangt einen Commit auch von einem Messauftrag (D627 Befund 4). Der simulierte Kanal modelliert
+weder Halbduplex noch Kollisionen (D627 Beschluss 1).
+
+**Aus `00cw`, ohne Auftrag:** `_auf_ids` in `rbsr.py` rechnet bei Tausenden fehlender Einträge in
+einem Bereich quadratisch; im Docstring von `holen` steht der Verweis auf D615 Beschluss 2 am
+falschen Satz (D618 Befund 3). Grosse Differenzen bleiben die schwache Stelle des Abgleichs (D617
+Befund 8). `test_boten_sperren` einmal rot unter Last, Ursache nicht bestätigt (D617 Befund 8). Der
+Pfad `bestand` dient nur noch Diagnose und Tests (D617 Beschluss 5). Die Zeiten bis zum gleichen
+Stand streuen zwischen Läufen stark (384 s bis 667 s auf derselben Fassung).
+
+**Aus `00cv`, ohne Auftrag:** Die Absicht `device-end` hat keine Folge und keine Warnung, die Seite
+keinen Knopf (D596). Nach einer Spaltung mit Doppelstimmen bindet ein Ja auf einen Sachantrag über
+Wahlgänge hinweg (`04 §8`, D600); Wahlgänge für Sachanträge sind nicht durchgerechnet. Der Tab
+„Verlauf“ und der Zweck von „Im Verein“ (O101). Vor den T-Beams die Grenzen der Sendezeit auf 868
+MHz nach ETSI nachlesen; RNS kennt `airtime_limit_short` und `airtime_limit_long` (D609). Im Hörer
+des Boten eine Bedingung, die nie eintritt (D612 Befund 1); im Docstring von `main` in
+`tools/netz.py` eine Zeile über 100 Zeichen (D604 Befund 2). Die Zeile zu DORA in Olis Bild (D605
+Befund 1).
+
+**Aus O97, ohne Auftrag:** L2 (Entdeckung über Announces; der Bote fragt seine Nachbarn
+nacheinander), L3 (Transportadresse und Identität), L6 (was eine knappe Runde zuerst schickt; `02
+§7` will Widerrufe zuerst), L8 (Flut: keine Stelle der Spec), L9 (Uhren), L10 (Aufnahme im Netz).
+LXMF oder rohe Links: Position rohe Links (D583). Der eine Lauf von `--aufloesen`, in dem Anna
+sofort feststellte (D588 Befund 1). Warum Pakete über die gemeinsame Instanz verloren gehen (D591
+Befund 1); zwei Wettläufe in RNS (D586 Befund 3, D590 Befund 2), ob Oli sie meldet. `rnsd` läuft
+weiter, wenn `boten` nach seinem Start scheitert; ein Lab mit einem Gerät hätte kein `--nachbar`
+(D590 Befund 4). Lärm beim Beenden (D590 Befund 3). Ein Link, der nicht aktiv wird, wird nicht
+abgebaut (D586 Beschluss 4). L8 ist mit Trickle gelöst (D611), L4 und L5 mit Bündel und Abgleich
+nach Bereichen (D614, D617); wer voraus ist, sagt die Zahl in der Ankündigung (D619).
+
+**Aus O96, weiter ohne Auftrag:** die Stichfrage des doppelten Ja je Feld (D564 Beschluss 3); Mengen
+als Sachfelder (D565 Beschluss 4); ob Aufnahmen neben Sachfragen später laufen können (D564
+Beschluss 1); `classify_all` läuft je Schritt der Kette zweimal (D572 Befund 3); Key `2` einer
+Bürgschaft bleibt als `bond_ref` reserviert (D574).
+
+**Aus `00ct`, ohne Auftrag (D581):** Der Typhinweis von `_vorgaenger` nennt nur `Proposal`; der
+Docstring von `antragstitel` und der Kopfkommentar von `anzeige.js` nennen die Sachanträge nicht;
+`verfassungsAenderungen` hat in `app.js` keinen Aufrufer mehr; die Geschichte der Demonstration
+sagt „ANNA beantragt einen Satzungstext“, der Knopf heisst „Als Satzungsantrag …“. Ein Sachantrag
+kann über die Seite kein Feld entfernen (`null`); die Schnittstelle kann es.
+
+**Aus `00cr`, ohne Auftrag:** Die Kopfkommentare von `anzeige.js` und `selbsttest.js` nennen D559
+und D561 nicht (D562 Bericht). Eine Feststellung, die selbst in einer Gabel steht, bekommt keinen
+Satz; die Seite sieht nur Feststellungen aus `epoch_findings` der geltenden Kette (D559).
+
+**Aus `00cq`, weiter ohne Auftrag:** Die Suche nach anderen Zustimmungen wiederholt die Filter von
+`decide`; den Weg über ein Verdikt prüft kein Test (D556, D539). Bei einem Antrag ohne Zeile in
+`proposals_view` sagt die Warnung allgemein „anderen Anträgen“ (D557 Beschluss 2). Annas Wartezeile
+schlägt Namen ohne Rückfall nach (D553 Befund 1). Die Karte mit dem dritten Punkt steht nur einen
+Takt oben (D554 Befund 2). Das gesperrte Gerät zeigt kein Bild (D556).
+
+**Aus `00cp`, weiter ohne Auftrag:** Die kalte Wurzel und die übrigen Profile nach `I` (D534
+Beschluss 2, D542 Beschluss 2). Die Aufnahme eines Geräts als Handlung im Netz (D542 Beschluss 3,
+Phase 5). `04 §4.4`: ein ersetztes Ja blockiert weiter ein Ja auf einen anderen Antrag derselben
+Epoche (D547 Beschluss 4); in O96 gilt das für Regel 1 weiter. Knoten verschiedener Fassung sehen
+bei Key `1` verschiedene Epochen (D547 Befund 6).
+
+**Aus `00co`, weiter ohne Auftrag:** Eine Bürgschaft **auf** einen Geräteschlüssel bleibt beim
+Gerät (D535). Die Zurechnung geht je Anfrage die Kette entlang (D538 Befund 2). Der Beispielverein
+führt `verdict@1` nicht im Boden (D539). Eine Wurzel, die ihre eigene Aufnahme bestätigt, nimmt sich
+jede Aufnahme (D538 Befund 1).
+
+**Aus `00cn`:** Der Antrag im Takt 2 prüft die Spitzen nicht (D522).
+
+**Kleine Befunde an der Seite:** der Stiltest sieht geerbte Farben nicht (D512); ob eine Bürgschaft
+Vertrauen weitergibt, als Folgezeile (D495); der Zugang vom Telefon (D481 Befund 3); Chromium
+ohne Oberfläche geprüft, Chrome und Brave selbst nicht (D484, D644 Befund 1).
+
+**Aus dem Netz:** ein zweites Strg-C beim Beenden von `tools.netz` druckt einen Traceback (D519).
+Die Uhr jedes Knotens beginnt bei jedem Start bei 1000 (D518, L9). Fremde Bytes zur angefragten
+`claim_id` verfälschen den Bestand nicht, eine Runde konvergiert dann nur nie (D516, D583 L7).
+
+**Aus D408:** Die Zahl der Auswertungen über ein Fenster hat keine Obergrenze; beisst es je, gehört
+die Grenze nach `02 §8`.
+
+**Aus der Aussprache mit Oli, für später:** eigene Währung als Kreditgeld über `unit_ref`
+(`03 §3.3`), Olis Versicherungsbild mit kleinem Topf und verteilter Verwahrung, Signaturen mit
+Schlüsselpreisgabe nur in Sonderfällen (D467), der Weg zurück nach einer Gabelung mit neuem
+Schlüssel als eigenes Szenario (D489). Kandidaten nach Phase 5. Ein Beitrag von null ist in
+der Vorlage `verein` keiner (D648 Beschluss 2); `03 §3.3` fragt weiter (D503).

@@ -32051,3 +32051,68 @@ Ob eine Wahl einen Inhaber bestellen kann, wo sie doch eine Tatsache liefert und
 
 **Geändert.** `LANDKARTE.md` (Kopf, `§1`, `§6`, `§11` neu), `offen.md` (O110),
 `07-decisions.md`.
+
+### D711 — Das Mandat im Prototyp gemessen, der Abruf ohne Ende, Schluss der Sitzung `00e4`
+
+**Anlass.** D710 Beschluss 5: ein Prototyp der Bibliothek im Klon vor dem Normtext. Er steht auf
+dem Branch `proto-mandat` (Beschluss 3); Oli schliesst danach die Sitzung.
+
+**Befund 1 — die Form trägt mit Gebautem.** Der Prototyp (`symbolon/governance/mandate.py`, rund
+200 Zeilen) liest den Stand der Epoche (`04 §4.6`), die Kette des Inhabers und zwei neue Profile,
+`mandate-ack@1` und `mandate-end@1`. Ob ein Akt nach der Gegenzeichnung und vor dem Ende liegt,
+prüft er mit den Hilfen der Geräte aus `symbolon/trust/attribution.py`, nicht mit eigener Logik.
+Sechzehn Fälle MV-1 bis MV-16 in `tests/governance/test_mandat.py`: im Rahmen gedeckt,
+ausserhalb sichtbar als ausserhalb, vor der Gegenzeichnung nicht gedeckt, ohne Gegenzeichnung
+kein Mandat, ohne Feststellung keine Bestellung, Abruf und Rücktritt mit dem letzten gedeckten
+Akt, ein unbekannter Endpunkt offen, ein defektes `v` beim Rücktritt endet bei der
+Gegenzeichnung, fremder Autor, Gegenzeichnung durch einen anderen und in einem fremden Scope,
+ein formwidriger Eintrag, zwei Mandate desselben Inhabers, der Abruf ohne Ende, ein Akt in einem
+fremden Scope. Dreizehn Rücknahmeproben, je ein Mechanismus zurückgenommen; jede wurde an dem
+Fall rot, der ihn prüft. Ruff und die 345 Tests unter `tests/governance` grün; die volle Reihe
+lief nicht.
+
+**Befund 2 — drei Funde aus dem Modulcode.** Der Stand gilt je Epoche und endet mit ihr
+(`04 §4.3`); ein Mandat als Sachfeld überlebt den Wechsel nur, wenn die neue Verfassung es trägt.
+Der Knoten baut sie aus dem Stand (`_change` in `symbolon/node/api.py`), im Normalfall geht es
+also mit. Ein Abruf, der das Feld nur entfernt, kann keinen letzten Akt nennen; deshalb trägt
+der Abruf das Ende im Wert, und die Geschichte bleibt sichtbar. Die Gegenzeichnung zeigt mit
+`J = [object-hash, mandate_id]` auf den Eintrag, wie `accept-rules@1` auf die Satzung (`01 §7.2`).
+
+**Befund 3 — die Form im Prototyp, als Vermutung.** Ein Mandatsfeld heisst `mandat:` und ein
+Name. Sein Wert ist `{0: Inhaber, 1: Rahmen, 2: Bezeichnung}`, optional `3: letzter gedeckter
+Akt`; der Rahmen ist `{0: [Profilnamen]}`, sortiert und ohne Doppel. `mandate_id` ist SHA-256
+über eine neue Domäne `claim-atom/v1/nucleus-mandate` und `[scope, Eintrag ohne 3]`; so bleibt
+die Kennung über Ende und Epochenwechsel gleich. Ob das Präfix im Namen oder ein Feldtyp der
+Vorlage (D648) ein Mandatsfeld kennzeichnet, ist offen.
+
+**Befund 4 — der Abruf ohne Ende (MV-15).** Ein Sachantrag kann das Feld löschen, statt es mit
+einem Ende zu versehen. Dann gilt rückwirkend jeder Akt als nie gedeckt, auch ein Auftrag, den
+der Handwerker vorher geprüft hat.
+
+**Beschluss 1 — der Abruf wirkt ab jetzt, als Position.** Wie im Gesetz wirkt der Abruf nicht
+zurück. Der Knoten bietet ihn nur mit Ende an. Verschwindet ein Mandat dennoch ohne Ende, liest
+ein späterer Leser die Akte davor als offen, nicht als nie gedeckt. Dafür braucht der Leser die
+Stände früherer Epochen; innerhalb einer Epoche geht ein solches Mandat verloren. Das wird am
+Prototyp gemessen, bevor es Normtext wird.
+
+**Beschluss 2 — Gegenzeichnung und Rücktritt unwiderruflich, als Position.** Mit Widerruf könnte
+der Inhaber seine Gegenzeichnung nachträglich zurückziehen und jeden Akt entwerten, wie es bei
+den Geräten verworfen ist (`01 §7.3`, D535). Beide kämen in den Boden (`00 §5.2`); vor dem
+Auftrag wird jede Stelle gesucht, die diese Aufzählung nennt oder über sie läuft, Tests
+eingeschlossen (Prüfregel-Kandidat aus D537, D681, D706).
+
+**Beschluss 3 — der Prototyp auf einem eigenen Branch.** `proto-mandat` trägt Modul und Fälle,
+wird nie nach `main` gemergt und dient `00e5` als Ausgangspunkt. Code durch den Sitzungsstart zu
+reichen, kostete jede Sitzung Lesezeit.
+
+**Beschluss 4 — der nächste Schritt.** `00e5` setzt den Prototyp fort: die Geschichte über
+Epochen (Beschluss 1), ein Fall über den Epochenwechsel, die Unwiderruflichkeit (Beschluss 2).
+Dann der Ort des Normtexts, Golden Anchors und ein Auftrag. Grenze nach Betrag und mehrere
+Zeichner folgen danach.
+
+**Befund 5 — was `00e4` hinterlässt.** Drei Einträge, D709 bis D711. Die Arbeitsweise mit
+Bausteinen (D709), `LANDKARTE §6` als Baukasten und das Mandat auf Papier in `LANDKARTE §11`
+(D710), der Prototyp (hier). Auf `main` ist kein Code geändert; die Testreihe steht bei 1768.
+
+**Geändert.** `07-decisions.md`, `sitzungsstart-00e5.md` (neu), `sitzungsstart-00e4.md` nach
+`archiv/`.

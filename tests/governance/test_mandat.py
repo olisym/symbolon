@@ -8,16 +8,17 @@ from __future__ import annotations
 
 from symbolon import cbor_canon
 from symbolon.atom import claim_id
-from symbolon.governance.chain import resolve_stand
 from symbolon.governance.mandate import (
     MandateStatus as S,
+    mandate_history,
     mandate_id,
     mandate_view,
 )
-from symbolon.governance.objects import Motion
+from symbolon.governance.objects import Epoch, Motion, Proposal
 from symbolon.index import classify_all
+from symbolon.policy import constitution_hash
 
-from .fixtures import C1, EPOCH_1, GENESIS_D, N_D, NOW, nuc, policy_of
+from .fixtures import C1, GENESIS_D, N_D, NOW, P2, nuc, policy_of
 from .test_sachantraege import E1, _Welt
 
 RAHMEN = {0: ["auftrag@1"]}
@@ -34,8 +35,8 @@ def _mid(e: dict) -> bytes:
     return mandate_id(N_D, {k: e[k] for k in (0, 1, 2)})
 
 
-def _antrag(changes: dict) -> Motion:
-    return Motion({0: N_D, 1: E1, 2: changes})
+def _antrag(changes: dict, pred: bytes = E1) -> Motion:
+    return Motion({0: N_D, 1: pred, 2: changes})
 
 
 class _Fall:
@@ -43,10 +44,11 @@ class _Fall:
 
     def __init__(self) -> None:
         self.w = _Welt()
-        self.known: dict[bytes, Motion] = {}
+        self.known: dict[bytes, Motion | Proposal] = {}
+        self.konst: dict[bytes, dict] = {constitution_hash(C1): C1}
 
-    def beschliessen(self, changes: dict, *, ja: int = 3) -> Motion:
-        m = _antrag(changes)
+    def beschliessen(self, changes: dict, *, ja: int = 3, pred: bytes = E1) -> Motion:
+        m = _antrag(changes, pred)
         self.known[m.motion_hash] = m
         w = self.w
         stimmen = [w.ja(who, m.motion_hash) for who in (w.alice, w.carol, w.dave, w.bob)[:ja]]
@@ -55,6 +57,23 @@ class _Fall:
 
     def bestellen(self, e: dict, *, feld="mandat:weg", ja: int = 3) -> Motion:
         return self.beschliessen({feld: [[], [e]]}, ja=ja)
+
+    def wechseln(self, ziel: dict, s: list[Motion], *, ja: int = 3) -> bytes:
+        """Epoche 2 mit Verfassung ``ziel``; ``s`` sind die Sachanträge in ``S``. Gibt E2."""
+        hs = sorted(m.motion_hash for m in s)
+        g = Proposal(N_D, E1, constitution_hash(ziel), tuple(hs)) if hs else Proposal(
+            N_D, E1, constitution_hash(ziel))
+        self.known[g.proposal_hash] = g
+        self.konst[constitution_hash(ziel)] = ziel
+        w = self.w
+        w.ratify(w.alice, g.proposal_hash, [
+            w.ja(x, g.proposal_hash) for x in (w.alice, w.carol, w.dave, w.bob)[:ja]])
+        return Epoch(N_D, 2, constitution_hash(ziel)).epoch_id
+
+    def widerrufen(self, who, ziel):
+        c = who.revoke(ziel, t=self.w.t())
+        self.w.claims.append(c)
+        return c
 
     def ack(self, who, e: dict, *, scope=N_D):
         c = who.claim(p=nuc(scope, "mandate-ack"), J=(3, _mid(e)), t=self.w.t(), N=scope)
@@ -71,12 +90,16 @@ class _Fall:
         self.w.claims.append(c)
         return c
 
+    def geschichte(self):
+        return mandate_history(self.w.store(), scope=N_D, genesis_obj=GENESIS_D,
+                               known_constitutions=self.konst, known_proposals=self.known,
+                               now=NOW)
+
     def sicht(self):
         store = self.w.store()
-        stand = resolve_stand(store, epoch=EPOCH_1, genesis_obj=GENESIS_D, constitution_obj=C1,
-                              known_proposals=self.known, now=NOW).stand_obj
-        cls = classify_all(store, NOW, policy_of(C1))
-        return mandate_view(store, cls, N_D, stand)
+        h = self.geschichte()
+        cls = classify_all(store, NOW, policy_of(h.constitution_obj or C1))
+        return mandate_view(store, cls, N_D, h.stand_obj, h.entries)
 
 
 def _v_ende(cid: bytes) -> bytes:
@@ -236,15 +259,15 @@ def test_mv14_zwei_mandate_eins_deckt() -> None:
     assert f.sicht().status(f.akt(f.w.bob, "abnahme")) is S.COVERED
 
 
-# MV-15: ein Abruf, der das Feld nur entfernt, nimmt jede Deckung (Fork E aus §11).
-def test_mv15_abruf_ohne_ende_entfernt_das_mandat() -> None:
+# MV-15: ein Abruf, der das Feld nur entfernt, lässt die Akte danach offen (D711 Beschluss 1).
+def test_mv15_abruf_ohne_ende_laesst_offen() -> None:
     f = _Fall()
     e = _eintrag(f.w)
     f.bestellen(e)
     f.ack(f.w.bob, e)
     a1 = f.akt(f.w.bob)
     f.beschliessen({"mandat:weg": [[e], []]})
-    assert f.sicht().status(a1) is S.NONE
+    assert f.sicht().status(a1) is S.UNDECIDED
 
 
 # MV-16: derselbe Inhaber in einem anderen Scope handelt nicht für diese Gruppe.
@@ -257,3 +280,123 @@ def test_mv16_akt_in_fremdem_scope() -> None:
     a = f.w.bob.claim(p=nuc(fremd, "auftrag"), J=(1, f.w.bob.pub), t=f.w.t(), N=fremd)
     f.w.claims.append(a)
     assert f.sicht().status(a) is S.NONE
+
+
+def _stand_aus(*motions: Motion) -> dict:
+    """Die Verfassung von Epoche 2: der Stand aus C1 und ``motions``, mit Eve aufgenommen."""
+    stand = dict(C1)
+    for m in motions:
+        for name, pair in m.changes.items():
+            if pair[1]:
+                stand[name] = pair[1][0]
+            else:
+                stand.pop(name, None)
+    return {**stand, "participants": P2}
+
+
+# MV-17: verschwunden ohne Ende; vor der Gegenzeichnung bleibt vor der Gegenzeichnung.
+def test_mv17_verschwunden_vor_der_gegenzeichnung() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    f.bestellen(e)
+    a0 = f.akt(f.w.bob)
+    f.ack(f.w.bob, e)
+    f.beschliessen({"mandat:weg": [[e], []]})
+    assert f.sicht().status(a0) is S.BEFORE_ACK
+
+
+# MV-18: über den Epochenwechsel deckt das Mandat weiter, die Gegenzeichnung aus Epoche 1 trägt.
+def test_mv18_epochenwechsel_mandat_uebernommen() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    m = f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    f.wechseln(_stand_aus(m), [m])
+    a2 = f.akt(f.w.bob)
+    s = f.sicht()
+    assert f.geschichte().stand_obj["participants"] == P2
+    assert (s.status(a1), s.status(a2)) == (S.COVERED, S.COVERED)
+
+
+# MV-19: eine neue Verfassung ohne das Feld lässt die Akte offen, nicht nie gedeckt.
+def test_mv19_epochenwechsel_ohne_feld() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    m = f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    ziel = _stand_aus(m)
+    del ziel["mandat:weg"]
+    f.wechseln(ziel, [m], ja=4)  # ohne das Feld ist es amendment (04 §3.4)
+    assert f.geschichte().stand_obj.get("mandat:weg") is None
+    assert f.sicht().status(a1) is S.UNDECIDED
+
+
+# MV-20: Abruf mit Ende in Epoche 2 auf ein Mandat aus Epoche 1.
+def test_mv20_abruf_in_epoche_2() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    m = f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    e2 = f.wechseln(_stand_aus(m), [m])
+    a2 = f.akt(f.w.bob)
+    f.beschliessen({"mandat:weg": [[e], [_eintrag(f.w, end=claim_id(a1))]]}, pred=e2)
+    s = f.sicht()
+    assert (s.status(a1), s.status(a2)) == (S.COVERED, S.AFTER_END)
+
+
+# MV-21: ein Ende bleibt; ein Sachantrag, der es wieder löscht, belebt das Mandat nicht.
+def test_mv21_ende_bleibt() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    e_end = _eintrag(f.w, end=claim_id(a1))
+    f.beschliessen({"mandat:weg": [[e], [e_end]]})
+    f.beschliessen({"mandat:weg": [[e_end], [e]]})
+    a2 = f.akt(f.w.bob)
+    s = f.sicht()
+    assert f.geschichte().stand_obj["mandat:weg"] == e
+    assert (s.status(a1), s.status(a2)) == (S.COVERED, S.AFTER_END)
+
+
+# MV-22: der Widerruf der Gegenzeichnung wirkt nicht (Boden, D711 Beschluss 2).
+def test_mv22_widerruf_der_gegenzeichnung() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    f.bestellen(e)
+    ack = f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    f.widerrufen(f.w.bob, ack)
+    assert f.sicht().status(a1) is S.COVERED
+
+
+# MV-23: der Widerruf des Rücktritts wirkt nicht (Boden, D711 Beschluss 2).
+def test_mv23_widerruf_des_ruecktritts() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    end = f.ende(f.w.bob, e, _v_ende(claim_id(a1)))
+    f.widerrufen(f.w.bob, end)
+    a2 = f.akt(f.w.bob)
+    assert f.sicht().status(a2) is S.AFTER_END
+
+
+# MV-24: Abruf mit Ende, danach das Feld entfernt: das Ende aus der Geschichte gilt, nicht offen.
+def test_mv24_ende_dann_entfernt() -> None:
+    f = _Fall()
+    e = _eintrag(f.w)
+    f.bestellen(e)
+    f.ack(f.w.bob, e)
+    a1 = f.akt(f.w.bob)
+    a2 = f.akt(f.w.bob)
+    e_end = _eintrag(f.w, end=claim_id(a1))
+    f.beschliessen({"mandat:weg": [[e], [e_end]]})
+    f.beschliessen({"mandat:weg": [[e_end], []]})
+    s = f.sicht()
+    assert (s.status(a1), s.status(a2)) == (S.COVERED, S.AFTER_END)

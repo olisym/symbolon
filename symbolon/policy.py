@@ -17,8 +17,10 @@ PROTOCOL_IRREVOCABLE = frozenset(
         "device-add@1",
         "device-ack@1",
         "device-end@1",
+        "mandate-ack@1",
+        "mandate-end@1",
     }
-)  # Boden, D70 / D153 / D535 / 00 §5.2
+)  # Boden, D70 / D153 / D535 / D711 / 00 §5.2
 TRUST_GRANTING = frozenset({"vouch@1"})  # Negativliste, D58 / 01 §5.4.3 b
 _CORE_ENTRIES = frozenset({"revoke@1", "supersede@1"})  # D71
 

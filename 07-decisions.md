@@ -32116,3 +32116,89 @@ Bausteinen (D709), `LANDKARTE §6` als Baukasten und das Mandat auf Papier in `L
 
 **Geändert.** `07-decisions.md`, `sitzungsstart-00e5.md` (neu), `sitzungsstart-00e4.md` nach
 `archiv/`.
+
+### D712 — Das Mandat über Epochen, ein Ende bleibt, Gegenzeichnung und Rücktritt im Boden
+
+**Anlass.** D711 Beschluss 4: der Prototyp auf `proto-mandat` geht weiter, mit der Geschichte über
+Epochen, einem Fall über den Epochenwechsel und der Unwiderruflichkeit. Die sechzehn Fälle MV-1
+bis MV-16 waren vorher auf `4c67a25` grün.
+
+**Befund 1 — die Geschichte innerhalb einer Epoche ist da.** `resolve_stand` liefert mit `applied`
+die angewandten Sachanträge (`04 §4.6`). Jeder neue Wert eines angewandten Sachantrags hat in
+einem Zwischenstand gestanden, in welcher Folge auch immer; die Menge der gestandenen Werte hängt
+also von keiner Reihenfolge ab. Der letzte Satz von D711 Beschluss 1, innerhalb einer Epoche gehe
+ein Mandat ohne Ende verloren, war falsch: er beschrieb den Prototyp, der nur den Stand las, nicht
+die Lage. MV-15 erwartet jetzt „offen“ statt „kein Mandat“.
+
+**Befund 2 — über Epochen trägt `resolve_stand` je Epoche der Kette.** Trägt ein Vorschlag, sind
+die festgestellten Sachanträge der alten Epoche genau die in `S` (`04 §4.4`, B2 und B5). Der
+Leser rechnet also für jede Epoche aus `EpochResolution.chain` den Stand wie für die geltende und
+muss den tragenden Vorschlag nicht kennen. Er braucht die Verfassungen der Kette, dieselben, die
+`resolve_epoch` schon braucht.
+
+**Befund 3 — gemessen.** Der Prototyp (`mandate_history`, `stood_entries`, `mandate_view` mit
+Geschichte) und acht neue Fälle: MV-17 Akt vor der Gegenzeichnung bei verschwundenem Mandat,
+MV-18 über den Epochenwechsel mit einer Aufnahme, MV-19 eine neue Verfassung ohne das Feld,
+MV-20 Abruf mit Ende in Epoche 2 auf ein Mandat aus Epoche 1, MV-21 ein gelöschtes Ende belebt
+nicht, MV-22 und MV-23 Widerruf von Gegenzeichnung und Rücktritt, MV-24 Ende und danach das Feld
+entfernt. Alle 24 grün. Die volle Reihe im Klon: 1792 Tests, rot genau `test_P_A`, `test_P_B`,
+`test_P_C`, `test_P_D`, `test_P_G` und `test_P_H` in `tests/profiles/test_policy.py`, die den
+Boden aufzählen; der Selbsttest der Seite grün. Sieben Rücknahmeproben, je ein Mechanismus
+zurückgenommen, jede rot an ihrem Fall:
+
+| Probe | rot |
+|---|---|
+| keine angewandten Sachanträge in der Geschichte | MV-15, MV-17, MV-19, MV-21, MV-24 |
+| nur die letzte Epoche der Kette | MV-19 |
+| „offen“ abgeschaltet | MV-15, MV-19 |
+| Ende nur aus dem geltenden Stand | MV-21, MV-24 |
+| `mandate-ack@1` nicht im Boden | MV-22 |
+| `mandate-end@1` nicht im Boden | MV-23 |
+| verschwunden heisst offen, auch mit Ende | MV-24 |
+
+**Befund 4 — wo der Boden aufgezählt wird.** `PROTOCOL_IRREVOCABLE` in `symbolon/policy.py`;
+`00 §5.2` in der Prosa, in der Formel und im Satz zu den Geräten; die Anker P-A, P-B, P-C, P-D,
+P-G und P-H in `03-golden-anchors.md` und dort der Satz „seit D535 sechselementig“; die sechs
+Tests oben. `01a-policy-prompt.md` zieht seine Tabellen nach eigenem Nachtrag nicht nach; Knoten
+und Seite zählen den Boden nicht auf.
+
+**Befund 5 — ältere Knoten kennen den neuen Boden nicht.** Dort wirkte ein Widerruf der
+Gegenzeichnung. Zwei Brücken liegen bereit: die Vorlage führt beide Prädikate auch in
+`irrevocable_predicates`, wie `ballot-ack@1` für die Wahl (D669), und die Satzung nennt das Mandat
+in `required_features` (D692 Beschluss 2), damit ein Knoten ohne die Regel sichtbar nicht zählt.
+Zu entscheiden mit dem Normtext.
+
+**Beschluss 1 — die Geschichte, als Position.** Ein Mandat hat gestanden, wenn sein Eintrag in der
+Verfassung einer Epoche der Kette steht oder als neuer Wert eines dort angewandten Sachantrags.
+Die Gegenzeichnung zeigt auf die Kennung, nicht auf eine Epoche; ein Mandat deckt deshalb über den
+Wechsel weiter, wenn die neue Verfassung es trägt (MV-18).
+
+**Beschluss 2 — ein Ende bleibt, als Position.** Die Endpunkte eines Mandats sind alle, die eine
+gestandene Fassung seines Eintrags nannte, dazu die Rücktritte. Ein Sachantrag, der das Ende
+wieder löscht, belebt das Mandat nicht (MV-21). Sonst würde die Gegenzeichnung für eine neue
+Amtszeit wiederverwendet, ohne dass der Inhaber gefragt ist. Eine Wiederbestellung ist ein neuer
+Eintrag, etwa mit anderer Bezeichnung, mit neuer Kennung und neuer Gegenzeichnung; das Gesetz
+verlangt für sie ebenso einen neuen Beschluss (WEG 26 Abs. 2).
+
+**Beschluss 3 — verschwunden ohne Ende heisst offen, als Position.** Steht ein Mandat nicht mehr
+im geltenden Stand und nannte keine gestandene Fassung ein Ende, ist jeder Akt nach der
+Gegenzeichnung offen (MV-15, MV-19); was davor lag, bleibt davor (MV-17). Nannte eine Fassung ein
+Ende, gilt es, auch wenn das Feld danach entfernt wurde (MV-24). Das schliesst D711 Beschluss 1:
+der Abruf wirkt nicht zurück, auch wenn ein Sachantrag ihn falsch formt.
+
+**Beschluss 4 — Gegenzeichnung und Rücktritt im Boden, gemessen.** D711 Beschluss 2 trägt am
+Prototyp: mit beiden im Boden ändert ein Widerruf nichts (MV-22, MV-23). In den Normtext gehen die
+Stellen aus Befund 4, die Anker P-A bis P-H mit acht Elementen.
+
+**Beschluss 5 — der Prototyp bleibt auf seinem Branch.** Der Stand dieser Sitzung kommt als ein
+Commit auf `proto-mandat`; der Branch wird weiter nie gemergt (D711 Beschluss 3).
+
+**Beschluss 6 — der nächste Schritt.** Der Normtext, als Vorschlag zum Ort: die beiden Profile in
+`01 §7` neben der Regelannahme und den Geräten, der Boden in `00 §5.2`, das Lesen in `04` als
+eigener Abschnitt nach der geheimen Wahl, weil es Stand, Sachantrag und Epochenkette liest.
+Vorher zu entscheiden: das Präfix im Feldnamen oder ein Feldtyp der Vorlage (D711 Befund 3). Ein
+Dritter prüft ohne die Vorlage; das spricht für eine Regel des Protokolls am Namen. Dann Golden
+Anchors MV-1 bis MV-24 und ein Auftrag.
+
+**Geändert.** `07-decisions.md`; auf `proto-mandat` `symbolon/governance/mandate.py`,
+`symbolon/policy.py` und `tests/governance/test_mandat.py`.

@@ -243,6 +243,16 @@ nennt den Ort, und ein Baustein mit eigenem Abschnitt steht hinten an.
 
 - **D** steht in `LANDKARTE §10` (D702).
 - **Janich.** Das Buch liegt nicht digital vor; seine Beispiele werden selbst erarbeitet (D698).
+- **Tauschrunde unter Selbermachern (Oli, Idee vom 31.10.2026, noch ohne Register).** Wer selbst
+  Seife, Cremes oder Ähnliches macht, macht meist mehr, als er braucht; Selbermacher verschieben
+  ihre fertigen Produkte untereinander. Ein kleiner Fall von C (`LANDKARTE §9`) in einer
+  bekannten Gruppe: Tausch ohne Preis, die Gegenleistung in Ware als `obligation@1`, die Übergabe
+  als `receipt@1`. Das Werkzeug wäre olisoap, eine Werkstatt-App, die den Überschuss aus ihren
+  Chargen kennt und daraus Angebote erzeugen könnte; Gruppe, Unterschriften und Tausch bleiben
+  bei MaR. Den Filter (`LANDKARTE §1`) hat die Idee noch nicht durchlaufen. Offen vor jedem Bau:
+  fertige Kosmetik abzugeben ist im Rahmen einer Geschäftstätigkeit Inverkehrbringen nach der
+  EU-Kosmetikverordnung 1223/2009, auch kostenlos; wo ein Tausch unter Privaten geschäftlich
+  wird, ist nicht geklärt.
 
 ## 8. B — Gemeinsam sparen und leihen
 

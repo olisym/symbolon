@@ -238,6 +238,18 @@ nennt den Ort, und ein Baustein mit eigenem Abschnitt steht hinten an.
   (Rückversicherung), D (ein Spruch reist in eine andere Gruppe). Stand: normiert, ungebaut.
 - **Vertraulichkeit vor der Gruppe bei Prüfbarkeit durch wenige.** Ort: offen. Fälle: A.
   Kandidaten: verwandt mit der Mischrunde der geheimen Wahl (O106).
+- **Bezeugte Anwesenheit: die Zeremonie (D714).** Ort: Protokoll für die Kosignatur über das
+  Protokoll eines Ablaufs, Policy für Skript und Zeugen, Werkzeug für Nähe und
+  Schlüsselerzeugung. Fälle: jede Gründung (`00 §9`, DR-026), Verein (Versammlung), E
+  (Begehung), D (Tat, Zeugen), B (Treffen der Sparrunde), das Mandat (Bestellung). Stand:
+  Kosignatur und die Zeit aus der Kette sind gebaut; FROST steht als Wurzel in `00`
+  (`key_mode = 1`), die Erzeugung des Schlüssels nicht; NFC als Zeuge einer Anwesenheit ohne
+  Auftrag (D641 Beschluss 7). Kandidaten: FROST mit verteilter Erzeugung, damit der Schlüssel
+  einer Gruppe nie an einem Ort entsteht; ein frischer öffentlicher Zufallswert im Protokoll für
+  „nicht vorher“; gegenseitiges Scannen frischer Werte für die Nähe der Geräte; benannte Zeugen
+  als Mandat, dessen Rahmen nur das Bezeugen ist. Vorlage: die Zeremonie für den
+  Wurzelschlüssel des DNS, aus dem Gedächtnis. Grenze: bewiesen wird, dass Schlüssel im
+  Zeitfenster und nah beieinander unterschrieben haben, nicht, dass die Menschen im Raum waren.
 
 ## 7. Offen
 

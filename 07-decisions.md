@@ -32251,3 +32251,75 @@ Sitzung, die sie schreibt. Seit D708 und D711 heisst sie nach der Sitzung, die s
 
 **Geändert.** `arbeitsweise.md` (`§1`, `§2`, `§4`, `§5` neu gegliedert, `§7`, `§10`), `AGENTS.md`
 (`§5`), `07-decisions.md`.
+
+### D714 — Bezeugte Anwesenheit: die Zeremonie als Baustein, eine gewählte Zentrale ist Policy
+
+**Anlass.** Oli ist über die Zeremonie gestossen, mit der ICANN den Wurzelschlüssel des DNS
+erzeugt und in besonderer Hardware verwahrt. Seine Frage: wie weit sich Gründungen und andere
+Vorgänge davon abhängig machen lassen, dass bestimmte Menschen anwesend sind und etwas in der
+echten Welt bezeugen. Gesucht sind Mechanismen menschlichen Handelns, die sich mit den Werkzeugen
+von MaR unabstreitbar abbilden lassen, ohne zentrale Instanz. „Aber es spricht natürlich nichts
+dagegen, wenn sich Menschen zusammenfinden und eben genau so eine zentrale Instanz gründen
+wollen, um freiwillig ihre eigenen Anliegen abzuwickeln und nicht andere zu etwas zu zwingen.“
+Oli lässt den Supervisor entscheiden, wie es eingetragen wird.
+
+**Befund 1 — die Vorlage, aus dem Gedächtnis, nicht nachgeschlagen.** Der Schlüssel liegt in
+Hardware-Tresoren an zwei Standorten. Einschalten lassen sie sich nur, wenn mehrere Crypto
+Officers mit je einer eigenen Smartcard zusammenkommen, mindestens drei von sieben; für die
+Sicherung halten weitere Treuhänder je einen Teil. Der Ablauf ist vorher geschrieben, wird live
+übertragen und von Prüfern begleitet, und die Anwesenden unterschreiben das Protokoll. Die
+Sicherheit liegt weniger in der Kryptografie als darin, dass eine Fälschung viele Menschen
+bräuchte, die gemeinsam, öffentlich und unter ihrem Namen lügen. Jeder Resolver übernimmt den
+Schlüssel freiwillig als seinen Anker. Eine Vorlage im deutschen Recht wäre die Beurkundung durch
+einen Notar; nicht nachgeschlagen.
+
+**Befund 2 — der Bestand hat die Lücke schon benannt.** `00 §9` (DR-026): die Gründung ist der
+wertbildende Akt, sie geschieht ausserhalb des Protokolls, und eine vergiftete Gründung kann
+kein Mechanismus intern erkennen; „eine Multi-Party-Seed-Zeremonie ist Policy, kein v1-Core.“
+FROST als Wurzel steht in `00` (`key_mode = 1`, D709 Befund 2); D166 nennt die Erzeugung für zwei
+Gründer schwer, „eine DKG-Zeremonie“. NFC-Tags als Zeugen einer Anwesenheit stehen ohne Auftrag
+in D641 Beschluss 7. `VISION §6`, das Orakel-Problem: so viel wie möglich beobachtbar machen, nur
+den Rest bezeugen.
+
+**Befund 3 — die Zeremonie zerlegt (D709 Beschluss 1).** Sieben Funktionen:
+
+| Funktion | in der Vorlage | Abbildung in MaR | Stand |
+|---|---|---|---|
+| keiner hält den Schlüssel allein | Smartcards, k von n | FROST mit verteilter Erzeugung | Wurzel in `00`, Erzeugung fehlt |
+| der Ablauf steht vorher fest | geschriebenes Skript | das Skript als Objekt, sein Hash in Satzung oder Vorlage | Muster der Vorlage gebaut |
+| wer dabei war | Anwesenheitsliste | jeder unterschreibt den Hash des Protokolls | Kosignatur gebaut |
+| nicht vorher | Datum | ein frischer öffentlicher Zufallswert im Protokoll | fehlt |
+| nicht nachher | Übertragung live | andere nennen das Protokoll in ihrer Kette (D704) | gebaut |
+| am selben Ort | Raum, Ausweis | gegenseitiges Scannen frischer Werte zeigt die Nähe der Geräte | fehlt |
+| unbeteiligte Zeugen | Prüfer, Notar | Zeugen mit Mandat, Rahmen nur das Bezeugen; die Satzung verlangt k von m | Mandat auf Papier (D710) |
+
+Neu wären zwei Stücke, „nicht vorher“ und die Nähe; das Übrige setzt sich aus Bausteinen zusammen,
+die es gibt oder die auf Papier stehen.
+
+**Befund 4 — die Grenzen.** Eine Signatur beweist einen Schlüssel, keinen Menschen. Bewiesen wird,
+dass Schlüssel diesen Inhalt im Zeitfenster unterschrieben haben; dass die Menschen dahinter im
+Raum waren, bleibt Zeugenaussage. Die Nähe zweier Geräte lässt sich über ein Telefon
+weiterreichen, das ein anderer trägt. Gegen echte Menschen, die sich absprechen, hilft auch die
+Zeremonie nicht (D20); sie macht die Lüge teurer und namentlich. Eine Bestätigung durch die
+Hardware, dass ein Schlüssel in einem Sicherheitschip liegt, führt zum Hersteller und damit zu
+einer Zentrale. Ein Gerät muss beliebige Nachrichten mit Ed25519 unterschreiben, damit seine
+Signatur als Claim taugt; FIDO2 tut das nach Kenntnisstand des Supervisors nicht, nicht
+nachgeschlagen. Ein live verankerter Hash schützt ein Video vor späterer Fälschung, nicht vor einer
+gestellten Szene.
+
+**Beschluss 1 — der Baustein steht unter „Fehlt“ in `LANDKARTE §6`.** Name „Bezeugte
+Anwesenheit: die Zeremonie“. Einen eigenen Abschnitt bekommt er, wenn ein Fall ihn braucht; der
+nächstliegende ist die Gründung.
+
+**Beschluss 2 — eine gewählte Zentrale ist Policy (Oli).** Das Protokoll braucht keine Stelle,
+verbietet aber keiner Gruppe, sich eine zu geben: einen Notar, einen Prüfer, einen festen
+Kreis von Zeugen. Die Satzung setzt das, etwa „die Gründung gilt mit zwei von drei benannten
+Zeugen“; jeder Leser sieht den Rahmen und gewichtet selbst, wer der Stelle nicht traut, bleibt
+draussen. Das ist dieselbe Lage wie beim Anker des DNS, den jeder Resolver ersetzen kann, und wie
+`anchor_set` im Genesis. Die Grenze aus D709 Beschluss 4 gilt weiter: keine Stelle hält allein
+fremden Wert. Ein Zeuge hält keinen, er bestätigt.
+
+**Beschluss 3 — die Reihenfolge bleibt.** Das Mandat geht vor (D712 Beschluss 6). Die Zeremonie
+braucht es für ihre Zeugen.
+
+**Geändert.** `LANDKARTE.md` (`§6`), `07-decisions.md`.

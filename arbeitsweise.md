@@ -12,9 +12,12 @@ Was sich je Sitzung ändert, steht in `sitzungsstart-*.md`. Was offen ist, steht
 
 ## 1. Rollen und Kanäle
 
-- **Oli**: Operator. Entscheidet, führt alle Shell-Befehle aus, tippt nichts selbst in Dateien.
-- **Der Supervisor** (Chatfenster): prüft gegen die Spec, rechnet Golden Numbers mit, schreibt
-  Registereinträge, Prompts und Abnahmen. Schreibt **keinen** Produktivcode.
+- **Oli**: entscheidet. Er führt keine Befehle aus und trägt weder Befehle noch Ausgaben zwischen
+  Supervisor und System hin und her (D713).
+- **Der Supervisor** (Claude Code im Repositorium): prüft gegen die Spec, rechnet Golden Numbers
+  mit, schreibt Registereinträge, Prompts und Abnahmen. Er liest selbst, was er braucht, und
+  führt git selbst aus: `add`, `commit`, `pull`, `push`, den Merge nach der Abnahme. Schreibt
+  **keinen** Produktivcode.
 - **Das Werkzeug** (Cursor / Claude Code): führt aus. Implementierung, Tests, Refactorings,
   Messungen, Diagnoseläufe. Seine stehenden Regeln stehen in `AGENTS.md §1–§6` (D421).
 - **Gitea** ist die geteilte Wahrheit. Die Kanäle reden über Commits.
@@ -34,11 +37,14 @@ benannte Entscheidung von ihrem Inhalt abhängt — dann aber vollständig, und 
 Das ändert die **Messung**, nicht die Abnahme. Die Abnahme bleibt beim Supervisor und bleibt am
 Diff.
 
-Der öffentliche Spiegel (`github.com/olisym/symbolon`, D317) wird direkt geklont oder
-gepullt, wenn eine Entscheidung von einem Dateiinhalt abhängt — der Supervisor tut das selbst.
-Vor dem Lesen steht ein Hash-Abgleich: der geklonte `HEAD` muss den gemeldeten Commit tragen,
-sonst wird neu gepullt, nicht gelesen (D325). Repomix bleibt ein optionales Diagnosewerkzeug,
-kein Pflichtschritt mehr.
+Der Supervisor liest den Arbeitsbaum und Gitea direkt; der öffentliche Spiegel
+(`github.com/olisym/symbolon`, D317) bleibt der Weg für einen Supervisor ohne Zugang zum
+Rechner. Vor dem Lesen steht ein Hash-Abgleich: der gelesene `HEAD` muss den gemeldeten Commit
+tragen, sonst wird neu gepullt, nicht gelesen (D325). Repomix bleibt ein optionales
+Diagnosewerkzeug, kein Pflichtschritt mehr.
+
+**Was nur in Olis Sitzung geht** (ein Passwort, ein interaktiver Login), schlägt der Supervisor
+als einen Befehl mit `! ` davor vor; die Ausgabe landet so im Gespräch (D713).
 
 ---
 
@@ -47,8 +53,10 @@ kein Pflichtschritt mehr.
 1. Ziel in einem Satz. Bei Implementierung: Abnahmekriterium messbar.
 2. **Modulcode vor Prompt** — alle betroffenen Quellen lesen, bevor ein Prompt entsteht.
 3. Forks benennen, Position beziehen, Golden Numbers rechnen. Registereintrag **vor** dem Prompt.
-4. Prompt schreiben, Lauf abwarten, Diff lesen, Abnahme.
-5. Merge. Defekte werden vor dem Merge auf demselben Branch behoben.
+4. Prompt schreiben, Lauf abwarten, Diff lesen, Abnahme. Den Auftrag legt der Supervisor unter
+   `~/auftraege` ab, legt den Branch an und committet den Prompt selbst.
+5. Merge, durch den Supervisor, angekündigt mit der Abnahme. Defekte werden vor dem Merge auf
+   demselben Branch behoben.
 
 **Der Vergleichspunkt eines Laufs ist der Prompt-Commit**, nicht der Branchpunkt der Spec-Reihe.
 
@@ -96,9 +104,15 @@ je Teilnehmer mit Inbox, deklarative Szenarien in JSON mit den Schritten `claim`
 
 ## 4. Risiko-Tiers
 
-**Tier 1 — irreversibel oder Historie berührend. Ein Befehl, Erwartung vorher fixieren.**
-`git push`, force-push, Merge nach `main`, Branch- oder Dateilöschung, `git add -A`,
-vollständige Ersetzung einer Spec-Datei ohne Hash-Abgleich.
+**Tier 1 — irreversibel oder Historie berührend. Oli vorher fragen.** Force-push, Historie
+umschreiben, Branch- oder Dateilöschung, vollständige Ersetzung einer Spec-Datei ohne
+Hash-Abgleich, ein Eingriff, der einen laufenden Dienst für andere unterbricht. `git add -A`
+gibt es nicht.
+
+**Tier 1a — nach aussen sichtbar. Ankündigen, Erwartung vorher fixieren.** `git push` und der
+Merge nach `main` nach der Abnahme. Gitea spiegelt nach GitHub (D317); ein Push ist damit
+öffentlich. Secrets kommen nie in einen Commit, ein Pre-Push-Hook wird respektiert, und blockt
+er, ist das ein Befund (D713).
 
 **Tier 2 — reversibel, lokal. Bündeln.** Commits auf einem Lauf-Branch, Schreiben im
 Arbeitsverzeichnis. Git ist der Rollback.
@@ -112,6 +126,40 @@ Im Zweifel eine Stufe tiefer. Eskalation braucht konkreten Grund.
 
 ## 5. Shell
 
+**Wer ausführt (D713).** Der Supervisor führt seine Befehle selbst aus, in der Shell von Claude
+Code; das ist nicht fish. Gelieferte Dateien gibt es nicht mehr: Spec-Dateien, Prompts und
+Skripte schreibt er direkt in den Baum oder nach `~/auftraege`, Zwischenstände in das
+Scratch-Verzeichnis der Sitzung, nicht nach `/tmp`. Die Regeln für Copy-Blöcke in fish stehen in
+`arbeitsweise §5.2` und gelten nur noch, wenn Oli selbst einen Block ausführt.
+
+### 5.1 Für jede Shell
+
+- **Grün heisst Exit-Status 0.** Wer eine Ausgabe auf `tail` kürzt, prüft den Status des ersten
+  Befehls selbst (`set -o pipefail` oder `${PIPESTATUS[0]}`, `AGENTS.md §4`, D573).
+- **`git --no-pager`** vor `diff`, `log` und `show`, sonst wartet `less` auf eine Taste.
+- **Abbruch einplanen.** Prüfungen stehen vor jeder Änderung (Branch, Basis-Commit, Basis-Hash der
+  Zieldatei), damit eine gescheiterte Prüfung nichts halb Geändertes hinterlässt.
+- **Nur ausgeben, was die Entscheidung braucht.** Erfolgreiche Zwischenschritte schweigen,
+  Zählungen und Prüfsummen erscheinen als eine Zeile. `git diff` für die Abnahme bleibt
+  vollständig.
+- **`grep` ohne `-E` kennt kein `|` als Alternative.** **`grep -c` liefert bei null Treffern
+  Status 1**; eine Zählzeile, die null ergeben *darf*, geht auf `| cat`.
+- **`diff a b > datei` liefert Status 1**, wenn sich die Dateien unterscheiden.
+- **Eine lange Ausgabe** wird aggregiert und die volle Liste in eine Datei geschrieben; ein
+  `| cut -c1-150` verhindert den Umbruch.
+- **`go` liegt nicht im `PATH`.** Die Toolchain steht unter `~/sdk/go/bin/go`.
+- **Die Werkzeuge unter `tools/` laufen nur als Modul.** `python -m tools.gitter`.
+- **`.venv/bin/python -m pytest -q`, nie bares `pytest`.** `/usr/bin/python` trägt kein
+  pytest; die Zeile `python -m pytest` scheitert mit `No module named pytest`. `make check`
+  und `make check-all` wählen den Interpreter selbst.
+- **Nach dem Merge steht `git push` vor `git branch -d`** (Prüfregel 58); die Löschung ist
+  Tier 1.
+- **`git add` mit expliziten Pfaden, nie `-A`.** Neue Dateien vor `make check` adden, sonst danach.
+- **Neue Dateien kommen nach dem Splice, nicht davor.** `splice_run.py` verlangt einen sauberen
+  Arbeitsbaum und scheitert schon an einer unverfolgten Datei.
+
+### 5.2 Wenn Oli selbst einen Block ausführt
+
 Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
 
 - **Nie `and` innerhalb einer Pipe.** `sha256sum -c` am Pipe-Ende und eine Pipe auf `tail`, `cat`,
@@ -120,54 +168,19 @@ Fish. Ein Job pro Zeile, `and` am Zeilenanfang, nie `;`. Kein Heredoc.
   danach `grep -q '^789 passed' /tmp/x.txt`.
 - **Jeder Block trägt Marken.** Vor jedem Abschnitt ein `echo "== NAME =="`, am Ende ein
   `echo "== FERTIG =="`. Fehlt die Schlussmarke, ist die Kette abgebrochen — unabhängig davon,
-  ob die letzte sichtbare Zeile erfolgreich aussieht. Jede Prüfgruppe trägt eine eigene Marke:
-  `HASH` vor den Lieferungen, `BASIS` vor Branch, Commit und Zieldateien. Die Marken stehen mit
-  `and` in der Kette, damit sie mit ihr abbrechen; ein `echo` scheitert nicht von selbst (D418).
+  ob die letzte sichtbare Zeile erfolgreich aussieht. Die Marken stehen mit `and` in der Kette,
+  damit sie mit ihr abbrechen; ein `echo` scheitert nicht von selbst (D418).
 - **Keine Ausgabe heisst: der Block ist nicht gelaufen.**
-- **Lieferungen über `/tmp`.** Oli legt gelieferte Dateien in `/tmp` ab. Der Lieferblock prüft
-  zuerst den Hash jeder Lieferung und den Basisstand der Zieldatei, erst dann wird ersetzt.
-  Letzter Job vor `== FERTIG ==` ist `rm` der gelieferten Dateien, in der `and`-Kette: bricht der
-  Block ab, bleiben sie für den zweiten Anlauf liegen. Eine liegengebliebene Altversion lässt den
-  Browser die neue als `name (1).md` ablegen (D414).
-- **`git --no-pager`** vor `diff`, `log` und `show`, sonst wartet `less` auf eine Taste.
-- **Abbruch einplanen.** Prüfungen stehen vor jeder Änderung (Hash, Branch, Basis-Commit,
-  Basis-Hash der Zieldatei), damit eine gescheiterte Prüfung nichts halb Geändertes hinterlässt.
-  `git push` und der Merge nach `main` stehen als eigener Befehl ausserhalb des Blocks.
-- **Nur ausgeben, was die Rückantwort braucht.** Erfolgreiche Zwischenschritte schweigen,
-  Zählungen und Prüfsummen erscheinen als eine Zeile. `git diff` für die Abnahme bleibt
-  vollständig.
 - **`string`-Kommandos in einer `and`-Kette sind eine Falle.** `string trim`, `string match` und
   `string replace` liefern Status 1, wenn sie nichts zu tun hatten. Kommandosubstitution entfernt
   Whitespace bereits selbst.
 - **`set -l` und verschachtelte Kommandosubstitution gehören nicht in einen Copy-Block.**
-- **Glob-Argumente quoten.** Ein Glob ohne Treffer bricht die Kette, auch vor einem `rm -f`. Zum
-  Aufräumen `find /tmp -maxdepth 1 -name 'splice-*.py' -delete`.
-- **`grep` ohne `-E` kennt kein `|` als Alternative.** **`grep -c` liefert bei null Treffern
-  Status 1**; eine Zählzeile, die null ergeben *darf*, geht auf `| cat`.
-- **`diff a b > datei` bricht die Kette**, weil `diff` bei Unterschieden Status 1 liefert.
-- **`ls` ist beim Operator `eza`.** `-t` heisst dort `--time <FELD>`, nicht „nach Zeit
-  sortieren". Wer die Semantik von GNU-`ls` braucht, schreibt `command ls` (D422).
-- **Kommandosubstitution in doppelten Anführungszeichen wird in fish nicht ausgeführt.** Der Weg,
-  der trägt: die Zahlen mit `printf` und Kommandosubstitution **außerhalb** von
-  Anführungszeichen in eine Datei schreiben, dann `--header-text "$(cat /tmp/stand.txt)"`.
+- **Glob-Argumente quoten.** Ein Glob ohne Treffer bricht die Kette, auch vor einem `rm -f`.
+- **`ls` ist bei Oli `eza`.** `-t` heisst dort `--time <FELD>`, nicht „nach Zeit sortieren".
+  Wer die Semantik von GNU-`ls` braucht, schreibt `command ls` (D422).
+- **Kommandosubstitution in doppelten Anführungszeichen wird in fish nicht ausgeführt.**
 - **Ein Fragment aus einem Antwortabsatz gehört nicht in den Block.** Der Block wird vor dem
   Absenden von hinten gelesen.
-- **Eine lange Ausgabe passt nicht in jedes Konsolenfenster.** Diagnoseskripte **aggregieren** und
-  schreiben die volle Liste in eine Datei; ein `| cut -c1-150` verhindert den Umbruch.
-- **`go` liegt nicht im `PATH`.** Die Toolchain steht unter `~/sdk/go/bin/go`.
-- **Die Werkzeuge unter `tools/` laufen nur als Modul.** `python -m tools.gitter`.
-- **`.venv/bin/python -m pytest -q`, nie bares `pytest`.** `/usr/bin/python` trägt kein
-  pytest; die Zeile `python -m pytest` scheitert mit `No module named pytest`. `make check`
-  und `make check-all` wählen den Interpreter selbst.
-- **Im Merge-Block steht `git push` vor `git branch -d`** (Prüfregel 58).
-- **`git add` mit expliziten Pfaden, nie `-A`.** Neue Dateien vor `make check` adden, sonst danach.
-- **Neue Dateien kommen nach dem Splice, nicht davor.** `splice_run.py` verlangt einen sauberen
-  Arbeitsbaum und scheitert schon an einer unverfolgten Datei.
-- **Hash-Test als erster Job** bei jeder gelieferten Datei. Bei Ersetzungen zusätzlich
-  `git diff --quiet`. Mehrere Hashes prüft ein `printf` mit wiederholtem Format, Ausgabe in
-  `sha256sum -c`.
-- **Spec-Dateien, Prompts und Skripte als Download**, nicht als Copy-Block. **Eine Datei, die
-  erzeugt und nicht ausgeliefert wurde, existiert für Oli nicht.**
 
 ---
 
@@ -223,7 +236,11 @@ Ein Splice ist ein Skript mit `assert`, dass der Anker genau einmal vorkommt. Ge
 `.venv/bin/python tools/splice_run.py /tmp/splice-*.py` (D225). **Die Meldung `AssertionError`
 gefolgt von `zweiter Lauf gescheitert` ist die Erfolgsmeldung.**
 
-- **Das Skript liegt in `/tmp`.** `ROOT = Path.cwd()`, nicht `Path(__file__).parent`.
+Seit D713 ändert der Supervisor Dateien direkt und prüft danach den Diff. Ein Splice bleibt der
+Weg für eine Änderung, die an einem gelesenen Anker hängt und wiederholbar sein soll.
+
+- **Das Skript liegt im Scratch-Verzeichnis der Sitzung.** `ROOT = Path.cwd()`, nicht
+  `Path(__file__).parent`.
 - **Das Skript wird erzeugt, nicht getippt.** Der Anker wird aus der Zieldatei **gelesen**.
 - **Ein Skript mit mehreren Paaren rechnet erst alles und schreibt dann.**
 - **Der Assert prüft das Ergebnis, nicht den eingesetzten Text** (Prüfregel 42). Der belastbare
@@ -304,9 +321,9 @@ Weitere steht in `arbeitsweise.md`, `offen.md` und `pruefregeln.md`.
 
 ### Am Sitzungsende
 
-Der Supervisor schreibt die Datei und liefert sie als Download. Sie kommt in die Wurzel und wird
-committet; der Commit trägt den Präfix der schreibenden Sitzung. Im selben Commit wandert eine
-ältere Übergabedatei nach `archiv/`.
+Der Supervisor schreibt die Datei in die Wurzel und committet sie selbst; der Commit trägt den
+Präfix der schreibenden Sitzung. Im selben Commit wandert eine ältere Übergabedatei nach
+`archiv/`.
 
 ### Am Sitzungsanfang
 

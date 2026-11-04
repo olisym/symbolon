@@ -32202,3 +32202,52 @@ Anchors MV-1 bis MV-24 und ein Auftrag.
 
 **Geändert.** `07-decisions.md`; auf `proto-mandat` `symbolon/governance/mandate.py`,
 `symbolon/policy.py` und `tests/governance/test_mandat.py`.
+
+### D713 — Die Arbeitsweise: der Supervisor führt selbst aus, Oli entscheidet
+
+**Anlass.** Olis Anweisung vom 04.11.2026 für alle seine Projekte: Claude führt git selbst aus und
+liest selbst, was es braucht, „so wie am Home Assistant“. Oli kennt sich mit git nicht aus und will
+nicht Befehle und Ausgaben zwischen Claude und dem System hin und her tragen. `arbeitsweise §1`,
+`arbeitsweise §5` und `AGENTS.md §5` beschrieben noch den alten Weg; Oli lässt die Umstellung
+dem Baustein der Zeremonie vorziehen.
+
+**Beschluss 1 — die Rollen (Oli).** Oli entscheidet und führt keine Befehle mehr aus. Der
+Supervisor arbeitet in Claude Code im Repositorium, liest Arbeitsbaum und Gitea selbst und führt
+git selbst aus: `add`, `commit`, `pull`, `push`, den Merge nach der Abnahme. Auftrag ablegen,
+Branch anlegen und den Prompt committen gehören dazu. Was nur in Olis Sitzung geht, ein Passwort
+oder ein interaktiver Login, schlägt er als einen Befehl mit `! ` davor vor. Produktivcode
+schreibt weiter das Werkzeug.
+
+**Beschluss 2 — was gefragt bleibt (Oli).** Vorher fragen: force-push, Historie umschreiben,
+Branch- oder Dateilöschung, ein Eingriff, der einen laufenden Dienst für andere unterbricht. Ein
+gewöhnlicher Push und der Merge nach `main` werden angekündigt, nicht erfragt, als neues Tier 1a.
+Ein Push ist über den Spiegel öffentlich (D317); Secrets kommen nie in einen Commit, ein
+Pre-Push-Hook wird respektiert, und blockt er, ist das ein Befund.
+
+**Beschluss 3 — das Werkzeug pusht seinen Branch.** `AGENTS.md §5` hiess „kein Merge, kein
+Push“; den Push des Auftrags-Branches machte Oli. Jetzt pusht das Werkzeug genau seinen
+Auftrags-Branch, nie `main`, nie mit Gewalt. So liest der Supervisor den Diff ohne Zwischenschritt
+(D491). Kein Merge bleibt.
+
+**Beschluss 4 — die Shell.** Die Copy-Blöcke in fish mit Marken, Lieferungen über `/tmp` mit
+Hash-Test und Dateien als Download entfallen. Was für jede Shell gilt, steht in
+`arbeitsweise §5.1`; die Regeln für fish in `arbeitsweise §5.2`, für den Fall, dass Oli selbst
+einen Block ausführt. Zwischenstände liegen im Scratch-Verzeichnis der Sitzung. Ein Splice bleibt
+möglich, ist aber nicht mehr der Regelweg; der Supervisor ändert direkt und prüft den Diff.
+
+**Beschluss 5 — was gleich bleibt.** Die Hausregeln: Commit-Stil mit dem Präfix der Sitzung,
+`git add` mit expliziten Pfaden, `make check` grün vor dem Commit, der Bericht ist nie die Abnahme
+(Prüfregel 56), Registereintrag vor dem Prompt.
+
+**Rückfrage — wer den Lauf des Werkzeugs startet.** Bis zur Entscheidung startet Oli ihn mit dem
+Pfad der Auftragsdatei; das ist der letzte Handgriff. Der Supervisor könnte einen getrennten Lauf
+in einem eigenen Worktree selbst starten. Zu prüfen ist dann, ob ein Zeugenlauf so unabhängig vom
+Supervisor bleibt, wie D389 es verlangt.
+
+**Befund — der Name der Übergabedatei.** `arbeitsweise §10` sagt, die Datei heisse nach der
+Sitzung, die sie schreibt. Seit D708 und D711 heisst sie nach der Sitzung, die sie startet:
+`sitzungsstart-00e5.md` entstand in `00e4`. Nicht geändert; zu entscheiden bei der nächsten
+Übergabe.
+
+**Geändert.** `arbeitsweise.md` (`§1`, `§2`, `§4`, `§5` neu gegliedert, `§7`, `§10`), `AGENTS.md`
+(`§5`), `07-decisions.md`.

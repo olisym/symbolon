@@ -48,11 +48,13 @@ trägt Verfahren, keine Norm und keinen Auftrag.
 
 ## 5. Abschluss
 
-- **Ein Commit auf dem Auftrags-Branch. Kein Merge, kein Push.**
+- **Ein Commit auf dem Auftrags-Branch, gepusht auf genau diesen Branch.** Kein Merge, kein
+  Push auf `main`, kein force-push. Blockt ein Pre-Push-Hook, wird nicht umgangen, sondern
+  gemeldet (D713).
 - Der Bericht enthält den Commit-Hash, `git diff --stat` gegen den Basis-Commit, das Ergebnis von
   `make check`, jede Rücknahmeprobe mit dem Test, der rot wurde, jede Meldung aus §3 und jede
   Stelle, an der dem Auftrag nicht zu folgen war. Den Diff selbst enthält er nicht: der
-  Supervisor liest ihn aus dem Spiegel, sobald der Branch gepusht ist (D491).
+  Supervisor liest ihn selbst aus dem Repositorium (D491, D713).
 - Der Bericht ist nicht die Abnahme. Geprüft wird der Diff.
 
 ## 6. Diese Datei
